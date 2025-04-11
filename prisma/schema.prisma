@@ -1,0 +1,186 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Team {
+  id          String      @id @default(uuid())
+  name        String
+  description String
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  
+  // Creator of the team
+  createdById String
+  createdBy   User        @relation("CreatedTeams", fields: [createdById], references: [id])
+  
+  // Team memberships
+  members     MemberTeam[]
+  
+  // Keep the direct relation temporarily for backward compatibility
+  users       User[]      @relation("TeamToUser")
+  
+  knowledge   Knowledge[] @relation("TeamKnowledge")
+  
+  // Agent ownership relation
+  ownedAgents Agent[]     @relation("TeamOwnedAgents")
+}
+
+model MemberTeam {
+  id         String    @id @default(uuid())
+  role       String    // "owner", "admin", "maintainer", "developer", "guest"
+  joinedAt   DateTime  @default(now())
+  leftAt     DateTime?  // null if still active in the team
+  
+  // Relations
+  team       Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     String
+
+  // Ensure each user can only have one active record per team
+  @@unique([userId, teamId])
+}
+
+model Knowledge {
+  id          String   @id @default(uuid())
+  name        String
+  description String
+  config      Json?   
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now())
+  
+  // Creator relationship - always required
+  createdBy   User     @relation(fields: [userId], references: [id], name: "CreatedKnowledge")
+  userId      String
+  
+  // Optional associations
+  users       User[]   @relation("UserKnowledge")
+  teams       Team[]   @relation("TeamKnowledge")
+  
+  // Files associated with this knowledge
+  files       File[]
+}
+
+model User {
+  id             String      @id @default(uuid())
+  name           String
+  code           String
+  password       String
+  email          String
+  description    String
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  permission     String      @default("guest") // "owner", "maintainer", "developer", "guest"
+  
+  // Teams created by this user
+  createdTeams   Team[]      @relation("CreatedTeams")
+  
+  // Team memberships
+  teamMemberships MemberTeam[]
+  
+  // Keep the direct relation temporarily for backward compatibility
+  teams          Team[]      @relation("TeamToUser")
+  
+  // Knowledge created by this user
+  createdKnowledge Knowledge[] @relation("CreatedKnowledge")
+  
+  // Knowledge associated with this user
+  knowledge      Knowledge[] @relation("UserKnowledge")
+  
+  // Agent ownership relation
+  ownedAgents    Agent[]     @relation("UserOwnedAgents")
+  
+  // Agents created by this user
+  createdAgents  Agent[]     @relation("AgentCreatedBy")
+
+
+  FileParsingTask FileParsingTask[] @relation("FileParsingTaskCreatedBy")
+}
+
+// Update the File model to include parsing status
+model File {
+  id          String    @id @default(uuid())
+  filename    String
+  originalName String
+  path        String
+  mimetype    String
+  size        Int
+  content     String?   // New field to store parsed file content
+  config      Json?   
+  createdAt   DateTime  @default(now())
+  parsingStatus String?  // "pending", "completed", "failed", null
+  
+  // Relationship with Knowledge
+  knowledge   Knowledge @relation(fields: [knowledgeId], references: [id], onDelete: Cascade)
+  knowledgeId String
+  
+  // Relation to parsing tasks
+  parsingTasks FileParsingTask[]
+
+  TextChunk TextChunk[]
+}
+
+// New model for file parsing tasks
+model FileParsingTask {
+  id          String    @id @default(uuid())
+  status      String    // "pending", "processing", "completed", "failed"
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  completedAt DateTime?
+  message     String?   // Changed from errorMessage to message - stores logs, errors, and task information
+  
+  // Relationship with File
+  file        File      @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  fileId      String
+  
+  // Creator of the task
+  createdBy   User      @relation("FileParsingTaskCreatedBy",fields: [createdById], references: [id])
+  createdById String
+}
+
+// New Agent model
+model Agent {
+  id              String    @id @default(uuid())
+  name            String
+  description     String
+  flowConfig      String    // JSON string to store react-flow configuration
+  isActive        Boolean   @default(true)
+  ownerType       String    // "user" or "team"
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @default(now())
+  
+  // Creator relationship
+  createdBy       User      @relation("AgentCreatedBy", fields: [createdById], references: [id])
+  createdById     String
+  
+  // User ownership (optional)
+  user            User?     @relation("UserOwnedAgents", fields: [userId], references: [id])
+  userId          String?
+  
+  // Team ownership (optional)
+  team            Team?     @relation("TeamOwnedAgents", fields: [teamId], references: [id])
+  teamId          String?
+  
+  // Ensure either userId or teamId is set, but not both simultaneously
+}
+
+model TextChunk {
+  id            String   @id @default(uuid())
+  fileId        String
+  content       String   
+  chunkIndex    Int
+  metadata      Json?
+  vectorData    String?  // Add this field to store serialized vector data
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  file          File     @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  
+  @@index([fileId])
+  @@map("text_chunks")
+}

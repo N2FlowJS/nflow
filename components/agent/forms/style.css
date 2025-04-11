@@ -1,0 +1,37 @@
+.node-form .form-collapse .ant-collapse-header {
+  padding: 8px 12px;
+}
+
+.node-form .form-collapse .ant-collapse-content-box {
+  padding: 8px 12px;
+}
+
+.node-form .ant-form-item {
+  margin-bottom: 12px;
+}
+
+.node-form .ant-collapse {
+  background: transparent;
+}
+
+.node-form .ant-input-textarea {
+  resize: none;
+}
+
+/* Category collapse specific styles */
+.node-form .category-collapse .ant-collapse-header {
+  padding: 4px 8px;
+}
+
+.node-form .category-collapse .ant-collapse-content-box {
+  padding: 6px 8px;
+}
+
+.node-form .ant-divider-horizontal.ant-divider-with-text {
+  margin: 8px 0;
+  font-size: 12px;
+}
+
+.node-form .ant-divider-inner-text {
+  color: rgba(0, 0, 0, 0.45);
+}

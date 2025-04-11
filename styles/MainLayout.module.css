@@ -1,0 +1,115 @@
+.layoutContainer {
+  min-height: 100vh;
+}
+
+.header {
+  padding: 0;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  display: flex;
+  justify-content: space-between;
+}
+
+.headerLight {
+  background: #fff;
+}
+
+.headerDark {
+  background: #141414;
+}
+
+.logoContainer {
+  display: flex;
+  align-items: center;
+}
+
+.logo {
+  font-weight: bold;
+  font-size: 18px;
+  padding: 0 24px;
+  cursor: pointer;
+}
+
+.desktopMenu {
+  display: block;
+}
+
+.menuTransparent {
+  background: transparent;
+  border-bottom: none;
+}
+
+.mobileMenuButton {
+  margin-right: 16px;
+}
+
+.content {
+  padding: 0 20px;
+  flex: 1;
+}
+
+.contentLight {
+  background: #f5f5f5;
+}
+
+.contentDark {
+  background: #141414;
+}
+
+.titleContainer {
+  text-align: center;
+  margin: 16px 0;
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.titleContainerLight {
+  background: #fff;
+}
+
+.titleContainerDark {
+  background: #1f1f1f;
+}
+
+.titleHeading {
+  margin: 0;
+  font-size: 20px;
+}
+
+.mainContent {
+  padding: 24px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  margin-top: 20px;
+}
+
+.mainContentLight {
+  background: #fff;
+}
+
+.mainContentDark {
+  background: #1f1f1f;
+}
+
+.footer {
+  text-align: center;
+}
+
+.footerLight {
+  background: #f0f2f5;
+}
+
+.footerDark {
+  background: #141414;
+}
+
+/* Media queries for responsive design */
+@media (max-width: 768px) {
+  .desktopMenu {
+    display: none;
+  }
+}
