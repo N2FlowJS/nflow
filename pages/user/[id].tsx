@@ -1,13 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import {
-  Card, Form, Input, Button, Spin,
-  Typography, Space, message, Breadcrumb, Tabs, Table, Modal, Tag, Select, Switch, Popconfirm
-} from 'antd';
-import {
-  ArrowLeftOutlined, SaveOutlined, TeamOutlined, PlusOutlined,
-  RobotOutlined, CrownOutlined, UserOutlined, LockOutlined,
-  ApiOutlined, SettingOutlined, CheckCircleOutlined, StopOutlined, EditOutlined, DeleteOutlined, ExperimentOutlined
-} from '@ant-design/icons';
+import { Spin, Space, message, Breadcrumb, Tabs, Form, Alert, Skeleton, Button } from 'antd';
+import { UserOutlined, LockOutlined, ApiOutlined, TeamOutlined, RobotOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/router';
 import { useLocale } from '../../locale';
 import { useTheme } from '../../theme';
@@ -18,32 +11,21 @@ import { createAgent } from "../../services/agentService";
 import { updateUser, fetchUserById } from "../../services/userService";
 import { IUser } from '../../types/IUser';
 import PasswordChangeForm from '../../components/profile/PasswordChangeForm';
-import LLMProviderPreferences from '../../components/profile/LLMProviderPreferences';
 import { checkAuthentication, redirectToLogin } from '../../services/authUtils';
-import LLMProviderForm from '../../components/llm/LLMProviderForm';
 import { fetchUserLLMProviders, createUserLLMProvider, deleteUserLLMProvider, updateUserLLMProvider } from '../../services/llmService';
 import { LLMProvider } from '../../types/llm';
 
-const { Title, Text } = Typography;
+// Import our new components
+import UserProfileHeader from '../../components/user/UserProfileHeader';
+import UserProfileTab from '../../components/user/UserProfileTab';
+import UserLLMTab from '../../components/user/UserLLMTab';
+import UserTeamsTab from '../../components/user/UserTeamsTab';
+import UserAgentsTab from '../../components/user/UserAgentsTab';
+import TeamCreationModal from '../../components/user/modals/TeamCreationModal';
+import AgentCreationModal from '../../components/user/modals/AgentCreationModal';
+import LLMProviderModal from '../../components/user/modals/LLMProviderModal';
+
 const { TabPane } = Tabs;
-
-interface Team {
-  id: string;
-  name: string;
-  description: string;
-  role?: string; // Add role property to interface
-}
-
-// Add Agent interface
-interface Agent {
-  id: string;
-  name: string;
-  description: string;
-  isActive: boolean;
-  ownerType: string;
-  createdAt: string;
-  updatedAt: string;
-}
 
 export default function UserDetail() {
   const router = useRouter();
@@ -69,7 +51,6 @@ export default function UserDetail() {
   const [llmProviders, setLLMProviders] = useState<LLMProvider[]>([]);
   const [llmProviderLoading, setLLMProviderLoading] = useState(false);
   const [llmActionLoading, setLLMActionLoading] = useState(false);
-  const [llmProviderForm] = Form.useForm();
 
   // Check authentication
   const validateAuthentication = async () => {
@@ -103,14 +84,7 @@ export default function UserDetail() {
 
     setLoading(true);
     try {
-      // Use userService instead of direct fetch call
       const data = await fetchUserById(id as string);
-
-      // Check if teamsWithRoles exists in the data
-      if (!data.teamsWithRoles) {
-        console.warn('teamsWithRoles not found in API response', data);
-      }
-
       setUser(data);
 
       // Set form values
@@ -147,7 +121,7 @@ export default function UserDetail() {
       const authData = await validateAuthentication();
       if (authData && id) {
         await fetchUserDetail();
-        await fetchUserProviders(); // Add this line to fetch providers
+        await fetchUserProviders();
       }
     };
 
@@ -169,35 +143,19 @@ export default function UserDetail() {
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
+      const updatedUser = await updateUser(id as string, values);
 
-      try {
-        // Use userService instead of direct fetch call
-        const updatedUser = await updateUser(id as string, values);
-
-        if (updatedUser) {
-          message.success('User updated successfully');
-          fetchUserDetail();
-          setIsEditing(false);
-        } else {
-          message.error('Failed to update user');
-        }
-      } catch (error) {
-        console.error('Error updating user:', error);
+      if (updatedUser) {
+        message.success('User updated successfully');
+        fetchUserDetail();
+        setIsEditing(false);
+      } else {
         message.error('Failed to update user');
       }
     } catch (error) {
       console.error('Form validation error:', error);
+      message.error('Failed to update user');
     }
-  };
-
-  const showTeamModal = () => {
-    teamForm.resetFields();
-    setIsTeamModalVisible(true);
-  };
-
-  const handleTeamModalCancel = () => {
-    setIsTeamModalVisible(false);
-    teamForm.resetFields();
   };
 
   const handleCreateTeam = async () => {
@@ -206,18 +164,12 @@ export default function UserDetail() {
       setCreatingTeam(true);
 
       try {
-        // Use the teamService instead of direct fetch call
         const newTeam = await createTeam(values);
-
         if (newTeam) {
           message.success('Team created successfully');
           setIsTeamModalVisible(false);
           teamForm.resetFields();
-
-          // Refresh user data to show the new team
           fetchUserDetail();
-        } else {
-          message.error('Failed to create team');
         }
       } catch (error) {
         console.error('Error creating team:', error);
@@ -230,24 +182,12 @@ export default function UserDetail() {
     }
   };
 
-  // Agent-related functions
-  const showAgentModal = () => {
-    agentForm.resetFields();
-    setIsAgentModalVisible(true);
-  };
-
-  const handleAgentModalCancel = () => {
-    setIsAgentModalVisible(false);
-    agentForm.resetFields();
-  };
-
   const handleCreateAgent = async () => {
     try {
       const values = await agentForm.validateFields();
       setCreatingAgent(true);
 
       try {
-        // Prepare payload with owner info
         const agentData = {
           ...values,
           ownerType: 'user',
@@ -255,18 +195,12 @@ export default function UserDetail() {
           flowConfig: JSON.stringify({ nodes: [], edges: [] })
         };
 
-        // Use service function instead of direct fetch
         const newAgent = await createAgent(agentData);
-
         if (newAgent) {
           message.success('Agent created successfully');
           setIsAgentModalVisible(false);
           agentForm.resetFields();
-
-          // Refresh user data to show the new agent
           fetchUserDetail();
-        } else {
-          message.error('Failed to create agent');
         }
       } catch (error: any) {
         console.error('Error creating agent:', error);
@@ -279,107 +213,6 @@ export default function UserDetail() {
     }
   };
 
-  const getRoleColor = (role: string) => {
-    switch (role) {
-      case 'owner':
-        return 'gold';
-      case 'admin':
-        return 'red';
-      case 'maintainer':
-        return 'volcano';
-      case 'developer':
-        return 'geekblue';
-      case 'guest':
-        return 'green';
-      default:
-        return 'default';
-    }
-  };
-
-  const getRoleBadge = (role: string) => {
-    if (role === 'owner') {
-      return <Tag color="gold" icon={<CrownOutlined />}>{role.toUpperCase()}</Tag>;
-    }
-
-    // Use the getRoleColor function to maintain consistency
-    const color = getRoleColor(role);
-    return <Tag color={color}>{role.toUpperCase()}</Tag>;
-  };
-
-  const teamColumns = [
-    {
-      title: 'Name',
-      dataIndex: 'name',
-      key: 'name',
-      render: (text: string, record: Team) => (
-        <a onClick={() => router.push(`/team/${record.id}`)}>{text}</a>
-      ),
-    },
-    {
-      title: 'Description',
-      dataIndex: 'description',
-      key: 'description',
-    },
-    {
-      title: 'Role',
-      dataIndex: 'role',
-      key: 'role',
-      render: (role: string) => getRoleBadge(role)
-    },
-    {
-      title: 'Joined',
-      dataIndex: 'joinedAt',
-      key: 'joinedAt',
-      render: (date: string) => date ? new Date(date).toLocaleDateString() : '-',
-    }
-  ];
-
-  const agentColumns = [
-    {
-      title: 'Name',
-      dataIndex: 'name',
-      key: 'name',
-      render: (text: string, record: Agent) => (
-        <Link href={`/agent/${record.id}`}>{text}</Link>
-      ),
-    },
-    {
-      title: 'Description',
-      dataIndex: 'description',
-      key: 'description',
-      ellipsis: true,
-    },
-    {
-      title: 'Status',
-      dataIndex: 'isActive',
-      key: 'isActive',
-      render: (isActive: boolean) => (
-        <Tag color={isActive ? 'green' : 'red'}>
-          {isActive ? 'Active' : 'Inactive'}
-        </Tag>
-      ),
-    },
-    {
-      title: 'Last Updated',
-      dataIndex: 'updatedAt',
-      key: 'updatedAt',
-      render: (date: string) => new Date(date).toLocaleString(),
-    },
-    {
-      title: 'Actions',
-      key: 'actions',
-      render: (_: any, record: Agent) => (
-        <Button
-          type="primary"
-          size="small"
-          onClick={() => router.push(`/agent/${record.id}`)}
-        >
-          View
-        </Button>
-      ),
-    },
-  ];
-
   // Handle adding a new LLM provider
   const handleAddLLMProvider = async (values: any) => {
     try {
@@ -387,7 +220,7 @@ export default function UserDetail() {
       await createUserLLMProvider(id as string, values);
       message.success('Provider added successfully');
       setIsLLMProviderModalVisible(false);
-      fetchUserProviders(); // Refresh data
+      fetchUserProviders();
     } catch (error) {
       console.error('Error adding provider:', error);
       message.error('Failed to add provider');
@@ -405,7 +238,7 @@ export default function UserDetail() {
       await updateUserLLMProvider(editingLLMProvider.id, values);
       message.success('Provider updated successfully');
       setIsEditLLMProviderModalVisible(false);
-      fetchUserProviders(); // Refresh data
+      fetchUserProviders();
     } catch (error) {
       console.error('Error updating provider:', error);
       message.error('Failed to update provider');
@@ -420,7 +253,7 @@ export default function UserDetail() {
       setLLMActionLoading(true);
       await deleteUserLLMProvider(providerId);
       message.success('Provider deleted successfully');
-      fetchUserProviders(); // Refresh data
+      fetchUserProviders();
     } catch (error) {
       console.error('Error deleting provider:', error);
       message.error('Failed to delete provider');
@@ -429,117 +262,18 @@ export default function UserDetail() {
     }
   };
 
-  // Get provider type tag for display
-  const getProviderTypeTag = (type: string) => {
-    let color = '';
-    let icon = null;
-    let label = type;
-
-    switch (type) {
-      case 'openai':
-        color = 'green';
-        icon = <ApiOutlined />;
-        label = 'OpenAI';
-        break;
-      case 'openai-compatible':
-        color = 'cyan';
-        icon = <ApiOutlined />;
-        label = 'OpenAI Compatible';
-        break;
-      case 'azure':
-        color = 'blue';
-        icon = <ApiOutlined />;
-        label = 'Azure';
-        break;
-      case 'anthropic':
-        color = 'purple';
-        icon = <ApiOutlined />;
-        label = 'Anthropic';
-        break;
-      case 'local':
-        color = 'orange';
-        icon = <ExperimentOutlined />;
-        label = 'Local';
-        break;
-      case 'custom':
-        color = 'geekblue';
-        icon = <ExperimentOutlined />;
-        label = 'Custom';
-        break;
-      default:
-        color = 'default';
-        break;
-    }
-
-    return <Tag color={color} icon={icon}>{label}</Tag>;
-  };
-
-  // Define columns for the providers table
-  const llmProviderColumns = [
-    {
-      title: 'Provider Name',
-      dataIndex: 'name',
-      key: 'name',
-      render: (text: string) => <Text strong>{text}</Text>,
-    },
-    {
-      title: 'Type',
-      dataIndex: 'providerType',
-      key: 'providerType',
-      render: (type: string) => getProviderTypeTag(type),
-    },
-    {
-      title: 'Models',
-      dataIndex: 'models',
-      key: 'models',
-      render: (models: any[]) => (
-        <span>{models?.length || 0} models</span>
-      ),
-    },
-    {
-      title: 'Status',
-      key: 'status',
-      dataIndex: 'isActive',
-      render: (isActive: boolean) => (
-        <Tag color={isActive ? 'success' : 'error'} icon={isActive ? <CheckCircleOutlined /> : <StopOutlined />}>
-          {isActive ? 'Active' : 'Inactive'}
-        </Tag>
-      ),
-    },
-    {
-      title: 'Actions',
-      key: 'actions',
-      render: (record: LLMProvider) => (
-        <Space>
-          <Button
-            icon={<EditOutlined />}
-            type="text"
-            onClick={() => {
-              setEditingLLMProvider(record);
-              setIsEditLLMProviderModalVisible(true);
-            }}
-          />
-          <Popconfirm
-            title="Delete this provider?"
-            description="This will delete the provider and all associated models. This action cannot be undone."
-            onConfirm={() => handleDeleteLLMProvider(record.id)}
-            okText="Delete"
-            cancelText="Cancel"
-            okButtonProps={{ danger: true }}
-          >
-            <Button type="text" danger icon={<DeleteOutlined />} />
-          </Popconfirm>
-        </Space>
-      ),
-    },
-  ];
-
   if (authError) {
     return (
       <MainLayout title="Authentication Error">
         <div style={{ padding: '24px', textAlign: 'center' }}>
-          <Title level={4}>{authError}</Title>
-          <p>Redirecting to login...</p>
+          <Alert
+            message="Authentication Error"
+            description={authError}
+            type="error"
+            showIcon
+            style={{ maxWidth: 500, margin: '0 auto' }}
+          />
+          <p style={{ marginTop: 16 }}>Redirecting to login...</p>
         </div>
       </MainLayout>
     );
@@ -547,9 +281,12 @@ export default function UserDetail() {
 
   if (loading) {
     return (
-      <MainLayout title="Loading User">
-        <div style={{ padding: '24px', textAlign: 'center' }}>
-          <Spin size="large" />
+      <MainLayout title="Loading User Profile">
+        <div style={{ padding: '24px' }}>
+          <Skeleton avatar paragraph={{ rows: 4 }} active />
+          <div style={{ marginTop: 16 }}>
+            <Skeleton active />
+          </div>
         </div>
       </MainLayout>
     );
@@ -558,9 +295,15 @@ export default function UserDetail() {
   if (!user && !loading) {
     return (
       <MainLayout title="User Not Found">
-        <div style={{ padding: '24px' }}>
-          <Title level={4}>User not found</Title>
-          <Button type="primary" onClick={() => router.push('/user')}>
+        <div style={{ padding: '24px', maxWidth: 800, margin: '0 auto' }}>
+          <Alert
+            message="User Not Found"
+            description="The user you're looking for doesn't exist or you don't have permission to view it."
+            type="warning"
+            showIcon
+            style={{ marginBottom: 24 }}
+          />
+          <Button type="primary" size="large" icon={<ArrowLeftOutlined />} onClick={() => router.push('/user')}>
             Back to User List
           </Button>
         </div>
@@ -569,412 +312,132 @@ export default function UserDetail() {
   }
 
   return (
-    <MainLayout title={isCurrentUser ? "My Profile" : "User Profile"}>
+    <MainLayout title={isCurrentUser ? "My Profile" : `${user?.name}'s Profile`}>
       <div style={{ padding: '24px' }}>
         <Space direction="vertical" size="large" style={{ width: '100%' }}>
-          <Breadcrumb>
+          {/* Breadcrumb Navigation */}
+          <Breadcrumb style={{ fontSize: '14px' }}>
             {isCurrentUser ? (
-              <Breadcrumb.Item>My Profile</Breadcrumb.Item>
+              <>
+                <Breadcrumb.Item>Dashboard</Breadcrumb.Item>
+                <Breadcrumb.Item>My Profile</Breadcrumb.Item>
+              </>
             ) : (
               <>
                 <Breadcrumb.Item>
                   <Link href="/user">Users</Link>
                 </Breadcrumb.Item>
-                <Breadcrumb.Item>{user?.name || 'Detail'}</Breadcrumb.Item>
+                <Breadcrumb.Item>{user?.name || 'User Profile'}</Breadcrumb.Item>
               </>
             )}
           </Breadcrumb>
 
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Title level={2}>{isCurrentUser ? "My Profile" : "User Profile"}</Title>
-            <Space>
-              {isEditing ? (
-                <>
-                  <Button onClick={handleCancel}>
-                    Cancel
-                  </Button>
-                  <Button
-                    type="primary"
-                    icon={<SaveOutlined />}
-                    onClick={handleSubmit}
-                  >
-                    Save
-                  </Button>
-                </>
-              ) : (
-                <>
-                  {!isCurrentUser && (
-                    <Button
-                      icon={<ArrowLeftOutlined />}
-                      onClick={() => router.push('/user')}
-                    >
-                      Back to List
-                    </Button>
-                  )}
-                  <Button
-                    type="primary"
-                    onClick={handleEdit}
-                  >
-                    Edit
-                  </Button>
-                </>
-              )}
-            </Space>
-          </div>
+          {/* User Profile Header */}
+          <UserProfileHeader
+            user={user as IUser}
+            isCurrentUser={isCurrentUser}
+            isEditing={isEditing}
+            currentUserId={currentUserId}
+            form={form}
+            theme={theme}
+            llmProviders={llmProviders}
+            onEdit={handleEdit}
+            onCancel={handleCancel}
+            onSubmit={handleSubmit}
+          />
 
-          {isCurrentUser ? (
-            <Tabs defaultActiveKey="profile" type="card">
-              <TabPane
-                tab={<span><UserOutlined /> Profile</span>}
-                key="profile"
-              >
-                <Card>
-                  <Form
-                    form={form}
-                    layout="vertical"
-                    disabled={!isEditing}
-                  >
-                    <Form.Item
-                      name="name"
-                      label="Name"
-                      rules={[{ required: true, message: 'Please enter a name' }]}
-                    >
-                      <Input />
-                    </Form.Item>
-                    <Form.Item
-                      name="description"
-                      label="Description"
-                      rules={[{ required: true, message: 'Please enter a description' }]}
-                    >
-                      <Input.TextArea rows={4} />
-                    </Form.Item>
-                  </Form>
-                </Card>
-              </TabPane>
-
-              <TabPane
-                tab={<span><LockOutlined /> Security</span>}
-                key="security"
-              >
-                {id && <PasswordChangeForm userId={id as string} />}
-              </TabPane>
-
-              <TabPane
-                tab={<span><ApiOutlined /> LLM Settings</span>}
-                key="llm"
-              >
-                {id && <LLMProviderPreferences userId={id as string} viewOnly={!isCurrentUser && currentUserId !== id} />}
-
-                {/* Add Personal LLM Providers section */}
-                <Card
-                  title={<Title level={4}>Personal LLM Providers</Title>}
-                  extra={
-                    isCurrentUser && (
-                      <Button
-                        type="primary"
-                        icon={<PlusOutlined />}
-                        onClick={() => setIsLLMProviderModalVisible(true)}
-                      >
-                        Add Provider
-                      </Button>
-                    )
-                  }
-                  style={{ marginTop: 24 }}
-                >
-                  <Text style={{ marginBottom: 16, display: 'block' }}>
-                    These LLM providers are private to your account and can be used for your personal agents and workflows.
-                  </Text>
-
-                  <Table
-                    dataSource={llmProviders}
-                    columns={isCurrentUser ? llmProviderColumns : llmProviderColumns.filter(col => col.key !== 'actions')}
-                    rowKey="id"
-                    loading={llmProviderLoading}
-                    pagination={false}
-                    locale={{ emptyText: 'No personal LLM providers configured' }}
-                  />
-                </Card>
-              </TabPane>
-
-              <TabPane
-                tab={<span><TeamOutlined /> Teams</span>}
-                key="teams"
-              >
-                <Card
-                  extra={
-                    <Button
-                      type="primary"
-                      icon={<PlusOutlined />}
-                      onClick={showTeamModal}
-                    >
-                      Create Team
-                    </Button>
-                  }
-                >
-                  {user?.teamsWithRoles?.length === 0 && (
-                    <div style={{ marginBottom: 16, fontStyle: 'italic', color: '#999' }}>
-                      You are not a member of any team.
-                    </div>
-                  )}
-
-                  <Table
-                    columns={teamColumns}
-                    dataSource={user?.teamsWithRoles || []}
-                    rowKey="id"
-                    pagination={false}
-                    locale={{ emptyText: 'You are not a member of any team' }}
-                  />
-                </Card>
-              </TabPane>
-
-              <TabPane
-                tab={<span><RobotOutlined /> Agents</span>}
-                key="agents"
-              >
-                <Card
-                  extra={
-                    <Button
-                      type="primary"
-                      icon={<PlusOutlined />}
-                      onClick={showAgentModal}
-                    >
-                      Create Agent
-                    </Button>
-                  }
-                >
-                  {user?.ownedAgents?.length === 0 && (
-                    <div style={{ marginBottom: 16, fontStyle: 'italic', color: '#999' }}>
-                      You have not created any agents.
-                    </div>
-                  )}
-
-                  <Table
-                    columns={agentColumns}
-                    dataSource={user?.ownedAgents || []}
-                    rowKey="id"
-                    pagination={false}
-                    locale={{ emptyText: 'You have not created any agents' }}
-                  />
-                </Card>
-              </TabPane>
-            </Tabs>
-          ) : (
-            <>
-              <Card>
-                <Form
-                  form={form}
-                  layout="vertical"
-                  disabled={!isEditing}
-                >
-                  <Form.Item
-                    name="name"
-                    label="Name"
-                    rules={[{ required: true, message: 'Please enter a name' }]}
-                  >
-                    <Input />
-                  </Form.Item>
-                  <Form.Item
-                    name="description"
-                    label="Description"
-                    rules={[{ required: true, message: 'Please enter a description' }]}
-                  >
-                    <Input.TextArea rows={4} />
-                  </Form.Item>
-                </Form>
-              </Card>
-
-              <Card
-                title={
-                  <Space>
-                    <TeamOutlined />
-                    <span>Teams</span>
-                  </Space>
-                }
-                extra={
-                  <Button
-                    type="primary"
-                    icon={<PlusOutlined />}
-                    onClick={showTeamModal}
-                  >
-                    Create Team
-                  </Button>
-                }
-              >
-                {user?.teamsWithRoles?.length === 0 && (
-                  <div style={{ marginBottom: 16, fontStyle: 'italic', color: '#999' }}>
-                    This user is not a member of any team.
-                  </div>
-                )}
-
-                <Table
-                  columns={teamColumns}
-                  dataSource={user?.teamsWithRoles || []}
-                  rowKey="id"
-                  pagination={false}
-                  locale={{ emptyText: 'This user is not a member of any team' }}
-                />
-              </Card>
-
-              {/* New Agents Card */}
-              <Card
-                title={
-                  <Space>
-                    <RobotOutlined />
-                    <span>Agents</span>
-                  </Space>
-                }
-                extra={
-                  <Button
-                    type="primary"
-                    icon={<PlusOutlined />}
-                    onClick={showAgentModal}
-                  >
-                    Create Agent
-                  </Button>
-                }
-              >
-                {user?.ownedAgents?.length === 0 && (
-                  <div style={{ marginBottom: 16, fontStyle: 'italic', color: '#999' }}>
-                    This user has not created any agents.
-                  </div>
-                )}
-
-                <Table
-                  columns={agentColumns}
-                  dataSource={user?.ownedAgents || []}
-                  rowKey="id"
-                  pagination={false}
-                  locale={{ emptyText: 'This user has not created any agents' }}
-                />
-              </Card>
-            </>
-          )}
-
-          {/* Team Creation Modal */}
-          <Modal
-            title="Create New Team"
-            open={isTeamModalVisible}
-            onCancel={handleTeamModalCancel}
-            footer={[
-              <Button key="cancel" onClick={handleTeamModalCancel}>
-                Cancel
-              </Button>,
-              <Button
-                key="submit"
-                type="primary"
-                loading={creatingTeam}
-                onClick={handleCreateTeam}
-              >
-                Create
-              </Button>,
-            ]}
-          >
-            <Form
-              form={teamForm}
-              layout="vertical"
-            >
-              <Form.Item
-                name="name"
-                label="Team Name"
-                rules={[{ required: true, message: 'Please enter a team name' }]}
-              >
-                <Input placeholder="Enter team name" />
-              </Form.Item>
-              <Form.Item
-                name="description"
-                label="Description"
-                rules={[{ required: true, message: 'Please enter a team description' }]}
-              >
-                <Input.TextArea
-                  rows={4}
-                  placeholder="Describe the purpose of this team"
-                />
-              </Form.Item>
-            </Form>
-          </Modal>
-
-          {/* Agent Creation Modal */}
-          <Modal
-            title="Create New Agent"
-            open={isAgentModalVisible}
-            onCancel={handleAgentModalCancel}
-            footer={[
-              <Button key="cancel" onClick={handleAgentModalCancel}>
-                Cancel
-              </Button>,
-              <Button
-                key="submit"
-                type="primary"
-                loading={creatingAgent}
-                onClick={handleCreateAgent}
-              >
-                Create
-              </Button>,
-            ]}
-          >
-            <Form
-              form={agentForm}
-              layout="vertical"
-            >
-              <Form.Item
-                name="name"
-                label="Agent Name"
-                rules={[{ required: true, message: 'Please enter an agent name' }]}
-              >
-                <Input placeholder="Enter agent name" />
-              </Form.Item>
-              <Form.Item
-                name="description"
-                label="Description"
-                rules={[{ required: true, message: 'Please enter an agent description' }]}
-              >
-                <Input.TextArea
-                  rows={4}
-                  placeholder="Describe what this agent does"
-                />
-              </Form.Item>
-              <Form.Item
-                name="isActive"
-                label="Active"
-                valuePropName="checked"
-                initialValue={true}
-              >
-                <Switch defaultChecked />
-              </Form.Item>
-            </Form>
-          </Modal>
-
-          {/* Add LLM Provider Modal */}
-          <Modal
-            title="Add Personal LLM Provider"
-            open={isLLMProviderModalVisible}
-            onCancel={() => setIsLLMProviderModalVisible(false)}
-            footer={null}
-            width={700}
-          >
-            <LLMProviderForm
-              onSubmit={handleAddLLMProvider}
-              isLoading={llmActionLoading}
-              userContext={id as string}
-            />
-          </Modal>
-
-          {/* Edit LLM Provider Modal */}
-          {editingLLMProvider && (
-            <Modal
-              title="Edit Personal LLM Provider"
-              open={isEditLLMProviderModalVisible}
-              onCancel={() => setIsEditLLMProviderModalVisible(false)}
-              footer={null}
-              width={700}
-            >
-              <LLMProviderForm
-                initialValues={editingLLMProvider}
-                onSubmit={handleEditLLMProvider}
-                isLoading={llmActionLoading}
-                userContext={id as string}
+          {/* Tabs Section */}
+          <Tabs defaultActiveKey="profile" type="card" size="large">
+            {/* Profile Tab */}
+            <TabPane tab={<span><UserOutlined /> Profile</span>} key="profile">
+              <UserProfileTab
+                user={user as IUser}
+                isCurrentUser={isCurrentUser}
+                isEditing={isEditing}
+                form={form}
+                onEdit={handleEdit}
               />
-            </Modal>
+            </TabPane>
+
+            {/* Security Tab */}
+            <TabPane tab={<span><LockOutlined /> Security</span>} key="security">
+              {id && <PasswordChangeForm userId={id as string} />}
+            </TabPane>
+
+            {/* LLM Settings Tab */}
+            <TabPane tab={<span><ApiOutlined /> LLM Settings</span>} key="llm">
+              <UserLLMTab
+                userId={id as string}
+                isCurrentUser={isCurrentUser}
+                currentUserId={currentUserId}
+                llmProviders={llmProviders}
+                llmProviderLoading={llmProviderLoading}
+                onOpenAddModal={() => setIsLLMProviderModalVisible(true)}
+                onOpenEditModal={(provider) => {
+                  setEditingLLMProvider(provider);
+                  setIsEditLLMProviderModalVisible(true);
+                }}
+                onDeleteProvider={handleDeleteLLMProvider}
+                onRefreshProviders={fetchUserProviders}
+              />
+            </TabPane>
+
+            {/* Teams Tab */}
+            <TabPane tab={<span><TeamOutlined /> Teams</span>} key="teams">
+              <UserTeamsTab
+                userId={id as string}
+                isCurrentUser={isCurrentUser}
+                teams={user?.teamsWithRoles || []}
+                onShowCreateTeam={() => setIsTeamModalVisible(true)}
+              />
+            </TabPane>
+
+            {/* Agents Tab */}
+            <TabPane tab={<span><RobotOutlined /> Agents</span>} key="agents">
+              <UserAgentsTab
+                userId={id as string}
+                isCurrentUser={isCurrentUser}
+                agents={user?.ownedAgents || []}
+                onShowCreateAgent={() => setIsAgentModalVisible(true)}
+              />
+            </TabPane>
+          </Tabs>
+
+          {/* Modals */}
+          <TeamCreationModal
+            isVisible={isTeamModalVisible}
+            isLoading={creatingTeam}
+            form={teamForm}
+            onCancel={() => setIsTeamModalVisible(false)}
+            onSubmit={handleCreateTeam}
+          />
+
+          <AgentCreationModal
+            isVisible={isAgentModalVisible}
+            isLoading={creatingAgent}
+            form={agentForm}
+            onCancel={() => setIsAgentModalVisible(false)}
+            onSubmit={handleCreateAgent}
+          />
+
+          <LLMProviderModal
+            isVisible={isLLMProviderModalVisible}
+            editProvider={null}
+            isLoading={llmActionLoading}
+            userId={id as string}
+            onCancel={() => setIsLLMProviderModalVisible(false)}
+            onSubmit={handleAddLLMProvider}
+          />
+
+          {editingLLMProvider && (
+            <LLMProviderModal
+              isVisible={isEditLLMProviderModalVisible}
+              editProvider={editingLLMProvider}
+              isLoading={llmActionLoading}
+              userId={id as string}
+              onCancel={() => setIsEditLLMProviderModalVisible(false)}
+              onSubmit={handleEditLLMProvider}
+            />
           )}
         </Space>
       </div>

@@ -130,3 +130,28 @@ export const deleteUserLLMProvider = async (providerId: string) => {
     method: 'DELETE',
   });
 };
+
+// User provider model management
+export const fetchUserProviderModels = async (userId: string, providerId: string) => {
+  return apiRequest<LLMModel[]>(`/api/user/${userId}/llm/providers/${providerId}/models`);
+};
+
+export const createUserProviderModel = async (userId: string, providerId: string, data: CreateLLMModelRequest) => {
+  return apiRequest<LLMModel>(`/api/user/${userId}/llm/providers/${providerId}/models`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+};
+
+export const updateUserProviderModel = async (userId: string, providerId: string, modelId: string, data: UpdateLLMModelRequest) => {
+  return apiRequest<LLMModel>(`/api/user/${userId}/llm/providers/${providerId}/models/${modelId}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+};
+
+export const deleteUserProviderModel = async (userId: string, providerId: string, modelId: string) => {
+  return apiRequest<{ success: boolean }>(`/api/user/${userId}/llm/providers/${providerId}/models/${modelId}`, {
+    method: 'DELETE',
+  });
+};

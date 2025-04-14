@@ -1,4 +1,4 @@
-import { LLMProvider } from '../types/llm';
+import { CreateLLMModelRequest, LLMModel, LLMProvider, UpdateLLMModelRequest } from '../types/llm';
 import { apiRequest } from './apiUtils';
 import { Agent, User, MemberTeam } from '@prisma/client';
 
@@ -68,6 +68,16 @@ export const removeTeamMember = async (teamId: string, userId: string) => {
   });
 };
 
+// User Management
+export const fetchAllUsers = async () => {
+  return apiRequest<User[]>('/api/user', {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+};
+
 // LLM Provider Management for Teams
 export const fetchTeamLLMProviders = async (teamId: string) => {
   return apiRequest<LLMProvider[]>(`/api/team/${teamId}/llm-providers`, {
@@ -104,5 +114,30 @@ export const updateTeamLLMProvider = async (teamId: string, providerId: string, 
     headers: {
       'Content-Type': 'application/json',
     },
+  });
+};
+
+// Team provider model management
+export const fetchTeamProviderModels = async (teamId: string, providerId: string) => {
+  return apiRequest<LLMModel[]>(`/api/team/${teamId}/llm-providers/${providerId}/models`);
+};
+
+export const createTeamProviderModel = async (teamId: string, providerId: string, data: CreateLLMModelRequest) => {
+  return apiRequest<LLMModel>(`/api/team/${teamId}/llm-providers/${providerId}/models`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+};
+
+export const updateTeamProviderModel = async (teamId: string, providerId: string, modelId: string, data: UpdateLLMModelRequest) => {
+  return apiRequest<LLMModel>(`/api/team/${teamId}/llm-providers/${providerId}/models/${modelId}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+};
+
+export const deleteTeamProviderModel = async (teamId: string, providerId: string, modelId: string) => {
+  return apiRequest<{ success: boolean }>(`/api/team/${teamId}/llm-providers/${providerId}/models/${modelId}`, {
+    method: 'DELETE',
   });
 };

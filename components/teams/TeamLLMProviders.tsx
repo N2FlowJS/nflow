@@ -25,6 +25,7 @@ import {
 import LLMProviderForm from '../llm/LLMProviderForm';
 import { fetchTeamLLMProviders, deleteTeamLLMProvider, createTeamLLMProvider } from '../../services/teamService';
 import { LLMProvider } from '../../types/llm';
+import TeamLLMProviderDetail from '../llm/TeamLLMProviderDetail';
 
 const { Title, Text } = Typography;
 
@@ -45,6 +46,7 @@ const TeamLLMProviders: React.FC<TeamLLMProvidersProps> = ({
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [editingProvider, setEditingProvider] = useState<LLMProvider | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
+  const [selectedProvider, setSelectedProvider] = useState<LLMProvider | null>(null);
 
   useEffect(() => {
     if (teamId) {
@@ -202,33 +204,39 @@ const TeamLLMProviders: React.FC<TeamLLMProvidersProps> = ({
       title: 'Actions',
       key: 'actions',
       render: (record: LLMProvider) => (
-        canManageProviders && record.teamOwnerId === teamId ? (
-          <Space>
-            <Button
-              icon={<EditOutlined />}
-              type="text"
-              onClick={() => {
-                setEditingProvider(record);
-                setIsEditModalVisible(true);
-              }}
-            />
-            <Popconfirm
-              title="Delete this provider?"
-              description="This will delete the provider and all associated models. This action cannot be undone."
-              onConfirm={() => handleDelete(record.id)}
-              okText="Delete"
-              cancelText="Cancel"
-              okButtonProps={{ danger: true }}
-            >
-              <Button type="text" danger icon={<DeleteOutlined />} />
-            </Popconfirm>
-          </Space>
-        ) : (
-          // No actions for non-team providers
-          <Tooltip title="System providers cannot be modified">
-            <span>-</span>
-          </Tooltip>
-        )
+        <Space>
+          <Button
+            icon={<ApiOutlined />}
+            type="primary"
+            size="small"
+            onClick={() => setSelectedProvider(record)}
+          >
+            Manage Models
+          </Button>
+          
+          {canManageProviders && record.teamOwnerId === teamId && (
+            <>
+              <Button
+                icon={<EditOutlined />}
+                type="text"
+                onClick={() => {
+                  setEditingProvider(record);
+                  setIsEditModalVisible(true);
+                }}
+              />
+              <Popconfirm
+                title="Delete this provider?"
+                description="This will delete the provider and all associated models. This action cannot be undone."
+                onConfirm={() => handleDelete(record.id)}
+                okText="Delete"
+                cancelText="Cancel"
+                okButtonProps={{ danger: true }}
+              >
+                <Button type="text" danger icon={<DeleteOutlined />} />
+              </Popconfirm>
+            </>
+          )}
+        </Space>
       ),
     },
   ];
@@ -244,6 +252,19 @@ const TeamLLMProviders: React.FC<TeamLLMProvidersProps> = ({
           <div style={{ marginTop: 16 }}>Loading LLM providers...</div>
         </div>
       </Card>
+    );
+  }
+
+  // If a provider is selected, show the provider detail view
+  if (selectedProvider) {
+    return (
+      <TeamLLMProviderDetail
+        teamId={teamId}
+        provider={selectedProvider}
+        canManageModels={canManageProviders}
+        onBackToList={() => setSelectedProvider(null)}
+        onProviderUpdated={fetchProviders}
+      />
     );
   }
 
@@ -286,7 +307,7 @@ const TeamLLMProviders: React.FC<TeamLLMProvidersProps> = ({
 
         <Table
           dataSource={systemProviders}
-          columns={columns.filter(col => col.key !== 'actions')} // No actions for system providers
+          columns={columns}
           rowKey="id"
           pagination={false}
           locale={{ emptyText: <Empty description="No system LLM providers available" /> }}

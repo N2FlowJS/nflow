@@ -1,98 +1,54 @@
 import React, { useEffect, useState } from 'react';
 import { 
-  Card, Form, Input, Button, Spin, 
-  Typography, Space, message, Breadcrumb, Table, Select, Tag, Tabs, Badge, Modal, Switch, Alert
+  Space, message, Breadcrumb, Tabs, Form, Alert, Spin, Button,
+  Typography
 } from 'antd';
-import { 
-  ArrowLeftOutlined, SaveOutlined, UserOutlined, PlusOutlined, 
-  DeleteOutlined, CrownOutlined, RobotOutlined, ApiOutlined, SettingOutlined,
-  TeamOutlined
+import {
+  UserOutlined, RobotOutlined, ApiOutlined, SettingOutlined, ArrowLeftOutlined
 } from '@ant-design/icons';
 import { useRouter } from 'next/router';
-import { useLocale } from '../../locale';
-import { useTheme } from '../../theme';
 import Link from 'next/link';
 import MainLayout from '../../components/layout/MainLayout';
-import { 
-  fetchTeamById, 
-  updateTeam, 
-  addTeamMember, 
-  updateTeamMember, 
-  removeTeamMember, 
+import {
+  fetchTeamById,
+  updateTeam,
+  addTeamMember,
+  updateTeamMember,
+  removeTeamMember,
   fetchTeamMembers,
-  fetchTeamLLMProviders,
-  createTeamLLMProvider,
-  deleteTeamLLMProvider
+  fetchAllUsers,
+  Team
 } from '../../services/teamService';
-import { fetchAllUsers } from '../../services/userService';
-import { createAgent } from '../../services/agentService';
 import { checkAuthentication, redirectToLogin } from '../../services/authUtils';
+
+// Import our new components
+import TeamProfileHeader from '../../components/team/TeamProfileHeader';
+import TeamDetailsTab from '../../components/team/TeamDetailsTab';
+import TeamMembersTab from '../../components/team/TeamMembersTab';
+import TeamAgentsTab from '../../components/team/TeamAgentsTab';
 import TeamLLMProviders from '../../components/teams/TeamLLMProviders';
+import AgentCreationModal from '../../components/team/modals/AgentCreationModal';
+const { Title, Text, Paragraph } = Typography;
+import { User } from '@prisma/client';
 
-const { Title } = Typography;
-const { Option } = Select;
 const { TabPane } = Tabs;
-
-interface User {
-  id: string;
-  name: string;
-  description: string;
-}
-
-interface TeamMember {
-  id: string;
-  role: string;
-  joinedAt: string;
-  leftAt: string | null;
-  userId: string;
-  teamId: string;
-  user: User;
-}
-
-interface Agent {
-  id: string;
-  name: string;
-  description: string;
-  isActive: boolean;
-  ownerType: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-interface Team {
-  id: string;
-  name: string;
-  description: string;
-  createdAt: string;
-  updatedAt: string;
-  createdById: string;
-  createdBy: User;
-  users: User[];
-  members: TeamMember[];
-  ownedAgents?: Agent[];
-}
 
 export default function TeamDetail() {
   const router = useRouter();
   const { id } = router.query;
-  const [team, setTeam] = useState<Team | null>(null);
+  const [team, setTeam] = useState<Team>();
   const [loading, setLoading] = useState(true);
   const [form] = Form.useForm();
   const [isEditing, setIsEditing] = useState(false);
   const [availableUsers, setAvailableUsers] = useState<User[]>([]);
-  const [selectedUsers, setSelectedUsers] = useState<{userId: string, role: string}[]>([]);
-  const [selectedRole, setSelectedRole] = useState<string>("guest");
-  const [memberTab, setMemberTab] = useState<string>("current");
-  const [mainTab, setMainTab] = useState<string>("details");
-  const { locale, antdLocale } = useLocale();
-  const { theme } = useTheme();
+  const [mainTab, setMainTab] = useState("details");
   const [agentForm] = Form.useForm();
   const [isAgentModalVisible, setIsAgentModalVisible] = useState(false);
   const [creatingAgent, setCreatingAgent] = useState(false);
-  const [userRole, setUserRole] = useState<string | null>(null);
-  const [userData, setUserData] = useState<any>(null);
-  const [authenticated, setAuthenticated] = useState<boolean | null>(null);
-  const [members, setMembers] = useState<TeamMember[]>([]);
+  const [userRole, setUserRole] = useState<any>();
+  const [userData, setUserData] = useState<any>();
+  const [authenticated, setAuthenticated] = useState<boolean>();
+  const [members, setMembers] = useState<any[]>([]);
 
   // Check authentication
   const validateAuthentication = async () => {
@@ -185,6 +141,7 @@ export default function TeamDetail() {
     }
   }, [authenticated, router]);
 
+  // Handle edit/save functions
   const handleEdit = () => {
     setIsEditing(true);
   };
@@ -211,39 +168,23 @@ export default function TeamDetail() {
     }
   };
 
-  const handleUserSelect = (userId: string) => {
-    if (!userId) return;
-    
-    // Check if this user is already in the selection
-    if (selectedUsers.some(u => u.userId === userId)) {
-      message.info('This user is already selected');
-      return;
-    }
-    
-    setSelectedUsers([...selectedUsers, { userId, role: selectedRole }]);
-  };
+  // Handle member management functions
+  interface NewMember {
+    userId: string;
+    role: string;
+  }
 
-  const handleRemoveSelectedUser = (userId: string) => {
-    setSelectedUsers(selectedUsers?.filter(u => u.userId !== userId));
-  };
-
-  const handleAddMembers = async () => {
-    if (!selectedUsers.length) {
-      message.info('Please select users to add');
-      return;
-    }
-
+  const handleAddMembers = async (newMembers: NewMember[]): Promise<void> => {
     try {
-      for (const member of selectedUsers) {
+      for (const member of newMembers) {
         await addTeamMember(id as string, member);
       }
       
       message.success('Members added successfully');
       fetchTeamDetail();
-      setSelectedUsers([]);
     } catch (error) {
       console.error('Error adding members:', error);
-      message.error('An error occurred');
+      message.error('An error occurred while adding members');
     }
   };
 
@@ -254,297 +195,20 @@ export default function TeamDetail() {
       fetchTeamDetail();
     } catch (error) {
       console.error('Error removing member:', error);
-      message.error('An error occurred');
+      message.error('An error occurred while removing member');
     }
   };
 
-  const handleRoleChange = async (userId: string, newRole: string) => {
+  const handleUpdateRole = async (userId: string, newRole: any) => {
     try {
       await updateTeamMember(id as string, userId, { role: newRole });
       message.success('Role updated successfully');
       fetchTeamDetail();
     } catch (error) {
       console.error('Error updating role:', error);
-      message.error('An error occurred');
+      message.error('An error occurred while updating role');
     }
   };
-
-  const getRoleColor = (role: string) => {
-    switch (role) {
-      case 'owner': return 'gold';
-      case 'admin': return 'red';
-      case 'maintainer': return 'volcano';
-      case 'developer': return 'geekblue';
-      case 'guest': return 'green';
-      default: return 'default';
-    }
-  };
-
-  const getRoleBadge = (role: string) => {
-    switch (role) {
-      case 'owner':
-        return <Tag color="gold" icon={<CrownOutlined />}>{role.toUpperCase()}</Tag>;
-      case 'admin':
-        return <Tag color="red">{role.toUpperCase()}</Tag>;
-      case 'maintainer':
-        return <Tag color="volcano">{role.toUpperCase()}</Tag>;
-      case 'developer':
-        return <Tag color="geekblue">{role.toUpperCase()}</Tag>;
-      case 'guest':
-        return <Tag color="green">{role.toUpperCase()}</Tag>;
-      default:
-        return <Tag>{role.toUpperCase()}</Tag>;
-    }
-  };
-
-  const activeMembers = members?.filter(member => !member.leftAt) || [];
-  const formerMembers = members?.filter(member => member.leftAt) || [];
-
-  const currentMemberColumns = [
-    {
-      title: 'Name',
-      dataIndex: ['user', 'name'],
-      key: 'name',
-      render: (text: string, record: TeamMember) => (
-        <a onClick={() => router.push(`/user/${record.user.id}`)}>{text}</a>
-      ),
-    },
-    {
-      title: 'Role',
-      key: 'role',
-      dataIndex: 'role',
-      render: (role: string, record: TeamMember) => (
-        <>
-          {role === 'owner' ? (
-            getRoleBadge(role)
-          ) : (
-            <Select 
-              value={role} 
-              style={{ width: 120 }}
-              onChange={(newRole) => handleRoleChange(record.userId, newRole)}
-              disabled={role === 'owner'} // Cannot change owner role
-            >
-              <Option value="admin">Admin</Option>
-              <Option value="maintainer">Maintainer</Option>
-              <Option value="developer">Developer</Option>
-              <Option value="guest">Guest</Option>
-            </Select>
-          )}
-        </>
-      ),
-    },
-    {
-      title: 'Joined',
-      dataIndex: 'joinedAt',
-      key: 'joinedAt',
-      render: (date: string) => new Date(date).toLocaleDateString(),
-    },
-    {
-      title: 'Actions',
-      key: 'actions',
-      width: '15%',
-      render: (_: any, record: TeamMember) => (
-        <Button
-          type="text"
-          danger
-          icon={<DeleteOutlined />}
-          onClick={() => handleRemoveMember(record.userId)}
-          disabled={record.role === 'owner'} // Cannot remove owner
-        />
-      ),
-    },
-  ];
-
-  const formerMemberColumns = [
-    {
-      title: 'Name',
-      dataIndex: ['user', 'name'],
-      key: 'name',
-      render: (text: string, record: TeamMember) => (
-        <a onClick={() => router.push(`/user/${record.user.id}`)}>{text}</a>
-      ),
-    },
-    {
-      title: 'Role',
-      key: 'role',
-      dataIndex: 'role',
-      render: (role: string) => getRoleBadge(role)
-    },
-    {
-      title: 'Joined',
-      dataIndex: 'joinedAt',
-      key: 'joinedAt',
-      render: (date: string) => new Date(date).toLocaleDateString(),
-    },
-    {
-      title: 'Left',
-      dataIndex: 'leftAt',
-      key: 'leftAt',
-      render: (date: string) => date ? new Date(date).toLocaleDateString() : '-',
-    },
-  ];
-
-  const selectedUserColumns = [
-    {
-      title: 'Name',
-      key: 'name',
-      render: (_: any, record: {userId: string, role: string}) => {
-        const user = availableUsers.find(u => u.id === record.userId);
-        return user?.name || record.userId;
-      },
-    },
-    {
-      title: 'Role',
-      key: 'role',
-      dataIndex: 'role',
-      render: (role: string, record: {userId: string, role: string}) => (
-        <Select 
-          value={role} 
-          style={{ width: 120 }}
-          onChange={(newRole) => {
-            setSelectedUsers(
-              selectedUsers.map(u => 
-                u.userId === record.userId ? { ...u, role: newRole } : u
-              )
-            );
-          }}
-        >
-          <Option value="admin">Admin</Option>
-          <Option value="maintainer">Maintainer</Option>
-          <Option value="developer">Developer</Option>
-          <Option value="guest">Guest</Option>
-        </Select>
-      ),
-    },
-    {
-      title: 'Actions',
-      key: 'actions',
-      render: (_: any, record: {userId: string, role: string}) => (
-        <Button
-          type="text"
-          danger
-          icon={<DeleteOutlined />}
-          onClick={() => handleRemoveSelectedUser(record.userId)}
-        />
-      ),
-    },
-  ];
-
-  const getTeamSummary = () => {
-    if (!members || members.length === 0) return null;
-    
-    const ownerCount = members.filter(m => m.role === 'owner' && !m.leftAt).length;
-    const adminCount = members.filter(m => m.role === 'admin' && !m.leftAt).length;
-    const devCount = members.filter(m => m.role === 'developer' && !m.leftAt).length;
-    const maintainerCount = members.filter(m => m.role === 'maintainer' && !m.leftAt).length;
-    const guestCount = members.filter(m => m.role === 'guest' && !m.leftAt).length;
-    
-    return (
-      <Space size="middle" wrap style={{ marginBottom: 16 }}>
-        <Badge count={ownerCount}>
-          <Tag color="gold" icon={<CrownOutlined />}>OWNER</Tag>
-        </Badge>
-        <Badge count={adminCount}>
-          <Tag color="red">ADMIN</Tag>
-        </Badge>
-        <Badge count={maintainerCount}>
-          <Tag color="volcano">MAINTAIN</Tag>
-        </Badge>
-        <Badge count={devCount}>
-          <Tag color="geekblue">DEV</Tag>
-        </Badge>
-        <Badge count={guestCount}>
-          <Tag color="green">GUEST</Tag>
-        </Badge>
-      </Space>
-    );
-  };
-
-  // Agent-related functions
-  const showAgentModal = () => {
-    agentForm.resetFields();
-    setIsAgentModalVisible(true);
-  };
-
-  const handleAgentModalCancel = () => {
-    setIsAgentModalVisible(false);
-    agentForm.resetFields();
-  };
-
-  const handleCreateAgent = async () => {
-    try {
-      const values = await agentForm.validateFields();
-      setCreatingAgent(true);
-      
-      // Prepare payload with owner info
-      const payload = {
-        ...values,
-        ownerType: 'team',
-        teamId: id as string,
-        flowConfig: JSON.stringify({ nodes: [], edges: [] })
-      };
-      
-      const newAgent = await createAgent(payload);
-      
-      message.success('Agent created successfully');
-      setIsAgentModalVisible(false);
-      agentForm.resetFields();
-      
-      // Refresh team data to show the new agent
-      fetchTeamDetail();
-    } catch (error) {
-      console.error('Form validation or submission error:', error);
-      message.error('An error occurred while creating the agent');
-    } finally {
-      setCreatingAgent(false);
-    }
-  };
-
-  const agentColumns = [
-    {
-      title: 'Name',
-      dataIndex: 'name',
-      key: 'name',
-      render: (text: string, record: Agent) => (
-        <Link href={`/agent/${record.id}`}>{text}</Link>
-      ),
-    },
-    {
-      title: 'Description',
-      dataIndex: 'description',
-      key: 'description',
-      ellipsis: true,
-    },
-    {
-      title: 'Status',
-      dataIndex: 'isActive',
-      key: 'isActive',
-      render: (isActive: boolean) => (
-        <Tag color={isActive ? 'green' : 'red'}>
-          {isActive ? 'Active' : 'Inactive'}
-        </Tag>
-      ),
-    },
-    {
-      title: 'Last Updated',
-      dataIndex: 'updatedAt',
-      key: 'updatedAt',
-      render: (date: string) => new Date(date).toLocaleString(),
-    },
-    {
-      title: 'Actions',
-      key: 'actions',
-      render: (_: any, record: Agent) => (
-        <Button 
-          type="primary" 
-          size="small"
-          onClick={() => router.push(`/agent/${record.id}`)}
-        >
-          View
-        </Button>
-      ),
-    },
-  ];
 
   // Check if the current user has provider management permissions
   const canManageProviders = userRole === 'owner' || userRole === 'admin' || 
@@ -590,6 +254,10 @@ export default function TeamDetail() {
     );
   }
 
+  function handleCreateAgent(): void {
+    throw new Error('Function not implemented.');
+  }
+
   return (
     <MainLayout title={team?.name || "Team Profile"}>
       <div style={{ padding: '24px' }}>
@@ -601,213 +269,56 @@ export default function TeamDetail() {
             <Breadcrumb.Item>{team?.name || 'Detail'}</Breadcrumb.Item>
           </Breadcrumb>
           
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Title level={2}>
-              <Space>
-                <TeamOutlined />
-                {team?.name}
-              </Space>
-            </Title>
-            <Space>
-              {isEditing ? (
-                <>
-                  <Button onClick={handleCancel}>
-                    Cancel
-                  </Button>
-                  <Button 
-                    type="primary" 
-                    icon={<SaveOutlined />} 
-                    onClick={handleSubmit}
-                  >
-                    Save
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <Button 
-                    icon={<ArrowLeftOutlined />} 
-                    onClick={() => router.push('/team')}
-                  >
-                    Back to List
-                  </Button>
-                  <Button 
-                    type="primary" 
-                    onClick={handleEdit}
-                    disabled={userRole !== 'owner' && userRole !== 'admin'}
-                  >
-                    Edit
-                  </Button>
-                </>
-              )}
-            </Space>
-          </div>
+          <TeamProfileHeader
+            teamName={team?.name || ''}
+            isEditing={isEditing}
+            onEdit={handleEdit}
+            onCancel={handleCancel}
+            onSubmit={handleSubmit}
+            canEdit={userRole === 'owner' || userRole === 'admin'}
+          />
           
           <Tabs activeKey={mainTab} onChange={setMainTab}>
             <TabPane 
               tab={<span><SettingOutlined /> Details</span>}
               key="details"
             >
-              <Card>
-                <Form
-                  form={form}
-                  layout="vertical"
-                  disabled={!isEditing}
-                >
-                  <Form.Item
-                    name="name"
-                    label="Name"
-                    rules={[{ required: true, message: 'Please enter a name' }]}
-                  >
-                    <Input />
-                  </Form.Item>
-                  <Form.Item
-                    name="description"
-                    label="Description"
-                    rules={[{ required: true, message: 'Please enter a description' }]}
-                  >
-                    <Input.TextArea rows={4} />
-                  </Form.Item>
-                  {team?.createdBy && (
-                    <Form.Item label="Created by">
-                      <Input 
-                        disabled
-                        value={team.createdBy.name}
-                        prefix={<UserOutlined />}
-                      />
-                    </Form.Item>
-                  )}
-                </Form>
-              </Card>
+              <TeamDetailsTab
+                team={team}
+                isEditing={isEditing}
+                form={form}
+              />
             </TabPane>
             
             <TabPane 
               tab={<span><UserOutlined /> Members</span>}
               key="members"
             >
-              <Card 
-                tabList={[
-                  { key: 'current', tab: (
-                    <span>
-                      Current Members
-                      <Badge count={activeMembers.length} style={{ marginLeft: 8 }} />
-                    </span>
-                  )},
-                  { key: 'former', tab: (
-                    <span>
-                      Former Members
-                      <Badge count={formerMembers.length} style={{ marginLeft: 8 }} />
-                    </span>
-                  )}
-                ]}
-                activeTabKey={memberTab}
-                onTabChange={setMemberTab}
-                extra={
-                  memberTab === 'current' && (userRole === 'owner' || userRole === 'admin') ? (
-                    <Space>
-                      <Select
-                        style={{ width: 200 }}
-                        placeholder="Select users to add"
-                        onChange={handleUserSelect}
-                        value={null}
-                        showSearch
-                        optionFilterProp="children"
-                      >
-                        {availableUsers
-                          .filter(user => !activeMembers.some(member => member.userId === user.id) && 
-                                  !selectedUsers.some(selected => selected.userId === user.id))
-                          .map(user => (
-                            <Option key={user.id} value={user.id}>{user.name}</Option>
-                          ))
-                        }
-                      </Select>
-                      <Select
-                        value={selectedRole}
-                        style={{ width: 120 }}
-                        onChange={setSelectedRole}
-                      >
-                        <Option value="admin">Admin</Option>
-                        <Option value="maintainer">Maintainer</Option>
-                        <Option value="developer">Developer</Option>
-                        <Option value="guest">Guest</Option>
-                      </Select>
-                    </Space>
-                  ) : null
-                }
-              >
-                {memberTab === 'current' ? (
-                  <>
-                    {getTeamSummary()}
-                    
-                    {selectedUsers.length > 0 && (
-                      <Card style={{ marginBottom: 16 }} title="Users to add">
-                        <Table 
-                          columns={selectedUserColumns} 
-                          dataSource={selectedUsers} 
-                          rowKey="userId"
-                          pagination={false}
-                          footer={() => (
-                            <Button 
-                              type="primary" 
-                              icon={<PlusOutlined />}
-                              onClick={handleAddMembers}
-                            >
-                              Add Selected Members
-                            </Button>
-                          )}
-                        />
-                      </Card>
-                    )}
-                    <Table 
-                      columns={currentMemberColumns} 
-                      dataSource={activeMembers} 
-                      rowKey="id"
-                      pagination={false}
-                      locale={{ emptyText: 'This team has no active members' }}
-                    />
-                  </>
-                ) : (
-                  <Table 
-                    columns={formerMemberColumns} 
-                    dataSource={formerMembers} 
-                    rowKey="id"
-                    pagination={false}
-                    locale={{ emptyText: 'This team has no former members' }}
-                  />
-                )}
-              </Card>
+              <TeamMembersTab
+                teamId={id as string}
+                members={members}
+                userRole={userRole}
+                availableUsers={availableUsers}
+                onAddMembers={handleAddMembers}
+                onRemoveMember={handleRemoveMember}
+                onUpdateRole={handleUpdateRole}
+              />
             </TabPane>
             
             <TabPane 
               tab={<span><RobotOutlined /> Agents</span>}
               key="agents"
             >
-              <Card 
-                extra={
-                  (userRole === 'owner' || userRole === 'admin') ? (
-                    <Button 
-                      type="primary" 
-                      icon={<PlusOutlined />}
-                      onClick={showAgentModal}
-                    >
-                      Create Agent
-                    </Button>
-                  ) : null
-                }
-              >
-                {team?.ownedAgents?.length === 0 && (
-                  <div style={{ marginBottom: 16, fontStyle: 'italic', color: '#999' }}>
-                    This team has not created any agents.
-                  </div>
-                )}
-                
-                <Table 
-                  columns={agentColumns} 
-                  dataSource={team?.ownedAgents || []} 
-                  rowKey="id"
-                  pagination={false}
-                  locale={{ emptyText: 'This team has not created any agents' }}
-                />
-              </Card>
+              <TeamAgentsTab
+                teamId={id as string}
+                agents={(team?.ownedAgents || []).map(agent => ({
+                  ...agent,
+                  createdAt: new Date(agent.createdAt).toLocaleDateString(),
+                  updatedAt: new Date(agent.updatedAt).toLocaleDateString(),
+                }))}
+                userRole={userRole}
+                onCreateAgent={() => setIsAgentModalVisible(true)}
+              />
             </TabPane>
             
             <TabPane 
@@ -823,55 +334,13 @@ export default function TeamDetail() {
           </Tabs>
           
           {/* Agent Creation Modal */}
-          <Modal
-            title="Create New Team Agent"
-            open={isAgentModalVisible}
-            onCancel={handleAgentModalCancel}
-            footer={[
-              <Button key="cancel" onClick={handleAgentModalCancel}>
-                Cancel
-              </Button>,
-              <Button
-                key="submit"
-                type="primary"
-                loading={creatingAgent}
-                onClick={handleCreateAgent}
-              >
-                Create
-              </Button>,
-            ]}
-          >
-            <Form
-              form={agentForm}
-              layout="vertical"
-            >
-              <Form.Item
-                name="name"
-                label="Agent Name"
-                rules={[{ required: true, message: 'Please enter an agent name' }]}
-              >
-                <Input placeholder="Enter agent name" />
-              </Form.Item>
-              <Form.Item
-                name="description"
-                label="Description"
-                rules={[{ required: true, message: 'Please enter an agent description' }]}
-              >
-                <Input.TextArea 
-                  rows={4} 
-                  placeholder="Describe what this agent does"
-                />
-              </Form.Item>
-              <Form.Item
-                name="isActive"
-                label="Active"
-                valuePropName="checked"
-                initialValue={true}
-              >
-                <Switch defaultChecked />
-              </Form.Item>
-            </Form>
-          </Modal>
+          <AgentCreationModal
+            isVisible={isAgentModalVisible}
+            isLoading={creatingAgent}
+            form={agentForm}
+            onCancel={() => setIsAgentModalVisible(false)}
+            onSubmit={handleCreateAgent}
+          />
         </Space>
       </div>
     </MainLayout>
