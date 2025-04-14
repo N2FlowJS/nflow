@@ -14,7 +14,7 @@ import {
 import { PlusOutlined, EditOutlined, DeleteOutlined, UserOutlined } from "@ant-design/icons";
 import { useRouter } from "next/router";
 import MainLayout from "../../components/layout/MainLayout";
-import { fetchAllTeams, createTeam, updateTeam, deleteTeam, Team } from "../../services/teamService";
+import { fetchTeams, createTeam, updateTeam, deleteTeam, Team } from "../../services/teamService";
 
 const { Title } = Typography;
 
@@ -29,7 +29,7 @@ export default function TeamList() {
   const loadTeams = async () => {
     setLoading(true);
     try {
-      const data = await fetchAllTeams();
+      const data = await fetchTeams();
       setTeams(data);
     } catch (error) {
       message.error("Failed to fetch teams");

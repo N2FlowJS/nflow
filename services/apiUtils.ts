@@ -2,7 +2,7 @@ import { logApiRequest, logApiResponse, logApiError } from "../utils/logger";
 
 // Get authorization header with token
 export function getAuthHeader(): Record<string, string> {
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem("token") || localStorage.getItem("authToken");
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 

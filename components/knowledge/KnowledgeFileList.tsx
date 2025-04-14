@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Card,
   Button,
@@ -15,6 +15,9 @@ import {
   Badge,
   Progress,
   Alert,
+  Dropdown,
+  Menu,
+  Grid,
 } from "antd";
 import {
   UploadOutlined,
@@ -30,6 +33,8 @@ import {
   FilterOutlined,
   SelectOutlined,
   ClearOutlined,
+  MoreOutlined,
+  DownOutlined,
 } from "@ant-design/icons";
 import { useRouter } from "next/router";
 import { format } from "date-fns";
@@ -37,6 +42,7 @@ import { Knowledge } from "../../types/knowledge";
 import { parseFile, deleteFile, fetchFilesByKnowledgeId } from "../../services/fileService";
 import { formatFileSize, getTypeFile } from "../../utils/formatters";
 
+const { useBreakpoint } = Grid;
 const { Title, Text } = Typography;
 
 interface KnowledgeFileListProps {
@@ -59,6 +65,7 @@ export default function KnowledgeFileList({
   const [selectedFileIds, setSelectedFileIds] = useState<string[]>([]);
   const [batchActionLoading, setBatchActionLoading] = useState(false);
   const [eventSource, setEventSource] = useState<EventSource | null>(null);
+  const screens = useBreakpoint();
 
   const fetchFiles = async () => {
     if (!knowledge?.id) return;
@@ -314,7 +321,7 @@ export default function KnowledgeFileList({
     }
   };
 
-  // Row selection configuration with clearer selection options
+  // Row selection configuration with icons instead of text
   const rowSelection = {
     selectedRowKeys: selectedFileIds,
     onChange: (selectedRowKeys: React.Key[]) => {
@@ -323,7 +330,11 @@ export default function KnowledgeFileList({
     selections: [
       {
         key: 'all-data',
-        text: 'Select All Files',
+        text: (
+          <Tooltip title="Select All Files">
+            <SelectOutlined /> Select All
+          </Tooltip>
+        ),
         onSelect: () => {
           const allIds = files.map(file => file.id);
           setSelectedFileIds(allIds);
@@ -331,7 +342,11 @@ export default function KnowledgeFileList({
       },
       {
         key: 'not-parsed',
-        text: 'Select Not Parsed',
+        text: (
+          <Tooltip title="Select Not Parsed Files">
+            <CloseCircleOutlined /> Not Parsed
+          </Tooltip>
+        ),
         onSelect: () => {
           const notParsedIds = files
             .filter(file => !file.parsingStatus || file.parsingStatus === 'failed')
@@ -341,7 +356,11 @@ export default function KnowledgeFileList({
       },
       {
         key: 'parsed',
-        text: 'Select Parsed',
+        text: (
+          <Tooltip title="Select Parsed Files">
+            <CheckCircleOutlined /> Parsed
+          </Tooltip>
+        ),
         onSelect: () => {
           const parsedIds = files
             .filter(file => file.parsingStatus === 'completed')
@@ -351,7 +370,11 @@ export default function KnowledgeFileList({
       },
       {
         key: 'invert',
-        text: 'Invert Selection',
+        text: (
+          <Tooltip title="Invert Current Selection">
+            <SyncOutlined /> Invert
+          </Tooltip>
+        ),
         onSelect: () => {
           const allIds = files.map(file => file.id);
           const invertedSelection = allIds.filter(id => !selectedFileIds.includes(id));
@@ -366,49 +389,62 @@ export default function KnowledgeFileList({
       return null;
     }
 
+    const batchActionContent = (
+      <Space direction={screens.sm ? "horizontal" : "vertical"} style={{ width: '100%' }}>
+        <Tooltip title="Process all selected files">
+          <Button
+            type="primary"
+            icon={<PlayCircleOutlined />}
+            onClick={handleBatchParseFiles}
+            loading={batchActionLoading}
+            disabled={batchActionLoading}
+            size={screens.sm ? "middle" : "small"}
+          >
+            Parse
+          </Button>
+        </Tooltip>
+        <Tooltip title="Delete all selected files">
+          <Button
+            danger
+            icon={<DeleteOutlined />}
+            onClick={handleBatchDeleteFiles}
+            loading={batchActionLoading}
+            disabled={batchActionLoading}
+            size={screens.sm ? "middle" : "small"}
+          >
+            Delete
+          </Button>
+        </Tooltip>
+        <Tooltip title="Clear selection">
+          <Button
+            icon={<ClearOutlined />}
+            onClick={() => setSelectedFileIds([])}
+            disabled={batchActionLoading}
+            size={screens.sm ? "middle" : "small"}
+          >
+            Clear
+          </Button>
+        </Tooltip>
+      </Space>
+    );
+
     return (
       <Alert
         type="info"
         showIcon
         message={
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'space-between',
+            flexDirection: screens.sm ? 'row' : 'column',
+            gap: screens.sm ? 0 : '10px'
+          }}>
             <Space>
               <Badge count={selectedFileIds.length} overflowCount={999} style={{ backgroundColor: '#1677ff' }} />
               <span><b>{selectedFileIds.length}</b> files selected</span>
             </Space>
-            <Space>
-              <Tooltip title="Process all selected files">
-                <Button
-                  type="primary"
-                  icon={<PlayCircleOutlined />}
-                  onClick={handleBatchParseFiles}
-                  loading={batchActionLoading}
-                  disabled={batchActionLoading}
-                >
-                  Parse Selected
-                </Button>
-              </Tooltip>
-              <Tooltip title="Delete all selected files">
-                <Button
-                  danger
-                  icon={<DeleteOutlined />}
-                  onClick={handleBatchDeleteFiles}
-                  loading={batchActionLoading}
-                  disabled={batchActionLoading}
-                >
-                  Delete Selected
-                </Button>
-              </Tooltip>
-              <Tooltip title="Clear selection">
-                <Button
-                  icon={<ClearOutlined />}
-                  onClick={() => setSelectedFileIds([])}
-                  disabled={batchActionLoading}
-                >
-                  Clear
-                </Button>
-              </Tooltip>
-            </Space>
+            {batchActionContent}
           </div>
         }
         style={{ marginBottom: 16 }}
@@ -426,8 +462,8 @@ export default function KnowledgeFileList({
   ];
 
   // Enhanced columns with filtering
-  const columns = [
-    {
+  const createColumns = () => {
+    const fileColumn = {
       title: "File",
       dataIndex: "originalName",
       key: "originalName",
@@ -452,7 +488,7 @@ export default function KnowledgeFileList({
           />
           <div>
             <div>
-              <Text strong>{text}</Text>
+              <Text strong style={{ wordBreak: 'break-word' }}>{text}</Text>
             </div>
             <div>
               <Text type="secondary" style={{ fontSize: 12 }}>
@@ -462,12 +498,14 @@ export default function KnowledgeFileList({
           </div>
         </Space>
       ),
-    },
-    {
+    };
+
+    const statusColumn = {
       title: "Status",
       dataIndex: "parsingStatus",
       key: "parsingStatus",
       width: 120,
+      responsive: ['md'],
       filters: statusFilters,
       onFilter: (value: any, record: any) => {
         // Handle null/undefined case separately
@@ -491,8 +529,9 @@ export default function KnowledgeFileList({
           {status || "Not parsed"}
         </Tag>
       ),
-    },
-    {
+    };
+
+    const parseColumn = {
       title: "Parse",
       key: "parse",
       width: 100,
@@ -505,7 +544,7 @@ export default function KnowledgeFileList({
 
         return (
           <Button
-            size="large"
+            size={screens.sm ? "large" : "middle"}
             icon={
               isParsed ? (
                 <SyncOutlined />
@@ -519,58 +558,114 @@ export default function KnowledgeFileList({
           />
         );
       },
-    },
-    {
+    };
+
+    const uploadedColumn = {
       title: "Uploaded",
       dataIndex: "createdAt",
       key: "createdAt",
       width: 170,
+      responsive: ['lg'],
       render: (date: string) => (
         <Text type="secondary">{formatDate(date)}</Text>
       ),
-    },
-    {
+    };
+
+    const actionsColumn = {
       title: "Actions",
       key: "actions",
-      width: 160,
-      render: (_: any, record: any) => (
-        <Space>
-          <Tooltip title={`View details ${record.originalName}`}>
-            <Button
-              type="text"
+      width: screens.sm ? 160 : 90,
+      render: (_: any, record: any) => {
+        const actions = [
+          {
+            key: 'view',
+            label: 'View Details',
+            icon: <EyeOutlined />,
+            onClick: () => router.push(`/files/${record.id}`),
+          },
+          {
+            key: 'configure',
+            label: 'Configure Chunking',
+            icon: <SettingOutlined />,
+            onClick: () => openFileConfigModal(record),
+          },
+          {
+            key: 'delete',
+            label: 'Delete File',
+            icon: <DeleteOutlined style={{ color: '#ff4d4f' }} />,
+            onClick: () => Modal.confirm({
+              title: "Delete File",
+              content: "Are you sure you want to delete this file? This action cannot be undone.",
+              okText: "Delete",
+              okType: "danger",
+              onOk: () => handleDeleteFile(record.id),
+            }),
+          },
+        ];
 
-              icon={<EyeOutlined />}
-              onClick={() => router.push(`/files/${record.id}`)}
-            />
-          </Tooltip>
-          <Tooltip title="Configure Chunking">
-            <Button
-              type="text"
-              icon={<SettingOutlined />}
-              onClick={() => openFileConfigModal(record)}
-            />
-          </Tooltip>
-          <Tooltip title="Delete File">
-            <Button
-              type="text"
-              danger
-              icon={<DeleteOutlined />}
-              onClick={() =>
-                Modal.confirm({
-                  title: "Delete File",
-                  content:
-                    "Are you sure you want to delete this file? This action cannot be undone.",
-                  okText: "Delete",
-                  okType: "danger",
-                  onOk: () => handleDeleteFile(record.id),
-                })
-              }
-            />
-          </Tooltip>
-        </Space>
-      ),
-    },
-  ];
+        if (screens.sm) {
+          return (
+            <Space>
+              <Tooltip title={`View details ${record.originalName}`}>
+                <Button
+                  type="text"
+                  icon={<EyeOutlined />}
+                  onClick={() => router.push(`/files/${record.id}`)}
+                />
+              </Tooltip>
+              <Tooltip title="Configure Chunking">
+                <Button
+                  type="text"
+                  icon={<SettingOutlined />}
+                  onClick={() => openFileConfigModal(record)}
+                />
+              </Tooltip>
+              <Tooltip title="Delete File">
+                <Button
+                  type="text"
+                  danger
+                  icon={<DeleteOutlined />}
+                  onClick={() =>
+                    Modal.confirm({
+                      title: "Delete File",
+                      content: "Are you sure you want to delete this file? This action cannot be undone.",
+                      okText: "Delete",
+                      okType: "danger",
+                      onOk: () => handleDeleteFile(record.id),
+                    })
+                  }
+                />
+              </Tooltip>
+            </Space>
+          );
+        } else {
+          // On mobile, use dropdown menu for actions
+          return (
+            <Dropdown
+              menu={{ 
+                items: actions.map(action => ({
+                  key: action.key,
+                  label: action.label,
+                  icon: action.icon,
+                  onClick: action.onClick,
+                }))
+              }}
+            >
+              <Button type="text" icon={<MoreOutlined />} />
+            </Dropdown>
+          );
+        }
+      },
+    };
+
+    return [
+      fileColumn,
+      statusColumn,
+      parseColumn,
+      uploadedColumn,
+      actionsColumn,
+    ];
+  };
 
   return (
     <Card
@@ -581,8 +676,9 @@ export default function KnowledgeFileList({
           icon={<UploadOutlined />}
           onClick={handleOpenUploadModal}
           disabled={!isAuthenticated}
+          size={screens.sm ? "middle" : "small"}
         >
-          Upload Files
+          {screens.sm ? "Upload Files" : "Upload"}
         </Button>
       }
       style={{ marginBottom: 24 }}
@@ -601,17 +697,22 @@ export default function KnowledgeFileList({
               style={{ marginBottom: 16 }}
             />
           )}
-          <Table
-            rowSelection={rowSelection}
-            dataSource={files}
-            columns={columns}
-            rowKey="id"
-            pagination={{
-              pageSize: 10,
-              showSizeChanger: true,
-              pageSizeOptions: ["10", "20", "50"],
-            }}
-          />
+          <div style={{ overflowX: 'auto' }}>
+            <Table
+              rowSelection={rowSelection}
+              dataSource={files}
+              columns={createColumns()}
+              rowKey="id"
+              pagination={{
+                pageSize: 10,
+                showSizeChanger: screens.md,
+                pageSizeOptions: ["10", "20", "50"],
+                size: screens.sm ? "default" : "small",
+              }}
+              size={screens.sm ? "middle" : "small"}
+              scroll={{ x: 'max-content' }}
+            />
+          </div>
         </>
       ) : (
         <Empty
@@ -622,6 +723,7 @@ export default function KnowledgeFileList({
             type="primary"
             onClick={handleOpenUploadModal}
             disabled={!isAuthenticated}
+            size={screens.sm ? "middle" : "small"}
           >
             Upload Now
           </Button>

@@ -1,20 +1,20 @@
 import React, { useState } from 'react';
 import {
     Card, Typography, Input, Button, Slider, InputNumber,
-    Space, Divider, List, Tag, Empty, Spin, Collapse, Alert
+    Space, Divider, List, Tag, Empty, Spin, Collapse, Alert, Grid
 } from 'antd';
 import { SearchOutlined, ExperimentOutlined } from '@ant-design/icons';
-import {  testKnowledgeRetrieval } from '../../services/knowledgeService';
+import { testKnowledgeRetrieval } from '../../services/knowledgeService';
 import { SearchSimilarResult } from '@lib/services/vectorSearchService';
 
 const { Title, Text, Paragraph } = Typography;
 const { TextArea } = Input;
 const { Panel } = Collapse;
+const { useBreakpoint } = Grid;
 
 interface RetrievalTestingPanelProps {
     knowledgeId: string;
 }
-
 
 const RetrievalTestingPanel: React.FC<RetrievalTestingPanelProps> = ({ knowledgeId }) => {
     const [query, setQuery] = useState('');
@@ -27,6 +27,7 @@ const RetrievalTestingPanel: React.FC<RetrievalTestingPanelProps> = ({ knowledge
         error?: string;
     } | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const screens = useBreakpoint();
 
     const handleRunTest = async () => {
         if (!query.trim()) {
@@ -67,6 +68,10 @@ const RetrievalTestingPanel: React.FC<RetrievalTestingPanelProps> = ({ knowledge
         );
     };
 
+    // Calculate responsive sizes
+    const isMobile = !screens.sm;
+    const sliderWidth = isMobile ? '100%' : 'flex: 1; margin-right: 16px';
+    
     return (
         <Card
             title={
@@ -76,8 +81,10 @@ const RetrievalTestingPanel: React.FC<RetrievalTestingPanelProps> = ({ knowledge
                 </Space>
             }
             className="retrieval-testing-panel"
+            bodyStyle={{ padding: isMobile ? '12px' : '24px' }}
+            size={isMobile ? 'small' : 'default'}
         >
-            <Space direction="vertical" style={{ width: '100%' }}>
+            <Space direction="vertical" style={{ width: '100%' }} size={isMobile ? 'small' : 'middle'}>
                 {error && (
                     <Alert type="error" message={error} closable onClose={() => setError(null)} />
                 )}
@@ -88,41 +95,64 @@ const RetrievalTestingPanel: React.FC<RetrievalTestingPanelProps> = ({ knowledge
                         placeholder="Enter your test query here..."
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
-                        rows={3}
+                        rows={isMobile ? 2 : 3}
                         style={{ marginTop: 8 }}
                     />
                 </div>
 
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px' }}>
-                    <div style={{ flex: 1, minWidth: '200px' }}>
+                <div style={{ 
+                    display: 'flex', 
+                    flexDirection: isMobile ? 'column' : 'row',
+                    gap: isMobile ? '12px' : '20px' 
+                }}>
+                    <div style={{ 
+                        flex: 1, 
+                        minWidth: isMobile ? '100%' : '200px'
+                    }}>
                         <Text strong>Results Limit</Text>
-                        <div style={{ display: 'flex', alignItems: 'center', marginTop: 8 }}>
+                        <div style={{ 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            marginTop: 8,
+                            flexDirection: isMobile ? 'column' : 'row',
+                            gap: isMobile ? '8px' : '0'
+                        }}>
                             <Slider
                                 min={1}
                                 max={20}
                                 value={limit}
                                 onChange={setLimit}
-                                style={{ flex: 1, marginRight: 16 }}
+                                style={{ width: '100%' }}
                             />
                             <InputNumber
                                 min={1}
                                 max={20}
                                 value={limit}
                                 onChange={(value) => setLimit(value || 5)}
+                                style={{ width: isMobile ? '100%' : 'auto' }}
                             />
                         </div>
                     </div>
 
-                    <div style={{ flex: 1, minWidth: '200px' }}>
+                    <div style={{ 
+                        flex: 1, 
+                        minWidth: isMobile ? '100%' : '200px'
+                    }}>
                         <Text strong>Similarity Threshold</Text>
-                        <div style={{ display: 'flex', alignItems: 'center', marginTop: 8 }}>
+                        <div style={{ 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            marginTop: 8,
+                            flexDirection: isMobile ? 'column' : 'row',
+                            gap: isMobile ? '8px' : '0'
+                        }}>
                             <Slider
                                 min={0.1}
                                 max={1}
                                 step={0.05}
                                 value={threshold}
                                 onChange={setThreshold}
-                                style={{ flex: 1, marginRight: 16 }}
+                                style={{ width: '100%' }}
                             />
                             <InputNumber
                                 min={0.1}
@@ -132,6 +162,7 @@ const RetrievalTestingPanel: React.FC<RetrievalTestingPanelProps> = ({ knowledge
                                 onChange={(value) => setThreshold(value || 0.7)}
                                 formatter={value => `${(Number(value) * 100).toFixed(0)}%`}
                                 parser={value => Number(value?.replace('%', '')) / 100}
+                                style={{ width: isMobile ? '100%' : 'auto' }}
                             />
                         </div>
                     </div>
@@ -143,21 +174,24 @@ const RetrievalTestingPanel: React.FC<RetrievalTestingPanelProps> = ({ knowledge
                     onClick={handleRunTest}
                     loading={loading}
                     block
+                    size={isMobile ? 'middle' : 'large'}
                 >
                     Run Test
                 </Button>
 
                 {loading && (
-                    <div style={{ textAlign: 'center', padding: '20px 0' }}>
+                    <div style={{ textAlign: 'center', padding: isMobile ? '12px 0' : '20px 0' }}>
                         <Spin tip="Running retrieval test..." />
                     </div>
                 )}
 
                 {testResult && !loading && (
                     <>
-                        <Divider>Test Results</Divider>
+                        <Divider orientation={isMobile ? "left" : "center"} style={{ margin: isMobile ? '12px 0' : '24px 0' }}>
+                            Test Results
+                        </Divider>
                         <div className="test-results">
-                            <Space direction="vertical" style={{ width: '100%' }}>
+                            <Space direction="vertical" style={{ width: '100%' }} size={isMobile ? 'small' : 'middle'}>
                                 <div>
                                     <Text type="secondary">Time:</Text> {new Date(testResult.timestamp).toLocaleString()}
                                 </div>
@@ -169,25 +203,49 @@ const RetrievalTestingPanel: React.FC<RetrievalTestingPanelProps> = ({ knowledge
                                 />
 
                                 {testResult.results.length === 0 ? (
-                                    <Empty description="No results found. Try adjusting your query or lowering the similarity threshold." />
+                                    <Empty 
+                                        description="No results found. Try adjusting your query or lowering the similarity threshold."
+                                        image={Empty.PRESENTED_IMAGE_SIMPLE} 
+                                    />
                                 ) : (
                                     <List
                                         itemLayout="vertical"
                                         dataSource={testResult.results}
                                         renderItem={(item, index) => (
                                             <List.Item
-                                                extra={renderSimilarityBadge(item.similarity)}
+                                                style={{ padding: isMobile ? '8px 0' : '12px 0' }}
+                                                extra={isMobile ? null : renderSimilarityBadge(item.similarity)}
                                             >
                                                 <List.Item.Meta
-                                                    title={<Text strong>{index + 1}. From: {item.fileName}</Text>}
+                                                    title={
+                                                        <div style={{ 
+                                                            display: 'flex',
+                                                            justifyContent: 'space-between',
+                                                            alignItems: 'center',
+                                                            flexWrap: 'wrap',
+                                                            gap: '8px'
+                                                        }}>
+                                                            <Text strong>{index + 1}. From: {item.fileName}</Text>
+                                                            {isMobile && renderSimilarityBadge(item.similarity)}
+                                                        </div>
+                                                    }
                                                 />
                                                 <div className="result-content" style={{
-                                                    padding: '12px',
+                                                    padding: isMobile ? '8px' : '12px',
                                                     background: '#f9f9f9',
                                                     borderRadius: '4px',
-                                                    marginTop: '8px'
+                                                    marginTop: '8px',
+                                                    fontSize: isMobile ? '13px' : '14px',
+                                                    overflowWrap: 'break-word',
+                                                    wordBreak: 'break-word'
                                                 }}>
-                                                    <Paragraph ellipsis={{ rows: 4, expandable: true, symbol: 'more' }}>
+                                                    <Paragraph 
+                                                        ellipsis={{ 
+                                                            rows: isMobile ? 3 : 4, 
+                                                            expandable: true, 
+                                                            symbol: 'more' 
+                                                        }}
+                                                    >
                                                         {item.content}
                                                     </Paragraph>
                                                 </div>
@@ -195,9 +253,18 @@ const RetrievalTestingPanel: React.FC<RetrievalTestingPanelProps> = ({ knowledge
                                                 {item.metadata && Object.keys(item.metadata).length > 0 && (
                                                     <Collapse ghost style={{ marginTop: '8px' }}>
                                                         <Panel header="Metadata" key="1">
-                                                            <pre style={{ fontSize: '12px' }}>
-                                                                {JSON.stringify(item.metadata, null, 2)}
-                                                            </pre>
+                                                            <div style={{ 
+                                                                maxWidth: '100%', 
+                                                                overflowX: 'auto' 
+                                                            }}>
+                                                                <pre style={{ 
+                                                                    fontSize: isMobile ? '11px' : '12px',
+                                                                    whiteSpace: 'pre-wrap',
+                                                                    wordBreak: 'break-word'
+                                                                }}>
+                                                                    {JSON.stringify(item.metadata, null, 2)}
+                                                                </pre>
+                                                            </div>
                                                         </Panel>
                                                     </Collapse>
                                                 )}

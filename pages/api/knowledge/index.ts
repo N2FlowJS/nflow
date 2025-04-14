@@ -2,6 +2,33 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from "../../../lib/prisma";
 import { parseAuthHeader, verifyToken } from '../../../lib/auth';
 
+/**
+ * API route handler for managing knowledge items.
+ *
+ * Handles both `GET` and `POST` requests:
+ *
+ * - `GET`: Fetches all knowledge items from the database, including their associated
+ *   creators, users, teams, and files.
+ *   - Response: Returns a JSON array of knowledge items with a 200 status code.
+ *   - Error: Returns a 500 status code with an error message if fetching fails.
+ *
+ * - `POST`: Creates a new knowledge item in the database.
+ *   - Requires an `Authorization` header with a valid token.
+ *   - Request Body:
+ *     - `name` (string, required): The name of the knowledge item.
+ *     - `description` (string, required): A description of the knowledge item.
+ *     - `userIds` (string[], optional): An array of user IDs to associate with the knowledge item.
+ *     - `teamIds` (string[], optional): An array of team IDs to associate with the knowledge item.
+ *   - Response: Returns the created knowledge item with a 201 status code.
+ *   - Error: Returns a 401 status code for authentication errors, a 400 status code for
+ *     validation errors, or a 500 status code for server errors.
+ *
+ * If the request method is not `GET` or `POST`, the handler responds with a 405 status code
+ * and an `Allow` header specifying the allowed methods.
+ *
+ * @param req - The incoming HTTP request object.
+ * @param res - The outgoing HTTP response object.
+ */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
     try {
