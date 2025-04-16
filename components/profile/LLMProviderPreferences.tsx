@@ -51,7 +51,7 @@ const LLMProviderPreferences: React.FC<LLMProviderPreferencesProps> = ({
 
   const fetchPreferences = async () => {
     if (!userId) return;
-    
+
     setLoading(true);
     try {
       const data = await fetchUserPreferences(userId);
@@ -71,7 +71,7 @@ const LLMProviderPreferences: React.FC<LLMProviderPreferencesProps> = ({
 
   const handleSave = async () => {
     if (!userId) return;
-    
+
     setSaving(true);
     try {
       await updateUserPreferences(userId, {
@@ -103,26 +103,7 @@ const LLMProviderPreferences: React.FC<LLMProviderPreferencesProps> = ({
         icon = <ApiOutlined />;
         label = 'OpenAI Compatible';
         break;
-      case 'azure':
-        color = 'blue';
-        icon = <ApiOutlined />;
-        label = 'Azure';
-        break;
-      case 'anthropic':
-        color = 'purple';
-        icon = <ApiOutlined />;
-        label = 'Anthropic';
-        break;
-      case 'local':
-        color = 'orange';
-        icon = <ExperimentOutlined />;
-        label = 'Local';
-        break;
-      case 'custom':
-        color = 'geekblue';
-        icon = <ExperimentOutlined />;
-        label = 'Custom';
-        break;
+
       default:
         color = 'default';
         break;
@@ -224,11 +205,11 @@ const LLMProviderPreferences: React.FC<LLMProviderPreferencesProps> = ({
               </Option>
             ))}
           </Select>
-          
+
           {!viewOnly && (
-            <Button 
-              type="primary" 
-              onClick={handleSave} 
+            <Button
+              type="primary"
+              onClick={handleSave}
               loading={saving}
               icon={<StarFilled />}
             >
@@ -249,7 +230,7 @@ const LLMProviderPreferences: React.FC<LLMProviderPreferencesProps> = ({
     return (
       <Tabs defaultActiveKey="all">
         <TabPane tab="All Providers" key="all">
-          <Table 
+          <Table
             dataSource={[
               ...(preferences.availableProviders?.systemProviders || []),
               ...(preferences.availableProviders?.userProviders || []),
@@ -261,7 +242,7 @@ const LLMProviderPreferences: React.FC<LLMProviderPreferencesProps> = ({
           />
         </TabPane>
         <TabPane tab="System Providers" key="system">
-          <Table 
+          <Table
             dataSource={preferences.availableProviders?.systemProviders || []}
             columns={columns}
             rowKey="id"
@@ -270,7 +251,7 @@ const LLMProviderPreferences: React.FC<LLMProviderPreferencesProps> = ({
           />
         </TabPane>
         <TabPane tab="My Providers" key="user">
-          <Table 
+          <Table
             dataSource={preferences.availableProviders?.userProviders || []}
             columns={columns}
             rowKey="id"
@@ -279,7 +260,7 @@ const LLMProviderPreferences: React.FC<LLMProviderPreferencesProps> = ({
           />
         </TabPane>
         <TabPane tab="Team Providers" key="team">
-          <Table 
+          <Table
             dataSource={preferences.availableProviders?.teamProviders || []}
             columns={columns}
             rowKey="id"
@@ -305,9 +286,9 @@ const LLMProviderPreferences: React.FC<LLMProviderPreferencesProps> = ({
   return (
     <Card>
       <Title level={3}>LLM Provider Preferences</Title>
-      
+
       {renderProviderSelector()}
-      
+
       <div style={{ marginTop: 24 }}>
         <Title level={4}>Available Providers</Title>
         {renderProviderTabs()}

@@ -1,5 +1,5 @@
-import { BugOutlined, InfoCircleOutlined } from '@ant-design/icons';
-import { Button, Collapse, Drawer, Empty, Table, Tag, Typography, Tooltip, Space } from 'antd';
+import { BugOutlined, InfoCircleOutlined, WarningOutlined } from '@ant-design/icons';
+import { Alert, Button, Collapse, Drawer, Empty, Table, Tag, Typography, Tooltip, Space } from 'antd';
 import React, { useCallback } from 'react';
 import { FlowState } from '../../types/flowExecutionTypes';
 import styles from './ChatInterface.module.css';
@@ -37,8 +37,8 @@ export const DebugInfoBar: React.FC<{
 }> = ({ debugStatus }) => (
     <div className={styles.debugInfoBar}>
         <Space wrap size={[8, 4]} style={{ padding: '4px 8px' }}>
-            <Tag color={debugStatus.waitingForInput ? "green" : "default"}>
-                {debugStatus.waitingForInput ? "Waiting for input" : "Processing"}
+            <Tag color={"default"}>
+                {"Processing"}
             </Tag>
             <Tag color={debugStatus.hasFlowState ? "blue" : "red"}>
                 Node: {debugStatus.currentNodeId}
@@ -118,10 +118,10 @@ const DebugPanel: React.FC<DebugPanelProps> = ({
     return (
         <>
             {/* Debug Controls for header */}
-            <DebugControls 
-                debugMode={debugMode} 
-                setDebugMode={setDebugMode} 
-                onOpenDebugPanel={handleOpenDebugPanel} 
+            <DebugControls
+                debugMode={debugMode}
+                setDebugMode={setDebugMode}
+                onOpenDebugPanel={handleOpenDebugPanel}
             />
 
             {/* Debug Drawer */}
@@ -130,6 +130,11 @@ const DebugPanel: React.FC<DebugPanelProps> = ({
                     <div style={{ display: 'flex', alignItems: 'center' }}>
                         <BugOutlined style={{ marginRight: 8 }} />
                         Debug Information
+                        {debugStatus.hasError && (
+                            <Tag color="red" style={{ marginLeft: 8 }}>
+                                <WarningOutlined /> Error
+                            </Tag>
+                        )}
                     </div>
                 }
                 placement="right"
@@ -137,6 +142,16 @@ const DebugPanel: React.FC<DebugPanelProps> = ({
                 onClose={() => setDebugDrawerOpen(false)}
                 open={debugDrawerOpen}
             >
+                {debugStatus.hasError && (
+                    <Alert
+                        message="Execution Error"
+                        description={debugStatus.errorMessage}
+                        type="error"
+                        showIcon
+                        style={{ marginBottom: 16 }}
+                    />
+                )}
+                
                 <Collapse defaultActiveKey={['1']} ghost>
                     {/* Current Status panel */}
                     <Collapse.Panel
@@ -149,10 +164,7 @@ const DebugPanel: React.FC<DebugPanelProps> = ({
                                 <Typography.Text strong>Node ID:</Typography.Text>
                                 <div>{debugStatus.currentNodeId}</div>
                             </div>
-                            <div>
-                                <Typography.Text strong>Waiting for Input:</Typography.Text>
-                                <div>{debugStatus.waitingForInput ? "Yes" : "No"}</div>
-                            </div>
+                           
                             <div>
                                 <Typography.Text strong>Messages:</Typography.Text>
                                 <div>{debugStatus.messagesCount}</div>
@@ -171,6 +183,12 @@ const DebugPanel: React.FC<DebugPanelProps> = ({
                                     {debugStatus.id}
                                 </div>
                             </div>
+                            {debugStatus.lastUpdated && (
+                                <div>
+                                    <Typography.Text strong>Last Updated:</Typography.Text>
+                                    <div>{new Date(debugStatus.lastUpdated).toLocaleTimeString()}</div>
+                                </div>
+                            )}
                         </div>
                     </Collapse.Panel>
 

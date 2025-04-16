@@ -135,28 +135,7 @@ const GenerateNodeForm: React.FC<GenerateNodeFormProps> = (props) => {
           </div>
         </Panel>
         
-        <Panel 
-          header={
-            <Space>
-              <span>Output Configuration</span>
-            </Space>
-          } 
-          key="output"
-        >
-          <Form.Item 
-            name="outputVariable" 
-            label="Output Variable Name"
-            extra="This variable will store the generated text for use in subsequent nodes"
-            initialValue={outputVarName}
-          >
-            <Input 
-              placeholder="Variable name (e.g., generatedText)" 
-              value={outputVarName}
-              onChange={(e) => setOutputVarName(e.target.value)}
-              addonBefore="$"
-            />
-          </Form.Item>
-        </Panel>
+   
       </Collapse>
     </BaseNodeForm>
   );

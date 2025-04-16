@@ -26,7 +26,7 @@ export function parseFlowConfig(flowConfig: string): Flow {
               } else if (type === 'generate' && (node.data.prompt || node.data.model)) {
                 node.data.form = node.data.form || {
                   prompt: node.data.prompt || '',
-                  model: node.data.model || 'gpt-3.5-turbo'
+                  model: node.data.model || ''
                 };
               } else if (type === 'categorize' && (node.data.categories || node.data.defaultCategory)) {
                 node.data.form = node.data.form || {

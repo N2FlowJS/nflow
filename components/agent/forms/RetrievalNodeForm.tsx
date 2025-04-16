@@ -7,7 +7,6 @@ import { fetchAllKnowledge, } from "../../../services/knowledgeService";
 import { IKnowledge } from "../../../types/IKnowledge";
 
 const { Panel } = Collapse;
-const { Text } = Typography;
 
 interface RetrievalNodeFormProps {
   form: any;
@@ -16,17 +15,21 @@ interface RetrievalNodeFormProps {
   setIsDrawerOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
+const useAvailableNodes = () => {
+  const [availableNodes, setAvailableNodes] = useState<Array<{ id: string, name: string, type: string }>>([]);
+
+  return {
+    availableNodes,
+  }
+}
 const RetrievalNodeForm: React.FC<RetrievalNodeFormProps> = (props) => {
   const [knowledgeBases, setKnowledgeBases] = useState<IKnowledge[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [outputVarName, setOutputVarName] = useState(
-    props.form?.getFieldValue('outputVariable') || 'retrievalResults'
-  );
 
-  // Track available query sources for input reference
-  const [availableInputs, setAvailableInputs] = useState<Array<{id: string, name: string, type: string}>>([]);
-  const [availableNodes, setAvailableNodes] = useState<Array<{id: string, name: string, type: string}>>([]);
+  const {
+    availableNodes
+  } = useAvailableNodes();
 
   useEffect(() => {
     const loadKnowledgeBases = async () => {
@@ -46,19 +49,10 @@ const RetrievalNodeForm: React.FC<RetrievalNodeFormProps> = (props) => {
 
     loadKnowledgeBases();
 
-    // Mock loading available inputs for query source
-    // In a real implementation, this would query the flow structure
-    setAvailableInputs([
-      { id: 'user_input', name: 'User Input', type: 'text' },
-      { id: 'generated_text', name: 'Generated Text', type: 'text' },
-    ]);
 
-    // Mock available nodes for input references
-    // In real implementation, this would find all nodes that come before this one in the flow
-    setAvailableNodes([
-      { id: 'begin_node', name: 'Begin Node', type: 'begin' },
-      { id: 'generate_node', name: 'Generate Node', type: 'generate' },
-    ]);
+
+
+
   }, []);
 
   return (
@@ -100,38 +94,15 @@ const RetrievalNodeForm: React.FC<RetrievalNodeFormProps> = (props) => {
         <InputNumber min={1} max={20} defaultValue={3} style={{ width: '100%' }} />
       </Form.Item>
 
-      <Collapse 
-        defaultActiveKey={['query-source', 'input-refs', 'output-config']} 
+      <Collapse
+        defaultActiveKey={['query-source', 'input-refs', 'output-config']}
         bordered={false}
         expandIconPosition="end"
       >
-        <Panel 
-          header={
-            <Space>
-              <FileSearchOutlined />
-              <span>Query Source</span>
-            </Space>
-          } 
-          key="query-source"
-        >
-          <Form.Item
-            name="querySource"
-            label="Select input to use as the query"
-            help="The selected input will be used as the query text for retrieval"
-            rules={[{ required: true, message: 'Please select a query source' }]}
-          >
-            <Select 
-              placeholder="Select query source"
-              options={availableInputs.map(input => ({
-                value: input.id,
-                label: input.name,
-              }))}
-            />
-          </Form.Item>
-        </Panel>
+
 
         {/* Input References Section - Specific to RetrievalNode */}
-        <Panel 
+        <Panel
           header={
             <Space>
               <LinkOutlined />
@@ -140,7 +111,7 @@ const RetrievalNodeForm: React.FC<RetrievalNodeFormProps> = (props) => {
                 <Tag color="blue">{props.form?.getFieldValue('inputRefs')?.length || 0}</Tag>
               )}
             </Space>
-          } 
+          }
           key="input-refs"
         >
           <Form.Item name="inputRefs" initialValue={[]}>
@@ -163,34 +134,18 @@ const RetrievalNodeForm: React.FC<RetrievalNodeFormProps> = (props) => {
                           ))}
                         </Select>
                       </Form.Item>
-                      
-                      <Form.Item
-                        {...field}
-                        name={[field.name, 'outputName']}
-                        rules={[{ required: true, message: 'Output name is required' }]}
-                        style={{ width: 150 }}
-                      >
-                        <Input placeholder="Output Name" />
-                      </Form.Item>
-                      
-                      <Form.Item
-                        {...field}
-                        name={[field.name, 'inputName']}
-                        rules={[{ required: true, message: 'Input name is required' }]}
-                        style={{ width: 150 }}
-                      >
-                        <Input placeholder="As Input Name" />
-                      </Form.Item>
-                      
+
+
+
                       <DeleteOutlined onClick={() => remove(field.name)} />
                     </Space>
                   ))}
-                  
+
                   <Form.Item>
-                    <Button 
-                      type="dashed" 
-                      onClick={() => add()} 
-                      block 
+                    <Button
+                      type="dashed"
+                      onClick={() => add()}
+                      block
                       icon={<LinkOutlined />}
                     >
                       Add Input Reference
@@ -202,41 +157,7 @@ const RetrievalNodeForm: React.FC<RetrievalNodeFormProps> = (props) => {
           </Form.Item>
         </Panel>
 
-        <Panel 
-          header={
-            <Space>
-              <ExportOutlined />
-              <span>Output Configuration</span>
-            </Space>
-          } 
-          key="output-config"
-        >
-          <Form.Item 
-            name="outputVariable" 
-            label="Output Variable Name"
-            extra="This variable will store the retrieval results for use in subsequent nodes"
-            initialValue={outputVarName}
-          >
-            <Input 
-              placeholder="Variable name (e.g., retrievalResults)" 
-              value={outputVarName}
-              onChange={(e) => setOutputVarName(e.target.value)}
-              addonBefore="$"
-            />
-          </Form.Item>
 
-          <Form.Item
-            name="outputFormat"
-            label="Output Format"
-            initialValue="text"
-          >
-            <Select>
-              <Select.Option value="text">Text (Formatted)</Select.Option>
-              <Select.Option value="json">JSON (Structured)</Select.Option>
-              <Select.Option value="citations">Text with Citations</Select.Option>
-            </Select>
-          </Form.Item>
-        </Panel>
       </Collapse>
     </BaseNodeForm>
   );

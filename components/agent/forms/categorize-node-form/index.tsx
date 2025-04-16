@@ -287,30 +287,7 @@ const CategorizeNodeForm: React.FC<CategorizeNodeFormProps> = (props) => {
           </Form.List>
         </Form.Item>
       </Panel>
-      <Panel 
-        header={
-          <Space>
-            <FileSearchOutlined />
-            <span>Input Source</span>
-          </Space>
-        } 
-        key="input-source"
-      >
-        <Form.Item
-          name="inputSource"
-          label="Select input to categorize"
-          help="The selected input will be used as the text to categorize"
-          rules={[{ required: true, message: 'Please select an input source' }]}
-        >
-          <Select placeholder="Select input source">
-            {availableInputs.map(input => (
-              <Select.Option key={input.id} value={input.id}>
-                {input.name}
-              </Select.Option>
-            ))}
-          </Select>
-        </Form.Item>
-      </Panel>
+    
       <Form.Item name="categories" initialValue={[]} hidden>
         <Input />
       </Form.Item>

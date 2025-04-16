@@ -21,11 +21,7 @@ export interface InputReference {
   description?: string;
 }
 
-export interface OutputDefinition {
-  name: string;
-  description?: string;
-  dataType?: 'text' | 'json' | 'number' | 'boolean' | 'array';
-}
+
 
 // Generic Base Node Data with form type parameter
 export type BaseNodeData<TForm = any> = {
@@ -42,8 +38,6 @@ export interface BaseForm {
   description: string;
   output: string;
 
-  // Only nodes that need explicit output naming should use this
-  outputVariable?: string;
 }
 
 // Form types for each node
@@ -79,7 +73,6 @@ export interface CategorizeForm extends BaseForm {
   categories: ICategory[];
   defaultCategory: string;
   model: string;
-  inputSource?: string; // What input to categorize
   inputRefs?: InputReference[]; // Add support for input references
 }
 
@@ -87,12 +80,9 @@ export interface RetrievalForm extends BaseForm {
   knowledgeIds: string[];
   maxResults: number;
   threshold: number;
-  querySource?: string; // Source for the query text
   outputFormat?: 'text' | 'json' | 'citations'; // Format for retrieval results
 
-  // Explicit input reference fields for RetrievalNode
   inputRefs?: InputReference[];
-  outputs?: OutputDefinition[];
 }
 
 // Specialized node data types
@@ -151,8 +141,7 @@ export interface NodeFormField {
 export interface InputOutputInfo {
   input: string; // Description of what input the node accepts
   output: string; // Description of what output the node produces
-  outputVariables: string[]; // Names of output variables this node produces
-  supportsInputReferences?: boolean; // Whether this node type supports input references
+  references?: InputReference[]; // Optional references for input/output
 }
 
 // Node configuration

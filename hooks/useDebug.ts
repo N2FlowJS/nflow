@@ -11,11 +11,13 @@ export interface LogEntry {
 export interface DebugStatus {
     hasFlowState: boolean;
     currentNodeId: string;
-    waitingForInput: boolean;
     messagesCount: number;
     variablesCount: number;
     isCompleted: boolean;
     id: string;
+    lastUpdated?: string;
+    hasError?: boolean;
+    errorMessage?: string;
 }
 
 export const useDebug = () => {
@@ -55,18 +57,20 @@ export const useDebug = () => {
     // Create debug status from flow state and other parameters
     const createDebugStatus = useCallback((
         flowState: FlowState | null,
-        waitingForInput: boolean,
         messagesCount: number,
-        id?: string
+        id?: string,
+        error?: string | null
     ): DebugStatus => {
         return {
             hasFlowState: !!flowState,
             currentNodeId: flowState?.currentNodeId || 'None',
-            waitingForInput,
             messagesCount,
             variablesCount: flowState ? Object.keys(flowState.variables || {}).length : 0,
             isCompleted: flowState?.completed || false,
-            id: id || 'None'
+            id: id || 'None',
+            lastUpdated: new Date().toISOString(),
+            hasError: !!error,
+            errorMessage: error || undefined
         };
     }, []);
 

@@ -14,8 +14,6 @@ export const NODE_REGISTRY: Record<NodeTypeString, NodeConfig> = {
     inputOutputInfo: {
       input: 'None',
       output: 'Initial variables and greeting message',
-      outputVariables: ['greeting'],
-      supportsInputReferences: false,
     },
     defaultData: {
       label: 'Begin',
@@ -42,8 +40,6 @@ export const NODE_REGISTRY: Record<NodeTypeString, NodeConfig> = {
     inputOutputInfo: {
       input: 'Previous node output or user input',
       output: 'User input for next node',
-      outputVariables: ['userInput'],
-      supportsInputReferences: false,
     },
     defaultData: {
       name: 'Interface',
@@ -70,8 +66,6 @@ export const NODE_REGISTRY: Record<NodeTypeString, NodeConfig> = {
     inputOutputInfo: {
       input: 'Prompt template with variables',
       output: 'AI-generated content',
-      outputVariables: ['generatedText', 'generatedOutput'],
-      supportsInputReferences: false,
     },
     defaultData: {
       label: 'Generate',
@@ -80,7 +74,7 @@ export const NODE_REGISTRY: Record<NodeTypeString, NodeConfig> = {
         name: 'Generate',
         description: 'Generate content using AI',
         prompt: '',
-        model: 'gpt-3.5-turbo',
+        model: '',
         outputVariable: 'generatedText',
         output: '', // Required by BaseForm
       },
@@ -96,21 +90,15 @@ export const NODE_REGISTRY: Record<NodeTypeString, NodeConfig> = {
       border: '#ffadd2',
       handle: '#eb2f96',
     },
-    inputOutputInfo: {
-      input: 'Text to be categorized',
-      output: 'Category name and routing to next node',
-      outputVariables: ['category', 'categorization'],
-      supportsInputReferences: true, // Changed from false to true
-    },
+ 
     defaultData: {
       label: 'Categorize',
       type: 'categorize',
       form: {
         name: 'Categorize',
-        model: 'gpt-3.5-turbo',
+        model: '',
 
         description: 'Categorize input into different paths',
-        inputSource: 'user_input',
         categories: [
           {
             name: 'positive',
@@ -142,8 +130,6 @@ export const NODE_REGISTRY: Record<NodeTypeString, NodeConfig> = {
     inputOutputInfo: {
       input: 'Query text for search',
       output: 'Retrieved information from knowledge bases',
-      outputVariables: ['retrievalResults', 'formattedResults', 'results'],
-      supportsInputReferences: true, // Only retrieval node supports input references
     },
     defaultData: {
       label: 'Retrieval',
@@ -164,10 +150,6 @@ export const NODE_REGISTRY: Record<NodeTypeString, NodeConfig> = {
   },
 };
 
-// Add a utility function to check if a node type supports input references
-export function supportsInputReferences(nodeType: NodeTypeString): boolean {
-  return NODE_REGISTRY[nodeType]?.inputOutputInfo?.supportsInputReferences === true;
-}
 
 // Get available input sources for the query - specifically for nodes that support input references
 export function getQueryInputSources(): Array<{ id: string; name: string; description: string }> {
@@ -190,18 +172,10 @@ export function getQueryInputSources(): Array<{ id: string; name: string; descri
   ];
 }
 
-// Get output variables for a specific node type based on its configuration
-export function getNodeOutputVariables(nodeType: NodeTypeString): string[] {
-  return NODE_REGISTRY[nodeType]?.inputOutputInfo?.outputVariables || [];
-}
+
 
 // Get input/output info for a node type
 export function getNodeIOInfo(nodeType: NodeTypeString): InputOutputInfo | undefined {
   return NODE_REGISTRY[nodeType]?.inputOutputInfo;
 }
 
-// Check if a node can be used as an input source
-export function canBeInputSource(nodeType: NodeTypeString): boolean {
-  // All nodes with defined outputs can be input sources
-  return (NODE_REGISTRY[nodeType]?.inputOutputInfo?.outputVariables?.length || 0) > 0;
-}

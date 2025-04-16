@@ -4,6 +4,7 @@ export interface LLMProvider {
     description: string | null;
     providerType: string;
     endpointUrl: string;
+    apiKey: string;
     isActive: boolean;
     isDefault: boolean;
     models: LLMModel[];

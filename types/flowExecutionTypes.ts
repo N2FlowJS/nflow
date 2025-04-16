@@ -1,4 +1,7 @@
 import { Flow, NodeTypeString } from '../components/agent/types/flowTypes';
+import { MessagePart } from './MessagePart';
+import { ClientFlowState
+ } from './flow';
 
 /**
  * Represents the state of a flow execution
@@ -6,12 +9,10 @@ import { Flow, NodeTypeString } from '../components/agent/types/flowTypes';
 export interface FlowState {
   // The ID of the currently executing node
   currentNodeId: string;
+  components: Record<string, any>;
 
   // The name of the currently executing node
   currentNodeName?: string;
-
-  // The type of the currently executing node
-  currentNodeType?: string; // Add node type to track
 
   // Variables that can be referenced throughout the flow
   variables: Record<string, any>;
@@ -21,11 +22,6 @@ export interface FlowState {
 
   // Whether the flow has completed
   completed: boolean;
-
-  // Track information about interface nodes
-  conversationState?: ConversationState;
-
-  [key: string]: any;
 }
 
 /**
@@ -49,53 +45,30 @@ export interface NodeExecutionRecord {
  * Result of a flow execution step
  */
 export interface ExecutionResult {
+  id?: string;
   // Status of the execution
-  status: 'completed' | 'waiting_for_input' | 'error' | 'in_progress';
+  status: 'completed' | 'error' | 'in_progress';
   // ID of the executed conversation
   conversationId?: string;
   // Optional message providing additional information
   message?: string;
-
   // Optional output from the current node
-  output?: string;
-
-  // Optional ID of the next node to execute
   nextNodeId?: string;
 
   // Optional updated flow state
   flowState?: FlowState;
 
-  // Optional user interface definition (for interface nodes)
-  userInterface?: UserInterface;
-
-  // OpenAI compatible fields
-  id?: string;
-  object?: string;
-  created?: number;
-  choices?: Array<{
-    index: number;
-    message?: { role: string; content: string };
-    delta?: { role?: string; content?: string };
-    finish_reason: string | null;
-    text?: string;
-  }>;
-  usage?: {
-    prompt_tokens: number;
-    completion_tokens: number;
-    total_tokens: number;
-  };
-  error?: OpenAIError | string;
-
   // Optional node information
   nodeInfo?: NodeInfo;
 
   // Optional execution status
-  executionStatus?: {
+  execution: {
     nodeId: string;
-    nodeName?: string;
-    status: ExecutionStatusType;
-    startTime?: string;
+    nodeName: string;
+    startTime: string;
     endTime?: string;
+    output: string;
+  
   };
 }
 
@@ -110,7 +83,7 @@ export interface FlowExecutionContext {
   flowState: FlowState;
 
   // Optional user input for the current execution step
-  userInput?: any;
+  input: MessagePart;
 }
 
 /**
@@ -162,7 +135,6 @@ export interface FlowHistoryEntry {
 
 export interface ConversationState {
   hasReachedFirstInterface: boolean; // Whether we've reached the first interface node
-  interfaceNodeCount: number; // How many interface nodes we've encountered
   firstInterfaceId: string | null; // ID of the first interface node
   lastInterfaceId: string | null; // ID of the last interface node we reached
 }
@@ -171,10 +143,11 @@ export interface NodeInfo {
   id: string;
   name?: string;
   type: string;
+  role: 'developer' | 'assistant' | 'system' | 'user';
 }
 
 export interface FlowExecutionHistoryEntry {
-  nodeId: string;
+  nodeId?: string;
   nodeType?: string;
   timestamp: string;
   input?: any;
@@ -184,4 +157,4 @@ export interface FlowExecutionHistoryEntry {
   interfacePosition?: 'start' | 'end'; // Add this missing property
 }
 
-export type ExecutionStatusType = "pending" | "running" | "completed" | "error";
+export type ExecutionStatusType = 'pending' | 'running' | 'completed' | 'error';

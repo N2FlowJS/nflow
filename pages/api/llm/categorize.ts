@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { prisma } from "../../../lib/prisma";
+import { prisma } from '../../../lib/prisma';
 import { parseAuthHeader, verifyToken } from '../../../lib/auth';
 
 /**
@@ -31,7 +31,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!token) {
     return res.status(401).json({ error: 'Authentication required' });
   }
-  
+
   // Verify token
   const payload = verifyToken(token);
   if (!payload) {
@@ -46,7 +46,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { text, categories, modelId } = req.body;
 
   if (!text || !categories || !Array.isArray(categories) || categories.length === 0) {
-    return res.status(400).json({ error: "Text and categories array are required" });
+    return res.status(400).json({ error: 'Text and categories array are required' });
   }
 
   try {
@@ -55,32 +55,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (modelId) {
       model = await prisma.lLMModel.findUnique({
         where: { id: modelId },
-        include: { provider: true }
+        include: { provider: true },
       });
     } else {
       model = await prisma.lLMModel.findFirst({
-        where: { 
+        where: {
           modelType: 'chat',
           isDefault: true,
-          isActive: true
+          isActive: true,
         },
-        include: { provider: true }
+        include: { provider: true },
       });
     }
-    
+
     if (!model) {
-      return res.status(404).json({ error: "No suitable model found for categorization" });
+      return res.status(404).json({ error: 'No suitable model found for categorization' });
     }
-    
+
     if (!model.provider) {
-      return res.status(404).json({ error: "Provider not found for this model" });
+      return res.status(404).json({ error: 'Provider not found for this model' });
     }
-    
+
     // Build the prompt for categorization
-    const categoriesDescription = categories.map(c => 
-      `- ${c.name}: ${c.description}${c.examples ? `\n  Examples: ${c.examples.join(", ")}` : ""}`
-    ).join("\n");
-    
+    const categoriesDescription = categories.map((c) => `- ${c.name}: ${c.description}${c.examples ? `\n  Examples: ${c.examples.join(', ')}` : ''}`).join('\n');
+
     const prompt = `
 I need to categorize the following text into one of these categories:
 
@@ -94,67 +92,63 @@ ${text}
 Analyze the text and determine which category it belongs to. Respond with ONLY the category name and a confidence score between 0 and 1, in this exact JSON format:
 {"category": "category_name", "confidence": 0.95}
 `.trim();
-    
+
     // Process based on provider type
     let responseText = '';
-    
+
     switch (model.provider.providerType) {
       case 'openai':
         responseText = await callOpenAIAPI(model.provider, model, prompt);
         break;
-      case 'azure':
-        responseText = await callAzureOpenAIAPI(model.provider, model, prompt);
-        break;
-      case 'custom':
+     
+      case 'openai-compatible':
         responseText = await callCustomAPI(model.provider, model, prompt);
         break;
       default:
         return res.status(400).json({ error: `Unsupported provider type: ${model.provider.providerType}` });
     }
-    
+
     // Parse the JSON response
     try {
       // Extract JSON from potential text (in case LLM adds extra explanation)
       const jsonMatch = responseText.match(/\{[^{]*"category"[^}]*\}/);
       if (!jsonMatch) {
-        return res.status(500).json({ 
-          error: "Failed to parse LLM response",
-          rawResponse: responseText
+        return res.status(500).json({
+          error: 'Failed to parse LLM response',
+          rawResponse: responseText,
         });
       }
-      
+
       const responseJson = JSON.parse(jsonMatch[0]);
-      
+
       if (!responseJson.category) {
-        return res.status(500).json({ 
-          error: "Invalid response format from LLM",
-          rawResponse: responseText 
+        return res.status(500).json({
+          error: 'Invalid response format from LLM',
+          rawResponse: responseText,
         });
       }
-      
+
       // Ensure confidence is a number between 0 and 1
-      const confidence = typeof responseJson.confidence === 'number' 
-        ? Math.min(Math.max(responseJson.confidence, 0), 1)
-        : 1.0;
-      
+      const confidence = typeof responseJson.confidence === 'number' ? Math.min(Math.max(responseJson.confidence, 0), 1) : 1.0;
+
       return res.status(200).json({
         category: responseJson.category,
         confidence,
         model: model.name,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
     } catch (error) {
       return res.status(500).json({
-        error: "Failed to parse LLM response",
-        details: error instanceof Error ? error.message : "Unknown error",
-        rawResponse: responseText
+        error: 'Failed to parse LLM response',
+        details: error instanceof Error ? error.message : 'Unknown error',
+        rawResponse: responseText,
       });
     }
   } catch (error) {
-    console.error("Error categorizing text with LLM:", error);
-    return res.status(500).json({ 
-      error: "Failed to categorize text",
-      details: error instanceof Error ? error.message : "Unknown error"
+    console.error('Error categorizing text with LLM:', error);
+    return res.status(500).json({
+      error: 'Failed to categorize text',
+      details: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 }
@@ -167,48 +161,20 @@ async function callOpenAIAPI(provider: any, model: any, prompt: string): Promise
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${provider.apiKey}`
+      Authorization: `Bearer ${provider.apiKey}`,
     },
     body: JSON.stringify({
       model: model.name,
       messages: [{ role: 'user', content: prompt }],
       temperature: 0.3, // Lower temperature for more deterministic categorization
-    })
+    }),
   });
-  
+
   if (!response.ok) {
     const errorData = await response.text();
     throw new Error(`OpenAI API error (${response.status}): ${errorData}`);
   }
-  
-  const data = await response.json();
-  return data.choices[0].message.content;
-}
 
-/**
- * Call the Azure OpenAI API
- */
-async function callAzureOpenAIAPI(provider: any, model: any, prompt: string): Promise<string> {
-  const deploymentName = model.config?.deployment_name || model.name;
-  const apiVersion = provider.config?.api_version || '2023-05-15';
-  
-  const response = await fetch(`${provider.endpointUrl}/openai/deployments/${deploymentName}/chat/completions?api-version=${apiVersion}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'api-key': provider.apiKey
-    },
-    body: JSON.stringify({
-      messages: [{ role: 'user', content: prompt }],
-      temperature: 0.3, // Lower temperature for more deterministic categorization
-    })
-  });
-  
-  if (!response.ok) {
-    const errorData = await response.text();
-    throw new Error(`Azure OpenAI API error (${response.status}): ${errorData}`);
-  }
-  
   const data = await response.json();
   return data.choices[0].message.content;
 }
@@ -219,46 +185,46 @@ async function callAzureOpenAIAPI(provider: any, model: any, prompt: string): Pr
 async function callCustomAPI(provider: any, model: any, prompt: string): Promise<string> {
   // Get custom configuration
   const headers: Record<string, string> = {
-    'Content-Type': 'application/json'
+    'Content-Type': 'application/json',
   };
-  
+
   // Add authentication if provided
   if (provider.apiKey) {
     const authType = provider.config?.auth_type || 'Bearer';
     headers['Authorization'] = `${authType} ${provider.apiKey}`;
   }
-  
+
   // Support for custom headers
   if (provider.config?.custom_headers) {
     Object.assign(headers, provider.config.custom_headers);
   }
-  
+
   // Prepare request body based on provider configuration
-  const bodyTemplate = provider.config?.body_template || { 
-    model: "{{model_name}}", 
-    prompt: "{{prompt}}" 
+  const bodyTemplate = provider.config?.body_template || {
+    model: '{{model_name}}',
+    prompt: '{{prompt}}',
   };
-  
+
   // Replace placeholders in body template
   const bodyStr = JSON.stringify(bodyTemplate)
     .replace(/"{{model_name}}"/g, `"${model.name}"`)
     .replace(/"{{prompt}}"/g, `"${prompt.replace(/"/g, '\\"')}"`);
-  
+
   const body = JSON.parse(bodyStr);
-  
-  const response = await fetch(provider.endpointUrl, {
+
+  const response = await fetch(provider.endpointUrl + '/chat/completions', {
     method: 'POST',
     headers,
-    body: JSON.stringify(body)
+    body: JSON.stringify(body),
   });
-  
+
   if (!response.ok) {
     const errorData = await response.text();
     throw new Error(`Custom API error (${response.status}): ${errorData}`);
   }
-  
+
   const data = await response.json();
-  
+
   // Extract response content based on response_path configuration
   const responsePath = provider.config?.response_path || 'response';
   return extractValueByPath(data, responsePath);
@@ -268,5 +234,5 @@ async function callCustomAPI(provider: any, model: any, prompt: string): Promise
  * Helper to extract a value from an object using a dot-notation path
  */
 function extractValueByPath(obj: any, path: string): string {
-  return path.split('.').reduce((o, key) => (o && o[key] !== undefined) ? o[key] : null, obj);
+  return path.split('.').reduce((o, key) => (o && o[key] !== undefined ? o[key] : null), obj);
 }

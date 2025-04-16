@@ -15,8 +15,6 @@ interface ChatInterfaceProps {
     temperature?: number;
     maxTokens?: number;
     enableStreaming?: boolean;
-    userId?: string;
-    teamId?: string;
     id?: string;
     onConversationCreated?: (id: string) => void;
     onConversationUpdated?: (id: string) => void;
@@ -30,8 +28,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     temperature,
     maxTokens,
     enableStreaming = false,
-    userId,
-    teamId,
     id: initialId,
     onConversationCreated,
     onConversationUpdated,
@@ -39,17 +35,17 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
 }) => {
     // User input state
     const [inputValue, setInputValue] = useState('');
-    
+
     // Use the debug hook
-    const { 
-        debugMode, 
-        setDebugMode, 
-        debugDrawerOpen, 
-        setDebugDrawerOpen, 
-        executionLogs, 
+    const {
+        debugMode,
+        setDebugMode,
+        debugDrawerOpen,
+        setDebugDrawerOpen,
+        executionLogs,
         clearDebugLogs,
         createDebugStatus,
-        logDebugInfo 
+        logDebugInfo
     } = useDebug();
 
     // Use the chat execution hook with logDebugInfo from debug hook
@@ -59,7 +55,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         error,
         setError,
         flowState,
-        waitingForInput,
         id,
         streamingMessage,
         isStreamingPaused,
@@ -76,14 +71,13 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         model,
         temperature,
         maxTokens,
-        userId,
-        teamId,
+
         onConversationCreated,
         onConversationUpdated,
         variables,
         logDebugInfo
     });
-    
+
     // Reference for auto-scrolling to latest message
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -98,11 +92,11 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     // Wrap in useEffect to prevent initial render loop
     useEffect(() => {
         let isInitialRender = true;
-        
+
         if (agentId && flowConfig && isInitialRender) {
             startNewChat();
         }
-        
+
         return () => {
             isInitialRender = false;
         };
@@ -133,9 +127,9 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     }, [handleSendMessage]);
 
     // Calculate debug status - using memo to avoid recalculation on every render
-    const debugStatus = useMemo(() => 
-        createDebugStatus(flowState, waitingForInput, messages.length, id), 
-        [createDebugStatus, flowState, waitingForInput, messages.length, id]
+    const debugStatus = useMemo(() =>
+        createDebugStatus(flowState, messages.length, id),
+        [createDebugStatus, flowState, messages.length, id]
     );
 
     // Render the chat interface
@@ -175,7 +169,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                     )}
 
                     {/* Debug Controls from DebugPanel */}
-                    <DebugPanel 
+                    <DebugPanel
                         debugMode={debugMode}
                         setDebugMode={setDebugMode}
                         debugDrawerOpen={debugDrawerOpen}
@@ -312,10 +306,9 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                 <Input.TextArea
                     value={inputValue}
                     onChange={e => setInputValue(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                    placeholder={waitingForInput ? "Type your response..." : "Type a message..."}
+                    placeholder={"Type a message..."}
                     autoSize={{ minRows: 1, maxRows: 4 }}
-                    disabled={loading || (flowState?.completed && !waitingForInput)}
+                    disabled={loading || (flowState?.completed)}
                     className={styles.chatInput}
                     style={{
                         borderRadius: '18px',
