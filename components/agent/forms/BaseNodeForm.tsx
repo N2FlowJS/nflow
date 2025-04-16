@@ -84,6 +84,7 @@ const BaseNodeForm: React.FC<BaseNodeFormProps> = ({
       <Form.Item name="name" label="Name">
         <Input placeholder="Enter name" />
       </Form.Item>
+      
       {children}
 
       <Space

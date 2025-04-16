@@ -80,7 +80,7 @@ const LLMModelsTable: React.FC<LLMModelsTableProps> = ({
 
   const handleEditSubmit = async (values: any) => {
     if (!editingModel?.id) return;
-    
+
     try {
       await updateLLMModel(editingModel.id, values);
       setIsEditModalVisible(false);
@@ -170,13 +170,13 @@ const LLMModelsTable: React.FC<LLMModelsTableProps> = ({
       render: (record: LLMModel) => (
         <Space size="small">
           <Tooltip title="Edit Model">
-            <Button 
-              type="text" 
-              icon={<EditOutlined />} 
-              onClick={() => handleEdit(record)} 
+            <Button
+              type="text"
+              icon={<EditOutlined />}
+              onClick={() => handleEdit(record)}
             />
           </Tooltip>
-          
+
           {!record.isDefault && (
             <Tooltip title="Set as Default for this type">
               <Button
@@ -187,7 +187,7 @@ const LLMModelsTable: React.FC<LLMModelsTableProps> = ({
               />
             </Tooltip>
           )}
-          
+
           <Popconfirm
             title="Delete this model?"
             description="This action cannot be undone."
@@ -235,7 +235,6 @@ const LLMModelsTable: React.FC<LLMModelsTableProps> = ({
         {editingModel && (
           <LLMModelForm
             initialValues={editingModel}
-            providers={allProviders}
             providerId={provider.id}
             onSubmit={handleEditSubmit}
             isLoading={actionLoading}
@@ -252,7 +251,6 @@ const LLMModelsTable: React.FC<LLMModelsTableProps> = ({
         width={700}
       >
         <LLMModelForm
-          providers={allProviders}
           providerId={provider.id}
           onSubmit={async (values) => {
             try {

@@ -34,6 +34,8 @@ const path = require('path');
     OPENAI_BASE_URL: process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1',
     OPENAI_API_KEY: process.env.OPENAI_API_KEY,
     EMBEDDING_MODEL: process.env.EMBEDDING_MODEL || 'text-embedding-ada-002',
+    FILE_LOGGING_ENABLED: process.env.FILE_LOGGING_ENABLED,
+
   },
 
   // Configure external modules that need to be transpiled

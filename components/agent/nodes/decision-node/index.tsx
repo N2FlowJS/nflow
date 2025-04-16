@@ -3,7 +3,7 @@ import { Handle, Position, NodeProps, Node } from "@xyflow/react";
 import { Card, Typography } from "antd";
 import { QuestionOutlined } from "@ant-design/icons";
 
-import { NodeData } from "../types/flowTypes";
+import { NodeData } from "../../types/flowTypes";
 
 const { Title } = Typography;
 

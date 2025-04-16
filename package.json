@@ -25,6 +25,7 @@
     "date-fns": "^4.1.0",
     "dotenv": "^16.4.7",
     "formidable": "^3.5.2",
+    "framer-motion": "^12.7.2",
     "jsonwebtoken": "^9.0.2",
     "mammoth": "^1.6.0",
     "marked": "^4.3.0",
@@ -33,6 +34,7 @@
     "next-auth": "^4.24.11",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-markdown": "^10.1.0",
     "uuid": "^11.1.0",
     "xlsx": "^0.18.5"
   },

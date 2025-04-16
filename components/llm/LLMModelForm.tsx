@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Form,
   Input,
@@ -8,7 +8,8 @@ import {
   Card,
   Typography,
   message,
-  InputNumber
+  InputNumber,
+  Spin
 } from 'antd';
 import { SaveOutlined } from '@ant-design/icons';
 import { 
@@ -18,6 +19,8 @@ import {
   LLMModel,
   LLMProvider 
 } from '../../types/llm';
+import { fetchAllLLMProviders } from '../../services/llmService';
+import { fetchTeamLLMProviders } from '@services/teamService';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -25,21 +28,49 @@ const { TextArea } = Input;
 
 interface LLMModelFormProps {
   initialValues?: Partial<LLMModel>;
-  providers: LLMProvider[];
+  providerType?: string;
   providerId?: string;
   onSubmit: (values: CreateLLMModelRequest | UpdateLLMModelRequest) => Promise<void>;
   isLoading?: boolean;
+  teamContext?: string; // Optional team ID for team-specific providers
 }
 
 const LLMModelForm: React.FC<LLMModelFormProps> = ({ 
   initialValues, 
-  providers,
   providerId,
   onSubmit,
-  isLoading = false
+  isLoading = false,
+  teamContext
 }) => {
   const [form] = Form.useForm();
   const isEdit = !!initialValues?.id;
+  const [providers, setProviders] = useState<LLMProvider[]>([]);
+  const [loadingProviders, setLoadingProviders] = useState(false);
+
+  useEffect(() => {
+    const fetchProviders = async () => {
+      setLoadingProviders(true);
+      try {
+        let providersData;
+        if (teamContext) {
+          // If we have a team context, we should fetch team-specific providers
+          // This requires importing the team service and using fetchTeamLLMProviders
+          providersData = await fetchTeamLLMProviders(teamContext);
+        } else {
+          // Fetch all available providers
+          providersData = await fetchAllLLMProviders();
+        }
+        setProviders(providersData || []);
+      } catch (error) {
+        console.error('Failed to fetch providers:', error);
+        message.error('Failed to load LLM providers');
+      } finally {
+        setLoadingProviders(false);
+      }
+    };
+
+    fetchProviders();
+  }, [teamContext]);
 
   const modelTypes: { label: string, value: LLMModelType }[] = [
     { label: 'Chat Completion', value: 'chat' },
@@ -124,7 +155,11 @@ const LLMModelForm: React.FC<LLMModelFormProps> = ({
             label="Provider"
             rules={[{ required: true, message: 'Please select a provider' }]}
           >
-            <Select placeholder="Select provider">
+            <Select 
+              placeholder="Select provider"
+              loading={loadingProviders}
+              notFoundContent={loadingProviders ? <Spin size="small" /> : 'No providers found'}
+            >
               {providers.map(provider => (
                 <Option key={provider.id} value={provider.id}>
                   {provider.name}

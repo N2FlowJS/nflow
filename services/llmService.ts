@@ -57,7 +57,7 @@ export interface CreateDefaultLLMProviderRequest {
 }
 
 export const createDefaultLLMProvider = async (data: CreateDefaultLLMProviderRequest) => {
-  return apiRequest<{provider: LLMProvider, modelsCreated: number}>('/api/llm/providers/default', {
+  return apiRequest<{ provider: LLMProvider; modelsCreated: number }>('/api/llm/providers/default', {
     method: 'POST',
     body: JSON.stringify(data),
   });
@@ -120,7 +120,7 @@ export const updateUserLLMProvider = async (providerId: string, data: UpdateLLMP
     method: 'PUT',
     body: JSON.stringify({
       ...data,
-      ownerType: 'user'  // Ensure it keeps user ownership type
+      ownerType: 'user', // Ensure it keeps user ownership type
     }),
   });
 };
@@ -155,3 +155,49 @@ export const deleteUserProviderModel = async (userId: string, providerId: string
     method: 'DELETE',
   });
 };
+
+/**
+ * Get a response from an LLM model - use only from client-side code
+ * For server-side processing, use the direct implementation in the node handlers
+ */
+export async function getLLMResponse(modelId: string, prompt: string): Promise<string> {
+  try {
+    // Call to your LLM API with the model ID and prompt
+    return apiRequest('/api/llm/generate', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        modelId,
+        prompt,
+      }),
+    });
+  } catch (error) {
+    console.error('Error calling LLM API:', error);
+    throw error;
+  }
+}
+
+/**
+ * Categorize text using an LLM - use only from client-side code
+ * For server-side processing, use the direct implementation in the node handlers
+ */
+export async function categorizeLLMResponse(text: string, categories: { name: string; description: string; examples: string[] }[]): Promise<{ category: string; confidence: number }> {
+  try {
+    // Call to your LLM API for categorization
+    return apiRequest('/api/llm/categorize', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        text,
+        categories,
+      }),
+    });
+  } catch (error) {
+    console.error('Error calling categorization API:', error);
+    throw error;
+  }
+}

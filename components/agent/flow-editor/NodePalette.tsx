@@ -1,5 +1,7 @@
 import React from "react";
 import { NODE_REGISTRY } from "../util";
+import { Tooltip } from "antd";
+import { ApiOutlined } from "@ant-design/icons";
 
 const NodePalette: React.FC = () => {
   return (
@@ -16,23 +18,51 @@ const NodePalette: React.FC = () => {
       }}
     >
       {Object.entries(NODE_REGISTRY).map(([type, config]) => (
-        <div
+        <Tooltip 
           key={type}
-          onDragStart={(event) =>
-            event.dataTransfer.setData("nflow.application.reactflow", type)
+          title={
+            <div>
+              <div>{config.description || 'Drag to add to flow'}</div>
+              {config.inputOutputInfo && (
+                <div style={{ marginTop: 5 }}>
+                  <div><small><strong>Input:</strong> {config.inputOutputInfo.input}</small></div>
+                  <div><small><strong>Output:</strong> {config.inputOutputInfo.output}</small></div>
+                </div>
+              )}
+            </div>
           }
-          draggable
-          style={{
-            padding: "5px 10px",
-            marginBottom: "5px",
-            background: config.color.background,
-            border: `1px solid ${config.color.border}`,
-            borderRadius: "4px",
-            cursor: "grab",
-          }}
+          placement="right"
         >
-          {config.label}
-        </div>
+          <div
+            onDragStart={(event) => {
+              event.dataTransfer.setData("nflow.application.reactflow", type);
+              // Add initialization data for input/output capabilities
+              if (config.inputOutputInfo) {
+                event.dataTransfer.setData(
+                  "nflow.node.io", 
+                  JSON.stringify(config.inputOutputInfo)
+                );
+              }
+            }}
+            draggable
+            style={{
+              padding: "5px 10px",
+              marginBottom: "5px",
+              background: config.color.background,
+              border: `1px solid ${config.color.border}`,
+              borderRadius: "4px",
+              cursor: "grab",
+              display: "flex",
+              alignItems: "center", 
+              justifyContent: "space-between"
+            }}
+          >
+            <span>{config.label}</span>
+            {config.inputOutputInfo && (
+              <ApiOutlined style={{ marginLeft: 5 }} />
+            )}
+          </div>
+        </Tooltip>
       ))}
     </div>
   );

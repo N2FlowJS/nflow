@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   Form,
   Input,
@@ -9,10 +9,12 @@ import {
   Empty,
   Tag,
   Select,
+  Button,
+  FormInstance,
 } from "antd";
-import { AppstoreOutlined } from "@ant-design/icons";
+import { AppstoreOutlined, DeleteOutlined, FileSearchOutlined, LinkOutlined } from "@ant-design/icons";
 import { MarkerType, useReactFlow } from "@xyflow/react";
-import { FlowNode, ICategory } from "../../types/flowTypes";
+import { FlowNode, ICategory, CategorizeNode, CategorizeNodeData } from "../../types/flowTypes";
 import BaseNodeForm from "../BaseNodeForm";
 import CategoryListItem from "./CategoryListItem";
 import DefaultCategorySelector from "./DefaultCategorySelector";
@@ -22,8 +24,8 @@ const { Panel } = Collapse;
 const { Text } = Typography;
 
 interface CategorizeNodeFormProps {
-  form: any;
-  selectedNode: FlowNode;
+  form: FormInstance<CategorizeNodeData['form']>;
+  selectedNode: CategorizeNode;
   setNodes: React.Dispatch<React.SetStateAction<FlowNode[]>>;
   setIsDrawerOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
@@ -135,9 +137,180 @@ const CategorizeNodeForm: React.FC<CategorizeNodeFormProps> = (props) => {
     // Close the drawer
     props.setIsDrawerOpen(false);
   };
+  const [availableNodes, setAvailableNodes] = useState<Array<{ id: string, name: string, type: string }>>([]);
+  const [availableInputs, setAvailableInputs] = useState<Array<{ id: string, name: string, type: string }>>([]);
+
+  useEffect(() => {
+    // Get nodes that come before this node in the flow
+    const findPrecedingNodes = () => {
+      const allNodes = getNodes();
+      const allEdges = getEdges();
+      const currentNodeId = props.selectedNode.id;
+      const precedingNodes = new Map<string, { id: string, name: string, type: string }>();
+      
+      // Function to traverse the graph backwards
+      const traverseBackwards = (nodeId: string, visited = new Set<string>()) => {
+        if (visited.has(nodeId)) return;
+        visited.add(nodeId);
+        
+        // Find all incoming edges to this node
+        const incomingEdges = allEdges.filter(edge => edge.target === nodeId);
+        
+        for (const edge of incomingEdges) {
+          const sourceNode = allNodes.find(node => node.id === edge.source);
+          if (!sourceNode) continue;
+          
+          // Get node type with fallback to ensure it's always a string
+          const nodeType = (sourceNode.data?.type as string) || 
+                           (sourceNode.type as string) || 
+                           'unknown';
+          
+          // Stop traversal at interface nodes
+          if (nodeType === 'interface') {
+            precedingNodes.set(sourceNode.id, {
+              id: sourceNode.id,
+              name: (sourceNode.data?.form as { name?: string })?.name ||
+                    sourceNode.data?.label as string ||
+                    sourceNode.id,
+              type: nodeType
+            });
+            continue;
+          }
+          
+          // Add this node to the preceding nodes
+          precedingNodes.set(sourceNode.id, {
+            id: sourceNode.id,
+            name: (sourceNode.data?.form as { name?: string })?.name ||
+                  sourceNode.data?.label as string ||
+                  sourceNode.id,
+            type: nodeType
+          });
+          
+          // Continue traversal
+          traverseBackwards(sourceNode.id, visited);
+        }
+      };
+      
+      // Start traversal from the current node
+      traverseBackwards(currentNodeId);
+      
+      return Array.from(precedingNodes.values());
+    };
+    
+    // Set available nodes for input references
+    const precedingNodes = findPrecedingNodes();
+    setAvailableNodes(precedingNodes);
+    
+    // Set available inputs for input source selection
+    // This includes standard input sources plus any preceding node outputs
+    setAvailableInputs([
+      { id: 'user_input', name: 'User Input', type: 'system' },
+      { id: 'generated_text', name: 'Generated Text', type: 'system' },
+      ...precedingNodes.map(node => ({
+        id: `node:${node.id}`,
+        name: `From ${node.name}`,
+        type: node.type
+      }))
+    ]);
+  }, [props.selectedNode.id, getNodes, getEdges]);
 
   return (
     <BaseNodeForm {...props} customSaveHandler={handleSave}>
+
+      <Panel
+        header={
+          <Space>
+            <LinkOutlined />
+            <span>Input References</span>
+            {props.form?.getFieldValue('inputRefs')?.length > 0 && (
+              <Tag color="blue">{props.form?.getFieldValue('inputRefs')?.length || 0}</Tag>
+            )}
+          </Space>
+        }
+        key="input-refs"
+      >
+        <Form.Item name="inputRefs" initialValue={[]}>
+          <Form.List name="inputRefs">
+            {(fields, { add, remove }) => (
+              <>
+                {fields.map(field => (
+                  <Space key={field.key} style={{ display: 'flex', marginBottom: 8 }} align="baseline">
+                    <Form.Item
+                      {...field}
+                      name={[field.name, 'sourceNodeId']}
+                      rules={[{ required: true, message: 'Source node is required' }]}
+                      style={{ width: 200 }}
+                    >
+                      <Select placeholder="Source Node">
+                        {availableNodes.map(node => (
+                          <Select.Option key={node.id} value={node.id}>
+                            {node.name}
+                          </Select.Option>
+                        ))}
+                      </Select>
+                    </Form.Item>
+
+                    <Form.Item
+                      {...field}
+                      name={[field.name, 'outputName']}
+                      rules={[{ required: true, message: 'Output name is required' }]}
+                      style={{ width: 150 }}
+                    >
+                      <Input placeholder="Output Name" />
+                    </Form.Item>
+
+                    <Form.Item
+                      {...field}
+                      name={[field.name, 'inputName']}
+                      rules={[{ required: true, message: 'Input name is required' }]}
+                      style={{ width: 150 }}
+                    >
+                      <Input placeholder="As Input Name" />
+                    </Form.Item>
+
+                    <DeleteOutlined onClick={() => remove(field.name)} />
+                  </Space>
+                ))}
+
+                <Form.Item>
+                  <Button
+                    type="dashed"
+                    onClick={() => add()}
+                    block
+                    icon={<LinkOutlined />}
+                  >
+                    Add Input Reference
+                  </Button>
+                </Form.Item>
+              </>
+            )}
+          </Form.List>
+        </Form.Item>
+      </Panel>
+      <Panel 
+        header={
+          <Space>
+            <FileSearchOutlined />
+            <span>Input Source</span>
+          </Space>
+        } 
+        key="input-source"
+      >
+        <Form.Item
+          name="inputSource"
+          label="Select input to categorize"
+          help="The selected input will be used as the text to categorize"
+          rules={[{ required: true, message: 'Please select an input source' }]}
+        >
+          <Select placeholder="Select input source">
+            {availableInputs.map(input => (
+              <Select.Option key={input.id} value={input.id}>
+                {input.name}
+              </Select.Option>
+            ))}
+          </Select>
+        </Form.Item>
+      </Panel>
       <Form.Item name="categories" initialValue={[]} hidden>
         <Input />
       </Form.Item>

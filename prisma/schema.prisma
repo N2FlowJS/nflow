@@ -8,42 +8,44 @@ datasource db {
 }
 
 model Team {
-  id          String      @id @default(uuid())
+  id          String   @id @default(uuid())
   name        String
   description String
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
   // Creator of the team
   createdById String
-  createdBy   User        @relation("CreatedTeams", fields: [createdById], references: [id])
-  
+  createdBy   User   @relation("CreatedTeams", fields: [createdById], references: [id])
+
   // Team memberships
-  members     MemberTeam[]
-  
+  members MemberTeam[]
+
   // Keep the direct relation temporarily for backward compatibility
-  users       User[]      @relation("TeamToUser")
-  
-  knowledge   Knowledge[] @relation("TeamKnowledge")
-  
+  users User[] @relation("TeamToUser")
+
+  knowledge Knowledge[] @relation("TeamKnowledge")
+
   // Agent ownership relation
-  ownedAgents Agent[]     @relation("TeamOwnedAgents")
+  ownedAgents Agent[] @relation("TeamOwnedAgents")
 
   // Team-owned LLM Providers
-  ownedLLMProviders   LLMProvider[] @relation("TeamOwnedProviders")
+  ownedLLMProviders LLMProvider[] @relation("TeamOwnedProviders")
+
+  // Conversations owned by the team
 }
 
 model MemberTeam {
-  id         String    @id @default(uuid())
-  role       String    // "owner", "admin", "maintainer", "developer", "guest"
-  joinedAt   DateTime  @default(now())
-  leftAt     DateTime?  // null if still active in the team
-  
+  id       String    @id @default(uuid())
+  role     String // "owner", "admin", "maintainer", "developer", "guest"
+  joinedAt DateTime  @default(now())
+  leftAt   DateTime? // null if still active in the team
+
   // Relations
-  team       Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  teamId     String
-  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId     String
+  team   Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
 
   // Ensure each user can only have one active record per team
   @@unique([userId, teamId])
@@ -53,53 +55,53 @@ model Knowledge {
   id          String   @id @default(uuid())
   name        String
   description String
-  config      Json?   
+  config      Json?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @default(now())
-  
+
   // Creator relationship - always required
-  createdBy   User     @relation(fields: [userId], references: [id], name: "CreatedKnowledge")
-  userId      String
-  
+  createdBy User   @relation(fields: [userId], references: [id], name: "CreatedKnowledge")
+  userId    String
+
   // Optional associations
-  users       User[]   @relation("UserKnowledge")
-  teams       Team[]   @relation("TeamKnowledge")
-  
+  users User[] @relation("UserKnowledge")
+  teams Team[] @relation("TeamKnowledge")
+
   // Files associated with this knowledge
-  files       File[]
+  files File[]
 }
 
 model User {
-  id             String      @id @default(uuid())
-  name           String
-  code           String
-  password       String
-  email          String
-  description    String
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @updatedAt
-  permission     String      @default("guest") // "owner", "maintainer", "developer", "guest"
-  
+  id          String   @id @default(uuid())
+  name        String
+  code        String
+  password    String
+  email       String
+  description String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  permission  String   @default("guest") // "owner", "maintainer", "developer", "guest"
+
   // Teams created by this user
-  createdTeams   Team[]      @relation("CreatedTeams")
-  
+  createdTeams Team[] @relation("CreatedTeams")
+
   // Team memberships
   teamMemberships MemberTeam[]
-  
+
   // Keep the direct relation temporarily for backward compatibility
-  teams          Team[]      @relation("TeamToUser")
-  
+  teams Team[] @relation("TeamToUser")
+
   // Knowledge created by this user
   createdKnowledge Knowledge[] @relation("CreatedKnowledge")
-  
+
   // Knowledge associated with this user
-  knowledge      Knowledge[] @relation("UserKnowledge")
-  
+  knowledge Knowledge[] @relation("UserKnowledge")
+
   // Agent ownership relation
-  ownedAgents    Agent[]     @relation("UserOwnedAgents")
-  
+  ownedAgents Agent[] @relation("UserOwnedAgents")
+
   // Agents created by this user
-  createdAgents  Agent[]     @relation("AgentCreatedBy")
+  createdAgents Agent[] @relation("AgentCreatedBy")
 
   // File parsing tasks created by this user
   FileParsingTask FileParsingTask[] @relation("FileParsingTaskCreatedBy")
@@ -107,31 +109,33 @@ model User {
   // LLM preferences
   defaultLLMProviderId String? // Reference to default provider for this user
   defaultLLMProvider   LLMProvider? @relation("UserDefaultProvider", fields: [defaultLLMProviderId], references: [id], onDelete: SetNull)
-  
+
   // LLM model preferences per type (stored as JSON)
   llmPreferences Json? // Stores preferred models by type
 
   // User-owned LLM Providers
-  ownedLLMProviders   LLMProvider[] @relation("UserOwnedProviders")
+  ownedLLMProviders LLMProvider[] @relation("UserOwnedProviders")
+
+  // Conversations owned by the user
 }
 
 // Update the File model to include parsing status
 model File {
-  id          String    @id @default(uuid())
-  filename    String
-  originalName String
-  path        String
-  mimetype    String
-  size        Int
-  content     String?   // New field to store parsed file content
-  config      Json?   
-  createdAt   DateTime  @default(now())
-  parsingStatus String?  // "pending", "completed", "failed", null
-  
+  id            String   @id @default(uuid())
+  filename      String
+  originalName  String
+  path          String
+  mimetype      String
+  size          Int
+  content       String? // New field to store parsed file content
+  config        Json?
+  createdAt     DateTime @default(now())
+  parsingStatus String? // "pending", "completed", "failed", null
+
   // Relationship with Knowledge
   knowledge   Knowledge @relation(fields: [knowledgeId], references: [id], onDelete: Cascade)
   knowledgeId String
-  
+
   // Relation to parsing tasks
   parsingTasks FileParsingTask[]
 
@@ -141,59 +145,62 @@ model File {
 // New model for file parsing tasks
 model FileParsingTask {
   id          String    @id @default(uuid())
-  status      String    // "pending", "processing", "completed", "failed"
+  status      String // "pending", "processing", "completed", "failed"
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   completedAt DateTime?
-  message     String?   // Changed from errorMessage to message - stores logs, errors, and task information
-  
+  message     String? // Changed from errorMessage to message - stores logs, errors, and task information
+
   // Relationship with File
-  file        File      @relation(fields: [fileId], references: [id], onDelete: Cascade)
-  fileId      String
-  
+  file   File   @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  fileId String
+
   // Creator of the task
-  createdBy   User      @relation("FileParsingTaskCreatedBy",fields: [createdById], references: [id])
+  createdBy   User   @relation("FileParsingTaskCreatedBy", fields: [createdById], references: [id])
   createdById String
 }
 
 // New Agent model
 model Agent {
-  id              String    @id @default(uuid())
-  name            String
-  description     String
-  flowConfig      String    // JSON string to store react-flow configuration
-  isActive        Boolean   @default(true)
-  ownerType       String    // "user" or "team"
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @default(now())
-  
+  id          String   @id @default(uuid())
+  name        String
+  description String
+  flowConfig  String // JSON string to store react-flow configuration
+  isActive    Boolean  @default(true)
+  ownerType   String // "user" or "team"
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now())
+
   // Creator relationship
-  createdBy       User      @relation("AgentCreatedBy", fields: [createdById], references: [id])
-  createdById     String
-  
+  createdBy   User   @relation("AgentCreatedBy", fields: [createdById], references: [id])
+  createdById String
+
   // User ownership (optional)
-  user            User?     @relation("UserOwnedAgents", fields: [userId], references: [id])
-  userId          String?
-  
+  user   User?   @relation("UserOwnedAgents", fields: [userId], references: [id])
+  userId String?
+
   // Team ownership (optional)
-  team            Team?     @relation("TeamOwnedAgents", fields: [teamId], references: [id])
-  teamId          String?
-  
+  team   Team?   @relation("TeamOwnedAgents", fields: [teamId], references: [id])
+  teamId String?
+
   // Ensure either userId or teamId is set, but not both simultaneously
+
+  // Conversations using this agent
+  conversations Conversation[]
 }
 
 model TextChunk {
-  id            String   @id @default(uuid())
-  fileId        String
-  content       String   
-  chunkIndex    Int
-  metadata      Json?
-  vectorData    String?  // Add this field to store serialized vector data
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  
-  file          File     @relation(fields: [fileId], references: [id], onDelete: Cascade)
-  
+  id         String   @id @default(uuid())
+  fileId     String
+  content    String
+  chunkIndex Int
+  metadata   Json?
+  vectorData String? // Add this field to store serialized vector data
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  file File @relation(fields: [fileId], references: [id], onDelete: Cascade)
+
   @@index([fileId])
   @@map("text_chunks")
 }
@@ -203,34 +210,34 @@ model LLMProvider {
   id           String   @id @default(uuid())
   name         String   @default("")
   description  String?
-  providerType String   // "openai", "openai-compatible"
-  endpointUrl  String   // API endpoint URL
+  providerType String // "openai", "openai-compatible"
+  endpointUrl  String // API endpoint URL
   isActive     Boolean  @default(true)
   isDefault    Boolean  @default(false)
-  apiKey       String?  // Encrypted API key
+  apiKey       String? // Encrypted API key
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
-  
+
   // Ownership type - "user", "team", or "system" 
-  ownerType    String   @default("system")
+  ownerType String @default("system")
 
   // Configuration options stored as JSON
-  config       Json?
-  
+  config Json?
+
   // Models available from this provider
   models LLMModel[]
-  
+
   // Users who have this as their default provider
   usersWithDefault User[] @relation("UserDefaultProvider")
-  
+
   // User ownership relation (optional)
-  userOwner    User?    @relation("UserOwnedProviders", fields: [userOwnerId], references: [id])
-  userOwnerId  String?
-  
+  userOwner   User?   @relation("UserOwnedProviders", fields: [userOwnerId], references: [id])
+  userOwnerId String?
+
   // Team ownership relation (optional)
-  teamOwner    Team?    @relation("TeamOwnedProviders", fields: [teamOwnerId], references: [id])
-  teamOwnerId  String?
-  
+  teamOwner   Team?   @relation("TeamOwnedProviders", fields: [teamOwnerId], references: [id])
+  teamOwnerId String?
+
   // Permission settings
   permissionSettings Json? // Store access rules here as JSON
 }
@@ -241,17 +248,58 @@ model LLMModel {
   name          String
   displayName   String?
   description   String?
-  modelType     String   // "text", "chat", "embedding", "image", etc.
-  contextWindow Int?     // Max context window size
+  modelType     String // "text", "chat", "embedding", "image", etc.
+  contextWindow Int? // Max context window size
   isActive      Boolean  @default(true)
   isDefault     Boolean  @default(false)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @default(now())
-  
+
   // Model-specific configuration
-  config        Json?
-  
+  config Json?
+
   // Relation to provider
-  provider      LLMProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
-  providerId    String
+  provider   LLMProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  providerId String
+}
+
+// New model for storing conversation data
+model Conversation {
+  id            String   @id @default(uuid())
+  title         String? // Auto-generated or user-defined title
+  agentId       String // Reference to the agent used
+  flowState     String // JSON serialized FlowState
+  status        String   @default("active") // "active", "completed", "archived"
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  lastMessageAt DateTime @default(now())
+
+  // Relationships
+  agent Agent @relation(fields: [agentId], references: [id])
+
+  // History of messages in the conversation
+  messages ConversationMessage[]
+
+  @@index([agentId])
+  @@index([lastMessageAt])
+}
+
+// Model for individual messages in a conversation
+model ConversationMessage {
+  id             String   @id @default(uuid())
+  conversationId String
+  content        String // Message content
+  role           String // "user", "agent", "system"
+  timestamp      DateTime @default(now())
+  metadata       Json? // Additional metadata about the message
+
+  // Tracking which node generated this message
+  nodeId   String?
+  nodeType String?
+
+  // Relationship
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+  @@index([timestamp])
 }

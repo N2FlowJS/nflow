@@ -31,7 +31,7 @@ import InterfaceNode from "../nodes/interface-node";
 import GenerateNode from "../nodes/generate-node";
 import CategorizeNode from "../nodes/categorize-node";
 import RetrievalNode from "../nodes/retrieval-node";
-import DecisionNode from "../nodes/DecisionNode";
+import DecisionNode from "../nodes/decision-node";
 import CustomEdge from "../edges/CustomEdge";
 import { FlowNode, NodeTypeString } from "../types/flowTypes";
 

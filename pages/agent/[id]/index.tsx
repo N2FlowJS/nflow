@@ -21,6 +21,9 @@ import {
   RobotOutlined,
   DeleteOutlined,
   EditOutlined,
+  CommentOutlined,
+  InfoCircleOutlined,
+  ThunderboltOutlined,
 } from "@ant-design/icons";
 import { useRouter } from "next/router";
 import Link from "next/link";
@@ -29,19 +32,35 @@ import {
   fetchAgent,
   updateAgent,
   deleteAgent,
+  fetchFlowConfig,
 } from "../../../services/agentService"; // Use the new service
 import { IAgent } from "../../../types/IAgent";
+import ChatInterface from "../../../components/chat/ChatInterface";
+import { useAuth } from "../../../context/AuthContext";
 
 const { Title } = Typography;
+const { TabPane } = Tabs;
 
 export default function AgentDetail() {
   const router = useRouter();
   const { id } = router.query;
   const [agent, setAgent] = useState<IAgent | null>(null);
+  const [flowConfig, setFlowConfig] = useState<string>("");
   const [loading, setLoading] = useState(true);
+  const [flowLoading, setFlowLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [form] = Form.useForm();
+  const [activeTab, setActiveTab] = useState("info");
+
+  // Add streaming state
+  const [enableStreaming, setEnableStreaming] = useState(true);
+
+  // Add conversation management state
+  const [currentConversationId, setCurrentConversationId] = useState<string | undefined>(undefined);
+
+  // Get user info from auth hook
+  const { user } = useAuth();
 
   // Fetch agent data
   const fetchAgentData = async () => {
@@ -66,11 +85,34 @@ export default function AgentDetail() {
     }
   };
 
+  // Fetch flow configuration when needed
+  const loadFlowConfig = async () => {
+    if (!id) return;
+
+    setFlowLoading(true);
+    try {
+      const config = await fetchFlowConfig(id as string);
+      setFlowConfig(config);
+    } catch (error) {
+      console.error("Error fetching flow config:", error);
+      message.error("Failed to load agent flow configuration");
+    } finally {
+      setFlowLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (id) {
       fetchAgentData();
     }
   }, [id]);
+
+  // Load flow config when switching to chat tab
+  useEffect(() => {
+    if (activeTab === 'chat' && !flowConfig && id) {
+      loadFlowConfig();
+    }
+  }, [activeTab, flowConfig, id]);
 
   // Handle form submission
   const handleSave = async () => {
@@ -109,6 +151,19 @@ export default function AgentDetail() {
         }
       },
     });
+  };
+
+  // Handle conversation creation
+  const handleConversationCreated = (conversationId: string) => {
+    setCurrentConversationId(conversationId);
+    console.log("New conversation created:", conversationId);
+    // You might want to add this to a conversations list
+  };
+
+  // Handle conversation updates
+  const handleConversationUpdated = (conversationId: string) => {
+    console.log("Conversation updated:", conversationId);
+    // You might want to update timestamps or other metadata
   };
 
   if (loading) {
@@ -223,45 +278,121 @@ export default function AgentDetail() {
             </Space>
           </div>
 
-          <Card>
-            <Form form={form} layout="vertical" disabled={!isEditing}>
-              <Form.Item
-                name="name"
-                label="Name"
-                rules={[{ required: true, message: "Please enter a name" }]}
+          <Tabs activeKey={activeTab} onChange={setActiveTab}>
+            <TabPane
+              tab={
+                <span>
+                  <InfoCircleOutlined />
+                  Agent Information
+                </span>
+              }
+              key="info"
+            >
+              <Card>
+                <Form form={form} layout="vertical" disabled={!isEditing}>
+                  <Form.Item
+                    name="name"
+                    label="Name"
+                    rules={[{ required: true, message: "Please enter a name" }]}
+                  >
+                    <Input />
+                  </Form.Item>
+
+                  <Form.Item
+                    name="description"
+                    label="Description"
+                    rules={[
+                      { required: true, message: "Please enter a description" },
+                    ]}
+                  >
+                    <Input.TextArea rows={4} />
+                  </Form.Item>
+
+                  <Form.Item name="isActive" label="Active" valuePropName="checked">
+                    <Switch />
+                  </Form.Item>
+
+                  <Space direction="vertical" style={{ width: "100%" }}>
+                    <div>
+                      <strong>Created By:</strong> {agent?.createdBy?.name}
+                    </div>
+                    <div>
+                      <strong>Created At:</strong>{" "}
+                      {new Date(agent?.createdAt || "").toLocaleString()}
+                    </div>
+                    <div>
+                      <strong>Last Updated:</strong>{" "}
+                      {new Date(agent?.updatedAt || "").toLocaleString()}
+                    </div>
+                  </Space>
+                </Form>
+              </Card>
+            </TabPane>
+
+            <TabPane
+              tab={
+                <span>
+                  <CommentOutlined />
+                  Chat
+                </span>
+              }
+              key="chat"
+            >
+              <Card
+                title={
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span>Chat with Agent</span>
+                    <Space>
+                      <Switch
+                        checkedChildren={<><ThunderboltOutlined /> Streaming On</>}
+                        unCheckedChildren={<><ThunderboltOutlined /> Streaming Off</>}
+                        checked={enableStreaming}
+                        onChange={setEnableStreaming}
+                      />
+                    </Space>
+                  </div>
+                }
+                style={{
+                  padding: 0,
+                  height: 'calc(80vh - 180px)',
+                  display: 'flex',
+                  flexDirection: 'column'
+                }}
               >
-                <Input />
-              </Form.Item>
-
-              <Form.Item
-                name="description"
-                label="Description"
-                rules={[
-                  { required: true, message: "Please enter a description" },
-                ]}
-              >
-                <Input.TextArea rows={4} />
-              </Form.Item>
-
-              <Form.Item name="isActive" label="Active" valuePropName="checked">
-                <Switch />
-              </Form.Item>
-
-              <Space direction="vertical" style={{ width: "100%" }}>
-                <div>
-                  <strong>Created By:</strong> {agent?.createdBy?.name}
-                </div>
-                <div>
-                  <strong>Created At:</strong>{" "}
-                  {new Date(agent?.createdAt || "").toLocaleString()}
-                </div>
-                <div>
-                  <strong>Last Updated:</strong>{" "}
-                  {new Date(agent?.updatedAt || "").toLocaleString()}
-                </div>
-              </Space>
-            </Form>
-          </Card>
+                {flowLoading ? (
+                  <div style={{ textAlign: 'center', margin: '100px 0' }}>
+                    <Spin size="large" />
+                    <div style={{ marginTop: 16 }}>Loading agent flow...</div>
+                  </div>
+                ) : !flowConfig ? (
+                  <div style={{ textAlign: 'center', margin: '100px 0' }}>
+                    <Typography.Title level={4}>No flow configuration found</Typography.Title>
+                    <Button
+                      type="primary"
+                      onClick={() => router.push(`/agent/flow-editor?agentId=${id}`)}
+                    >
+                      Create Flow
+                    </Button>
+                  </div>
+                ) : (
+                  <ChatInterface
+                    agentId={id as string}
+                    flowConfig={flowConfig}
+                    enableStreaming={enableStreaming}
+                    userId={user?.id}
+                    teamId={agent?.ownerType === 'team' ? agent.team?.id : undefined}
+                    id={currentConversationId}
+                    onConversationCreated={handleConversationCreated}
+                    onConversationUpdated={handleConversationUpdated}
+                    variables={{
+                      agentName: agent?.name,
+                      userDisplayName: user?.name
+                    }}
+                  />
+                )}
+              </Card>
+            </TabPane>
+          </Tabs>
         </Space>
       </div>
     </MainLayout>

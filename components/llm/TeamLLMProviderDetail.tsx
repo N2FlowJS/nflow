@@ -26,11 +26,13 @@ import {
 } from '@ant-design/icons';
 import { LLMModel, LLMProvider } from '../../types/llm';
 import LLMModelForm from './LLMModelForm';
+import LLMProviderForm from './LLMProviderForm';
 import {
   fetchTeamProviderModels,
   createTeamProviderModel,
   updateTeamProviderModel,
-  deleteTeamProviderModel
+  deleteTeamProviderModel,
+  updateTeamLLMProvider
 } from '../../services/teamService';
 
 const { Title, Text } = Typography;
@@ -52,22 +54,25 @@ const TeamLLMProviderDetail: React.FC<TeamLLMProviderDetailProps> = ({
 }) => {
   const [models, setModels] = useState<LLMModel[]>([]);
   const [loading, setLoading] = useState(false);
-  const [isAddModelModalVisible, setIsAddModelModalVisible] = useState(false);
-  const [isEditModelModalVisible, setIsEditModelModalVisible] = useState(false);
+  const [isAddModalVisible, setIsAddModalVisible] = useState(false);
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+  const [isEditProviderModalVisible, setIsEditProviderModalVisible] = useState(false);
   const [editingModel, setEditingModel] = useState<LLMModel | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
 
   useEffect(() => {
-    if (provider) {
+    if (provider?.id) {
       fetchModels();
     }
-  }, [provider]);
+  }, [provider?.id]);
 
   const fetchModels = async () => {
+    if (!provider?.id) return;
+    
     setLoading(true);
     try {
       const data = await fetchTeamProviderModels(teamId, provider.id);
-      setModels(data || []);
+      data && setModels(data);
     } catch (error) {
       console.error('Error fetching models:', error);
       message.error('Failed to load models');
@@ -77,11 +82,13 @@ const TeamLLMProviderDetail: React.FC<TeamLLMProviderDetailProps> = ({
   };
 
   const handleAddModel = async (values: any) => {
+    if (!provider?.id) return;
+    
     setActionLoading(true);
     try {
       await createTeamProviderModel(teamId, provider.id, values);
       message.success('Model added successfully');
-      setIsAddModelModalVisible(false);
+      setIsAddModalVisible(false);
       fetchModels();
     } catch (error) {
       console.error('Error adding model:', error);
@@ -92,13 +99,14 @@ const TeamLLMProviderDetail: React.FC<TeamLLMProviderDetailProps> = ({
   };
 
   const handleEditModel = async (values: any) => {
-    if (!editingModel) return;
+    if (!provider?.id || !editingModel?.id) return;
     
     setActionLoading(true);
     try {
       await updateTeamProviderModel(teamId, provider.id, editingModel.id, values);
       message.success('Model updated successfully');
-      setIsEditModelModalVisible(false);
+      setIsEditModalVisible(false);
+      setEditingModel(null);
       fetchModels();
     } catch (error) {
       console.error('Error updating model:', error);
@@ -109,7 +117,8 @@ const TeamLLMProviderDetail: React.FC<TeamLLMProviderDetailProps> = ({
   };
 
   const handleDeleteModel = async (modelId: string) => {
-    setActionLoading(true);
+    if (!provider?.id) return;
+    
     try {
       await deleteTeamProviderModel(teamId, provider.id, modelId);
       message.success('Model deleted successfully');
@@ -117,6 +126,21 @@ const TeamLLMProviderDetail: React.FC<TeamLLMProviderDetailProps> = ({
     } catch (error) {
       console.error('Error deleting model:', error);
       message.error('Failed to delete model');
+    }
+  };
+
+  const handleEditProvider = async (values: any) => {
+    if (!provider?.id) return;
+    
+    setActionLoading(true);
+    try {
+      await updateTeamLLMProvider(teamId, provider.id, values);
+      message.success('Provider updated successfully');
+      setIsEditProviderModalVisible(false);
+      onProviderUpdated(); // Call the callback to refresh provider data
+    } catch (error) {
+      console.error('Error updating provider:', error);
+      message.error('Failed to update provider');
     } finally {
       setActionLoading(false);
     }
@@ -206,7 +230,7 @@ const TeamLLMProviderDetail: React.FC<TeamLLMProviderDetailProps> = ({
                 icon={<EditOutlined />} 
                 onClick={() => {
                   setEditingModel(record);
-                  setIsEditModelModalVisible(true);
+                  setIsEditModalVisible(true);
                 }} 
               />
             </Tooltip>
@@ -258,52 +282,56 @@ const TeamLLMProviderDetail: React.FC<TeamLLMProviderDetailProps> = ({
 
   return (
     <div>
-      <div style={{ marginBottom: 16 }}>
-        <Button 
-          onClick={onBackToList} 
-          style={{ marginRight: 16 }}
-          icon={<ArrowLeftOutlined />}
-        >
-          Back to Providers
-        </Button>
-        <Title level={3}>{provider.name} Models</Title>
-      </div>
-
       <Card>
-        <Descriptions title="Provider Details" bordered column={1}>
-          <Descriptions.Item label="Type">
-            {provider.providerType.toUpperCase()}
-          </Descriptions.Item>
-          <Descriptions.Item label="Endpoint URL">
-            {provider.endpointUrl}
-          </Descriptions.Item>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+          <Space>
+            <Button icon={<ArrowLeftOutlined />} onClick={onBackToList}>
+              Back to providers
+            </Button>
+            <Title level={4} style={{ margin: 0 }}>
+              Provider: {provider.name}
+            </Title>
+          </Space>
+          {canManageModels && (
+            <Button 
+              type="primary" 
+              icon={<EditOutlined />}
+              onClick={() => setIsEditProviderModalVisible(true)}
+            >
+              Edit Provider
+            </Button>
+          )}
+        </div>
+
+        <Descriptions bordered column={2}>
+          <Descriptions.Item label="Name">{provider.name}</Descriptions.Item>
+          <Descriptions.Item label="Type">{provider.providerType}</Descriptions.Item>
+          <Descriptions.Item label="Endpoint URL">{provider.endpointUrl}</Descriptions.Item>
           <Descriptions.Item label="Status">
-            <Tag color={provider.isActive ? 'success' : 'error'}>
-              {provider.isActive ? 'Active' : 'Inactive'}
-            </Tag>
+            {provider.isActive ? (
+              <Tag icon={<CheckCircleOutlined />} color="success">Active</Tag>
+            ) : (
+              <Tag icon={<StopOutlined />} color="error">Inactive</Tag>
+            )}
           </Descriptions.Item>
-          <Descriptions.Item label="Description">
-            {provider.description || 'No description'}
-          </Descriptions.Item>
+          <Descriptions.Item label="Description" span={2}>{provider.description || 'No description'}</Descriptions.Item>
         </Descriptions>
-      </Card>
 
-      <Divider />
+        <Divider />
 
-      <Card
-        title={<Title level={4}>Models</Title>}
-        extra={
-          canManageModels && (
-            <Button
-              type="primary"
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+          <Title level={4}>Models</Title>
+          {canManageModels && (
+            <Button 
+              type="primary" 
               icon={<PlusOutlined />}
-              onClick={() => setIsAddModelModalVisible(true)}
+              onClick={() => setIsAddModalVisible(true)}
             >
               Add Model
             </Button>
-          )
-        }
-      >
+          )}
+        </div>
+
         <Table
           dataSource={models}
           columns={columns}
@@ -315,17 +343,18 @@ const TeamLLMProviderDetail: React.FC<TeamLLMProviderDetailProps> = ({
 
       {/* Add Model Modal */}
       <Modal
-        title="Add New Model"
-        open={isAddModelModalVisible}
-        onCancel={() => setIsAddModelModalVisible(false)}
+        title="Add Model"
+        open={isAddModalVisible}
+        onCancel={() => setIsAddModalVisible(false)}
         footer={null}
         width={700}
       >
         <LLMModelForm
-          providerId={provider.id}
           onSubmit={handleAddModel}
           isLoading={actionLoading}
-          providers={[provider]} // Add the current provider as the only option
+          providerId={provider?.id}
+          providerType={provider?.providerType}
+          teamContext={teamId}
         />
       </Modal>
 
@@ -333,20 +362,37 @@ const TeamLLMProviderDetail: React.FC<TeamLLMProviderDetailProps> = ({
       {editingModel && (
         <Modal
           title="Edit Model"
-          open={isEditModelModalVisible}
-          onCancel={() => setIsEditModelModalVisible(false)}
+          open={isEditModalVisible}
+          onCancel={() => setIsEditModalVisible(false)}
           footer={null}
           width={700}
         >
           <LLMModelForm
             initialValues={editingModel}
-            providerId={provider.id}
             onSubmit={handleEditModel}
             isLoading={actionLoading}
-            providers={[provider]} // Add the current provider as the only option
+            providerId={provider?.id}
+            providerType={provider?.providerType}
+            teamContext={teamId}
           />
         </Modal>
       )}
+
+      {/* Edit Provider Modal */}
+      <Modal
+        title="Edit Provider"
+        open={isEditProviderModalVisible}
+        onCancel={() => setIsEditProviderModalVisible(false)}
+        footer={null}
+        width={700}
+      >
+        <LLMProviderForm
+          initialValues={provider}
+          onSubmit={handleEditProvider}
+          isLoading={actionLoading}
+          teamContext={teamId}
+        />
+      </Modal>
     </div>
   );
 };

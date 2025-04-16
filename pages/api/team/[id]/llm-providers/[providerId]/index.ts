@@ -1,7 +1,17 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { prisma } from "../../../../../lib/prisma";
-import { parseAuthHeader, verifyToken } from '../../../../../lib/auth';
+import { prisma } from "@lib/prisma";
+import { parseAuthHeader, verifyToken } from '@lib/auth';
 
+/**
+ * API handler for managing a specific team's LLM provider.
+ *
+ * This handler supports the following HTTP methods:
+ * - `DELETE`: Removes an LLM provider from a team.
+ * - `PUT`: Updates an LLM provider for a team.
+ *
+ * @param req - The HTTP request object.
+ * @param res - The HTTP response object.
+ */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   // Get token from Authorization header
   const token = parseAuthHeader(req.headers.authorization);
@@ -20,7 +30,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!teamId || typeof teamId !== 'string') {
     return res.status(400).json({ error: 'Invalid team ID' });
   }
-  
+
   if (!providerId || typeof providerId !== 'string') {
     return res.status(400).json({ error: 'Invalid provider ID' });
   }
@@ -69,6 +79,43 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
   }
   
+  // Handle PUT - Update provider
+  if (req.method === 'PUT') {
+    try {
+      const {
+        name,
+        description,
+        providerType,
+        endpointUrl,
+        isActive,
+        apiKey,
+        config
+      } = req.body;
+      
+      // Update the provider
+      const updatedProvider = await prisma.lLMProvider.update({
+        where: { id: providerId },
+        data: {
+          ...(name !== undefined && { name }),
+          ...(description !== undefined && { description }),
+          ...(providerType !== undefined && { providerType }),
+          ...(endpointUrl !== undefined && { endpointUrl }),
+          ...(isActive !== undefined && { isActive }),
+          ...(apiKey !== undefined && apiKey !== '' && { apiKey }),
+          ...(config !== undefined && { config }),
+        }
+      });
+      
+      // Mask API key in response
+      const { apiKey: _, ...sanitizedProvider } = updatedProvider;
+      
+      return res.status(200).json(sanitizedProvider);
+    } catch (error) {
+      console.error("Error updating team LLM provider:", error);
+      return res.status(500).json({ error: "Failed to update team LLM provider" });
+    }
+  }
+  
   // Handle DELETE - Remove provider from the team
   if (req.method === 'DELETE') {
     try {
@@ -83,6 +130,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   }
   
-  res.setHeader('Allow', ['DELETE']);
+  res.setHeader('Allow', ['PUT', 'DELETE']);
   return res.status(405).end(`Method ${req.method} Not Allowed`);
 }

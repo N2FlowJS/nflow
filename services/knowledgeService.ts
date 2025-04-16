@@ -55,3 +55,42 @@ export const testKnowledgeRetrieval = async (
   console.log('Retrieval test results:', result);
   return result;
 };
+
+/**
+ * Retrieve information from a knowledge base
+ */
+export async function retrieveFromKnowledgeBase(
+  knowledgeId: string,
+  query: string,
+  options: {
+    maxResults?: number;
+    threshold?: number;
+  } = {}
+): Promise<{ text: string; source: string; relevance: number }[]> {
+  try {
+    // Use searchSimilarContent directly instead of API call
+    const result:{
+      timestamp: number;
+      results: SearchSimilarResult[];
+      error?: string;
+    }  = await searchSimilarContent(query, {
+      limit: options.maxResults || 5,
+      similarityThreshold: options.threshold || 0.7,
+      knowledgeId: knowledgeId,
+    });
+    
+    if (result.error) {
+      throw new Error(`Knowledge retrieval failed: ${result.error}`);
+    }
+    
+    // Transform the search results to the expected format
+    return result.results.map(item => ({
+      text: item.content|| "",
+      source: item.knowledgeId ||"Unknown source",
+      relevance: item.similarity || 0
+    }));
+  } catch (error) {
+    console.error('Error retrieving from knowledge base:', error);
+    throw error;
+  }
+}

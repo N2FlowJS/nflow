@@ -22,7 +22,7 @@
       "@pages/*": ["./pages/*"],
       "@lib/*": ["./lib/*"],
       "@services/*": ["./services/*"],
-      "@types/*": ["./types/*"]
+      "@utils/*": ["./utils/*"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "nbase/index.js"],

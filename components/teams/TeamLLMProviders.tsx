@@ -23,7 +23,7 @@ import {
   StopOutlined
 } from '@ant-design/icons';
 import LLMProviderForm from '../llm/LLMProviderForm';
-import { fetchTeamLLMProviders, deleteTeamLLMProvider, createTeamLLMProvider } from '../../services/teamService';
+import { fetchTeamLLMProviders, deleteTeamLLMProvider, createTeamLLMProvider, updateTeamLLMProvider } from '../../services/teamService';
 import { LLMProvider } from '../../types/llm';
 import TeamLLMProviderDetail from '../llm/TeamLLMProviderDetail';
 
@@ -97,15 +97,18 @@ const TeamLLMProviders: React.FC<TeamLLMProvidersProps> = ({
   };
 
   const handleEditProvider = async (values: any) => {
+    if (!editingProvider?.id) return;
+    
+    setActionLoading(true);
     try {
-      setActionLoading(true);
-      // This would be implemented in a real system
+      await updateTeamLLMProvider(teamId, editingProvider.id, values);
       message.success('Provider updated successfully');
       setIsEditModalVisible(false);
-      fetchProviders(); // Refresh data
+      setEditingProvider(null);
+      fetchProviders(); // Refresh the list after update
     } catch (error) {
       console.error('Error updating provider:', error);
-      message.error('Failed to update provider');
+      message.error('Failed to update provider: ' + (error instanceof Error ? error.message : 'Unknown error'));
     } finally {
       setActionLoading(false);
     }
