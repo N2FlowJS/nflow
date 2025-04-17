@@ -57,7 +57,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
               style={{ marginBottom: 8 }} 
             />
             <Typography.Text type="secondary" style={{ fontSize: '12px' }}>
-              {executionStatus.status === 'running' && <LoadingOutlined style={{ marginRight: 5 }} />}
+              {executionStatus.status === 'in_progress' && <LoadingOutlined style={{ marginRight: 5 }} />}
               {executionStatus.status === 'completed' ? 'Completed: ' : executionStatus.status === 'error' ? 'Error: ' : 'Processing: '}
               {executionStatus.nodeName || executionStatus.nodeId || 'Unknown node'}
             </Typography.Text>

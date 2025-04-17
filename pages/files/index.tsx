@@ -15,7 +15,7 @@ import MainLayout from '../../components/layout/MainLayout';
 import { useAuth } from '../../context/AuthContext';
 import { fetchAllFiles, deleteFile, getFileDownloadUrl } from '../../services/fileService';
 import Link from 'next/link';
-import { getTypeFile } from '../../utils/formatters';
+import { getTypeFile } from '../../utils/client/formatters';
 
 const { Title, Text } = Typography;
 

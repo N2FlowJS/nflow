@@ -50,7 +50,7 @@ import {
 import Link from "next/link";
 import FileContentViewer from "../../components/files/FileContentViewer";
 import FileChunks from "../../components/files/FileChunks";
-import { getTypeFile } from "../../utils/formatters";
+import { getTypeFile } from "../../utils/client/formatters";
 
 const { Title, Text, Paragraph } = Typography;
 

@@ -40,7 +40,7 @@ import { useRouter } from "next/router";
 import { format } from "date-fns";
 import { Knowledge } from "../../types/knowledge";
 import { parseFile, deleteFile, fetchFilesByKnowledgeId } from "../../services/fileService";
-import { formatFileSize, getTypeFile } from "../../utils/formatters";
+import { formatFileSize, getTypeFile } from "../../utils/client/formatters";
 
 const { useBreakpoint } = Grid;
 const { Title, Text } = Typography;

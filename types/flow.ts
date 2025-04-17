@@ -1,4 +1,5 @@
-import { ExecutionResult } from './flowExecutionTypes';
+import { ISender } from '@components/chat/types';
+import { ExecutionResult, FlowState } from './flowExecutionTypes';
 
 // Define OpenAI-compatible error structure
 export interface OpenAIError {
@@ -8,14 +9,6 @@ export interface OpenAIError {
   param?: string;
 }
 
-// Define what minimal flow state information to expose to the client
-export interface ClientFlowState {
-  currentNodeId?: string;
-  currentNodeName?: string;
-  completed: boolean;
-  id?: string; // Changed from conversationId to id for consistency
-  variables?: Record<string, any>;
-}
 
 // Node information in execution response
 export interface NodeInfo {
@@ -36,27 +29,19 @@ export interface ExecutionInfo {
 
 // Extend ExecutionResult to include OpenAI-compatible fields
 export interface OpenAIExecutionResult {
-  id?: string;
-  object?: string;
-  created?: number;
-  model?: string;
-  status?: string;
-  message?: string;
-  choices?: Array<{
+  id: string;
+  created: number;
+  model: string;
+  object: string;
+  choices: Array<{
     index: number;
-    message?: { role: string; content: string; function_call?: any };
-    delta?: { role?: string; content?: string; function_call?: any };
+    delta: { role?: ISender; content?: string; function_call?: any };
     finish_reason: string | null;
-    text?: string;
   }>;
-  usage?: {
+  usage: {
     prompt_tokens: number;
     completion_tokens: number;
     total_tokens: number;
   };
-  flowState?: ClientFlowState;
-  error?: OpenAIError | string;
-  nodeInfo?: NodeInfo;
-  execution?: ExecutionInfo;
-  nextNodeId?: string;
+  flowState?: FlowState;
 }

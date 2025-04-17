@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { getConversationFlowState } from '../../../../utils/getConversationFlowState';
+import { getConversationFlowState } from '../../../../database/getConversationFlowState';
 import { prisma } from '../../../../lib/prisma';
 
 // This endpoint fetches detailed flow state information when needed

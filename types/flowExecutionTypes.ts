@@ -1,7 +1,5 @@
 import { Flow, NodeTypeString } from '../components/agent/types/flowTypes';
 import { MessagePart } from './MessagePart';
-import { ClientFlowState
- } from './flow';
 
 /**
  * Represents the state of a flow execution
@@ -45,21 +43,18 @@ export interface NodeExecutionRecord {
  * Result of a flow execution step
  */
 export interface ExecutionResult {
-  id?: string;
   // Status of the execution
   status: 'completed' | 'error' | 'in_progress';
-  // ID of the executed conversation
-  conversationId?: string;
   // Optional message providing additional information
   message?: string;
   // Optional output from the current node
   nextNodeId?: string;
 
   // Optional updated flow state
-  flowState?: FlowState;
+  flowState: FlowState;
 
   // Optional node information
-  nodeInfo?: NodeInfo;
+  nodeInfo: NodeInfo;
 
   // Optional execution status
   execution: {
@@ -68,7 +63,6 @@ export interface ExecutionResult {
     startTime: string;
     endTime?: string;
     output: string;
-  
   };
 }
 

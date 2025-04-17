@@ -3,7 +3,7 @@ import { Modal, Button, Upload, message, Progress, List } from "antd";
 import { InboxOutlined, FileOutlined, UploadOutlined } from "@ant-design/icons";
 import { uploadFiles } from "../../services/fileService";
 import type { RcFile, UploadFile, UploadProps } from "antd/es/upload/interface";
-import { formatFileSize } from "../../utils/formatters";
+import { formatFileSize } from "../../utils/client/formatters";
 
 interface UploadFileModalProps {
   knowledgeId: string;

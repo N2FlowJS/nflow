@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '../../../lib/prisma';
-import { getConversationFlowState } from '../../../utils/getConversationFlowState';
+import { getConversationFlowState } from '../../../database/getConversationFlowState';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { method } = req;

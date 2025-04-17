@@ -1,3 +1,4 @@
+import type { EXECUTION_STATUS } from '@utils/server/EXECUTION_STATUS';
 import { ExecutionStatusType } from '../../types/flowExecutionTypes';
 
 export interface NodeExecutionStatus {
@@ -22,17 +23,21 @@ export interface MessageInterface {
   options?: any;
 }
 
+export interface ExecutionStatus {
+  status: EXECUTION_STATUS;
+  nodeId?: string;
+  nodeName?: string;
+}
+
+export type ISender = 'user' | 'assistant' | 'system' | 'developer';
 export interface MessageType {
   id: string;
+  sender: ISender;
   text: string;
-  sender: 'user' | 'agent' | 'system';
-  timestamp: string;
+  timestamp: number;
   isTyping?: boolean;
-  interface?: MessageInterface;
-  nodeId?: string;
-  nodeType?: string;
-  metadata?: Record<string, any>;
-  executionStatus?: NodeExecutionStatus;
   hasError?: boolean;
-  errorDetails?: ErrorDetails;
+  nodeType?: string;
+  nodeId?: string;
+  executionStatus?: ExecutionStatus;
 }

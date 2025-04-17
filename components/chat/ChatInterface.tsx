@@ -4,9 +4,10 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import styles from './ChatInterface.module.css';
 import ChatMessage from './ChatMessage';
 import { motion, AnimatePresence } from 'framer-motion';
-import DebugPanel, { DebugInfoBar } from './DebugPanel';
-import { useDebug } from '../../hooks/useDebug';
-import { useChatExecution } from '../../hooks/useChatExecution';
+import { v4 as uuidv4 } from 'uuid';
+import { ISender, MessageType } from './types';
+import { flowExecutionService } from '../../services/flowExecutionService';
+import { OpenAIExecutionResult } from '../../types/flow';
 
 interface ChatInterfaceProps {
     agentId: string;
@@ -23,7 +24,6 @@ interface ChatInterfaceProps {
 
 const ChatInterface: React.FC<ChatInterfaceProps> = ({
     agentId,
-    flowConfig,
     model,
     temperature,
     maxTokens,
@@ -33,104 +33,354 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     onConversationUpdated,
     variables = {}
 }) => {
-    // User input state
+    // State for chat messages and input
+    const [messages, setMessages] = useState<MessageType[]>([]);
     const [inputValue, setInputValue] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [conversationId, setConversationId] = useState<string | undefined>(initialId);
+    const [flowState, setFlowState] = useState<any>(null);
 
-    // Use the debug hook
-    const {
-        debugMode,
-        setDebugMode,
-        debugDrawerOpen,
-        setDebugDrawerOpen,
-        executionLogs,
-        clearDebugLogs,
-        createDebugStatus,
-        logDebugInfo
-    } = useDebug();
+    // Streaming state
+    const [streamingMessage, setStreamingMessage] = useState<MessageType | null>(null);
+    const [isStreamingPaused, setIsStreamingPaused] = useState(false);
+    const abortControllerRef = useRef<AbortController | null>(null);
 
-    // Use the chat execution hook with logDebugInfo from debug hook
-    const {
-        messages,
-        loading,
-        error,
-        setError,
-        flowState,
-        id,
-        streamingMessage,
-        isStreamingPaused,
-        startNewChat,
-        sendMessage,
-        toggleStreamingPause,
-        stopStreaming,
-        loadConversation,
-        fetchFlowStateDetails,
-        isSendDisabled,
-    } = useChatExecution({
-        agentId,
-        enableStreaming,
-        model,
-        temperature,
-        maxTokens,
-
-        onConversationCreated,
-        onConversationUpdated,
-        variables,
-        logDebugInfo
-    });
-
-    // Reference for auto-scrolling to latest message
+    // Reference for auto-scrolling to bottom
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
-    // Auto-scroll to the latest message
+    // Function to determine if send button should be disabled
+    const isSendDisabled = useCallback((text: string) => {
+        return loading || !text.trim() || (flowState?.completed === true);
+    }, [loading, flowState]);
+
+    // Scroll to bottom when messages change
     useEffect(() => {
         if (messagesEndRef.current) {
             messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
         }
-    }, [messages, streamingMessage?.text]);
+    }, [messages, streamingMessage]);
 
-    // Start chat when component mounts or agent changes
-    // Wrap in useEffect to prevent initial render loop
-    useEffect(() => {
-        let isInitialRender = true;
+    // Handle sending message
+    const handleSendMessage = useCallback(async () => {
+        if (isSendDisabled(inputValue)) return;
 
-        if (agentId && flowConfig && isInitialRender) {
-            startNewChat();
-        }
-
-        return () => {
-            isInitialRender = false;
+        const userMessage: MessageType = {
+            id: uuidv4(),
+            sender: 'user',
+            text: inputValue.trim(),
+            timestamp: Date.now(),
         };
-    }, [agentId, flowConfig, startNewChat]);
 
-    // Load conversation on initial ID change
-    useEffect(() => {
-        if (initialId) {
-            loadConversation(initialId);
-        }
-    }, [initialId, loadConversation]);
+        // Update UI immediately with user message
+        setMessages(prev => [...prev, userMessage]);
+        setInputValue('');
+        setLoading(true);
+        setError(null);
 
-    // Handle sending a message
-    const handleSendMessage = useCallback(() => {
-        sendMessage(inputValue).then(success => {
-            if (success) {
-                setInputValue('');
+        try {
+            // Format messages for API
+            const apiMessages = [
+                ...messages.map(msg => ({
+                    role: msg.sender,
+                    content: msg.text
+                })),
+                {
+                    role: 'user',
+                    content: userMessage.text
+                }
+            ];
+
+            // Create service options
+            const serviceOptions = {
+                messages: apiMessages,
+                variables,
+                model: model || 'default',
+                temperature: temperature || 0.7,
+                maxTokens: maxTokens || 1024,
+                id: conversationId,
+                stream: enableStreaming
+            };
+
+            if (enableStreaming) {
+                // Handle streaming response
+                await handleStreamingResponse(serviceOptions);
+            } else {
+                // Handle regular response
+                await handleNormalResponse(serviceOptions);
             }
-        });
-    }, [inputValue, sendMessage]);
-
-    // Handle Enter key press in textarea
-    const handleKeyPress = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            handleSendMessage();
+        } catch (err) {
+            console.error('Error sending message:', err);
+            setError(err instanceof Error ? err.message : 'Failed to send message');
+            setLoading(false);
         }
-    }, [handleSendMessage]);
+    }, [inputValue, messages, conversationId, agentId, model, variables, temperature, maxTokens, enableStreaming]);
 
-    // Calculate debug status - using memo to avoid recalculation on every render
-    const debugStatus = useMemo(() =>
-        createDebugStatus(flowState, messages.length, id),
-        [createDebugStatus, flowState, messages.length, id]
-    );
+    // Handle streaming response
+    const handleStreamingResponse = useCallback(async (options: any) => {
+        // Create a new streaming message
+        const newStreamingMsg: MessageType = {
+            id: uuidv4(),
+            sender: 'assistant',
+            text: '',
+            timestamp: Date.now(),
+            isTyping: true,
+        };
+
+        setStreamingMessage(newStreamingMsg);
+
+        // Create abort controller for cancelling the stream
+        abortControllerRef.current = new AbortController();
+
+        try {
+            // Call the service with streaming enabled
+            const result = await flowExecutionService(agentId, options);
+
+            // If the result is not a stream (error case), handle it and return
+            if (!(result instanceof ReadableStream)) {
+
+                // If we somehow got a non-stream success result, handle it as a normal response
+                const finalMessage: MessageType = {
+                    ...newStreamingMsg,
+                    text: result.choices?.[0]?.delta?.content || '',
+                    isTyping: false,
+                    executionStatus: result.flowState ? {
+                        status: result.choices?.[0]?.finish_reason === 'error' ? 'error' :
+                            result.choices?.[0]?.finish_reason ? 'completed' : 'in_progress',
+                        nodeId: result.flowState.currentNodeId,
+                        nodeName: result.flowState.currentNodeName
+                    } : undefined
+                };
+
+                setMessages(prev => [...prev, finalMessage]);
+                setStreamingMessage(null);
+
+                // Update conversation ID and flow state
+                if (result.id && result.id !== conversationId) {
+                    setConversationId(result.id);
+                    if (onConversationCreated && !conversationId) {
+                        onConversationCreated(result.id);
+                    } else if (onConversationUpdated) {
+                        onConversationUpdated(result.id);
+                    }
+                }
+
+                if (result.flowState) {
+                    setFlowState(result.flowState);
+                }
+
+                return;
+            }
+
+            // Process the stream
+            const reader = result.getReader();
+            const decoder = new TextDecoder();
+            let done = false;
+            let streamedText = '';
+
+            while (!done && !isStreamingPaused) {
+                const { value, done: doneReading } = await reader.read();
+                done = doneReading;
+
+                if (done) break;
+
+                // Process the received chunk
+                const chunk = decoder.decode(value, { stream: true });
+                const lines = chunk.split('\n\n')
+                    .filter(line => line.trim() !== '' && line.startsWith('data: '));
+
+                for (const line of lines) {
+                    if (line.includes('data: [DONE]')) {
+                        done = true;
+                        break;
+                    }
+
+                    try {
+                        const jsonData: OpenAIExecutionResult = JSON.parse(line.replace('data: ', ''));
+
+
+                        // Update conversation ID if needed
+                        if (jsonData.id && jsonData.id !== conversationId) {
+                            setConversationId(jsonData.id);
+                            if (onConversationCreated && !conversationId) {
+                                onConversationCreated(jsonData.id);
+                            } else if (onConversationUpdated) {
+                                onConversationUpdated(jsonData.id);
+                            }
+                        }
+                         
+                        // Update flow state
+                        if (jsonData.flowState) {
+                            setFlowState(jsonData.flowState);
+                        }
+
+                        // Extract and update message content from stream chunk
+                        let messageContent = '';
+
+                        // Handle different possible response formats
+                        if (jsonData.choices?.[0]?.delta?.content) {
+                            messageContent = jsonData.choices[0].delta.content;
+                        }
+
+                        if (messageContent) {
+                            // Replace the entire content (not append) since the server sends the full message each time
+                            streamedText = messageContent;
+
+                            setStreamingMessage(prev => prev ? {
+                                ...prev,
+                                text: streamedText,
+                                nodeType: (jsonData.choices?.[0]?.delta?.role === 'developer')
+                                    ? 'interface' : undefined,
+                                executionStatus: {
+                                    status: jsonData.choices?.[0]?.finish_reason === 'error' ? 'error' :
+                                        jsonData.choices?.[0]?.finish_reason ? 'completed' : 'in_progress',
+                                    nodeId: jsonData.flowState?.currentNodeId,
+                                    nodeName: jsonData.flowState?.currentNodeName
+                                }
+                            } : null);
+                        }
+                    } catch (e) {
+                        console.error('Error parsing streaming data:', e);
+                    }
+                }
+            }
+
+            // Finalize the streaming message when done
+            if (streamingMessage) {
+                const finalMessage = {
+                    ...newStreamingMsg,
+                    text: streamedText,
+                    isTyping: false,
+                };
+
+                setMessages(prev => [...prev, finalMessage]);
+                setStreamingMessage(null);
+            }
+        } catch (err: any) {
+            if (err.name !== 'AbortError') {
+                console.error('Streaming error:', err);
+                setError(err instanceof Error ? err.message : 'Streaming failed');
+
+                // Add error message to the chat
+                if (streamingMessage) {
+                    setMessages(prev => [...prev, {
+                        ...streamingMessage,
+                        text: streamingMessage.text || 'Error occurred during streaming',
+                        isTyping: false,
+                        hasError: true
+                    }]);
+                    setStreamingMessage(null);
+                }
+            }
+        } finally {
+            abortControllerRef.current = null;
+            setLoading(false);
+        }
+    }, [agentId, conversationId, onConversationCreated, onConversationUpdated, isStreamingPaused]);
+
+    // Handle normal (non-streaming) response
+    const handleNormalResponse = useCallback(async (options: any) => {
+        try {
+            // Call service with streaming disabled
+            const result = await flowExecutionService(agentId, {
+                ...options,
+                stream: false,
+            }) as OpenAIExecutionResult;
+
+
+            // Update conversation ID if needed
+            if (result.id && result.id !== conversationId) {
+                setConversationId(result.id);
+                if (onConversationCreated && !conversationId) {
+                    onConversationCreated(result.id);
+                } else if (onConversationUpdated) {
+                    onConversationUpdated(result.id);
+                }
+            }
+
+            // Update flow state
+            if (result.flowState) {
+                setFlowState(result.flowState);
+            }
+
+            // Extract message content
+            let messageText = '';
+            let messageRole: ISender = 'assistant';
+
+            if (result.choices && result.choices.length > 0) {
+                const choice = result.choices[0];
+                messageText = choice.delta?.content || choice.delta?.content || '';
+                messageRole = choice.delta?.role || 'assistant';
+            }
+
+            console.log('Normal response:', result, messageText, messageRole);
+            
+
+            // Add response message
+            const newMessage: MessageType = {
+                id: uuidv4(),
+                sender: messageRole,
+                text: messageText,
+                timestamp: Date.now(),
+                nodeType: messageRole === 'developer' ? 'interface' : undefined,
+                executionStatus: result.flowState ? {
+                    status: result.choices?.[0]?.finish_reason === 'error' ? 'error' :
+                        result.choices?.[0]?.finish_reason ? 'completed' : 'in_progress',
+                    nodeId: result.flowState.currentNodeId,
+                    nodeName: result.flowState.currentNodeName
+                } : undefined
+            };
+
+            setMessages(prev => [...prev, newMessage]);
+        } catch (err) {
+            console.error('Error in handleNormalResponse:', err);
+            setError(err instanceof Error ? err.message : 'Failed to get response');
+        } finally {
+            setLoading(false);
+        }
+    }, [agentId, conversationId, onConversationCreated, onConversationUpdated]);
+
+    // Toggle streaming pause/resume
+    const toggleStreamingPause = useCallback(() => {
+        setIsStreamingPaused(prev => !prev);
+    }, []);
+
+    // Stop streaming
+    const stopStreaming = useCallback(() => {
+        if (abortControllerRef.current) {
+            abortControllerRef.current.abort();
+            abortControllerRef.current = null;
+        }
+
+        // Finalize the current streaming message
+        if (streamingMessage) {
+            setMessages(prev => [...prev, {
+                ...streamingMessage,
+                isTyping: false
+            }]);
+            setStreamingMessage(null);
+        }
+
+        setLoading(false);
+    }, [streamingMessage]);
+
+    // Start a new chat
+    const startNewChat = useCallback(() => {
+        // Stop any ongoing streaming
+        if (abortControllerRef.current) {
+            abortControllerRef.current.abort();
+            abortControllerRef.current = null;
+        }
+
+        // Reset state
+        setMessages([]);
+        setInputValue('');
+        setStreamingMessage(null);
+        setLoading(false);
+        setError(null);
+        setConversationId(undefined);
+        setFlowState(null);
+    }, []);
 
     // Render the chat interface
     return (
@@ -147,14 +397,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                     />
                     Chat with Agent
 
-                    {debugMode && (
-                        <Badge
-                            count={<BugOutlined style={{ color: '#ff4d4f' }} />}
-                            offset={[-5, 5]}
-                        >
-                            <Tag color="orange" style={{ marginLeft: 8 }}>DEBUG</Tag>
-                        </Badge>
-                    )}
+
                 </Typography.Title>
 
                 <div className={styles.headerActions}>
@@ -168,19 +411,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                         </div>
                     )}
 
-                    {/* Debug Controls from DebugPanel */}
-                    <DebugPanel
-                        debugMode={debugMode}
-                        setDebugMode={setDebugMode}
-                        debugDrawerOpen={debugDrawerOpen}
-                        setDebugDrawerOpen={setDebugDrawerOpen}
-                        debugStatus={debugStatus}
-                        flowState={flowState}
-                        executionLogs={executionLogs}
-                        clearDebugLogs={clearDebugLogs}
-                        fetchFlowStateDetails={fetchFlowStateDetails}
-                        id={id}
-                    />
 
                     {/* Streaming controls */}
                     {streamingMessage && (
@@ -214,7 +444,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
             <Divider style={{ margin: '0 0 8px 0' }} />
 
             {/* Debug info bar - using component from DebugPanel */}
-            {debugMode && <DebugInfoBar debugStatus={debugStatus} />}
+
 
             {/* Messages container */}
             <div className={styles.messagesContainer}>
@@ -315,6 +545,12 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                         padding: '8px 12px',
                         resize: 'none',
                         boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                    }}
+                    onKeyDown={e => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            handleSendMessage();
+                        }
                     }}
                 />
 
