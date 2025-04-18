@@ -240,7 +240,7 @@ const FlowEditor: React.FC<FlowEditorProps> = ({
         placement="right"
         onClose={() => setIsDrawerOpen(false)}
         open={isDrawerOpen}
-        width={350}
+        width={window.innerWidth > 768 ? '45%' : "80%"}
         styles={{
           body: {
             paddingTop: 12,

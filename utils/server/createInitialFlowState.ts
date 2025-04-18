@@ -8,6 +8,6 @@ export function createInitialFlowState(beginNode: BeginNode, variables?: Record<
     variables: variables || {},
     components: {},
     history: [],
-    completed: false,
+    currentNodeName: beginNode.data.form.name || beginNode.id,
   };
 }

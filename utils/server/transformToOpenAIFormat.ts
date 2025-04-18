@@ -6,7 +6,6 @@ import { EXECUTION_STATUS } from './EXECUTION_STATUS'; // Import EXECUTION_STATU
 export function transformToOpenAIFormat(result: ExecutionResult, conversationId: string): OpenAIExecutionResult {
   // Handle error result - create an error-like OpenAI response
   if (result.status === EXECUTION_STATUS.ERROR) {
-    console.error('Transforming error result:', result);
     return {
       id: conversationId,
       created: Math.floor(Date.now() / 1000),

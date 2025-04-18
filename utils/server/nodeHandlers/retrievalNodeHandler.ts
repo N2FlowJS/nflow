@@ -121,12 +121,11 @@ export async function executeRetrievalNode(node: FlowNode, context: FlowExecutio
     if (!flowState.components[node.id]) flowState.components[node.id] = {};
     flowState.components[node.id]['output'] = formattedResults;
     flowState.components[node.id]['type'] = 'retrieval';
+    flowState.components[node.id]['ready'] = true;
 
     const nextNodeId = findNextNode(flow, node.id);
 
-    if (!nextNodeId) {
-      throw new Error(`Node ${node.data.label}  No next node found in the flow`);
-    }
+    if (!nextNodeId) throw new Error(`Node ${node.data.label}  No next node found in the flow`);
 
     return {
       status: 'in_progress',

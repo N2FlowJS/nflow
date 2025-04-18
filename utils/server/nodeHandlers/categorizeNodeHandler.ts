@@ -135,14 +135,7 @@ Analyze the text and determine which category it belongs to. Respond with ONLY t
       // Falls back to default category
     }
 
-    // Store the categorization result in variables
-    flowState.variables.category = categoryToUse;
-    flowState.variables.categorization = {
-      input: inputToCategorize,
-      result: categoryToUse,
-      confidence: confidence,
-    };
-
+  
    
 
     // Find the target node for this category
@@ -158,6 +151,7 @@ Analyze the text and determine which category it belongs to. Respond with ONLY t
     if (!flowState.components[node.id]) flowState.components[node.id] = {};
     flowState.components[node.id]['output'] = categoryToUse;
     flowState.components[node.id]['type'] = 'categorize';
+    flowState.components[node.id]['ready'] = true;
 
 
     if (!nextNodeId) {

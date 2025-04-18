@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react"; // Import useEffect
 import { Form, Button, Space, Input, Modal } from "antd";
 import {
   DeleteOutlined,
@@ -24,6 +24,13 @@ const BaseNodeForm: React.FC<BaseNodeFormProps> = ({
   children,
   customSaveHandler,
 }) => {
+  // Add useEffect to reset form fields when selectedNode changes
+  useEffect(() => {
+    if (selectedNode) {
+      form.setFieldsValue(selectedNode.data.form || {});
+    }
+  }, [selectedNode, form]);
+
   const handleSave = (values: any) => {
     if (customSaveHandler) {
       customSaveHandler(values);
@@ -77,7 +84,7 @@ const BaseNodeForm: React.FC<BaseNodeFormProps> = ({
     <Form
       form={form}
       layout="vertical"
-      initialValues={selectedNode.data.form || {}}
+      // Remove initialValues as useEffect now handles setting values
       onFinish={handleSave}
       className="node-form"
     >
