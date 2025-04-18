@@ -24,13 +24,13 @@ export async function executeInterfaceNode(node: FlowNode, context: FlowExecutio
   }
 
   return {
-    status: 'completed',
+    status: input.role === 'user' ? 'in_progress' : 'completed',
     nextNodeId,
     nodeInfo: {
       id: node.id,
       name: node.data.label || node.id,
       type: 'interface',
-      role: input.role,
+      role: input.role === 'user' ? 'developer' : input.role,
     },
     execution: {
       output: input.content,
@@ -40,7 +40,6 @@ export async function executeInterfaceNode(node: FlowNode, context: FlowExecutio
     },
     flowState: {
       ...flowState,
-      completed: true,
     },
   };
 }

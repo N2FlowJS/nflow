@@ -1,5 +1,6 @@
 import type { EXECUTION_STATUS } from '@utils/server/EXECUTION_STATUS';
 import { ExecutionStatusType } from '../../types/flowExecutionTypes';
+import { NodeTypeString } from '@components/agent/types/flowTypes';
 
 export interface NodeExecutionStatus {
   nodeId: string;
@@ -25,8 +26,9 @@ export interface MessageInterface {
 
 export interface ExecutionStatus {
   status: EXECUTION_STATUS;
-  nodeId?: string;
-  nodeName?: string;
+  nodeId: string;
+  nodeName: string;
+  nodeType: NodeTypeString;
 }
 
 export type ISender = 'user' | 'assistant' | 'system' | 'developer';
@@ -35,9 +37,7 @@ export interface MessageType {
   sender: ISender;
   text: string;
   timestamp: number;
-  isTyping?: boolean;
   hasError?: boolean;
-  nodeType?: string;
   nodeId?: string;
-  executionStatus?: ExecutionStatus;
+  executionStatus: ExecutionStatus;
 }

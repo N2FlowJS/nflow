@@ -7,7 +7,7 @@ import { findNextNode } from '@utils/server/findNextNode';
  * Handler for executing Begin nodes
  */
 export async function executeBeginNode(node: FlowNode, context: FlowExecutionContext): Promise<ExecutionResult> {
-  const { flow, flowState  } = context;
+  const { flow, flowState } = context;
   const data = node.data as BeginNodeData;
   const form = data.form;
 
@@ -30,9 +30,7 @@ export async function executeBeginNode(node: FlowNode, context: FlowExecutionCon
   // Find the next node
   const nextNodeId = findNextNode(flow, node.id);
 
-  if (!nextNodeId) {
-    throw new Error(`Node ${node.data.label}  No next node found in the flow`);
-  }
+  if (!nextNodeId) throw new Error(`Node ${node.data.label}  No next node found in the flow`);
 
   return {
     status: 'in_progress',

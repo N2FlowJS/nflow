@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   Card,
   Form,
@@ -107,12 +107,12 @@ export default function AgentDetail() {
     }
   }, [id]);
 
-  // Load flow config when switching to chat tab
+  // Load flow config only when the chat tab is active and config isn't loaded yet
   useEffect(() => {
-    if (activeTab === 'chat' && !flowConfig && id) {
+    if (activeTab === 'chat' && !flowConfig && id && !flowLoading) {
       loadFlowConfig();
     }
-  }, [activeTab, flowConfig, id]);
+  }, [activeTab, flowConfig, id, flowLoading]); // Added flowLoading dependency
 
   // Handle form submission
   const handleSave = async () => {
@@ -154,17 +154,22 @@ export default function AgentDetail() {
   };
 
   // Handle conversation creation
-  const handleConversationCreated = (conversationId: string) => {
+  const handleConversationCreated = useCallback((conversationId: string) => {
     setCurrentConversationId(conversationId);
     console.log("New conversation created:", conversationId);
-    // You might want to add this to a conversations list
-  };
+  }, []);
 
   // Handle conversation updates
-  const handleConversationUpdated = (conversationId: string) => {
+  const handleConversationUpdated = useCallback((conversationId: string) => {
+    // Optional: Update UI based on conversation updates if needed
     console.log("Conversation updated:", conversationId);
-    // You might want to update timestamps or other metadata
-  };
+  }, []);
+
+  // Add handler to reset conversation ID when ChatInterface starts a new chat
+  const handleNewChatStarted = useCallback(() => {
+    setCurrentConversationId(undefined);
+    // Optionally reset other related states if necessary
+  }, []);
 
   if (loading) {
     return (
@@ -207,46 +212,65 @@ export default function AgentDetail() {
             style={{
               display: "flex",
               justifyContent: "space-between",
-              alignItems: "center",
+              alignItems: "flex-start", // Align items to the start for better vertical alignment
             }}
           >
-            <Space align="center">
-              <RobotOutlined style={{ fontSize: "24px" }} />
-              <Title level={2} style={{ margin: 0 }}>
-                {agent?.name}
-              </Title>
-              {agent?.ownerType === "user" ? (
-                <Space>
-                  <UserOutlined />
-                  <Link href={`/user/${agent.user?.id}`}>
-                    {agent.user?.name}
-                  </Link>
-                </Space>
-              ) : (
-                <Space>
-                  <TeamOutlined />
-                  <Link href={`/team/${agent?.team?.id}`}>
-                    {agent?.team?.name}
-                  </Link>
-                </Space>
-              )}
+            <Space direction="vertical" size="small">
+              <Space align="center">
+                <RobotOutlined style={{ fontSize: "24px", color: '#1890ff' }} />
+                <Title level={2} style={{ margin: 0 }}>
+                  {agent?.name}
+                </Title>
+              </Space>
+              {/* Owner Info */}
+              <Space style={{ marginLeft: '32px' }}>
+                {agent?.ownerType === "user" ? (
+                  <Space size="small">
+                    <UserOutlined />
+                    <Typography.Text type="secondary">Owned by:</Typography.Text>
+                    <Link href={`/user/${agent.user?.id}`}>
+                      {agent.user?.name}
+                    </Link>
+                  </Space>
+                ) : (
+                  <Space size="small">
+                    <TeamOutlined />
+                    <Typography.Text type="secondary">Owned by Team:</Typography.Text>
+                    <Link href={`/team/${agent?.team?.id}`}>
+                      {agent?.team?.name}
+                    </Link>
+                  </Space>
+                )}
+              </Space>
             </Space>
 
-            <Space>
+            <Space wrap> {/* Use wrap for responsiveness */}
+              <Button
+                icon={<ArrowLeftOutlined />}
+                onClick={() => router.push("/agent")}
+              >
+                Back to List
+              </Button>
               {isEditing ? (
                 <>
-                  <Button onClick={() => setIsEditing(false)}>Cancel</Button>
+                  <Button onClick={() => { setIsEditing(false); form.resetFields(); }}>Cancel</Button>
                   <Button
                     type="primary"
                     icon={<SaveOutlined />}
                     onClick={handleSave}
                     loading={saving}
                   >
-                    Save
+                    Save Agent Info
                   </Button>
                 </>
               ) : (
                 <>
+                   <Button
+                    icon={<EditOutlined />}
+                    onClick={() => setIsEditing(true)}
+                  >
+                    Edit Agent Info
+                  </Button>
                   <Button
                     type="primary"
                     icon={<EditOutlined />}
@@ -257,21 +281,12 @@ export default function AgentDetail() {
                     Open Flow Editor
                   </Button>
                   <Button
-                    icon={<ArrowLeftOutlined />}
-                    onClick={() => router.push("/agent")}
-                  >
-                    Back to List
-                  </Button>
-                  <Button type="primary" onClick={() => setIsEditing(true)}>
-                    Edit
-                  </Button>
-                  <Button
                     type="primary"
                     danger
                     icon={<DeleteOutlined />}
                     onClick={confirmDelete}
                   >
-                    Delete
+                    Delete Agent
                   </Button>
                 </>
               )}
@@ -344,49 +359,52 @@ export default function AgentDetail() {
                     <span>Chat with Agent</span>
                     <Space>
                       <Switch
-                        checkedChildren={<><ThunderboltOutlined /> Streaming On</>}
-                        unCheckedChildren={<><ThunderboltOutlined /> Streaming Off</>}
+                        checkedChildren={<><ThunderboltOutlined /> Streaming</>}
+                        unCheckedChildren={<><ThunderboltOutlined /> No Streaming</>}
                         checked={enableStreaming}
                         onChange={setEnableStreaming}
+                        disabled={flowLoading || !flowConfig} // Disable switch while loading or if no config
                       />
                     </Space>
                   </div>
                 }
-                style={{
-                  padding: 0,
-                  height: 'calc(80vh - 180px)',
-                  display: 'flex',
-                  flexDirection: 'column'
-                }}
+                bodyStyle={{ padding: 0, height: 'calc(75vh - 100px)', display: 'flex', flexDirection: 'column' }} // Adjusted height and padding
               >
+                {/* Conditional Rendering for Chat Interface */}
                 {flowLoading ? (
-                  <div style={{ textAlign: 'center', margin: '100px 0' }}>
+                  <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
                     <Spin size="large" />
-                    <div style={{ marginTop: 16 }}>Loading agent flow...</div>
+                    <Typography.Text style={{ marginTop: 16 }}>Loading agent flow...</Typography.Text>
                   </div>
                 ) : !flowConfig ? (
-                  <div style={{ textAlign: 'center', margin: '100px 0' }}>
-                    <Typography.Title level={4}>No flow configuration found</Typography.Title>
+                  <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '20px' }}>
+                    <InfoCircleOutlined style={{ fontSize: '48px', color: '#faad14', marginBottom: '16px' }}/>
+                    <Typography.Title level={4}>No Flow Configuration Found</Typography.Title>
+                    <Typography.Text type="secondary" style={{ marginBottom: '16px' }}>
+                      This agent needs a flow defined before you can chat with it.
+                    </Typography.Text>
                     <Button
                       type="primary"
+                      icon={<EditOutlined />}
                       onClick={() => router.push(`/agent/flow-editor?agentId=${id}`)}
                     >
-                      Create Flow
+                      Go to Flow Editor
                     </Button>
                   </div>
                 ) : (
+                  // Render ChatInterface only when flowConfig is loaded
                   <ChatInterface
                     agentId={id as string}
-                    flowConfig={flowConfig}
+                    flowConfig={flowConfig} // Pass the loaded config
                     enableStreaming={enableStreaming}
-                    userId={user?.id}
-                    teamId={agent?.ownerType === 'team' ? agent.team?.id : undefined}
-                    id={currentConversationId}
+                    id={currentConversationId} // Pass current conversation ID
                     onConversationCreated={handleConversationCreated}
                     onConversationUpdated={handleConversationUpdated}
-                    variables={{
+                    onNewChatStarted={handleNewChatStarted} // Pass the new handler
+                    variables={{ // Pass relevant variables
                       agentName: agent?.name,
-                      userDisplayName: user?.name
+                      userDisplayName: user?.name || 'User', // Provide default
+                      // Add other necessary variables here
                     }}
                   />
                 )}

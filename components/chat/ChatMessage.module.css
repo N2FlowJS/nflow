@@ -2,75 +2,36 @@
   margin: 8px 0;
   max-width: 85%;
 }
-
-.userMessage {
-  align-self: flex-end;
-  margin-left: auto;
-}
-
-.agentMessage {
-  align-self: flex-start;
-  margin-right: auto;
-}
-
-.systemMessage {
-  align-self: center;
-  margin: 12px auto;
-  max-width: 70%;
-}
+.userMessage { align-self: flex-end; margin-left: auto; }
+.agentMessage { align-self: flex-start; margin-right: auto; }
+.systemMessage { align-self: center; margin: 12px auto; max-width: 70%; }
 
 .messageCard {
   border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
-
-.userMessage .messageCard {
-  background-color: #e6f7ff;
-}
-
-.systemMessage .messageCard {
-  background-color: #f5f5f5;
-  border: 1px dashed #d9d9d9;
-}
+.userMessage .messageCard { background-color: #e6f7ff; }
+.systemMessage .messageCard { background-color: #f5f5f5; border: 1px dashed #d9d9d9; }
 
 .messageHeader {
   display: flex;
   align-items: center;
   margin-bottom: 6px;
   font-size: 12px;
-  color: rgba(0, 0, 0, 0.45);
+  color: rgba(0,0,0,0.45);
 }
-
-.messageIcon {
-  margin-right: 6px;
-}
-
-.messageSender {
-  font-weight: 500;
-  margin-right: 8px;
-}
-
-.messageTime {
-  margin-left: auto;
-}
+.messageIcon { margin-right: 6px; }
+.messageSender { font-weight: 500; margin-right: 8px; }
+.messageTime { margin-left: auto; }
+.nodeTag { margin-left: 8px; font-size: 10px; }
 
 .messageContent {
   word-break: break-word;
-}
-
-.messageContent p {
-  margin-bottom: 8px;
-}
-
-.messageContent pre {
-  background-color: rgba(0, 0, 0, 0.03);
-  padding: 8px;
-  border-radius: 4px;
-  overflow: auto;
+  /* ensure pre-wrap works */
+  white-space: pre-wrap;
 }
 
 .typingIndicator {
-  display: inline-block;
   margin-left: 4px;
   font-weight: bold;
   animation: blink 0.7s infinite;
@@ -79,24 +40,19 @@
 .executionStatus {
   margin: 8px 0;
   padding: 6px;
-  background-color: rgba(0, 0, 0, 0.02);
+  background-color: rgba(0,0,0,0.02);
   border-radius: 4px;
   border-left: 2px solid #1890ff;
 }
+.developerLog   {
+  height: 40px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 
-.nodeTag {
-  margin-left: 8px;
-  font-size: 10px;
 }
 
 @keyframes blink {
-  0% {
-    opacity: 0.2;
-  }
-  20% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0.2;
-  }
+  0% { opacity: 0.2; }
+  20% { opacity: 1; }
+  100% { opacity: 0.2; }
 }

@@ -1,6 +1,6 @@
 import { LoadingOutlined, RobotOutlined, UserOutlined } from '@ant-design/icons';
 import { Card, Progress, Tag, Typography } from 'antd';
-import React from 'react';
+import React, { useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import styles from './ChatMessage.module.css';
 import { MessageType } from './types';
@@ -10,51 +10,53 @@ interface ChatMessageProps {
 }
 
 const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
-  const { sender, text, isTyping, executionStatus, hasError, nodeType, nodeId } = message;
+  const { sender, text, executionStatus, hasError, nodeId, timestamp } = message;
 
-  // Format timestamp to human-readable format
-  const formattedTime = new Date(message.timestamp).toLocaleTimeString();
+  // memoize timestamp formatting and icon
+  const formattedTime = useMemo(
+    () => new Date(timestamp).toLocaleTimeString(),
+    [timestamp]
+  );
+  const icon = useMemo(
+    () => (sender === 'user' ? <UserOutlined /> : sender === 'system' ? null : <RobotOutlined />),
+    [sender]
+  );
+  const roleLabel = sender === 'user' ? 'You' : sender === 'system' ? 'System' : sender === 'developer' ? 'Developer' : 'Agent';
 
-  // Apply styling based on sender
-  const isUser = sender === 'user';
-  const isSystem = sender === 'system';
-  const messageClass = isUser ? styles.userMessage : isSystem ? styles.systemMessage : styles.agentMessage;
+  // Developer log view
+  if (sender === 'developer') {
+    return (
+      <div className={`${styles.messageContainer} ${styles.developerMessage}`}>
+        <pre className={styles.developerLog}>
+          <code>{`[${formattedTime}] ${text}`}</code>
+        </pre>
+      </div>
+    );
+  }
 
-  // Get appropriate icon
-  const icon = isUser ? <UserOutlined /> : isSystem ? null : <RobotOutlined />;
-
-  // Determine if we should show the content based on node type
-  const shouldShowContent = isUser || isSystem || nodeType === 'interface' || hasError;
-
+  // Existing view for user, system, agent
   return (
-    <div className={`${styles.messageContainer} ${messageClass}`}>
-      <Card 
-        className={styles.messageCard} 
-        style={hasError ? { borderLeft: '3px solid #ff4d4f' } : {}}
-      >
+    <div className={`${styles.messageContainer} ${sender === 'user' ? styles.userMessage : sender === 'system' ? styles.systemMessage : styles.agentMessage}`}>
+      <Card className={styles.messageCard} style={hasError ? { borderLeft: '3px solid #ff4d4f' } : {}}>
         <div className={styles.messageHeader}>
           {icon && <span className={styles.messageIcon}>{icon}</span>}
-          <span className={styles.messageSender}>
-            {isUser ? 'You' : isSystem ? 'System' : 'Agent'}
-          </span>
+          <span className={styles.messageSender}>{roleLabel}</span>
           <span className={styles.messageTime}>{formattedTime}</span>
-          
-          {nodeType && !isUser && (
-            <Tag color={nodeType === 'interface' ? 'blue' : 'default'} className={styles.nodeTag}>
-              {nodeType}{nodeId ? `: ${nodeId}` : ''}
+          {sender !== 'user' && executionStatus && ( // Also check executionStatus exists
+            <Tag color={executionStatus.nodeType === 'interface' ? 'blue' : 'default'} className={styles.nodeTag}>
+              {executionStatus.nodeType}{nodeId ? `: ${nodeId}` : ''}
             </Tag>
           )}
         </div>
-        
-        {/* Show execution status if available */}
-        {executionStatus && (
+
+        {sender !== 'user' && executionStatus && (
           <div className={styles.executionStatus}>
-            <Progress 
-              percent={executionStatus.status === 'completed' ? 100 : 50} 
-              status={executionStatus.status === 'error' ? 'exception' : 'active'} 
-              size="small" 
+            <Progress
+              percent={executionStatus.status === 'completed' ? 100 : 50}
+              status={executionStatus.status === 'error' ? 'exception' : 'active'}
+              size="small"
               showInfo={false}
-              style={{ marginBottom: 8 }} 
+              style={{ marginBottom: 8 }}
             />
             <Typography.Text type="secondary" style={{ fontSize: '12px' }}>
               {executionStatus.status === 'in_progress' && <LoadingOutlined style={{ marginRight: 5 }} />}
@@ -64,17 +66,17 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
           </div>
         )}
 
-        {/* Only show message content for interface nodes, user messages, system messages, or if there's an error */}
-        {shouldShowContent && (
-          <div className={styles.messageContent}>
-            {isSystem ? (
-              <Typography.Text>{text}</Typography.Text>
-            ) : (
-              <ReactMarkdown>{text}</ReactMarkdown>
-            )}
-            {isTyping && <span className={styles.typingIndicator}>▋</span>}
-          </div>
-        )}
+        {/* always show content; use Paragraph for copyable, pre-wrap */}
+        <div className={styles.messageContent}>
+          <Typography.Paragraph
+            style={{ margin: 0, whiteSpace: 'pre-wrap' }}
+            copyable
+          >
+            <ReactMarkdown>
+              {text}
+            </ReactMarkdown>
+          </Typography.Paragraph>
+        </div>
       </Card>
     </div>
   );

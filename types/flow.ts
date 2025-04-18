@@ -1,5 +1,5 @@
 import { ISender } from '@components/chat/types';
-import { ExecutionResult, FlowState } from './flowExecutionTypes';
+import { ExecutionResult, FlowState, NodeInfo } from './flowExecutionTypes';
 
 // Define OpenAI-compatible error structure
 export interface OpenAIError {
@@ -10,13 +10,7 @@ export interface OpenAIError {
 }
 
 
-// Node information in execution response
-export interface NodeInfo {
-  id: string;
-  name: string; 
-  type: string;
-  role?: string;
-}
+
 
 // Execution information in response
 export interface ExecutionInfo {
@@ -43,5 +37,7 @@ export interface OpenAIExecutionResult {
     completion_tokens: number;
     total_tokens: number;
   };
-  flowState?: FlowState;
+  flowState: FlowState;
+  nodeInfo: NodeInfo;
+  
 }

@@ -10,16 +10,13 @@ export interface FlowState {
   components: Record<string, any>;
 
   // The name of the currently executing node
-  currentNodeName?: string;
+  currentNodeName: string;
 
   // Variables that can be referenced throughout the flow
   variables: Record<string, any>;
 
   // History of node executions
   history: FlowExecutionHistoryEntry[];
-
-  // Whether the flow has completed
-  completed: boolean;
 }
 
 /**
@@ -135,8 +132,8 @@ export interface ConversationState {
 
 export interface NodeInfo {
   id: string;
-  name?: string;
-  type: string;
+  name: string;
+  type: NodeTypeString;
   role: 'developer' | 'assistant' | 'system' | 'user';
 }
 

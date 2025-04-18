@@ -28,9 +28,7 @@ export async function executeGenerateNode(node: FlowNode, context: FlowExecution
     // Get model ID
     const modelId = form.model;
 
-    if (!modelId) {
-      throw new Error('No AI model specified in the form');
-    }
+    if (!modelId) throw new Error('No AI model specified in the form');
 
     // Fetch the model details directly from the database
     const model = await prisma.lLMModel.findUnique({
@@ -38,15 +36,9 @@ export async function executeGenerateNode(node: FlowNode, context: FlowExecution
       include: { provider: true },
     });
 
-    if (!model) {
-      throw new Error('Model not found in the database');
-    }
+    if (!model) throw new Error('Model not found in the database');
+    if (!model.provider) throw new Error('Provider not found for this model');
 
-    if (!model.provider) {
-      throw new Error('Provider not found for this model');
-    }
-
-    // Process the request based on provider type
     let aiResponse = '';
     try {
       switch (model.provider.providerType) {
@@ -84,13 +76,10 @@ export async function executeGenerateNode(node: FlowNode, context: FlowExecution
     flowState.components[node.id]['output'] = aiResponse;
     flowState.components[node.id]['type'] = 'generate';
 
-
     // Find the next node
     const nextNodeId = findNextNode(flow, node.id);
 
-    if (!nextNodeId) {
-      throw new Error(`At the Node ${node.data.label} next node found in the flow`);
-    }
+    if (!nextNodeId) throw new Error(`At the Node ${node.data.label} next node found in the flow`);
 
     return {
       status: 'in_progress',
