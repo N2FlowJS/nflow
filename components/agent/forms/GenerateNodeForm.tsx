@@ -130,8 +130,6 @@ interface GenerateNodeFormProps {
   selectedNode: FlowNode;
   setNodes: React.Dispatch<React.SetStateAction<FlowNode[]>>;
   setIsDrawerOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  nodes: FlowNode[]; // Add nodes prop
-  edges: Edge[]; // Add edges prop
 }
 
 const GenerateNodeForm: React.FC<GenerateNodeFormProps> = (props) => {

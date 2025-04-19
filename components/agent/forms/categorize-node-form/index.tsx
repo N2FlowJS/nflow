@@ -25,7 +25,7 @@ const { Text } = Typography;
 
 interface CategorizeNodeFormProps {
   form: FormInstance<CategorizeNodeData['form']>;
-  selectedNode: CategorizeNode;
+  selectedNode: FlowNode 
   setNodes: React.Dispatch<React.SetStateAction<FlowNode[]>>;
   setIsDrawerOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }

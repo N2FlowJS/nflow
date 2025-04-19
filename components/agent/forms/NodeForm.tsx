@@ -16,10 +16,9 @@ interface NodeFormProps {
 
 const NodeForm: React.FC<NodeFormProps> = (props) => {
   const { selectedNode } = props;
-  
+
   if (!selectedNode) return null;
 
-  // Render the appropriate form based on node type
   switch (selectedNode.type) {
     case "begin":
       return <BeginNodeForm {...props} selectedNode={selectedNode} />;
