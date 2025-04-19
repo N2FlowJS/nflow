@@ -86,7 +86,19 @@ export async function flowExecutionService(
         completion_tokens: 0,
         total_tokens: 0,
       },
-      
+      flowState: {
+        currentNodeName: 'error',
+        currentNodeId: 'error',
+        components: {},
+        history: [],
+        variables: {},
+      },
+      nodeInfo: {
+        id: 'error',
+        name: 'error',
+        type: 'interface',
+        role: 'developer',
+      },
     };
     return errorResponse;
   }
