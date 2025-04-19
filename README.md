@@ -4,7 +4,7 @@
 
 NFlow is an intelligent document processing and knowledge management system that leverages vector embeddings and natural language processing to extract, organize, and query information from various document formats.
 
-![NFlow Architecture](./docs/assets/nflow-architecture.png)
+![NFlow Architecture 🧱](./docs/assets/nflow-architecture.png)
 
 ## Key Features
 
