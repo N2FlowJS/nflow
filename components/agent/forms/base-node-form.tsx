@@ -6,24 +6,27 @@ import {
   ExclamationCircleOutlined,
 } from "@ant-design/icons";
 import { FlowNode } from "../types/flowTypes";
+import { useReactFlow } from "@xyflow/react";
 
 interface BaseNodeFormProps {
   form: any;
   selectedNode: FlowNode;
-  setNodes: React.Dispatch<React.SetStateAction<FlowNode[]>>;
+  // setNodes: React.Dispatch<React.SetStateAction<FlowNode[]>>; // Remove setNodes prop
   setIsDrawerOpen: React.Dispatch<React.SetStateAction<boolean>>;
   children?: React.ReactNode;
-  customSaveHandler?: (values: any) => void;
+  onSaveSuccess?: (values: any) => void; // Add onSaveSuccess callback
 }
 
 const BaseNodeForm: React.FC<BaseNodeFormProps> = ({
   form,
   selectedNode,
-  setNodes,
+  // setNodes, // Remove setNodes from destructuring
   setIsDrawerOpen,
   children,
-  customSaveHandler,
+  onSaveSuccess, // Destructure onSaveSuccess
 }) => {
+  const { setNodes, deleteElements } = useReactFlow(); // Use the hook
+
   // Add useEffect to reset form fields when selectedNode changes
   useEffect(() => {
     if (selectedNode) {
@@ -32,18 +35,19 @@ const BaseNodeForm: React.FC<BaseNodeFormProps> = ({
   }, [selectedNode, form]);
 
   const handleSave = (values: any) => {
-    if (customSaveHandler) {
-      customSaveHandler(values);
-    } else {
-      // Default save behavior
-      setNodes((nds) =>
-        nds.map((node: any) =>
-          node.id === selectedNode.id
-            ? { ...node, data: { ...node.data, form: values } }
-            : node
-        )
-      );
-      setIsDrawerOpen(false);
+    // Always perform the default save behavior
+    setNodes((nds) =>
+      nds.map((node: any) =>
+        node.id === selectedNode.id
+          ? { ...node, data: { ...node.data, form: values } }
+          : node
+      )
+    );
+    setIsDrawerOpen(false);
+
+    // Call the success callback if provided
+    if (onSaveSuccess) {
+      onSaveSuccess(values);
     }
   };
 
@@ -57,24 +61,15 @@ const BaseNodeForm: React.FC<BaseNodeFormProps> = ({
       okType: "danger",
       cancelText: "Cancel",
       onOk() {
-        deleteNode();
+        deleteNodeAndEdges(); // Call the updated delete function
       },
     });
   };
 
-  const deleteNode = () => {
-    // Remove the node from the nodes state
-    setNodes((nodes) => nodes.filter((node) => node.id !== selectedNode.id));
-
-    // Also remove any edges connected to this node
-    // Note: This would typically be handled by ReactFlow automatically,
-    // but adding it here for clarity and safety
-    setNodes((nodes) => {
-      const updatedNodes = [...nodes];
-      // Remove any edges connected to the deleted node
-      // This would be handled in a real implementation
-      return updatedNodes;
-    });
+  // Rename deleteNode to deleteNodeAndEdges and use deleteElements
+  const deleteNodeAndEdges = () => {
+    // Use deleteElements to remove the node and connected edges
+    deleteElements({ nodes: [{ id: selectedNode.id }] });
 
     // Close the drawer
     setIsDrawerOpen(false);
@@ -91,7 +86,7 @@ const BaseNodeForm: React.FC<BaseNodeFormProps> = ({
       <Form.Item name="name" label="Name">
         <Input placeholder="Enter name" />
       </Form.Item>
-      
+
       {children}
 
       <Space
@@ -104,9 +99,7 @@ const BaseNodeForm: React.FC<BaseNodeFormProps> = ({
         <Button danger icon={<DeleteOutlined />} onClick={showDeleteConfirm}>
           Delete Node
         </Button>
-        <Button type="primary" htmlType="submit" icon={<SaveOutlined />}>
-          Save
-        </Button>
+
       </Space>
     </Form>
   );

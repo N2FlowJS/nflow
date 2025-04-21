@@ -1,16 +1,15 @@
 import React from "react";
 import { FlowNode } from "../types/flowTypes";
-import BeginNodeForm from "./BeginNodeForm";
-import InterfaceNodeForm from "./InterfaceNodeForm";
-import GenerateNodeForm from "./GenerateNodeForm";
+import BeginNodeForm from "./begin-node-form";
+import InterfaceNodeForm from "./Interface-node-form";
+import GenerateNodeForm from "./generate-node-form";
 import CategorizeNodeForm from "./categorize-node-form";
-import RetrievalNodeForm from "./RetrievalNodeForm";
-import DecisionNodeForm from "./DecisionNodeForm";
+import RetrievalNodeForm from "./retrieval-node-form";
+import DecisionNodeForm from "./decision-node-form";
 
 interface NodeFormProps {
   form: any;
   selectedNode: FlowNode | null;
-  setNodes: React.Dispatch<React.SetStateAction<FlowNode[]>>;
   setIsDrawerOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 

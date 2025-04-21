@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Form, InputNumber, Select, Typography, Spin, Space, Input, Collapse, Tag, Button, List } from "antd";
 import { DatabaseOutlined, LoadingOutlined, FileSearchOutlined, ExportOutlined, LinkOutlined, DeleteOutlined } from "@ant-design/icons";
 import { FlowNode, InputReference } from "../types/flowTypes";
-import BaseNodeForm from "./BaseNodeForm";
+import BaseNodeForm from "./base-node-form";
 import { fetchAllKnowledge, } from "../../../services/knowledgeService";
 import { IKnowledge } from "../../../types/IKnowledge";
 
@@ -11,7 +11,6 @@ const { Panel } = Collapse;
 interface RetrievalNodeFormProps {
   form: any;
   selectedNode: FlowNode;
-  setNodes: React.Dispatch<React.SetStateAction<FlowNode[]>>;
   setIsDrawerOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 

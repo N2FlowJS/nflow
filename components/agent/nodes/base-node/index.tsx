@@ -1,7 +1,6 @@
 import React, { memo } from "react";
 import { Handle, Position } from "@xyflow/react";
 import { NodeData } from "../../types/flowTypes";
-import { NODE_REGISTRY } from '../../util/NODE_REGISTRY';
 import NodeHeader from "./node-header";
 import {
   LeftHandleStyle,
@@ -9,6 +8,7 @@ import {
   TopHandleStyle,
   BottomHandleStyle,
 } from "./handle-icon";
+import { NODE_REGISTRY } from "@utils/server";
 
 interface BaseNodeProps {
   data: NodeData;

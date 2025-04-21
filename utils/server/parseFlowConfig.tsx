@@ -1,4 +1,4 @@
-import { Flow } from "../types/flowTypes";
+import { Flow } from "../../components/agent/types/flowTypes";
 
 export function parseFlowConfig(flowConfig: string): Flow {
     try {

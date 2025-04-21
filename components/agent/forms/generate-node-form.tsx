@@ -3,7 +3,7 @@ import { Form, Input, Select, Spin, Typography, Space, Collapse } from "antd";
 import { FileTextOutlined } from "@ant-design/icons";
 import { MentionsInput, Mention, SuggestionDataItem } from 'react-mentions';
 import { FlowNode, } from "../types/flowTypes"; // Import Edge type
-import BaseNodeForm from "./BaseNodeForm";
+import BaseNodeForm from "./base-node-form";
 import { fetchAllLLMProviders } from "../../../services/llmService";
 import { Edge, useEdges, useNodes } from "@xyflow/react";
 import { log } from "console";
@@ -128,7 +128,6 @@ const mentionsInputStyle = {
 interface GenerateNodeFormProps {
   form: any;
   selectedNode: FlowNode;
-  setNodes: React.Dispatch<React.SetStateAction<FlowNode[]>>;
   setIsDrawerOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 

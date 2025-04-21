@@ -20,16 +20,15 @@ import {
   EditOutlined
 } from "@ant-design/icons";
 import { FlowNode } from "../types/flowTypes";
-import BaseNodeForm from "./BaseNodeForm";
+import BaseNodeForm from "./base-node-form";
 
 const { Panel } = Collapse;
 const { TextArea } = Input;
 const { Text } = Typography;
 
-interface BeginNodeFormProps {
+interface BeginNodeFormProps  {
   form: any;
   selectedNode: FlowNode;
-  setNodes: React.Dispatch<React.SetStateAction<FlowNode[]>>;
   setIsDrawerOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 

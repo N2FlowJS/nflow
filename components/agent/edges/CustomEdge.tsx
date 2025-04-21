@@ -1,5 +1,5 @@
 import React from "react";
-import { EdgeProps, BaseEdge, getSmoothStepPath, Edge } from "@xyflow/react";
+import { EdgeProps, BaseEdge, getSmoothStepPath, Edge, getBezierPath } from "@xyflow/react";
 import { Button, Tooltip } from "antd";
 import { DeleteOutlined, ArrowRightOutlined } from "@ant-design/icons";
 
@@ -20,7 +20,7 @@ const CustomEdge: React.FC<EdgeProps<CustomEdgeData>> = ({
   data, // Ensure data is initialized with a default empty object and properly typed
 }): React.JSX.Element => {
   // Calculate the path for the edge
-  const [edgePath, labelX, labelY] = getSmoothStepPath({
+  const [edgePath, labelX, labelY] = getBezierPath({
     sourceX,
     sourceY,
     sourcePosition,

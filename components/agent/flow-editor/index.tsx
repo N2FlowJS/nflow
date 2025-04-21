@@ -20,11 +20,9 @@ import "@xyflow/react/dist/style.css";
 import { Button, Drawer, Form, Space, message } from "antd";
 import { SaveOutlined } from "@ant-design/icons";
 
-import { parseFlowConfig, isConnectionAllowed } from "../util";
-import { NODE_REGISTRY } from "../util";
 import { saveFlowConfig } from "../../../services/agentService";
-import NodePalette from "./NodePalette";
-import NodeForm from "../forms/NodeForm";
+import NodePalette from "./node-palette";
+import NodeForm from "../forms/node-form";
 
 import BeginNode from "../nodes/begin-node";
 import InterfaceNode from "../nodes/interface-node";
@@ -34,6 +32,7 @@ import RetrievalNode from "../nodes/retrieval-node";
 import DecisionNode from "../nodes/decision-node";
 import CustomEdge from "../edges/CustomEdge";
 import { FlowNode, NodeTypeString } from "../types/flowTypes";
+import { isConnectionAllowed, NODE_REGISTRY, parseFlowConfig } from "@utils/server";
 
 const nodeTypes: ReactFlowNodeTypes = {
   begin: BeginNode,
@@ -121,7 +120,7 @@ const FlowEditor: React.FC<FlowEditorProps> = ({
             addEdge(
               {
                 ...params,
-                type: "default", 
+                type: "default",
                 markerEnd: {
                   type: MarkerType.ArrowClosed,
                 },
@@ -238,7 +237,7 @@ const FlowEditor: React.FC<FlowEditorProps> = ({
       <Drawer
         title="Node Configuration"
         placement="right"
-        onClose={() => setIsDrawerOpen(false)}
+        onClose={() => nodeForm.submit()} // Changed this line
         open={isDrawerOpen}
         width={window.innerWidth > 768 ? '45%' : "80%"}
         styles={{
@@ -251,7 +250,6 @@ const FlowEditor: React.FC<FlowEditorProps> = ({
         <NodeForm
           form={nodeForm}
           selectedNode={selectedNode}
-          setNodes={setNodes}
           setIsDrawerOpen={setIsDrawerOpen}
         />
       </Drawer>

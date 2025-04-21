@@ -2,14 +2,13 @@ import React from "react";
 import { Form, Alert, Typography, Card, Space } from "antd";
 import { InfoCircleOutlined, CommentOutlined, ArrowUpOutlined } from "@ant-design/icons";
 import { FlowNode } from "../types/flowTypes";
-import BaseNodeForm from "./BaseNodeForm";
+import BaseNodeForm from "./base-node-form";
 
 const { Text } = Typography;
 
 interface InterfaceNodeFormProps {
   form: any;
   selectedNode: FlowNode;
-  setNodes: React.Dispatch<React.SetStateAction<FlowNode[]>>;
   setIsDrawerOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 

@@ -1,4 +1,4 @@
-import React, { memo } from "react";
+import React from "react";
 import { Handle, Position, NodeProps, Node } from "@xyflow/react";
 import { Card, Typography } from "antd";
 import { QuestionOutlined } from "@ant-design/icons";
@@ -55,4 +55,4 @@ const DecisionNode = ({
   );
 };
 
-export default memo(DecisionNode);
+export default DecisionNode;

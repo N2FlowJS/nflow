@@ -1,4 +1,4 @@
-import { isBeginNodeData, isInterfaceNodeData, isGenerateNodeData, isCategorizeNodeData, isRetrievalNodeData } from '@components/agent/util';
+import { isBeginNodeData, isInterfaceNodeData, isGenerateNodeData, isCategorizeNodeData, isRetrievalNodeData } from '@utils/server';
 import { executeBeginNode, executeInterfaceNode, executeGenerateNode, executeCategorizeNode, executeRetrievalNode } from '@utils/server/nodeHandlers';
 import { FlowExecutionContext, ExecutionResult } from '../../types/flowExecutionTypes';
 

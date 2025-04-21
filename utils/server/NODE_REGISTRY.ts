@@ -1,4 +1,4 @@
-import { NodeTypeString, NodeConfig, BeginNodeData, InterfaceNodeData, GenerateNodeData, CategorizeNodeData, RetrievalNodeData, InputOutputInfo } from '../types/flowTypes';
+import { NodeTypeString, NodeConfig, BeginNodeData, InterfaceNodeData, GenerateNodeData, CategorizeNodeData, RetrievalNodeData, InputOutputInfo } from '../../components/agent/types/flowTypes';
 
 // Central registry of all node types
 export const NODE_REGISTRY: Record<NodeTypeString, NodeConfig> = {

@@ -1,12 +1,11 @@
 import React from "react";
 import { Form, Input } from "antd";
 import { FlowNode } from "../types/flowTypes";
-import BaseNodeForm from "./BaseNodeForm";
+import BaseNodeForm from "./base-node-form";
 
 interface DecisionNodeFormProps {
   form: any;
   selectedNode: FlowNode;
-  setNodes: React.Dispatch<React.SetStateAction<FlowNode[]>>;
   setIsDrawerOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 

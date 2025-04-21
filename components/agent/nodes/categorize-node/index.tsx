@@ -1,7 +1,7 @@
-import React, { memo } from "react";
+import React from "react"; // Remove memo
 import { Handle, Position, NodeProps, Node } from "@xyflow/react";
 import { CategorizeNodeData, ICategory } from "../../types/flowTypes";
-import { NODE_REGISTRY } from '../../util/NODE_REGISTRY';
+import { NODE_REGISTRY } from '../../../../utils/server/NODE_REGISTRY';
 import BaseNode from "../base-node";
 import { Flex, Typography } from "antd";
 import { BranchesOutlined } from "@ant-design/icons";
@@ -26,6 +26,8 @@ const CategorizeNode = ({
   // Find default category
   const defaultCategory = categories.find(c => c.name === data.form?.defaultCategory);
   
+  console.log(`Rendering CategorizeNode ${id}, Categories:`, categories.length, `Last Update: ${data._lastUpdate}`); // Add log
+
   return (
     <BaseNode
       data={data}
@@ -76,4 +78,4 @@ const CategorizeNode = ({
   );
 };
 
-export default memo(CategorizeNode);
+export default CategorizeNode; // Export directly

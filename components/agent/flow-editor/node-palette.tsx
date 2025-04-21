@@ -1,7 +1,7 @@
 import React from "react";
-import { NODE_REGISTRY } from "../util";
 import { Tooltip } from "antd";
 import { ApiOutlined } from "@ant-design/icons";
+import { NODE_REGISTRY } from "@utils/server";
 
 const NodePalette: React.FC = () => {
   return (

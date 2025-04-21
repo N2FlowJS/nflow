@@ -1,5 +1,5 @@
 import { Edge, Node } from '@xyflow/react';
-import { NODE_REGISTRY } from '../util/NODE_REGISTRY';
+import { NODE_REGISTRY } from '../../../utils/server/NODE_REGISTRY';
 
 // Node types as string literal types
 
@@ -10,6 +10,7 @@ export const NODE_TYPES = {
   generate: 'generate',
   categorize: 'categorize',
   retrieval: 'retrieval',
+  decision: 'decision',
 } as const;
 export type NodeTypeString = keyof typeof NODE_TYPES;
 
@@ -30,14 +31,14 @@ export type BaseNodeData<TForm = any> = {
   position: { x: number; y: number };
   type: NodeTypeString;
   [key: string]: unknown;
-  form: TForm; // Remove optional marker
+  form: TForm;
+  _lastUpdate?: number; // Add timestamp field for forcing re-renders
 };
 
 export interface BaseForm {
-  name: string;
-  description: string;
-  output: string;
-
+  name: string; // This field is essential for display and node identification
+  description?: string; // Make these optional since not all nodes need them
+  output?: string;
 }
 
 // Form types for each node
