@@ -44,7 +44,6 @@ import ChatInterface from "../../../components/chat/ChatInterface";
 import { useAuth } from "../../../context/AuthContext";
 
 const { Title, Text } = Typography;
-const { TabPane } = Tabs;
 
 export default function AgentDetail() {
   const router = useRouter();
@@ -54,9 +53,7 @@ export default function AgentDetail() {
   const [loading, setLoading] = useState(true);
   const [flowLoading, setFlowLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [isEditing, setIsEditing] = useState(true); // Always true
   const [form] = Form.useForm();
-  const [activeTab, setActiveTab] = useState("info");
 
   // Add streaming state
   const [enableStreaming, setEnableStreaming] = useState(true);
@@ -114,10 +111,9 @@ export default function AgentDetail() {
 
   // Load flow config only when the chat tab is active and config isn't loaded yet
   useEffect(() => {
-    if (activeTab === 'chat' && !flowConfig && id && !flowLoading) {
-      loadFlowConfig();
-    }
-  }, [activeTab, flowConfig, id, flowLoading]); // Added flowLoading dependency
+    loadFlowConfig();
+
+  }, []); // Added flowLoading dependency
 
   // Handle form submission
   const handleSave = async () => {
@@ -128,7 +124,6 @@ export default function AgentDetail() {
       const updatedAgent = await updateAgent(id as string, values); // Use the service
       setAgent(updatedAgent);
       message.success("Agent updated successfully");
-      setIsEditing(false);
     } catch (error) {
       console.error("Error updating agent:", error);
       message.error("Failed to update agent");
