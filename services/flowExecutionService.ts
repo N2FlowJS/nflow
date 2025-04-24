@@ -87,8 +87,21 @@ export async function flowExecutionService(
         total_tokens: 0,
       },
       flowState: {
-        currentNodeName: 'error',
-        currentNodeId: 'error',
+        currentNode: {
+          id: 'error',
+          type: 'interface',
+          data: {
+            form: {
+              name: 'Error',
+            },
+            id: 'error',
+            label: 'Error',
+            type: 'interface',
+            role: 'developer',
+            position: { x: 0, y: 0 },
+          },
+          position: { x: 0, y: 0 },
+        },
         components: {},
         history: [],
         variables: {},
