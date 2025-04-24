@@ -4,11 +4,11 @@ import { parseAuthHeader, verifyToken } from '../../../../lib/auth';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { id } = req.query;
-  
+
   if (!id || typeof id !== "string") {
     return res.status(400).json({ error: "Valid ID is required" });
   }
-  
+
   switch (req.method) {
     case 'GET':
       return getAgentById(req, res, id);
@@ -47,11 +47,11 @@ async function getAgentById(req: NextApiRequest, res: NextApiResponse, id: strin
         }
       }
     });
-    
+
     if (!agent) {
       return res.status(404).json({ message: 'Agent not found' });
     }
-    
+
     return res.status(200).json(agent);
   } catch (error) {
     console.error("Request error", error);
@@ -67,15 +67,15 @@ async function updateAgent(req: NextApiRequest, res: NextApiResponse, id: string
     if (!token) {
       return res.status(401).json({ error: 'Authentication required' });
     }
-    
+
     // Verify token
     const payload = verifyToken(token);
     if (!payload) {
       return res.status(401).json({ error: 'Invalid token' });
     }
-    
+
     const userId = payload.userId;
-    
+
     // Find the agent first to ensure it exists
     const agent = await prisma.agent.findUnique({
       where: { id },
@@ -83,30 +83,31 @@ async function updateAgent(req: NextApiRequest, res: NextApiResponse, id: string
         createdBy: true
       }
     });
-    
+
     if (!agent) {
       return res.status(404).json({ message: 'Agent not found' });
     }
-    
+
     // Optional: Check if user has permission to update this agent
     // For example, only allow creator or owner to update
     // This is a simple permission check, you might want to expand it
-    if (agent.createdById !== userId && 
-        !((agent.ownerType === 'user' && agent.userId === userId) || 
-          (agent.ownerType === 'team' && await isUserTeamMember(userId, agent.teamId)))) {
+    if (agent.createdById !== userId &&
+      !((agent.ownerType === 'user' && agent.userId === userId) ||
+        (agent.ownerType === 'team' && await isUserTeamMember(userId, agent.teamId)))) {
       return res.status(403).json({ error: 'You do not have permission to update this agent' });
     }
-    
+
     const { name, description, flowConfig, isActive } = req.body;
-    
+
     // Prepare the update data
     const updateData: any = {};
-    
+
     if (name !== undefined) updateData.name = name;
     if (description !== undefined) updateData.description = description;
     if (flowConfig !== undefined) updateData.flowConfig = flowConfig;
     if (isActive !== undefined) updateData.isActive = isActive;
-    
+    updateData.updatedAt = new Date(); // Update the timestamp
+
     // Update the agent
     const updatedAgent = await prisma.agent.update({
       where: { id },
@@ -117,7 +118,7 @@ async function updateAgent(req: NextApiRequest, res: NextApiResponse, id: string
         team: true
       }
     });
-    
+
     return res.status(200).json(updatedAgent);
   } catch (error) {
     console.error('Error updating agent:', error);
@@ -133,15 +134,15 @@ async function deleteAgent(req: NextApiRequest, res: NextApiResponse, id: string
     if (!token) {
       return res.status(401).json({ error: 'Authentication required' });
     }
-    
+
     // Verify token
     const payload = verifyToken(token);
     if (!payload) {
       return res.status(401).json({ error: 'Invalid token' });
     }
-    
+
     const userId = payload.userId;
-    
+
     // Find the agent first to ensure it exists
     const agent = await prisma.agent.findUnique({
       where: { id },
@@ -149,22 +150,22 @@ async function deleteAgent(req: NextApiRequest, res: NextApiResponse, id: string
         createdBy: true
       }
     });
-    
+
     if (!agent) {
       return res.status(404).json({ message: 'Agent not found' });
     }
-    
+
     // Optional: Check if user has permission to delete this agent
-    if (agent.createdById !== userId && 
-        !((agent.ownerType === 'user' && agent.userId === userId) || 
-          (agent.ownerType === 'team' && await isUserTeamAdmin(userId, agent.teamId)))) {
+    if (agent.createdById !== userId &&
+      !((agent.ownerType === 'user' && agent.userId === userId) ||
+        (agent.ownerType === 'team' && await isUserTeamAdmin(userId, agent.teamId)))) {
       return res.status(403).json({ error: 'You do not have permission to delete this agent' });
     }
-    
+
     await prisma.agent.delete({
       where: { id },
     });
-    
+
     return res.status(204).end();
   } catch (error) {
     console.error("Request error", error);
@@ -175,7 +176,7 @@ async function deleteAgent(req: NextApiRequest, res: NextApiResponse, id: string
 // Helper function to check if user is a member of the team
 async function isUserTeamMember(userId: string, teamId: string | null): Promise<boolean> {
   if (!teamId) return false;
-  
+
   const membership = await prisma.memberTeam.findFirst({
     where: {
       userId,
@@ -183,14 +184,14 @@ async function isUserTeamMember(userId: string, teamId: string | null): Promise<
       leftAt: null // Only active memberships
     }
   });
-  
+
   return !!membership;
 }
 
 // Helper function to check if user is an admin of the team
 async function isUserTeamAdmin(userId: string, teamId: string | null): Promise<boolean> {
   if (!teamId) return false;
-  
+
   const membership = await prisma.memberTeam.findFirst({
     where: {
       userId,
@@ -201,6 +202,6 @@ async function isUserTeamAdmin(userId: string, teamId: string | null): Promise<b
       }
     }
   });
-  
+
   return !!membership;
 }

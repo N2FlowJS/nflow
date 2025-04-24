@@ -8,7 +8,7 @@ import {
   Typography,
   Space,
   message,
-  Breadcrumb,
+  Breadcrumb, // Keep Breadcrumb import
   Tabs,
   Switch,
   Modal,
@@ -198,15 +198,19 @@ export default function AgentDetail() {
     <MainLayout title={`Agent: ${agent?.name || "Detail"}`}>
       <div style={{ padding: "24px" }}>
         <Space direction="vertical" size="large" style={{ width: "100%" }}>
-          <Breadcrumb>
-            <Breadcrumb.Item>
-              <Link href="/">Home</Link>
-            </Breadcrumb.Item>
-            <Breadcrumb.Item>
-              <Link href="/agent">Agents</Link>
-            </Breadcrumb.Item>
-            <Breadcrumb.Item>{agent?.name || "Detail"}</Breadcrumb.Item>
-          </Breadcrumb>
+          <Breadcrumb
+            items={[
+              {
+                title: <Link href="/">Home</Link>,
+              },
+              {
+                title: <Link href="/agent">Agents</Link>,
+              },
+              {
+                title: agent?.name || "Detail",
+              },
+            ]}
+          />
 
           <div
             style={{
@@ -368,7 +372,6 @@ export default function AgentDetail() {
                     </Space>
                   </div>
                 }
-                bodyStyle={{ padding: 0, height: 'calc(75vh - 100px)', display: 'flex', flexDirection: 'column' }} // Adjusted height and padding
               >
                 {/* Conditional Rendering for Chat Interface */}
                 {flowLoading ? (

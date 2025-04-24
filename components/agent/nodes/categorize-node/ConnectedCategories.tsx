@@ -1,7 +1,7 @@
 import React from "react";
 import { Flex, Typography, Tag, Tooltip, Card, Space } from "antd";
 import { ArrowRightOutlined, StarOutlined } from "@ant-design/icons";
-import { ICategory } from "../../types/flowTypes";
+import { ICategory } from "../../../../types/flowTypes";
 import { useReactFlow } from "@xyflow/react";
 
 interface ConnectedCategoriesProps {
@@ -39,7 +39,6 @@ const ConnectedCategories: React.FC<ConnectedCategoriesProps> = ({
         backgroundColor: 'rgba(255, 255, 255, 0.7)',
         borderColor: '#ffadd2'
       }}
-      bodyStyle={{ padding: '4px 8px' }}
     >
       <Space direction="vertical" style={{ width: '100%' }}>
         {categories.map((category) => (

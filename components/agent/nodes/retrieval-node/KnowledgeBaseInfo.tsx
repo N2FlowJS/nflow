@@ -21,7 +21,6 @@ const KnowledgeBaseInfo: React.FC<KnowledgeBaseInfoProps> = ({ knowledgeIds }) =
         backgroundColor: knowledgeIds.length > 0 ? 'rgba(230, 244, 255, 0.6)' : 'rgba(255, 245, 245, 0.6)',
         borderColor: knowledgeIds.length > 0 ? '#91caff' : '#ffccc7',
       }}
-      bodyStyle={{ padding: '4px 8px' }}
     >
       {knowledgeIds.length > 0 ? (
         <Space size={[0, 4]} wrap>

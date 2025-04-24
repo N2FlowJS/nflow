@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Position, NodeProps, Node } from "@xyflow/react";
-import { GenerateNodeData } from "../../types/flowTypes";
+import { GenerateNodeData } from "../../../../types/flowTypes";
 import BaseNode from '../base-node';
 import { Flex, Tooltip, Spin } from 'antd';
 import { RobotOutlined, ApiOutlined, InfoCircleOutlined } from "@ant-design/icons";
@@ -20,7 +20,7 @@ const GenerateNode = ({ data, id, selected }: NodeProps<Node<GenerateNodeData>>)
       // Assume we have a model ID if string is longer than 10 chars
       setLoading(true);
       setError(null);
-      
+
       fetchLLMModelById(form.model)
         .then(modelData => {
           setModelDetails(modelData);
@@ -40,11 +40,11 @@ const GenerateNode = ({ data, id, selected }: NodeProps<Node<GenerateNodeData>>)
     if (loading) return "Loading...";
     if (error) return "Error loading model";
     if (!form?.model) return "No model selected";
-    
+
     // Use the display name from API if available
     if (modelDetails?.displayName) return modelDetails.displayName;
     if (modelDetails?.name) return modelDetails.name;
-    
+
     // Fall back to the model ID or name from the form
     return form.model;
   };
@@ -58,35 +58,36 @@ const GenerateNode = ({ data, id, selected }: NodeProps<Node<GenerateNodeData>>)
   };
 
   return (
-    <BaseNode 
-      data={data} 
+    <BaseNode
+      data={data}
       id={id}
       selected={selected}
       handlePositions={{
-        input: Position.Left,
-        output: Position.Right,
+        input: [Position.Right, Position.Left],
+        output: [Position.Left, Position.Right],
       }}
       icon={<RobotOutlined style={{ color: '#52c41a' }} />}
+      role={form?.role}
     >
       <Flex vertical gap={8}>
         <Flex align="center" justify="space-between">
           {loading ? (
             <Spin size="small" />
           ) : (
-            <ModelInfo 
-              model={getModelDisplayName()} 
+            <ModelInfo
+              model={getModelDisplayName()}
               provider={getProviderName()}
               contextWindow={modelDetails?.contextWindow}
             />
           )}
-          
+
           {error && (
             <Tooltip title={error}>
               <InfoCircleOutlined style={{ color: '#ff4d4f' }} />
             </Tooltip>
           )}
         </Flex>
-        
+
         <PromptInfo prompt={form?.prompt || ""} />
       </Flex>
     </BaseNode>

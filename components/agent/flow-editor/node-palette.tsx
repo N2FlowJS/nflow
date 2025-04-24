@@ -1,9 +1,16 @@
 import React from "react";
 import { Tooltip } from "antd";
-import { ApiOutlined } from "@ant-design/icons";
-import { NODE_REGISTRY } from "@utils/server";
+import { NODE_REGISTRY } from "@utils/client";
+import { FlowNode } from "../../../types/flowTypes";
 
-const NodePalette: React.FC = () => {
+interface NodePaletteProps {
+  nodes: FlowNode[];
+}
+
+const NodePalette: React.FC<NodePaletteProps> = ({ nodes }) => {
+  // Check if a begin node already exists
+  const beginNodeExists = nodes.some(node => node.type === 'begin');
+
   return (
     <div
       style={{
@@ -17,53 +24,41 @@ const NodePalette: React.FC = () => {
         boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
       }}
     >
-      {Object.entries(NODE_REGISTRY).map(([type, config]) => (
-        <Tooltip 
-          key={type}
-          title={
-            <div>
-              <div>{config.description || 'Drag to add to flow'}</div>
-              {config.inputOutputInfo && (
-                <div style={{ marginTop: 5 }}>
-                  <div><small><strong>Input:</strong> {config.inputOutputInfo.input}</small></div>
-                  <div><small><strong>Output:</strong> {config.inputOutputInfo.output}</small></div>
-                </div>
-              )}
-            </div>
-          }
-          placement="right"
-        >
-          <div
-            onDragStart={(event) => {
-              event.dataTransfer.setData("nflow.application.reactflow", type);
-              // Add initialization data for input/output capabilities
-              if (config.inputOutputInfo) {
-                event.dataTransfer.setData(
-                  "nflow.node.io", 
-                  JSON.stringify(config.inputOutputInfo)
-                );
-              }
-            }}
-            draggable
-            style={{
-              padding: "5px 10px",
-              marginBottom: "5px",
-              background: config.color.background,
-              border: `1px solid ${config.color.border}`,
-              borderRadius: "4px",
-              cursor: "grab",
-              display: "flex",
-              alignItems: "center", 
-              justifyContent: "space-between"
-            }}
+      {Object.entries(NODE_REGISTRY)
+        // Filter out 'begin' node if it already exists in the flow
+        .filter(([type, _]) => !(type === 'begin' && beginNodeExists))
+        .map(([type, config]) => (
+          <Tooltip
+            key={type}
+            title={
+              <div>
+                <div>{config.data.form?.name || 'Drag to add to flow'}</div>
+                <div>{config.data.form?.description || 'No description available'}</div>
+              </div>
+            }
+            placement="right"
           >
-            <span>{config.label}</span>
-            {config.inputOutputInfo && (
-              <ApiOutlined style={{ marginLeft: 5 }} />
-            )}
-          </div>
-        </Tooltip>
-      ))}
+            <div
+              onDragStart={(event) => {
+                event.dataTransfer.setData("nflow.application.reactflow", type);
+              }}
+              draggable
+              style={{
+                padding: "5px 10px",
+                marginBottom: "5px",
+                background: config.color.background,
+                border: `1px solid ${config.color.border}`,
+                borderRadius: "4px",
+                cursor: "grab",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between"
+              }}
+            >
+              <span>{config.data.form?.name || config.type}</span>
+            </div>
+          </Tooltip>
+        ))}
     </div>
   );
 };

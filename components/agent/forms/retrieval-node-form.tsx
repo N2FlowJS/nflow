@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { Form, InputNumber, Select, Typography, Spin, Space, Input, Collapse, Tag, Button, List } from "antd";
-import { DatabaseOutlined, LoadingOutlined, FileSearchOutlined, ExportOutlined, LinkOutlined, DeleteOutlined } from "@ant-design/icons";
-import { FlowNode, InputReference } from "../types/flowTypes";
+import { Form, InputNumber, Select, Typography, Spin, Space, Collapse } from "antd";
+import { DatabaseOutlined, LoadingOutlined } from "@ant-design/icons";
+import { FlowNode } from "../../../types/flowTypes";
 import BaseNodeForm from "./base-node-form";
 import { fetchAllKnowledge, } from "../../../services/knowledgeService";
 import { IKnowledge } from "../../../types/IKnowledge";
+import { usePredecessorNodes } from "../hooks/usePredecessorNodes";
+import RoleSelector from "./shared/RoleSelector";
+import InputReferences from "./shared/InputReferences";
 
 const { Panel } = Collapse;
 
@@ -14,21 +17,12 @@ interface RetrievalNodeFormProps {
   setIsDrawerOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const useAvailableNodes = () => {
-  const [availableNodes, setAvailableNodes] = useState<Array<{ id: string, name: string, type: string }>>([]);
-
-  return {
-    availableNodes,
-  }
-}
 const RetrievalNodeForm: React.FC<RetrievalNodeFormProps> = (props) => {
+  const { selectedNode } = props;
   const [knowledgeBases, setKnowledgeBases] = useState<IKnowledge[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const {
-    availableNodes
-  } = useAvailableNodes();
 
   useEffect(() => {
     const loadKnowledgeBases = async () => {
@@ -47,11 +41,6 @@ const RetrievalNodeForm: React.FC<RetrievalNodeFormProps> = (props) => {
     };
 
     loadKnowledgeBases();
-
-
-
-
-
   }, []);
 
   return (
@@ -90,74 +79,14 @@ const RetrievalNodeForm: React.FC<RetrievalNodeFormProps> = (props) => {
       </Form.Item>
 
       <Form.Item name="maxResults" label="Max Results" rules={[{ required: true }]}>
-        <InputNumber min={1} max={20} defaultValue={3} style={{ width: '100%' }} />
+        <InputNumber min={1} max={20} style={{ width: '100%' }} />
       </Form.Item>
+      <RoleSelector />
 
-      <Collapse
-        defaultActiveKey={['query-source', 'input-refs', 'output-config']}
-        bordered={false}
-        expandIconPosition="end"
-      >
-
-
-        {/* Input References Section - Specific to RetrievalNode */}
-        <Panel
-          header={
-            <Space>
-              <LinkOutlined />
-              <span>Input References</span>
-              {props.form?.getFieldValue('inputRefs')?.length > 0 && (
-                <Tag color="blue">{props.form?.getFieldValue('inputRefs')?.length || 0}</Tag>
-              )}
-            </Space>
-          }
-          key="input-refs"
-        >
-          <Form.Item name="inputRefs" initialValue={[]}>
-            <Form.List name="inputRefs">
-              {(fields, { add, remove }) => (
-                <>
-                  {fields.map(field => (
-                    <Space key={field.key} style={{ display: 'flex', marginBottom: 8 }} align="baseline">
-                      <Form.Item
-                        {...field}
-                        name={[field.name, 'sourceNodeId']}
-                        rules={[{ required: true, message: 'Source node is required' }]}
-                        style={{ width: 200 }}
-                      >
-                        <Select placeholder="Source Node">
-                          {availableNodes.map(node => (
-                            <Select.Option key={node.id} value={node.id}>
-                              {node.name}
-                            </Select.Option>
-                          ))}
-                        </Select>
-                      </Form.Item>
-
-
-
-                      <DeleteOutlined onClick={() => remove(field.name)} />
-                    </Space>
-                  ))}
-
-                  <Form.Item>
-                    <Button
-                      type="dashed"
-                      onClick={() => add()}
-                      block
-                      icon={<LinkOutlined />}
-                    >
-                      Add Input Reference
-                    </Button>
-                  </Form.Item>
-                </>
-              )}
-            </Form.List>
-          </Form.Item>
-        </Panel>
-
-
-      </Collapse>
+      <InputReferences
+        form={props.form}
+        nodeid={selectedNode.id}
+      />
     </BaseNodeForm>
   );
 };

@@ -1,32 +1,33 @@
 import React, { useState } from "react";
-import { 
-  Form, 
-  Input, 
-  Button, 
-  Space, 
-  Divider, 
-  Typography, 
-  Collapse, 
+import {
+  Form,
+  Input,
+  Button,
+  Space,
+  Divider,
+  Typography,
+  Collapse,
   List,
   Empty,
   Tag,
   Tooltip
 } from "antd";
-import { 
-  PlusOutlined, 
-  DeleteOutlined, 
-  MessageOutlined, 
+import {
+  PlusOutlined,
+  DeleteOutlined,
+  MessageOutlined,
   CodeOutlined,
   EditOutlined
 } from "@ant-design/icons";
-import { FlowNode } from "../types/flowTypes";
+import { FlowNode } from "../../../types/flowTypes";
 import BaseNodeForm from "./base-node-form";
+import RoleSelector from "./shared/RoleSelector";
 
 const { Panel } = Collapse;
 const { TextArea } = Input;
 const { Text } = Typography;
 
-interface BeginNodeFormProps  {
+interface BeginNodeFormProps {
   form: any;
   selectedNode: FlowNode;
   setIsDrawerOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -55,19 +56,21 @@ const BeginNodeForm: React.FC<BeginNodeFormProps> = (props) => {
 
   return (
     <BaseNodeForm {...props}>
-      <Collapse 
-        defaultActiveKey={['description', 'greeting']} 
+      <Collapse
+        defaultActiveKey={['description', 'greeting']}
         bordered={false}
         expandIconPosition="end"
         className="form-collapse"
       >
-        <Panel 
+        <RoleSelector />
+
+        <Panel
           header={
             <Space>
               <EditOutlined />
               <span>Description</span>
             </Space>
-          } 
+          }
           key="description"
         >
           <Form.Item name="description" noStyle>
@@ -79,13 +82,13 @@ const BeginNodeForm: React.FC<BeginNodeFormProps> = (props) => {
           </Form.Item>
         </Panel>
 
-        <Panel 
+        <Panel
           header={
             <Space>
               <MessageOutlined />
               <span>Greeting Message</span>
             </Space>
-          } 
+          }
           key="greeting"
         >
           <Form.Item name="greeting" noStyle>
@@ -97,7 +100,7 @@ const BeginNodeForm: React.FC<BeginNodeFormProps> = (props) => {
           </Form.Item>
         </Panel>
 
-        <Panel 
+        <Panel
           header={
             <Space>
               <CodeOutlined />
@@ -106,7 +109,7 @@ const BeginNodeForm: React.FC<BeginNodeFormProps> = (props) => {
                 <Tag color="blue">{variables.length}</Tag>
               )}
             </Space>
-          } 
+          }
           key="variables"
         >
           <Form.Item name="variables" initialValue={[]} hidden>
@@ -154,7 +157,7 @@ const BeginNodeForm: React.FC<BeginNodeFormProps> = (props) => {
                 onChange={(e) => setNewVarName(e.target.value)}
                 placeholder="Variable name"
                 style={{ width: "40%" }}
-                prefix="$"
+                prefix="@"
               />
               <Input
                 value={newVarValue}

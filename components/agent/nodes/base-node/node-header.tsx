@@ -1,28 +1,31 @@
 import React from "react";
 import { Typography, Tooltip, Flex } from "antd";
-import { NodeTypeString } from "../../types/flowTypes";
+import { NodeTypeString } from "../../../../types/flowTypes";
+import RoleIndicator from "../shared/RoleIndicator";
 
 interface NodeHeaderProps {
   id?: string;
-  label: string;
   name: string;
   type: NodeTypeString;
   icon?: React.ReactNode;
+  role?: 'developer' | 'assistant' | 'system' | 'user';
 }
 
-const NodeHeader: React.FC<NodeHeaderProps> = ({ id, name, label, type, icon }) => {
+const NodeHeader: React.FC<NodeHeaderProps> = ({ id, name, type, icon, role }) => {
   return (
-    <Flex align="center" gap={8} style={{ marginBottom: 12 }}>
-      {icon && <div>{icon}</div>}
-      <Tooltip title={id}>
-        <Typography.Text 
-          strong 
-          ellipsis={{ tooltip: id }}
-          style={{ flex: 1 }}
-        >
-          {name || label}
-        </Typography.Text>
-      </Tooltip>
+    <Flex align="center" gap={8} justify="space-between">
+      <Flex align="center" gap={8}>
+        {icon && <div>{icon}</div>}
+        <Tooltip title={id}>
+          <Typography.Text
+            strong
+            ellipsis={{ tooltip: id }}
+          >
+            {name}
+          </Typography.Text>
+        </Tooltip>
+      </Flex>
+      {role && <RoleIndicator role={role} />}
     </Flex>
   );
 };

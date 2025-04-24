@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Input, Button, Space } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
-import { ICategory } from "../../types/flowTypes";
+import { ICategory } from "../../../../types/flowTypes";
 
 interface CategoryCreatorProps {
   categories: ICategory[];

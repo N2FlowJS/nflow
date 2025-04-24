@@ -1,9 +1,8 @@
 import React from "react"; // Remove memo
 import { Handle, Position, NodeProps, Node } from "@xyflow/react";
-import { CategorizeNodeData, ICategory } from "../../types/flowTypes";
-import { NODE_REGISTRY } from '../../../../utils/server/NODE_REGISTRY';
+import { CategorizeNodeData, ICategory } from "../../../../types/flowTypes";
+import { NODE_REGISTRY } from '../../../../utils/client/NODE_REGISTRY';
 import BaseNode from "../base-node";
-import { Flex, Typography } from "antd";
 import { BranchesOutlined } from "@ant-design/icons";
 import ConnectedCategories from "./ConnectedCategories";
 import UnconnectedCategories from "./UnconnectedCategories";
@@ -18,15 +17,14 @@ const CategorizeNode = ({
     ? data.form.categories
     : [];
   const nodeConfig = NODE_REGISTRY.categorize;
-  
+
   // Separate categories into connected and unconnected
   const connectedCategories = categories.filter(c => c.targetNode);
   const unconnectedCategories = categories.filter(c => !c.targetNode);
-  
+
   // Find default category
   const defaultCategory = categories.find(c => c.name === data.form?.defaultCategory);
-  
-  console.log(`Rendering CategorizeNode ${id}, Categories:`, categories.length, `Last Update: ${data._lastUpdate}`); // Add log
+
 
   return (
     <BaseNode
@@ -34,27 +32,30 @@ const CategorizeNode = ({
       id={id}
       selected={selected}
       handlePositions={{
-        input: Position.Left,
+        input: [Position.Left],
+        output: [],
       }}
-      icon={<BranchesOutlined style={{ color:"#eb2f96"  }} />}
+      icon={<BranchesOutlined style={{ color: "#eb2f96" }} />}
+      role={data.form?.role}
+
     >
       <div>
-      
-        
+
+
         {connectedCategories.length > 0 && (
-          <ConnectedCategories 
-            categories={connectedCategories} 
-            defaultCategory={data.form?.defaultCategory} 
+          <ConnectedCategories
+            categories={connectedCategories}
+            defaultCategory={data.form?.defaultCategory}
           />
         )}
-        
+
         {unconnectedCategories.length > 0 && (
-          <UnconnectedCategories 
-            categories={unconnectedCategories} 
-            defaultCategory={data.form?.defaultCategory} 
+          <UnconnectedCategories
+            categories={unconnectedCategories}
+            defaultCategory={data.form?.defaultCategory}
           />
         )}
-        
+
         {defaultCategory && <DefaultCategory category={defaultCategory} />}
       </div>
 
@@ -67,9 +68,9 @@ const CategorizeNode = ({
             background: category.name === data.form?.defaultCategory ? '#faad14' : nodeConfig.color.handle,
             border: `2px solid ${category.name === data.form?.defaultCategory ? '#d48806' : nodeConfig.color.border}`,
             top: `${(index + 1) * (100 / (categories.length + 1))}%`,
-            right: "-6px",
-            width: "12px",
-            height: "12px",
+            right: "-5px",
+            width: "10px",
+            height: "10px",
           }}
           id={`out-${category.name}`}
         />

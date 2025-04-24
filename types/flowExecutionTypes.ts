@@ -1,16 +1,31 @@
-import { Flow, NodeTypeString } from '../components/agent/types/flowTypes';
+import { Flow, FlowNode, InputReference, NodeTypeString } from './flowTypes';
 import { MessagePart } from './MessagePart';
+
+/**
+ * Represents a component in the flow execution
+ */
+export interface FlowComponent {
+  type: NodeTypeString;
+  output: string;
+  ready: boolean;
+  inputFlow: {
+    id: string;
+    name: string;
+  }[];
+  inputRefs?: InputReference[];
+}
 
 /**
  * Represents the state of a flow execution
  */
 export interface FlowState {
   // The ID of the currently executing node
-  currentNodeId: string;
-  components: Record<string, any>;
+  currentNode: FlowNode;
+
+  // Components in the flow with their execution state
+  components: Record<string, FlowComponent>;
 
   // The name of the currently executing node
-  currentNodeName: string;
 
   // Variables that can be referenced throughout the flow
   variables: Record<string, any>;
@@ -39,13 +54,14 @@ export interface NodeExecutionRecord {
 /**
  * Result of a flow execution step
  */
+export type ExecutionStatus = 'completed' | 'error' | 'in_progress' | 'waiting';
 export interface ExecutionResult {
   // Status of the execution
-  status: 'completed' | 'error' | 'in_progress';
+  status: ExecutionStatus;
   // Optional message providing additional information
   message?: string;
   // Optional output from the current node
-  nextNodeId?: string;
+  nextNodes: string[];
 
   // Optional updated flow state
   flowState: FlowState;
@@ -114,16 +130,6 @@ export interface OpenAIError {
   code: string;
 }
 
-export interface FlowHistoryEntry {
-  nodeId: string;
-  output?: string;
-  timestamp: string;
-  nodeType?: string;
-  interfacePosition?: 'start' | 'end'; // Track if this is a start or end interface node
-  input?: string; // For storing user input
-  message?: string; // Optional message about the step
-}
-
 export interface ConversationState {
   hasReachedFirstInterface: boolean; // Whether we've reached the first interface node
   firstInterfaceId: string | null; // ID of the first interface node
@@ -145,7 +151,6 @@ export interface FlowExecutionHistoryEntry {
   output?: string;
   status?: 'success' | 'error' | 'skipped';
   message?: string;
-  interfacePosition?: 'start' | 'end'; // Add this missing property
 }
 
 export type ExecutionStatusType = 'pending' | 'running' | 'completed' | 'error';

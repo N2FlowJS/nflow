@@ -1,20 +1,18 @@
 // This file is part of the Flow Execution API for handling flow execution requests in a Next.js application.
 
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { BeginForm, BeginNode, Flow, NODE_TYPES } from '../../../components/agent/types/flowTypes';
+import { BeginForm, BeginNode, Flow, NODE_TYPES } from '../../../types/flowTypes';
 import { MessagePart } from '../../../types/MessagePart';
 import { OpenAIError, OpenAIExecutionResult } from '../../../types/flow';
-import { ExecutionResult, FlowExecutionContext, FlowState } from '../../../types/flowExecutionTypes';
-import { continueFlow } from '../../../utils/server/continueFlow';
+import { ExecutionResult, } from '../../../types/flowExecutionTypes';
+import { executeFlow } from '../../../utils/server/nodeExecution/executeFlow';
 import { createInitialFlowState } from '../../../utils/server/createInitialFlowState';
 import { extractUserInputFromMessages } from '../../../utils/server/extractUserInputFromMessages';
 import { getConversationFlowState } from '../../../database/getConversationFlowState';
 import { getFlowConfig } from '../../../database/getFlowConfig';
 import { AddMessageToDatabase, saveConversationToDatabase } from '../../../database/persistConversationState';
 import { transformToOpenAIFormat } from '../../../utils/server/transformToOpenAIFormat';
-import { getCurrentNodeId } from '@utils/server/getCurrentNodeId';
-import { executeNode } from '@utils/server/executeNode';
-import { updateFlowState } from '@utils/server/updateFlowState';
+
 
 // Main handler for OpenAI-compatible flow execution
 /**
@@ -31,67 +29,29 @@ import { updateFlowState } from '@utils/server/updateFlowState';
  */
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<OpenAIExecutionResult | { error: string | OpenAIError }>) {
-  if (req.method !== 'POST') {
-    return sendErrorResponse(res, 405, 'Method not allowed', 'invalid_request_error', 'method_not_allowed');
-  }
-
+  if (req.method !== 'POST') return sendErrorResponse(res, 405, 'Method not allowed', 'invalid_request_error', 'method_not_allowed');
   try {
-    // Extract request parameters with defaults
     const { flowId, variables = {}, stream = false, model = 'default', messages = [], max_tokens: maxTokens = 1024, temperature = 0.7, top_p: topP = 1 } = req.body;
     let { id: conversationId } = req.body;
-    // Validate required parameters
-    if (!flowId) {
-      return sendErrorResponse(res, 400, 'Flow ID is required', 'invalid_request_error', 'missing_parameter');
-    }
-
-    const message: MessagePart = {
-      role: 'system',
-      content: 'Hello!',
-    };
-
-    // Extract user input from messages
-
-    // Get flow configuration and existing state if ID is provided
-    const flowConfig = await getFlowConfig(flowId);
-    if (!flowConfig) {
-      return sendErrorResponse(res, 404, 'Flow not found', 'invalid_request_error', 'not_found');
-    }
-
-    // Get existing flow state if ID is provided
+    if (!flowId) return sendErrorResponse(res, 400, 'Flow ID is required', 'invalid_request_error', 'missing_parameter');
+    const message: MessagePart = { role: 'system', content: 'Hello!', };
+    const flowConfig: Flow = await getFlowConfig(flowId);
+    if (!flowConfig) return sendErrorResponse(res, 404, 'Flow not found', 'invalid_request_error', 'not_found');
     let flowState = conversationId ? await getConversationFlowState(conversationId) : undefined;
 
-    // If ID is provided but flow state not found, create a new conversation
     if (!flowState) {
-      try {
-        // Create initial flow state
-        const beginNode = flowConfig.nodes.find((node) => node.type === NODE_TYPES.begin) as BeginNode | undefined;
-        if (!beginNode) return sendErrorResponse(res, 400, 'No begin node found in flow', 'invalid_request_error', 'invalid_flow');
-
-        // Initialize flow state
-        flowState = createInitialFlowState(beginNode, variables);
-
-        // Persist conversation and get new ID
-        const newId = await saveConversationToDatabase({
-          flowState,
-          agentId: flowId,
-          id: conversationId,
-        });
-        message.content = (beginNode.data.form as BeginForm)?.greeting || 'Hello!';
-        message.role = 'system';
-
-        // Update ID if it's different
-        if (newId !== conversationId) conversationId = newId;
-      } catch (error) {
-        console.error('Error creating conversation:', error);
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        return sendErrorResponse(res, 500, `Error creating conversation : ${errorMessage}`, 'server_error', 'internal_error');
-      }
+      const beginNode = flowConfig.nodes.find((node) => node.type === NODE_TYPES.begin) as BeginNode | undefined;
+      if (!beginNode) return sendErrorResponse(res, 400, 'No begin node found in flow', 'invalid_request_error', 'invalid_flow');
+      flowState = createInitialFlowState({ beginNode, variables, flowConfig });
+      const newId = await saveConversationToDatabase({ flowState, agentId: flowId, id: conversationId, });
+      message.content = (beginNode.data.form as BeginForm)?.greeting || 'Hello!';
+      message.role = 'system';
+      if (newId !== conversationId) conversationId = newId;
     }
     const userInput = extractUserInputFromMessages(messages);
     if (userInput) {
       message.content = userInput;
       message.role = 'user';
-
       await AddMessageToDatabase({ conversationId, message });
     }
 
@@ -104,44 +64,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     }
     const encoder = new TextEncoder();
 
-    const callback = stream
-      ? (result: ExecutionResult) => {
-          res.write(encoder.encode(`data: ${JSON.stringify(transformToOpenAIFormat(result, conversationId))}\n\n`));
-
-          // Update flow state in database
+    await executeFlow(flowConfig, flowState, message, async function (result: ExecutionResult) {
+      if (stream && 'write' in res && result) {
+        res.write(encoder.encode(`data: ${JSON.stringify(transformToOpenAIFormat(result, conversationId))}\n\n`));
+      }
+      if (result.status === 'completed') {
+        conversationId = await saveConversationToDatabase({
+          flowState: result.flowState,
+          agentId: flowId,
+          id: conversationId,
+          message: {
+            content: result.execution.output || '',
+            role: result.nodeInfo.role || 'developer',
+          },
+        });
+        console.log('Conversation saved with ID:', conversationId);
+        if (stream) {
+          res.write(encoder.encode('data: [DONE]\n\n'));
+          res.end();
+        } else {
+          res.status(200).json(transformToOpenAIFormat(result, conversationId));
         }
-      : undefined;
-    // Transform result to OpenAI format before sending
-
-    // Execute flow based on state
-    const result = await continueFlow({
-      flow: flowConfig,
-      flowState,
-      input: message,
-      returnResult: true,
-      callback,
+      }
     });
 
-    // update flow state in database
-    if (result.flowState) {
-      const persistedId = await saveConversationToDatabase({
-        flowState: result.flowState,
-        agentId: flowId,
-        id: conversationId,
-        message: {
-          content: result.execution.output || '',
-          role: result.nodeInfo.role || 'developer',
-        },
-      });
-      console.log('Flow state persisted with ID:', persistedId);
-    }
-    if (stream) {
-      // End the stream
-      res.write(encoder.encode('data: [DONE]\n\n'));
-      res.end();
-    }
-    // Transform result to OpenAI format before sending
-    return res.status(200).json(transformToOpenAIFormat(result, conversationId));
   } catch (error) {
     console.error('Error processing flow:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';

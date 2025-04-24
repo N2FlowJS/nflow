@@ -389,7 +389,7 @@ export default function KnowledgeDetail() {
             <Breadcrumb.Item>{knowledge?.name || "Detail"}</Breadcrumb.Item>
           </Breadcrumb>
 
-          <Card size={isMobile ? "small" : "default"} bodyStyle={{ padding: isMobile ? 12 : 24 }}>
+          <Card size={isMobile ? "small" : "default"} >
             <Row justify="space-between" align="middle">
               <Col>
                 <Title level={isMobile ? 3 : 2} style={{ margin: 0 }}>

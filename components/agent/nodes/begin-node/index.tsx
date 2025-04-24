@@ -1,6 +1,6 @@
 import React from 'react';
 import { Position, NodeProps, Node } from '@xyflow/react';
-import { BeginNodeData } from '../../types/flowTypes';
+import { BeginNodeData } from '../../../../types/flowTypes';
 import BaseNode from '../base-node';
 import { Flex } from 'antd';
 import { PlayCircleOutlined } from '@ant-design/icons';
@@ -13,14 +13,17 @@ const BeginNode = ({ data, id, selected }: NodeProps<Node<BeginNodeData>>) => {
   const variablesCount = Array.isArray(form?.variables) ? form.variables.length : 0;
 
   return (
-    <BaseNode 
-      data={data} 
+    <BaseNode
+      data={data}
       id={id}
       selected={selected}
       handlePositions={{
-        output: Position.Right,
+        output: [Position.Right],
+        input: []
       }}
       icon={<PlayCircleOutlined style={{ color: '#1677ff' }} />}
+      role={data.form?.role}
+
     >
       <Flex vertical gap={6}>
         {form?.description && <DescriptionSection description={form.description} />}

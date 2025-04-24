@@ -1,23 +1,23 @@
 import React, { useState } from "react";
-import { 
-  Input, 
-  Button, 
-  Space, 
-  Typography, 
-  Collapse, 
+import {
+  Input,
+  Button,
+  Space,
+  Typography,
+  Collapse,
   List,
   Empty,
   Tooltip,
   Select,
   Divider
 } from "antd";
-import { 
-  DeleteOutlined, 
+import {
+  DeleteOutlined,
   LinkOutlined,
   FileTextOutlined,
   PlusOutlined
 } from "@ant-design/icons";
-import { ICategory } from "../../types/flowTypes";
+import { ICategory } from "../../../../types/flowTypes";
 import { Node } from "@xyflow/react";
 
 const { Panel } = Collapse;
@@ -39,23 +39,22 @@ const CategoryListItem: React.FC<CategoryListItemProps> = ({
   removeCategory
 }) => {
   const [newExample, setNewExample] = useState("");
-  const [currentCategory, setCurrentCategory] = useState<string | null>(null);
-  
+
   // Update category description
   const updateDescription = (value: string) => {
-    const updatedCategories = categories.map((cat: ICategory) => 
-      cat.name === category.name 
-        ? { ...cat, description: value } 
+    const updatedCategories = categories.map((cat: ICategory) =>
+      cat.name === category.name
+        ? { ...cat, description: value }
         : cat
     );
     updateCategories(updatedCategories);
   };
-  
+
   // Update category target node
   const updateTargetNode = (nodeId: string) => {
-    const updatedCategories = categories.map((cat: ICategory) => 
-      cat.name === category.name 
-        ? { ...cat, targetNode: nodeId } 
+    const updatedCategories = categories.map((cat: ICategory) =>
+      cat.name === category.name
+        ? { ...cat, targetNode: nodeId }
         : cat
     );
     updateCategories(updatedCategories);
@@ -64,12 +63,12 @@ const CategoryListItem: React.FC<CategoryListItemProps> = ({
   // Add example to category
   const addExample = () => {
     if (!newExample) return;
-    
+
     const currentExamples = category.examples || [];
     if (!currentExamples.includes(newExample)) {
-      const updatedCategories = categories.map((cat: ICategory) => 
-        cat.name === category.name 
-          ? { ...cat, examples: [...currentExamples, newExample] } 
+      const updatedCategories = categories.map((cat: ICategory) =>
+        cat.name === category.name
+          ? { ...cat, examples: [...currentExamples, newExample] }
           : cat
       );
       updateCategories(updatedCategories);
@@ -80,10 +79,10 @@ const CategoryListItem: React.FC<CategoryListItemProps> = ({
   // Remove example from category
   const removeExample = (example: string) => {
     if (!category.examples) return;
-    
-    const updatedCategories = categories.map((cat: ICategory) => 
-      cat.name === category.name 
-        ? { ...cat, examples: cat.examples?.filter(ex => ex !== example) } 
+
+    const updatedCategories = categories.map((cat: ICategory) =>
+      cat.name === category.name
+        ? { ...cat, examples: cat.examples?.filter(ex => ex !== example) }
         : cat
     );
     updateCategories(updatedCategories);
@@ -124,13 +123,14 @@ const CategoryListItem: React.FC<CategoryListItemProps> = ({
             value={category.description || ""}
             onChange={(e) => updateDescription(e.target.value)}
           />
-          
+
           {/* Target node selection */}
           <div style={{ marginTop: 8 }}>
             <Text type="secondary" style={{ display: 'block', marginBottom: 4 }}>
               <LinkOutlined /> Target Node:
             </Text>
-            <Select 
+            <Select
+              allowClear
               placeholder="Select target node"
               style={{ width: '100%' }}
               value={category.targetNode}
@@ -143,7 +143,7 @@ const CategoryListItem: React.FC<CategoryListItemProps> = ({
               showSearch
             />
           </div>
-          
+
           {/* Examples section */}
           <Divider orientation="left" style={{ margin: '12px 0 8px' }}>
             <Space>
@@ -151,7 +151,7 @@ const CategoryListItem: React.FC<CategoryListItemProps> = ({
               <span>Examples</span>
             </Space>
           </Divider>
-          
+
           <Space.Compact style={{ width: "100%" }}>
             <Input
               placeholder="Add example for this category"
@@ -167,7 +167,7 @@ const CategoryListItem: React.FC<CategoryListItemProps> = ({
               Add
             </Button>
           </Space.Compact>
-          
+
           {/* Examples list */}
           {category.examples && category.examples.length > 0 ? (
             <List
@@ -178,11 +178,11 @@ const CategoryListItem: React.FC<CategoryListItemProps> = ({
               renderItem={(example) => (
                 <List.Item
                   actions={[
-                    <Button 
-                      key="delete" 
-                      type="text" 
-                      danger 
-                      icon={<DeleteOutlined />} 
+                    <Button
+                      key="delete"
+                      type="text"
+                      danger
+                      icon={<DeleteOutlined />}
                       size="small"
                       onClick={() => removeExample(example)}
                     />
@@ -193,8 +193,8 @@ const CategoryListItem: React.FC<CategoryListItemProps> = ({
               )}
             />
           ) : (
-            <Empty 
-              image={Empty.PRESENTED_IMAGE_SIMPLE} 
+            <Empty
+              image={Empty.PRESENTED_IMAGE_SIMPLE}
               description="No examples added"
               style={{ margin: '8px 0' }}
             />

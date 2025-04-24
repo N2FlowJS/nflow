@@ -30,35 +30,34 @@ export function transformToOpenAIFormat(result: ExecutionResult, conversationId:
   // Determine finish reason based on status and node type
   let finish_reason: string | null = null;
   if (result.status === EXECUTION_STATUS.COMPLETED) {
-    finish_reason = 'stop'; 
+    finish_reason = 'stop';
   } else if (result.status === EXECUTION_STATUS.IN_PROGRESS) {
-    finish_reason = null; 
+    finish_reason = null;
   }
 
   // Handle successful result
   return {
     id: conversationId,
     created: Math.floor(Date.now() / 1000),
-    object: 'chat.completion', // Or 'chat.completion.chunk' if streaming chunks, but handled by caller
-    model: 'flow-default', // Placeholder model name
-    flowState: result.flowState, // Include the latest flow state
-    nodeInfo: result.nodeInfo, // Include node information
+    object: 'chat.completion',
+    model: 'flow-default',
+
     choices: [
       {
         index: 0,
         delta: {
-          // Use role from nodeInfo if available, default to 'assistant'
           role: result.nodeInfo.role || 'assistant',
-          content: result.execution.output || '', // Ensure content is always a string
+          content: result.execution.output || '',
         },
         finish_reason: finish_reason,
       },
     ],
-    // Usage data is currently placeholder, could be implemented if token counting is added
     usage: {
       prompt_tokens: 0,
       completion_tokens: 0,
       total_tokens: 0,
     },
+    flowState: result.flowState,
+    nodeInfo: result.nodeInfo,
   };
 }

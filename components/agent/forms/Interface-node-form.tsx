@@ -1,7 +1,7 @@
 import React from "react";
 import { Form, Alert, Typography, Card, Space } from "antd";
 import { InfoCircleOutlined, CommentOutlined, ArrowUpOutlined } from "@ant-design/icons";
-import { FlowNode } from "../types/flowTypes";
+import { FlowNode } from "../../../types/flowTypes";
 import BaseNodeForm from "./base-node-form";
 
 const { Text } = Typography;

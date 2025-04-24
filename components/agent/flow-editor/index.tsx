@@ -15,6 +15,7 @@ import {
   EdgeTypes,
   IsValidConnection,
   MarkerType,
+  OnConnectStart, // Import OnConnectStart type
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { Button, Drawer, Form, Space, message } from "antd";
@@ -31,8 +32,8 @@ import CategorizeNode from "../nodes/categorize-node";
 import RetrievalNode from "../nodes/retrieval-node";
 import DecisionNode from "../nodes/decision-node";
 import CustomEdge from "../edges/CustomEdge";
-import { FlowNode, NodeTypeString } from "../types/flowTypes";
-import { isConnectionAllowed, NODE_REGISTRY, parseFlowConfig } from "@utils/server";
+import { CategorizeForm, FlowNode, NodeTypeString } from "../../../types/flowTypes";
+import { isConnectionAllowed, NODE_REGISTRY, parseFlowConfig } from "@utils/client";
 
 const nodeTypes: ReactFlowNodeTypes = {
   begin: BeginNode,
@@ -69,7 +70,9 @@ const FlowEditor: React.FC<FlowEditorProps> = ({
   const [nodeForm] = Form.useForm();
   const { screenToFlowPosition } = useReactFlow();
 
-  // Watch for node deletions and remove connected edges
+
+
+
   React.useEffect(() => {
     // This effect removes any edges connected to nodes that have been deleted
     const nodeIds = nodes.map((node) => node.id);
@@ -109,6 +112,7 @@ const FlowEditor: React.FC<FlowEditorProps> = ({
       // Find source and target nodes to check their types
       const sourceNode = nodes.find((node) => node.id === params.source);
       const targetNode = nodes.find((node) => node.id === params.target);
+      console.log(params);
 
       if (sourceNode && targetNode) {
         const sourceType = sourceNode.type as NodeTypeString;
@@ -116,6 +120,39 @@ const FlowEditor: React.FC<FlowEditorProps> = ({
 
         // Check if connection is allowed based on node types
         if (isConnectionAllowed(sourceType, targetType)) {
+          // Update the targetNode for categorize nodes
+          if (sourceType === "categorize" && params.sourceHandle) {
+            // Extract category name from the sourceHandle (assuming format "out-categoryName")
+            const categoryName = params.sourceHandle.startsWith("out-")
+              ? params.sourceHandle.substring(4)
+              : params.sourceHandle;
+
+            setNodes((nds: FlowNode[]) =>
+              nds.map((n) => {
+                if (n.id === params.source && n.type === "categorize") {
+                  const form = n.data.form as CategorizeForm;
+                  if (!form.categories) return n;
+
+                  return {
+                    ...n,
+                    data: {
+                      ...n.data,
+                      form: {
+                        ...form,
+                        categories: form.categories.map((c) =>
+                          c.name === categoryName
+                            ? { ...c, targetNode: params.target }
+                            : c
+                        ),
+                      },
+                    },
+                  } as FlowNode;
+                }
+                return n;
+              })
+            );
+          }
+
           setEdges((eds) =>
             addEdge(
               {
@@ -136,7 +173,7 @@ const FlowEditor: React.FC<FlowEditorProps> = ({
         }
       }
     },
-    [nodes, setEdges]
+    [nodes, setEdges, setNodes]  // Added setNodes to dependencies
   );
 
   // Update to match the expected IsValidConnection type
@@ -169,16 +206,35 @@ const FlowEditor: React.FC<FlowEditorProps> = ({
         y: event.clientY,
       });
 
+      const defaultData = NODE_REGISTRY[nodeType].data as any;
+
+      const form = defaultData.form || {};
+      let baseName = form.name || nodeType; // Use default form name or node type as base
+      let newName = baseName;
+      let counter = 1;
+
+
+      while (nodes.some((node) => node.data.form?.name === newName)) {
+        newName = `${baseName}_${counter}`;
+        counter++;
+      }
+
       const newNode: FlowNode = {
         id: `node_${Date.now()}`,
         type: nodeType,
-        data: NODE_REGISTRY[nodeType].defaultData as any,
+        data: {
+          ...defaultData,
+          form: {
+            ...form,
+            name: newName,
+          },
+        },
         position,
       };
 
       setNodes((nds) => [...nds, newNode]);
     },
-    [screenToFlowPosition, setNodes]
+    [screenToFlowPosition, setNodes, nodes] // Add nodes to dependency array
   );
 
   const onDragOver = useCallback((event: React.DragEvent) => {
@@ -206,7 +262,7 @@ const FlowEditor: React.FC<FlowEditorProps> = ({
 
   return (
     <div style={{ height: "80vh", width: "100%", position: "relative" }}>
-      <NodePalette />
+      <NodePalette nodes={nodes} />
       <ReactFlow
         nodes={nodes}
         edges={edges}

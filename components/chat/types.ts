@@ -1,6 +1,6 @@
 import type { EXECUTION_STATUS } from '@utils/server/EXECUTION_STATUS';
 import { ExecutionStatusType } from '../../types/flowExecutionTypes';
-import { NodeTypeString } from '@components/agent/types/flowTypes';
+import { NodeTypeString } from '../../types/flowTypes';
 
 export interface NodeExecutionStatus {
   nodeId: string;

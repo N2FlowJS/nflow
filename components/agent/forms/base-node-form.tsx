@@ -5,7 +5,7 @@ import {
   SaveOutlined,
   ExclamationCircleOutlined,
 } from "@ant-design/icons";
-import { FlowNode } from "../types/flowTypes";
+import { FlowNode } from "../../../types/flowTypes";
 import { useReactFlow } from "@xyflow/react";
 
 interface BaseNodeFormProps {

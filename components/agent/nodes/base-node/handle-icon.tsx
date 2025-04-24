@@ -1,33 +1,62 @@
 import { CSSProperties } from 'react';
+import { Position } from '@xyflow/react';
 
-export const LeftHandleStyle: CSSProperties = {
-  background: 'white',
-  border: '2px solid #1677ff',
-  width: '12px',
-  height: '12px',
-  left: '-6px',
+const baseStyle: Omit<CSSProperties, 'left' | 'right' | 'top' | 'bottom' | 'transform' | 'background'> = {
+  position: 'absolute',
+  width: '10px',
+  height: '10px',
+  borderRadius: '50%',
 };
 
-export const RightHandleStyle: CSSProperties = {
-  background: 'white',
-  border: '2px solid #1677ff',
-  width: '12px',
-  height: '12px',
-  right: '-6px',
-};
+// add a small offset to separate dual handles
+const crossSpacing = '8px';
 
-export const TopHandleStyle: CSSProperties = {
-  background: 'white',
-  border: '2px solid #1677ff',
-  width: '12px',
-  height: '12px',
-  top: '-6px',
-};
+const targetColor = '#1677ff';
+const sourceColor = '#52c41a';
 
-export const BottomHandleStyle: CSSProperties = {
-  background: 'white',
-  border: '2px solid #1677ff',
-  width: '12px',
-  height: '12px',
-  bottom: '-6px',
+export const getHandleStyle = (position: Position, type: 'target' | 'source'): CSSProperties => {
+  const fill = type === 'target' ? targetColor : sourceColor;
+
+  switch (position) {
+    case Position.Left:
+      return {
+        ...baseStyle,
+        background: fill,
+        left: 0,
+        top: '50%',
+        transform: `translate(-50%, calc(-50% ${type === 'target' ? '-' : '+'} ${crossSpacing}))`,
+      };
+    case Position.Right:
+      return {
+        ...baseStyle,
+        background: fill,
+        right: 0,
+        top: '50%',
+        transform: `translate(50%, calc(-50% ${type === 'target' ? '-' : '+'} ${crossSpacing}))`,
+      };
+    case Position.Top:
+      return {
+        ...baseStyle,
+        background: fill,
+        top: 0,
+        left: '50%',
+        transform: `translate(calc(-50% ${type === 'target' ? '-' : '+'} ${crossSpacing}), -50%)`,
+      };
+    case Position.Bottom:
+      return {
+        ...baseStyle,
+        background: fill,
+        bottom: 0,
+        left: '50%',
+        transform: `translate(calc(-50% ${type === 'target' ? '-' : '+'} ${crossSpacing}), 50%)`,
+      };
+    default:
+      return {
+        ...baseStyle,
+        background: fill,
+        bottom: 0,
+        left: '50%',
+        transform: `translate(calc(-50% ${type === 'target' ? '-' : '+'} ${crossSpacing}), 50%)`,
+      };
+  }
 };

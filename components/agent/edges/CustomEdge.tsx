@@ -27,11 +27,10 @@ const CustomEdge: React.FC<EdgeProps<CustomEdgeData>> = ({
     targetX,
     targetY,
     targetPosition,
+    curvature: 1
   });
 
-  // Calculate midpoint for the arrow marker
-  const midX = (sourceX + targetX) / 2;
-  const midY = (sourceY + targetY) / 2;
+
 
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -55,8 +54,8 @@ const CustomEdge: React.FC<EdgeProps<CustomEdgeData>> = ({
 
       {/* Permanent circle indicator */}
       <circle
-        cx={midX}
-        cy={midY}
+        cx={labelX}
+        cy={labelY}
         r={6}
         fill="#f0f7ff"
         stroke="red"
@@ -64,8 +63,8 @@ const CustomEdge: React.FC<EdgeProps<CustomEdgeData>> = ({
       />
       <foreignObject
         onClick={handleDelete}
-        x={midX - 6}
-        y={midY - 6}
+        x={labelX - 6}
+        y={labelY - 6}
         width={12}
         height={12}
       >

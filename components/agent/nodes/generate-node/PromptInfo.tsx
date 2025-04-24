@@ -16,7 +16,6 @@ const PromptInfo: React.FC<PromptInfoProps> = ({ prompt }) => {
         backgroundColor: hasPrompt ? 'rgba(246, 255, 237, 0.6)' : 'rgba(255, 245, 245, 0.6)',
         borderColor: hasPrompt ? '#b7eb8f' : '#ffccc7',
       }}
-      bodyStyle={{ padding: '4px 8px' }}
     >
       <Tooltip title={hasPrompt ? prompt : "No prompt template defined"}>
         <Typography.Text 

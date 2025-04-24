@@ -71,7 +71,7 @@ const RetrievalTestingPanel: React.FC<RetrievalTestingPanelProps> = ({ knowledge
     // Calculate responsive sizes
     const isMobile = !screens.sm;
     const sliderWidth = isMobile ? '100%' : 'flex: 1; margin-right: 16px';
-    
+
     return (
         <Card
             title={
@@ -81,7 +81,6 @@ const RetrievalTestingPanel: React.FC<RetrievalTestingPanelProps> = ({ knowledge
                 </Space>
             }
             className="retrieval-testing-panel"
-            bodyStyle={{ padding: isMobile ? '12px' : '24px' }}
             size={isMobile ? 'small' : 'default'}
         >
             <Space direction="vertical" style={{ width: '100%' }} size={isMobile ? 'small' : 'middle'}>
@@ -100,19 +99,19 @@ const RetrievalTestingPanel: React.FC<RetrievalTestingPanelProps> = ({ knowledge
                     />
                 </div>
 
-                <div style={{ 
-                    display: 'flex', 
+                <div style={{
+                    display: 'flex',
                     flexDirection: isMobile ? 'column' : 'row',
-                    gap: isMobile ? '12px' : '20px' 
+                    gap: isMobile ? '12px' : '20px'
                 }}>
-                    <div style={{ 
-                        flex: 1, 
+                    <div style={{
+                        flex: 1,
                         minWidth: isMobile ? '100%' : '200px'
                     }}>
                         <Text strong>Results Limit</Text>
-                        <div style={{ 
-                            display: 'flex', 
-                            alignItems: 'center', 
+                        <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
                             marginTop: 8,
                             flexDirection: isMobile ? 'column' : 'row',
                             gap: isMobile ? '8px' : '0'
@@ -134,14 +133,14 @@ const RetrievalTestingPanel: React.FC<RetrievalTestingPanelProps> = ({ knowledge
                         </div>
                     </div>
 
-                    <div style={{ 
-                        flex: 1, 
+                    <div style={{
+                        flex: 1,
                         minWidth: isMobile ? '100%' : '200px'
                     }}>
                         <Text strong>Similarity Threshold</Text>
-                        <div style={{ 
-                            display: 'flex', 
-                            alignItems: 'center', 
+                        <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
                             marginTop: 8,
                             flexDirection: isMobile ? 'column' : 'row',
                             gap: isMobile ? '8px' : '0'
@@ -203,9 +202,9 @@ const RetrievalTestingPanel: React.FC<RetrievalTestingPanelProps> = ({ knowledge
                                 />
 
                                 {testResult.results.length === 0 ? (
-                                    <Empty 
+                                    <Empty
                                         description="No results found. Try adjusting your query or lowering the similarity threshold."
-                                        image={Empty.PRESENTED_IMAGE_SIMPLE} 
+                                        image={Empty.PRESENTED_IMAGE_SIMPLE}
                                     />
                                 ) : (
                                     <List
@@ -218,7 +217,7 @@ const RetrievalTestingPanel: React.FC<RetrievalTestingPanelProps> = ({ knowledge
                                             >
                                                 <List.Item.Meta
                                                     title={
-                                                        <div style={{ 
+                                                        <div style={{
                                                             display: 'flex',
                                                             justifyContent: 'space-between',
                                                             alignItems: 'center',
@@ -239,11 +238,11 @@ const RetrievalTestingPanel: React.FC<RetrievalTestingPanelProps> = ({ knowledge
                                                     overflowWrap: 'break-word',
                                                     wordBreak: 'break-word'
                                                 }}>
-                                                    <Paragraph 
-                                                        ellipsis={{ 
-                                                            rows: isMobile ? 3 : 4, 
-                                                            expandable: true, 
-                                                            symbol: 'more' 
+                                                    <Paragraph
+                                                        ellipsis={{
+                                                            rows: isMobile ? 3 : 4,
+                                                            expandable: true,
+                                                            symbol: 'more'
                                                         }}
                                                     >
                                                         {item.content}
@@ -253,11 +252,11 @@ const RetrievalTestingPanel: React.FC<RetrievalTestingPanelProps> = ({ knowledge
                                                 {item.metadata && Object.keys(item.metadata).length > 0 && (
                                                     <Collapse ghost style={{ marginTop: '8px' }}>
                                                         <Panel header="Metadata" key="1">
-                                                            <div style={{ 
-                                                                maxWidth: '100%', 
-                                                                overflowX: 'auto' 
+                                                            <div style={{
+                                                                maxWidth: '100%',
+                                                                overflowX: 'auto'
                                                             }}>
-                                                                <pre style={{ 
+                                                                <pre style={{
                                                                     fontSize: isMobile ? '11px' : '12px',
                                                                     whiteSpace: 'pre-wrap',
                                                                     wordBreak: 'break-word'

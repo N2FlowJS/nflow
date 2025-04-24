@@ -101,15 +101,20 @@ export default function NewLLMProvider() {
   return (
     <Layout>
       <Content style={{ padding: '24px' }}>
-        <Breadcrumb style={{ marginBottom: 16 }}>
-          <Breadcrumb.Item>
-            <Link href="/admin">Admin</Link>
-          </Breadcrumb.Item>
-          <Breadcrumb.Item>
-            <Link href="/admin/llm">LLM Management</Link>
-          </Breadcrumb.Item>
-          <Breadcrumb.Item>New Provider</Breadcrumb.Item>
-        </Breadcrumb>
+        <Breadcrumb
+          style={{ marginBottom: 16 }}
+          items={[
+            {
+              title: <Link href="/admin">Admin</Link>,
+            },
+            {
+              title: <Link href="/admin/llm">LLM Management</Link>,
+            },
+            {
+              title: 'New Provider',
+            },
+          ]}
+        />
 
         <Title level={2}>Add New LLM Provider</Title>
         

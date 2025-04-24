@@ -11,7 +11,7 @@
     "prisma:reset": "prisma migrate reset --preview-feature",
     "prisma:studio": "prisma studio",
     "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev",
+    "prisma:migrate": "prisma migrate",
     "clean": "node scripts/cleanup.js"
   },
   "dependencies": {

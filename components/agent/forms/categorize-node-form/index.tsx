@@ -1,26 +1,25 @@
-import React, { useEffect, useState } from "react";
+import { AppstoreOutlined } from "@ant-design/icons";
+import { MarkerType, useReactFlow } from "@xyflow/react";
 import {
+  Collapse,
+  Empty,
   Form,
   Input,
-  Space,
-  Typography,
-  Collapse,
   List,
-  Empty,
-  Tag,
   Select,
-  Button,
+  Space,
+  Tag
 } from "antd";
-import { AppstoreOutlined, DeleteOutlined, LinkOutlined } from "@ant-design/icons";
-import { MarkerType, useReactFlow } from "@xyflow/react";
-import { FlowNode, ICategory, CategorizeNodeData } from "../../types/flowTypes";
+import React from "react";
+import { CategorizeNodeData, FlowNode, ICategory } from "../../../../types/flowTypes";
 import BaseNodeForm from "../base-node-form";
+import InputReferences from "../shared/InputReferences";
+import RoleSelector from "../shared/RoleSelector";
+import CategoryCreator from "./category-creator";
 import CategoryListItem from "./category-list-item";
 import DefaultCategorySelector from "./default-category-selector";
-import CategoryCreator from "./category-creator";
 
 const { Panel } = Collapse;
-const { Text } = Typography;
 
 interface CategorizeNodeFormProps {
   form: any;
@@ -95,117 +94,61 @@ const CategorizeNodeForm: React.FC<CategorizeNodeFormProps> = ({ form, selectedN
   const syncEdgesWithCategories = (values: CategorizeNodeData['form']) => {
     // Note: Node data is already saved by BaseNodeForm's handleSave
 
-    // Create/update edges based on category target nodes
+    // Get all current edges
     const currentEdges = getEdges();
     const sourceNodeId = selectedNode.id;
 
-    // Remove existing edges originating from this categorize node's category handles
-    const filteredEdges = currentEdges.filter(
-      (edge) =>
-        !(edge.source === sourceNodeId && edge.sourceHandle?.startsWith("out-"))
+    // Find existing category edges from this node
+    const existingCategoryEdges = currentEdges.filter(
+      (edge) => edge.source === sourceNodeId && edge.sourceHandle?.startsWith("out-")
     );
 
-    // Create new edges for each category with a target node
-    const newEdges = [...filteredEdges];
+    // Keep all non-category edges
+    const nonCategoryEdges = currentEdges.filter(
+      (edge) => !(edge.source === sourceNodeId && edge.sourceHandle?.startsWith("out-"))
+    );
 
+    // Create new edges array starting with all non-category edges
+    const newEdges = [...nonCategoryEdges];
+
+    // For each category with a target node
     values.categories.forEach((category: ICategory) => {
       if (category.targetNode) {
-        const edgeId = `edge-${sourceNodeId}-${category.name}-to-${category.targetNode}`;
-        newEdges.push({
-          id: edgeId,
-          source: sourceNodeId,
-          target: category.targetNode,
-          sourceHandle: `out-${category.name}`, // Ensure sourceHandle matches handle id
-          type: "default", // Or your preferred edge type
-          markerEnd: {
-            type: MarkerType.ArrowClosed,
-          },
-        });
+        const sourceHandle = `out-${category.name}`;
+
+        // Check if this connection already exists
+        const existingEdge = existingCategoryEdges.find(
+          (edge) =>
+            edge.source === sourceNodeId &&
+            edge.target === category.targetNode &&
+            edge.sourceHandle === sourceHandle
+        );
+
+        if (existingEdge) {
+          // If connection already exists, keep it
+          newEdges.push(existingEdge);
+        } else {
+          // If connection doesn't exist, create a new edge
+          const edgeId = `edge-${sourceNodeId}-${category.name}-to-${category.targetNode}`;
+          newEdges.push({
+            id: edgeId,
+            source: sourceNodeId,
+            target: category.targetNode,
+            sourceHandle: sourceHandle,
+            type: "default",
+            markerEnd: {
+              type: MarkerType.ArrowClosed,
+            },
+          });
+        }
       }
     });
 
     // Update the edges state
     setEdges(newEdges);
-
-    // No need to close drawer here, BaseNodeForm handles it
   };
 
-  const [availableNodes, setAvailableNodes] = useState<Array<{ id: string, name: string, type: string }>>([]);
-  const [availableInputs, setAvailableInputs] = useState<Array<{ id: string, name: string, type: string }>>([]);
 
-  useEffect(() => {
-    // Get nodes that come before this node in the flow
-    const findPrecedingNodes = () => {
-      const allNodes = getNodes();
-      const allEdges = getEdges();
-      const currentNodeId = selectedNode.id;
-      const precedingNodes = new Map<string, { id: string, name: string, type: string }>();
-
-      // Function to traverse the graph backwards
-      const traverseBackwards = (nodeId: string, visited = new Set<string>()) => {
-        if (visited.has(nodeId)) return;
-        visited.add(nodeId);
-
-        // Find all incoming edges to this node
-        const incomingEdges = allEdges.filter(edge => edge.target === nodeId);
-
-        for (const edge of incomingEdges) {
-          const sourceNode = allNodes.find(node => node.id === edge.source);
-          if (!sourceNode) continue;
-
-          // Get node type with fallback to ensure it's always a string
-          const nodeType = (sourceNode.data?.type as string) ||
-            (sourceNode.type as string) ||
-            'unknown';
-
-          // Stop traversal at interface nodes
-          if (nodeType === 'interface') {
-            precedingNodes.set(sourceNode.id, {
-              id: sourceNode.id,
-              name: (sourceNode.data?.form as { name?: string })?.name ||
-                sourceNode.data?.label as string ||
-                sourceNode.id,
-              type: nodeType
-            });
-            continue;
-          }
-
-          // Add this node to the preceding nodes
-          precedingNodes.set(sourceNode.id, {
-            id: sourceNode.id,
-            name: (sourceNode.data?.form as { name?: string })?.name ||
-              sourceNode.data?.label as string ||
-              sourceNode.id,
-            type: nodeType
-          });
-
-          // Continue traversal
-          traverseBackwards(sourceNode.id, visited);
-        }
-      };
-
-      // Start traversal from the current node
-      traverseBackwards(currentNodeId);
-
-      return Array.from(precedingNodes.values());
-    };
-
-    // Set available nodes for input references
-    const precedingNodes = findPrecedingNodes();
-    setAvailableNodes(precedingNodes);
-
-    // Set available inputs for input source selection
-    // This includes standard input sources plus any preceding node outputs
-    setAvailableInputs([
-      { id: 'user_input', name: 'User Input', type: 'system' },
-      { id: 'generated_text', name: 'Generated Text', type: 'system' },
-      ...precedingNodes.map(node => ({
-        id: `node:${node.id}`,
-        name: `From ${node.name}`,
-        type: node.type
-      }))
-    ]);
-  }, [selectedNode.id, getNodes, getEdges]);
 
   return (
     <BaseNodeForm
@@ -214,78 +157,12 @@ const CategorizeNodeForm: React.FC<CategorizeNodeFormProps> = ({ form, selectedN
       setIsDrawerOpen={setIsDrawerOpen}
       onSaveSuccess={syncEdgesWithCategories}
     >
+      <InputReferences
+        form={form}
+        nodeid={selectedNode.id}
+      />
 
-      <Panel
-        header={
-          <Space>
-            <LinkOutlined />
-            <span>Input References</span>
-            {/* Use form instance from hook */}
-            {form?.getFieldValue('inputRefs')?.length > 0 && (
-              <Tag color="blue">{form?.getFieldValue('inputRefs')?.length || 0}</Tag>
-            )}
-          </Space>
-        }
-        key="input-refs"
-      >
-        <Form.Item name="inputRefs" initialValue={[]}>
-          <Form.List name="inputRefs">
-            {(fields, { add, remove }) => (
-              <>
-                {fields.map(field => (
-                  <Space key={field.key} style={{ display: 'flex', marginBottom: 8 }} align="baseline">
-                    <Form.Item
-                      {...field}
-                      name={[field.name, 'sourceNodeId']}
-                      rules={[{ required: true, message: 'Source node is required' }]}
-                      style={{ width: 200 }}
-                    >
-                      <Select placeholder="Source Node">
-                        {availableNodes.map(node => (
-                          <Select.Option key={node.id} value={node.id}>
-                            {node.name}
-                          </Select.Option>
-                        ))}
-                      </Select>
-                    </Form.Item>
-
-                    <Form.Item
-                      {...field}
-                      name={[field.name, 'outputName']}
-                      rules={[{ required: true, message: 'Output name is required' }]}
-                      style={{ width: 150 }}
-                    >
-                      <Input placeholder="Output Name" />
-                    </Form.Item>
-
-                    <Form.Item
-                      {...field}
-                      name={[field.name, 'inputName']}
-                      rules={[{ required: true, message: 'Input name is required' }]}
-                      style={{ width: 150 }}
-                    >
-                      <Input placeholder="As Input Name" />
-                    </Form.Item>
-
-                    <DeleteOutlined onClick={() => remove(field.name)} />
-                  </Space>
-                ))}
-
-                <Form.Item>
-                  <Button
-                    type="dashed"
-                    onClick={() => add()}
-                    block
-                    icon={<LinkOutlined />}
-                  >
-                    Add Input Reference
-                  </Button>
-                </Form.Item>
-              </>
-            )}
-          </Form.List>
-        </Form.Item>
-      </Panel>
+      <RoleSelector />
 
       <Form.Item name="categories" initialValue={[]} hidden>
         <Input />

@@ -1,88 +1,15 @@
 import React, { useState, useEffect, useMemo } from "react"; // Import useMemo
 import { Form, Input, Select, Spin, Typography, Space, Collapse } from "antd";
-import { FileTextOutlined } from "@ant-design/icons";
+import { FileTextOutlined, UserOutlined } from "@ant-design/icons";
 import { MentionsInput, Mention, SuggestionDataItem } from 'react-mentions';
-import { FlowNode, } from "../types/flowTypes"; // Import Edge type
+import { FlowNode, } from "../../../types/flowTypes"; // Import Edge type
 import BaseNodeForm from "./base-node-form";
 import { fetchAllLLMProviders } from "../../../services/llmService";
-import { Edge, useEdges, useNodes } from "@xyflow/react";
-import { log } from "console";
+import { usePredecessorNodes } from "../hooks/usePredecessorNodes";
+import RoleSelector from "./shared/RoleSelector";
 
 const { Text } = Typography;
 const { Panel } = Collapse;
-
-// Define static system variables (optional, can be combined with dynamic ones)
-const staticSystemVariables: SuggestionDataItem[] = [
-  { id: 'userInput', display: 'userInput' },
-  // Add other static variables if needed
-];
-
-// --- Recursive backward traversal function ---
-const findPredecessorVariables = (
-  selectedNodeId: string,
-  nodes: FlowNode[],
-  edges: Edge[]
-): SuggestionDataItem[] => {
-  // Early return if no data
-  if (!nodes?.length || !edges?.length) return [];
-  
-  console.log('Finding variables for node:', selectedNodeId);
-  
-  // Create a map for O(1) node lookups
-  const nodesMap = new Map(nodes.map(node => [node.id, node]));
-  
-  // Store unique variable names
-  const variableNames = new Set<string>();
-  
-  // Track visited nodes to prevent cycles
-  const visited = new Set<string>();
-  
-  // Recursive function to traverse predecessors
-  const findPredecessors = (nodeId: string) => {
-    // Skip if already visited
-    if (visited.has(nodeId)) return;
-    visited.add(nodeId);
-    
-    // Find all direct incoming edges to this node
-    const incomingEdges = edges.filter(edge => edge.target === nodeId);
-    console.log('Processing node:', nodeId);
-    console.log('Node data:', nodesMap.get(nodeId));  
-    console.log('Outgoing edges:', edges.filter(edge => edge.source === nodeId));
-    console.log('Incoming edges:', incomingEdges);
-    // Process each predecessor
-    for (const edge of incomingEdges) {
-      const sourceId = edge.source;
-      const sourceNode = nodesMap.get(sourceId);
-      
-      if (!sourceNode) continue;
-      
-      // Add the variable name
-      const variableName = sourceNode.data?.form?.name || sourceNode.id;
-      if (variableName) {
-        variableNames.add(variableName);
-      }
-      
-      // Stop at interface nodes, continue recursion for others
-      if (sourceNode.type !== 'interface') {
-        findPredecessors(sourceId);
-      }
-    }
-  };
-  
-  // Start recursion from the selected node
-  findPredecessors(selectedNodeId);
-  
-  // Convert to expected format
-  const result = Array.from(variableNames).map(name => ({
-    id: name,
-    display: name
-  }));
-  
-  console.log('Available variables:', result);
-  return result;
-};
-// --- End Helper Function ---
-
 
 // Basic styling to integrate better with Ant Design
 const mentionsInputStyle = {
@@ -110,19 +37,33 @@ const mentionsInputStyle = {
   suggestions: {
     list: {
       backgroundColor: 'white',
-      border: '1px solid rgba(0,0,0,0.15)',
+      border: '1px solid #d9d9d9',
+      borderRadius: '4px',
+      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
       fontSize: 14,
-      maxHeight: 200,
+      maxHeight: 250,
       overflowY: 'auto' as const,
+      marginTop: '8px',
+      zIndex: 1050,
     },
     item: {
-      padding: '5px 15px',
-      borderBottom: '1px solid rgba(0,0,0,0.15)',
+      padding: '8px 12px',
+      transition: 'background-color 0.3s',
+      cursor: 'pointer',
       '&focused': {
-        backgroundColor: '#f0f0f0', // Ant Design hover color
+        backgroundColor: '#e6f7ff', // Ant Design primary color with low opacity
+        color: '#1890ff', // Ant Design primary color
       },
     },
   },
+};
+
+// Custom style for suggestion items
+const mentionItemStyle = {
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  width: '100%',
 };
 
 interface GenerateNodeFormProps {
@@ -132,29 +73,22 @@ interface GenerateNodeFormProps {
 }
 
 const GenerateNodeForm: React.FC<GenerateNodeFormProps> = (props) => {
-  const { selectedNode,  } = props; // Destructure new props
-
-  const edges = useEdges();
-  const nodes = useNodes<FlowNode>();
+  const { selectedNode } = props;
 
   const [loading, setLoading] = useState(false);
   const [models, setModels] = useState<{ id: string, name: string, displayName: string, providerId: string }[]>([]);
   const [providers, setProviders] = useState<{ id: string, name: string, models: any[] }[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  // Calculate predecessor variables dynamically
-  const dynamicVariables = useMemo(() => {
-    if (!selectedNode || !nodes || !edges) {
-      return [];
-    }
-    return findPredecessorVariables(selectedNode.id, nodes, edges);
-  }, [selectedNode, nodes, edges]);
+  // Use our new hook to get variables
+  const { predecessorVariables } = usePredecessorNodes(selectedNode.id);
 
-  // Combine static and dynamic variables
-  const allVariables = useMemo(() => [
-    ...staticSystemVariables,
-    ...dynamicVariables
-  ], [dynamicVariables]);
+  // Use predecessor variables directly
+  const allVariables: {
+    id: string;
+    display: string;
+  }[] = useMemo(() => [...predecessorVariables], [predecessorVariables]);
+  console.log(allVariables);
 
   useEffect(() => {
     const loadModels = async () => {
@@ -240,6 +174,8 @@ const GenerateNodeForm: React.FC<GenerateNodeFormProps> = (props) => {
         )}
       </Form.Item>
 
+      <RoleSelector />
+
       <Collapse
         defaultActiveKey={['prompt', 'output']}
         bordered={false}
@@ -273,11 +209,24 @@ const GenerateNodeForm: React.FC<GenerateNodeFormProps> = (props) => {
                 trigger="@" // Use @ to trigger suggestions
                 data={allVariables} // Provide the variable data
                 markup="{{__id__}}" // Define how the mention is inserted (using Ant Design variable style)
-                displayTransform={(id: any) => `@${id}`} // How it looks in the suggestion list
+                displayTransform={(id: string) => {
+                  // Find the variable with this id to get its display name
+                  const variable = allVariables.find(v => v.id === id);
+                  return `@${variable ? variable.display : id}`;
+                }} // Show display name in mentions
                 style={{ backgroundColor: '#e6f7ff' }} // Style for the highlighted mention
                 appendSpaceOnAdd={true} // Add a space after inserting a mention
+                renderSuggestion={(suggestion: SuggestionDataItem) => (
+                  <div style={mentionItemStyle}>
+                    <div>
+                      <b>{suggestion.display}</b>
+                    </div>
+                    <div style={{ color: '#8c8c8c', fontSize: '0.85em', marginLeft: '8px' }}>
+                      {suggestion.id}
+                    </div>
+                  </div>
+                )}
               />
-              {/* Add more <Mention> components here for different triggers or data sources if needed */}
             </MentionsInput>
           </Form.Item>
           <div style={{ fontSize: '0.9em', color: '#888', marginTop: 8 }}>

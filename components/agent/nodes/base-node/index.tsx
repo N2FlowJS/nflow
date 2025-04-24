@@ -1,104 +1,78 @@
 import React, { memo } from "react";
 import { Handle, Position } from "@xyflow/react";
-import { NodeData } from "../../types/flowTypes";
+import { NodeData } from "../../../../types/flowTypes";
 import NodeHeader from "./node-header";
-import {
-  LeftHandleStyle,
-  RightHandleStyle,
-  TopHandleStyle,
-  BottomHandleStyle,
-} from "./handle-icon";
-import { NODE_REGISTRY } from "@utils/server";
+import { getHandleStyle } from "./handle-icon";
+import { NODE_REGISTRY } from "@utils/client";
+import { Card } from "antd";
 
 interface BaseNodeProps {
   data: NodeData;
   id: string;
   selected: boolean;
-  handlePositions?: {
-    input?: Position;
-    output?: Position;
+  handlePositions: {
+    input: Position[];
+    output: Position[];
   };
   children?: React.ReactNode;
   icon?: React.ReactNode;
+  role?: 'developer' | 'assistant' | 'system' | 'user';
 }
 
 const BaseNode: React.FC<BaseNodeProps> = ({
   data,
   id,
   selected,
-  handlePositions = {
-    input: Position.Top,
-    output: Position.Bottom,
-  },
+  handlePositions,
   children,
   icon,
+  role,
 }) => {
-  // Get the node configuration from the registry
   const nodeConfig = NODE_REGISTRY[data.type];
 
-  // Select appropriate handle styles based on position
-  const getHandleStyle = (position: Position) => {
-    switch (position) {
-      case Position.Left:
-        return LeftHandleStyle;
-      case Position.Right:
-        return RightHandleStyle;
-      case Position.Top:
-        return TopHandleStyle;
-      case Position.Bottom:
-        return BottomHandleStyle;
-      default:
-        return BottomHandleStyle;
-    }
-  };
-
-  const inputHandleStyle = handlePositions.input
-    ? getHandleStyle(handlePositions.input)
-    : undefined;
-  const outputHandleStyle = handlePositions.output
-    ? getHandleStyle(handlePositions.output)
-    : undefined;
-
   return (
-    <div
+    <Card
       style={{
-        borderColor: selected ? nodeConfig.color.border : "#d9d9d9",
-        borderWidth: selected ? "2px" : "1px",
-        backgroundColor: nodeConfig.color.background,
-        padding: "8px",
-        borderRadius: "4px",
-        width: "240px",
-        boxShadow: selected ? "0 0 10px rgba(0, 0, 0, 0.15)" : "none",
+        borderStyle: "solid",
+        borderColor: selected ? (nodeConfig?.color.border || '#888888') : "#e0e0e0",
+        borderWidth: "1px",
+        borderRadius: "6px",
+        backgroundColor: nodeConfig?.color.background || "#888888",
+        boxShadow: "none",
       }}
     >
-      <NodeHeader 
-        id={id} 
-        name={data.form?.name} 
-        label={data.label} 
-        type={data.type} 
+      <NodeHeader
+        id={id}
+        name={data.form?.name}
+        type={data.type}
         icon={icon}
+        role={role}
       />
-
-      {children}
-
-      {handlePositions.input && (
+      {children && (
+        <div style={{ padding: "10px 0" }}>
+          {children}
+        </div>
+      )}
+      {handlePositions.input.flatMap((position: Position) => (
         <Handle
+          key={`in-${position}`}
           type="target"
-          position={handlePositions.input}
-          style={inputHandleStyle}
-          id="in"
+          position={position}
+          style={getHandleStyle && getHandleStyle(position, 'target')}
+          id={`in-${position}`}
         />
-      )}
+      ))}
 
-      {handlePositions.output && (
+      {handlePositions.output.flatMap((position) => (
         <Handle
+          key={`out-${position}`}
           type="source"
-          position={handlePositions.output}
-          style={outputHandleStyle}
-          id="out"
+          position={position}
+          style={getHandleStyle && getHandleStyle(position, 'source')}
+          id={`out-${position}`}
         />
-      )}
-    </div>
+      ))}
+    </Card>
   );
 };
 

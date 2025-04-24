@@ -1,7 +1,7 @@
 import React from "react";
 import { Flex, Typography, Tag, Divider } from "antd";
 import { StarOutlined } from "@ant-design/icons";
-import { ICategory } from "../../types/flowTypes";
+import { ICategory } from "../../../../types/flowTypes";
 
 interface DefaultCategoryProps {
   category: ICategory;

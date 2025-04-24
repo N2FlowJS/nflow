@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { 
   Table, Card, Button, Space, Tag, 
-  Breadcrumb, Typography, message, Spin,
+  Breadcrumb, // Keep Breadcrumb import
+  Typography, message, Spin,
   Select, Input, Modal
 } from 'antd';
 import { 
@@ -201,12 +202,17 @@ export default function AgentsList() {
   return (
     <MainLayout title="Agents">
       <div style={{ padding: '24px' }}>
-        <Breadcrumb style={{ marginBottom: '16px' }}>
-          <Breadcrumb.Item>
-            <Link href="/">Home</Link>
-          </Breadcrumb.Item>
-          <Breadcrumb.Item>Agents</Breadcrumb.Item>
-        </Breadcrumb>
+        <Breadcrumb
+          style={{ marginBottom: '16px' }}
+          items={[
+            {
+              title: <Link href="/">Home</Link>,
+            },
+            {
+              title: 'Agents',
+            },
+          ]}
+        />
         
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <Title level={2}>Agents</Title>

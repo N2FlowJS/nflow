@@ -19,6 +19,24 @@ const FlowEditorHeader: React.FC<FlowEditorHeaderProps> = ({
   agent,
 
 }) => {
+  const breadcrumbItems = [
+    {
+      title: <Link href="/">Home</Link>,
+    },
+    {
+      title: <Link href="/agent">Agents</Link>,
+    },
+  ];
+
+  if (agent) {
+    breadcrumbItems.push({
+      title: <Link href={`/agent/${agent.id}`}>{agent.name}</Link>,
+    });
+  }
+
+  breadcrumbItems.push({
+    title: <span >Flow Editor</span>,
+  });
 
   return (
     <div
@@ -29,22 +47,9 @@ const FlowEditorHeader: React.FC<FlowEditorHeaderProps> = ({
       }}
     >
       <Space style={{ width: "100%", justifyContent: "space-between" }}>
-        <Breadcrumb>
-          <Breadcrumb.Item>
-            <Link href="/">Home</Link>
-          </Breadcrumb.Item>
-          <Breadcrumb.Item>
-            <Link href="/agent">Agents</Link>
-          </Breadcrumb.Item>
-          {agent && (
-            <Breadcrumb.Item>
-              <Link href={`/agent/${agent.id}`}>{agent.name}</Link>
-            </Breadcrumb.Item>
-          )}
-          <Breadcrumb.Item>Flow Editor</Breadcrumb.Item>
-        </Breadcrumb>
+        <Breadcrumb items={breadcrumbItems} />
 
-       
+
       </Space>
     </div>
   );
