@@ -1,8 +1,8 @@
 import { FlowNode, CategorizeNodeData, ICategory } from '../../../../types/flowTypes';
 import { ExecutionResult, FlowExecutionContext } from '../../../../types/flowExecutionTypes';
-import { getInputFromSource, getInputs } from '../../../../hooks/useInputReferences';
+import { getQueryFromSource, getInputs } from '../../../../hooks/useInputReferences';
 import { prisma } from '../../../../lib/prisma';
-import { checkReadyForComponentFlowState } from '../../checkReadyForComponentFlowState';
+import { isNodeReady } from '../../isNodeReady';
 
 /**
  * Handler for executing Categorize nodes
@@ -11,7 +11,7 @@ export async function executeCategorizeNode(node: FlowNode, { flow, flowState, i
   const data = node.data as CategorizeNodeData;
   const form = data.form || {};
 
-  const ready = checkReadyForComponentFlowState(node.id, flowState);
+  const ready = isNodeReady(node.id, flowState);
   if (!ready) {
     return {
       nextNodes: [],
@@ -39,7 +39,7 @@ export async function executeCategorizeNode(node: FlowNode, { flow, flowState, i
 
 
   // Get the input to categorize using the shared input source resolver
-  const inputToCategorize = getInputFromSource(form.inputRefs, flowState);
+  const inputToCategorize = getQueryFromSource(inputs, flowState);
 
   // Create node info object for consistent response
 

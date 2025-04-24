@@ -1,18 +1,15 @@
-import { InputReference } from '../types/flowTypes';
 import { FlowState } from '../types/flowExecutionTypes';
 
 
-export function getInputFromSource(inputRef: InputReference[] = [], flowState: FlowState): string | null {
+export function getQueryFromSource(inputRef: string[] = [], flowState: FlowState): string | null {
   let input: string[] = [];
 
   if (inputRef.length > 0) {
     // Iterate through the input source references to find the input
     for (const ref of inputRef) {
-      const { sourceNodeId, id } = ref;
-      if (sourceNodeId) {
-        const qualifiedName = `${id || sourceNodeId}`;
-        if (flowState.components[qualifiedName] !== undefined) {
-          input.push(flowState.components[qualifiedName].output);
+      if (ref) {
+        if (flowState.components[ref] !== undefined) {
+          input.push(flowState.components[ref].output);
         }
       }
     }

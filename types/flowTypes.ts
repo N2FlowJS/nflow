@@ -80,7 +80,6 @@ export interface RetrievalForm extends BaseForm {
   knowledgeIds: string[];
   maxResults: number;
   threshold: number;
-  outputFormat?: 'text' | 'json' | 'citations'; // Format for retrieval results
 
 }
 

@@ -299,9 +299,9 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                     executionStatus = {
                         status: jsonData.choices?.[0]?.finish_reason === 'error' ? 'error' :
                             jsonData.choices?.[0]?.finish_reason ? 'completed' : 'in_progress',
-                        nodeId: jsonData.flowState.currentNodeId,
-                        nodeName: jsonData.flowState.currentNodeName,
-                        nodeType: jsonData.nodeInfo.type,
+                        nodeId: jsonData.flowState.currentNode.id,
+                        nodeName: jsonData.flowState.currentNode.data.form.name,
+                        nodeType: jsonData.flowState.currentNode.type,
                     };
                     sender = jsonData.nodeInfo.role || 'assistant'; // Use role from nodeInfo if available
                 }
@@ -390,9 +390,9 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                 executionStatus: {
                     status: result.choices?.[0]?.finish_reason === 'error' ? 'error' :
                         result.choices?.[0]?.finish_reason ? 'completed' : 'in_progress',
-                    nodeId: result.flowState.currentNodeId,
-                    nodeName: result.flowState.currentNodeName,
-                    nodeType: result.nodeInfo.type,
+                    nodeId: result.flowState.currentNode.id,
+                    nodeName: result.flowState.currentNode.data.form.name,
+                    nodeType: result.flowState.currentNode.type,
                 }
             };
 
@@ -495,7 +495,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                         <div className={styles.nodeStatus}>
                             <Tooltip title="Current node in the flow">
                                 <Typography.Text type="secondary" style={{ fontSize: '12px' }}>
-                                    Node: {flowState.currentNodeName || flowState.currentNodeId || 'None'}
+                                    Node: {flowState.currentNode.data.form.name || flowState.currentNode.id || 'None'}
                                 </Typography.Text>
                             </Tooltip>
                         </div>

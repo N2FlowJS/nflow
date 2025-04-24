@@ -3,7 +3,8 @@ import { ExecutionResult, FlowExecutionContext } from '../../../../types/flowExe
 import { getInputFromTemplate, processTemplate } from '../../templateProcessor';
 import { findNextNodes } from '@utils/server/findNextNode';
 import { prisma } from '../../../../lib/prisma';
-import { checkReadyForComponentFlowState } from '../../checkReadyForComponentFlowState';
+import { isNodeReady } from '../../isNodeReady';
+import { MessagePart } from '../../../../types/MessagePart';
 
 /**
  * Handler for executing Generate nodes
@@ -11,7 +12,7 @@ import { checkReadyForComponentFlowState } from '../../checkReadyForComponentFlo
 export async function executeGenerateNode(node: FlowNode, { flow, flowState, input }: FlowExecutionContext, callback?: (result: ExecutionResult) => void): Promise<ExecutionResult> {
   const data = node.data as GenerateNodeData;
   const form = data.form || {};
-  const ready = checkReadyForComponentFlowState(node.id, flowState);
+  const ready = isNodeReady(node.id, flowState);
   if (!ready) {
     return {
       nextNodes: [],
@@ -34,19 +35,30 @@ export async function executeGenerateNode(node: FlowNode, { flow, flowState, inp
   }
 
 
-  const inputs = getInputFromTemplate(form.prompt);
+  const inputs: string[] = getInputFromTemplate(form.prompt);
+
+  const vars: Record<string, string> = {};
+  inputs.forEach((key) => {
+
+    if (flowState.components[key] !== undefined) {
+      vars[key] = flowState.components[key].output || "";
+    }
+
+  });
+
   try {
-    // Enhance variables with context before processing prompt
-    const enhancedVariables = {
-      ...flowState.variables,
-      // Make retrieved context and user input directly available in the prompt template
-      context: flowState.variables.retrievalContext || '',
-      question: flowState.variables.lastUserInput || flowState.variables.userInput || '',
-    };
 
-    // Process the prompt template with enhanced variables
-    const prompt = processTemplate(form.prompt || '', enhancedVariables);
-
+    const prompt = processTemplate(form.prompt || '', vars);
+    const message: MessagePart[] = [
+      {
+        role: 'system',
+        content: prompt,
+      },
+      {
+        role: 'user',
+        content: flowState.variables.userInput.content || 'nothing',
+      }
+    ]
 
     // Get model ID
     const modelId = form.model;
@@ -66,11 +78,10 @@ export async function executeGenerateNode(node: FlowNode, { flow, flowState, inp
     try {
       switch (model.provider.providerType) {
         case 'openai':
-          aiResponse = await callOpenAIAPI(model.provider, model, prompt);
+          aiResponse = await callOpenAIAPI(model.provider, model, message);
           break;
-
         case 'openai-compatible':
-          aiResponse = await callCustomAPI(model.provider, model, prompt);
+          aiResponse = await callCustomAPI(model.provider, model, message);
           break;
         default:
           return {
@@ -131,7 +142,7 @@ export async function executeGenerateNode(node: FlowNode, { flow, flowState, inp
 /**
  * Call the OpenAI API
  */
-async function callOpenAIAPI(provider: any, model: any, prompt: string, options?: any): Promise<string> {
+async function callOpenAIAPI(provider: any, model: any, message: MessagePart[], options?: any): Promise<string> {
   const response = await fetch(provider.endpointUrl + 'chat/completions', {
     method: 'POST',
     headers: {
@@ -140,7 +151,7 @@ async function callOpenAIAPI(provider: any, model: any, prompt: string, options?
     },
     body: JSON.stringify({
       model: model.name,
-      messages: [{ role: 'user', content: prompt }],
+      messages: message,
       temperature: options?.temperature || 0.7,
       max_tokens: options?.maxTokens,
       top_p: options?.topP,
@@ -162,7 +173,7 @@ async function callOpenAIAPI(provider: any, model: any, prompt: string, options?
 /**
  * Call a custom API endpoint
  */
-async function callCustomAPI(provider: any, model: any, prompt: string): Promise<string> {
+async function callCustomAPI(provider: any, model: any, message: MessagePart[]): Promise<string> {
   // Prepare request body based on provider configuration
 
   const response = await fetch(provider.endpointUrl + 'chat/completions', {
@@ -175,7 +186,8 @@ async function callCustomAPI(provider: any, model: any, prompt: string): Promise
 
     body: JSON.stringify({
       model: model.name,
-      messages: [{ role: 'user', content: prompt }],
+      messages: message,
+
     }),
   });
   if (!response.ok) {

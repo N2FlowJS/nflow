@@ -1,6 +1,6 @@
 import { Flow } from '../../../types/flowTypes';
 import { EXECUTION_STATUS } from '@utils/server/EXECUTION_STATUS';
-import { ExecutionResult, FlowState } from '../../../types/flowExecutionTypes';
+import { ExecutionResult } from '../../../types/flowExecutionTypes';
 import { processNode } from './processNode';
 
 
@@ -10,9 +10,6 @@ export async function continueExecution(flow: Flow, result: ExecutionResult, cal
 
   for (const nodeId of result.nextNodes) {
     let nextResult = await processNode(flow, nodeId, result, callback);
-
-    console.log('continueExecution result', nextResult.nextNodes);
-
     if (
       nextResult.status !== EXECUTION_STATUS.COMPLETED &&
       nextResult.nextNodes.length > 0

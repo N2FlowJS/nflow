@@ -1,6 +1,6 @@
 import { Flow, FlowState, ExecutionResult } from '../../../types';
 import { MessagePart } from '../../../types/MessagePart';
-import { executeNode } from './node';
+import { executeNode } from './node/executeNode';
 
 export async function executeCurrentNode(
   flow: Flow,

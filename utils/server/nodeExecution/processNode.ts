@@ -1,5 +1,5 @@
 import { Flow, ExecutionResult } from '../../../types';
-import { executeNode } from './node';
+import { executeNode } from './node/executeNode';
 import { EXECUTION_STATUS } from '../EXECUTION_STATUS';
 
 export async function processNode(

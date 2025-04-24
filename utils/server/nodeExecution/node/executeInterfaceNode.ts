@@ -1,7 +1,6 @@
 import { FlowNode, InterfaceNodeData } from '../../../../types/flowTypes';
 import { ExecutionResult, FlowExecutionContext } from '../../../../types/flowExecutionTypes';
 import { findNextNodes } from '@utils/server/findNextNode';
-import { log } from 'console';
 
 /**
  * Handler for executing Interface nodes

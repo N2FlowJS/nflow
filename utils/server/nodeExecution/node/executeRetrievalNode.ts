@@ -2,19 +2,18 @@ import { FlowNode, RetrievalNodeData, InputReference } from '../../../../types/f
 import { ExecutionResult, ExecutionStatusType, FlowExecutionContext } from '../../../../types/flowExecutionTypes';
 import { retrieveFromKnowledgeBase } from '../../../../services/knowledgeService';
 import { findNextNodes } from '@utils/server/findNextNode';
-import { getInputFromSource } from '../../../../hooks/useInputReferences';
-import { checkReadyForComponentFlowState } from '../../checkReadyForComponentFlowState';
+import { getQueryFromSource, getInputs } from '../../../../hooks/useInputReferences';
+import { isNodeReady } from '../../isNodeReady';
 
 /**
  * Handler for executing Retrieval nodes
  */
-export async function executeRetrievalNode(node: FlowNode, context: FlowExecutionContext): Promise<ExecutionResult> {
-  const { flow, flowState, input } = context;
+export async function executeRetrievalNode(node: FlowNode, { flow, flowState, input }: FlowExecutionContext): Promise<ExecutionResult> {
   const data = node.data as RetrievalNodeData;
   const startTime = new Date().toISOString();
   // Ensure form exists with a default empty object to prevent TypeScript errors
   const form = data.form || {};
-  const ready = checkReadyForComponentFlowState(node.id, flowState);
+  const ready = isNodeReady(node.id, flowState);
   if (!ready) {
     return {
       nextNodes: [],
@@ -32,91 +31,26 @@ export async function executeRetrievalNode(node: FlowNode, context: FlowExecutio
         nodeId: node.id,
         nodeName: node.data?.label || node.id,
         startTime,
+        endTime: new Date().toISOString(),
       },
     };
   }
 
 
+  const inputs = getInputs(node.id, flowState, []);
 
   // Get the query - prioritize lastUserInput if available
-  let query = getInputFromSource(form.inputRefs, flowState) || input.content;
-  console.log(query, 'query from input source');
+  const query = getQueryFromSource(inputs, flowState) || input.content;
   if (!query) throw new Error('No query available for retrieval');
 
-  // Fallback to userInput if needed
-  if (!query && flowState.variables.userInput) {
-    query = flowState.variables.userInput;
-  }
-
-  if (!query) {
-    return {
-      nextNodes: [],
-      status: 'error',
-      message: 'No query available for retrieval',
-      flowState,
-      nodeInfo: {
-        id: node.id,
-        name: node.data?.form?.name || node.id,
-        type: 'retrieval',
-        role: 'developer',
-      },
-      execution: {
-        startTime,
-        nodeId: node.id,
-        nodeName: node.data?.form?.name || node.id,
-        endTime: new Date().toISOString(),
-        output: 'No query available for retrieval',
-      },
-    };
-  }
 
   try {
-    // Get knowledge base IDs and max results - add null checks
     const knowledgeIds = form.knowledgeIds || [];
     const maxResults = form.maxResults || 3;
 
-    if (knowledgeIds.length === 0) {
-      return {
-        nextNodes: [],
-        status: 'error',
-        message: 'No knowledge bases specified',
-        flowState,
-        nodeInfo: {
-          id: node.id,
-          name: node.data?.label || node.id,
-          type: 'retrieval',
-          role: 'developer',
-        },
-        execution: {
-          startTime,
+    if (knowledgeIds.length === 0) throw new Error('No knowledge base IDs provided for retrieval');
 
-          nodeId: node.id,
-          nodeName: node.data?.label || node.id,
-          endTime: new Date().toISOString(),
-          output: 'No knowledge bases specified',
-        },
-      };
-    }
 
-    // Create execution status update
-    const progressUpdate: ExecutionResult = {
-      status: 'in_progress',
-      nextNodes: [],
-      message: `Retrieving information from ${knowledgeIds.length} knowledge base(s)...`,
-      flowState,
-      nodeInfo: {
-        id: node.id,
-        name: node.data?.label || node.id,
-        type: 'retrieval',
-        role: 'developer',
-      },
-      execution: {
-        nodeId: node.id,
-        nodeName: node.data?.label || node.id,
-        startTime: new Date().toISOString(),
-        output: `Retrieving information from ${knowledgeIds.length} knowledge base(s)...`,
-      },
-    };
 
     // Retrieve information from knowledge bases
     const retrievalResults = await Promise.all(
@@ -134,13 +68,8 @@ export async function executeRetrievalNode(node: FlowNode, context: FlowExecutio
     // Format the results based on the outputFormat setting
     let formattedResults: string;
 
-    if (form.outputFormat === 'json') {
-      formattedResults = JSON.stringify(allResults, null, 2);
-    } else if (form.outputFormat === 'citations') {
-      formattedResults = allResults.map((result, index) => `${result.text} [${index + 1}]`).join('\n\n') + '\n\nSources:\n' + allResults.map((result, index) => `[${index + 1}] ${result.source}`).join('\n');
-    } else {
-      formattedResults = allResults.map((result, index) => `[${index + 1}] ${result.text}\nSource: ${result.source}`).join('\n\n');
-    }
+    formattedResults = allResults.map((result, index) => `[${index + 1}] ${result.text}\nSource: ${result.source}`).join('\n\n');
+
 
     flowState.components[node.id]['output'] = formattedResults;
     flowState.components[node.id]['type'] = 'retrieval';
@@ -164,31 +93,12 @@ export async function executeRetrievalNode(node: FlowNode, context: FlowExecutio
       execution: {
         nodeId: node.id,
         nodeName: node.data?.form?.name || node.id,
-        startTime: progressUpdate.execution?.startTime,
+        startTime: startTime,
         endTime: new Date().toISOString(),
         output: formattedResults,
       },
     };
   } catch (error) {
-    console.error('Error in retrieval node:', error);
-    return {
-      nextNodes: [],
-      status: 'error',
-      message: `Error retrieving information: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      flowState,
-      nodeInfo: {
-        id: node.id,
-        name: node.data?.label || node.id,
-        type: 'retrieval',
-        role: 'developer',
-      },
-      execution: {
-        startTime,
-        nodeId: node.id,
-        nodeName: node.data?.label || node.id,
-        endTime: new Date().toISOString(),
-        output: `Error retrieving information: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      },
-    };
+    throw new Error(`Error in retrieval node: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }

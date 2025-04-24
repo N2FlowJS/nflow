@@ -21,8 +21,7 @@ export async function executeFlow(
     console.log('continueFlow result', result.nextNodes);
     if (status.includes(result.status)) await continueExecution(flow, result, callback);
   } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    throw new Error(`Error in continueFlow: ${errorMessage}`);
+    throw new Error(`Error in continueFlow: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
 

@@ -107,8 +107,7 @@ export async function searchSimilarContent(vector: number[], filter?: any, limit
     }
 
     const result = await response.json();
-  console.log(`NBase search response:`, result);
-  
+
     // Format the results to match the expected structure
     if (!result.results || !Array.isArray(result.results)) {
       console.warn('NBase returned unexpected response format:', result);
