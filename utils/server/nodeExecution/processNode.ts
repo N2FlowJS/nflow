@@ -17,7 +17,7 @@ export async function processNode(
       content: prevResult.execution.output,
       role: prevResult.nodeInfo.role,
     },
-  });
+  }, callback);
 
   if (nextResult.execution.output) {
     nextResult.flowState.history.push({

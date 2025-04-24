@@ -32,6 +32,7 @@
     "multer": "^1.4.5-lts.2",
     "next": "15.3.0",
     "next-auth": "^4.24.11",
+    "openai": "^4.96.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-markdown": "^10.1.0",

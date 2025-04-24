@@ -14,7 +14,7 @@ export async function executeFlow(
 ): Promise<void> {
   try {
     const preparedState = await prepareFlowState(flowState);
-    const result = await executeCurrentNode(flow, preparedState, input);
+    const result = await executeCurrentNode(flow, preparedState, input, callback);
     callback(result);
     const status: ExecutionStatus[] = ['in_progress', 'completed', 'error'];
     if (status.includes(result.status)) await continueExecution(flow, result, callback);

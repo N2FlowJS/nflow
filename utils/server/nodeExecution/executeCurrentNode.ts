@@ -5,8 +5,10 @@ import { executeNode } from './node/executeNode';
 export async function executeCurrentNode(
   flow: Flow,
   flowState: FlowState,
-  input: MessagePart): Promise<ExecutionResult> {
-  const result = await executeNode(flowState.currentNode, { flow, flowState, input });
+  input: MessagePart,
+  callback?: (result: ExecutionResult) => void
+): Promise<ExecutionResult> {
+  const result = await executeNode(flowState.currentNode, { flow, flowState, input }, callback);
   if (result.execution.output) {
     result.flowState.history.push({
       nodeId: result.nodeInfo.id,

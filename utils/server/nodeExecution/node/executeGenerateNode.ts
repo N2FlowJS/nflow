@@ -5,6 +5,7 @@ import { findNextNodes } from '@utils/server/findNextNode';
 import { prisma } from '../../../../lib/prisma';
 import { isNodeReady } from '../../isNodeReady';
 import { MessagePart } from '../../../../types/MessagePart';
+import OpenAI from 'openai';
 
 /**
  * Handler for executing Generate nodes
@@ -75,36 +76,55 @@ export async function executeGenerateNode(node: FlowNode, { flow, flowState, inp
     if (!model.provider) throw new Error('Provider not found for this model');
 
     let aiResponse = '';
-    try {
-      switch (model.provider.providerType) {
-        case 'openai':
-          aiResponse = await callOpenAIAPI(model.provider, model, message);
-          break;
-        case 'openai-compatible':
-          aiResponse = await callCustomAPI(model.provider, model, message);
-          break;
-        default:
-          return {
-            nextNodes: [],
-            status: 'error',
-            message: `Unsupported provider type: ${model.provider.providerType}`,
-            flowState,
-            nodeInfo: {
-              id: node.id,
-              name: node.data?.label || node.id,
-              type: 'generate',
-              role: 'developer',
-            },
-            execution: {
-              output: `Unsupported provider type: ${model.provider.providerType}`,
-              nodeId: node.id,
-              nodeName: node.data?.label || node.id,
-              startTime: new Date().toISOString(),
-            },
-          };
+    // Tạo callback cho stream (nếu có)
+    const streamCallback = callback
+      ? (partial: string) => {
+        callback({
+          status: 'waiting',
+          nextNodes: [],
+          flowState,
+          nodeInfo: {
+            id: node.id,
+            name: node.data?.label || node.id,
+            type: 'generate',
+            role: 'assistant',
+          },
+          execution: {
+            output: partial,
+            nodeId: node.id,
+            nodeName: node.data?.label || node.id,
+            startTime: new Date().toISOString(),
+          },
+        });
       }
-    } catch (error) {
-      throw new Error(`Error calling API: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      : undefined;
+
+    switch (model.provider.providerType) {
+      case 'openai':
+        aiResponse = await callOpenAIAPI(model.provider, model, message, undefined, streamCallback);
+        break;
+      case 'openai-compatible':
+        aiResponse = await callCustomAPI(model.provider, model, message, undefined, streamCallback);
+        break;
+      default:
+        return {
+          nextNodes: [],
+          status: 'error',
+          message: `Unsupported provider type: ${model.provider.providerType}`,
+          flowState,
+          nodeInfo: {
+            id: node.id,
+            name: node.data?.label || node.id,
+            type: 'generate',
+            role: 'developer',
+          },
+          execution: {
+            output: `Unsupported provider type: ${model.provider.providerType}`,
+            nodeId: node.id,
+            nodeName: node.data?.label || node.id,
+            startTime: new Date().toISOString(),
+          },
+        };
     }
 
     flowState.components[node.id]['output'] = aiResponse;
@@ -142,59 +162,97 @@ export async function executeGenerateNode(node: FlowNode, { flow, flowState, inp
 /**
  * Call the OpenAI API
  */
-async function callOpenAIAPI(provider: any, model: any, message: MessagePart[], options?: any): Promise<string> {
-  const response = await fetch(provider.endpointUrl + 'chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${provider.apiKey}`,
-    },
-    body: JSON.stringify({
-      model: model.name,
-      messages: message,
-      temperature: options?.temperature || 0.7,
-      max_tokens: options?.maxTokens,
-      top_p: options?.topP,
-      frequency_penalty: options?.frequencyPenalty,
-      presence_penalty: options?.presencePenalty,
-      ...(options?.stop && { stop: options.stop }),
-    }),
+async function callOpenAIAPI(
+  provider: any,
+  model: any,
+  message: MessagePart[],
+  options?: any,
+  callback?: (result: string) => void
+): Promise<string> {
+  const openai = new OpenAI({
+    apiKey: provider.apiKey,
+    baseURL: provider.endpointUrl,
   });
 
-  if (!response.ok) {
-    const errorData = await response.text();
-    throw new Error(`OpenAI API error (${response.status}): ${errorData}`);
-  }
+  const params: OpenAI.Chat.ChatCompletionCreateParams = {
+    model: model.name,
+    messages: message as OpenAI.Chat.ChatCompletionMessageParam[],
+    temperature: options?.temperature || 0.7,
+    max_tokens: options?.maxTokens,
+    top_p: options?.topP,
+    frequency_penalty: options?.frequencyPenalty,
+    presence_penalty: options?.presencePenalty,
+    stop: options?.stop,
+    stream: !!callback,
+  };
 
-  const data = await response.json();
-  return data.choices[0].message.content;
+  if (params.stream) {
+    // Stream mode
+    const stream = await openai.chat.completions.create(params);
+    let result = '';
+
+    for await (const part of stream) {
+      const content = part.choices?.[0]?.delta?.content || '';
+      if (content) {
+        result += content;
+        callback && callback(result);
+      }
+    }
+
+    return result;
+  } else {
+    // Non-stream mode
+    const completion = await openai.chat.completions.create(params);
+    return completion.choices[0].message.content || '';
+  }
 }
 
 /**
  * Call a custom API endpoint
  */
-async function callCustomAPI(provider: any, model: any, message: MessagePart[]): Promise<string> {
-  // Prepare request body based on provider configuration
-
-  const response = await fetch(provider.endpointUrl + 'chat/completions', {
-    method: 'POST',
-
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${provider.apiKey}`,
-    },
-
-    body: JSON.stringify({
-      model: model.name,
-      messages: message,
-
-    }),
+async function callCustomAPI(
+  provider: any,
+  model: any,
+  message: MessagePart[],
+  options?: any,
+  callback?: (result: string) => void
+): Promise<string> {
+  const openai = new OpenAI({
+    apiKey: provider.apiKey,
+    baseURL: provider.endpointUrl,
   });
-  if (!response.ok) {
-    const errorData = await response.text();
-    throw new Error(`Custom API error (${response.status}): ${errorData}`);
-  }
 
-  const data = await response.json();
-  return data.choices[0].message.content;
+  const params: OpenAI.Chat.ChatCompletionCreateParams = {
+    model: model.name,
+    messages: message as OpenAI.Chat.ChatCompletionMessageParam[],
+    temperature: options?.temperature || 0.7,
+    max_tokens: options?.maxTokens,
+    top_p: options?.topP,
+    frequency_penalty: options?.frequencyPenalty,
+    presence_penalty: options?.presencePenalty,
+    stop: options?.stop,
+    stream: !!callback,
+  };
+
+  if (params.stream) {
+    // Stream mode
+    const stream = await openai.chat.completions.create(params);
+    let result = '';
+
+    for await (const part of stream) {
+      const content = part.choices?.[0]?.delta?.content || '';
+      if (content) {
+        result += content;
+        callback && callback(result);
+      }
+    }
+
+    return result;
+  } else {
+    // Non-stream mode
+    const completion = await openai.chat.completions.create(params);
+    return completion.choices[0].message.content || '';
+  }
 }
+
+
