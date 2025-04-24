@@ -8,8 +8,6 @@ export async function prepareFlowState(flowState: FlowState): Promise<FlowState>
       component.output = "";
       component.ready = ['interface', 'begin'].includes(component.type) ? true : false;
     }
-  }
-  console.log('prepareFlowState', flowState.components);
-  
+  }  
   return flowState;
 }

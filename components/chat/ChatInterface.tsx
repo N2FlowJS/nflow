@@ -267,14 +267,14 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
     // Helper function to process each chunk of the stream
     // Now returns the updated text and completion status
-    const processStreamChunk = useCallback((chunk: string, currentText: string): {  sender: ISender, updatedText: string, isDone: boolean, executionStatus?: MessageType['executionStatus'] } => {
+    const processStreamChunk = useCallback((chunk: string, currentText: string): { sender: ISender, updatedText: string, isDone: boolean, executionStatus?: MessageType['executionStatus'] } => {
         const lines = chunk.split('\n\n')
             .filter(line => line.trim() !== '' && line.startsWith('data: '));
 
         let isDone = false;
         let updatedText = currentText;
         let executionStatus: MessageType['executionStatus'] | undefined = undefined;
-        let sender:ISender= 'developer'; // Default sender
+        let sender: ISender = 'developer'; // Default sender
         for (const line of lines) {
             if (line.includes('data: [DONE]')) {
                 isDone = true;
@@ -474,49 +474,87 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
     // Render the chat interface
     return (
-        <div className={styles.chatContainer}>
+        <div
+            className={styles.chatContainer}
+            style={{
+                background: 'linear-gradient(135deg, #f8fafc 0%, #e6f0fa 100%)',
+                borderRadius: 18,
+                boxShadow: '0 4px 32px rgba(24, 144, 255, 0.08)',
+                border: '1px solid #e6f0fa',
+                padding: 0,
+                minHeight: 600,
+                display: 'flex',
+                flexDirection: 'column',
+                maxWidth: 700,
+                margin: '0 auto'
+            }}
+        >
             {/* Chat header */}
-            <div className={styles.chatHeader}>
-                <Typography.Title level={5} style={{ margin: 0, display: 'flex', alignItems: 'center' }}>
+            <div
+                className={styles.chatHeader}
+                style={{
+                    background: 'rgba(255,255,255,0.95)',
+                    borderTopLeftRadius: 18,
+                    borderTopRightRadius: 18,
+                    borderBottom: '1px solid #e6f0fa',
+                    padding: '18px 28px 12px 28px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    minHeight: 64
+                }}
+            >
+                <Typography.Title
+                    level={5}
+                    style={{
+                        margin: 0,
+                        display: 'flex',
+                        alignItems: 'center',
+                        fontWeight: 700,
+                        fontSize: 20,
+                        letterSpacing: 0.2
+                    }}
+                >
                     <Avatar
                         icon={<RobotOutlined />}
                         style={{
                             backgroundColor: '#1890ff',
-                            marginRight: 8
+                            marginRight: 12,
+                            boxShadow: '0 2px 8px rgba(24,144,255,0.12)'
                         }}
+                        size={40}
                     />
                     Chat with Agent
-
-
                 </Typography.Title>
-
-                <div className={styles.headerActions}>
+                <div className={styles.headerActions} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     {flowState && (
-                        <div className={styles.nodeStatus}>
+                        <div className={styles.nodeStatus} style={{ marginRight: 16 }}>
                             <Tooltip title="Current node in the flow">
-                                <Typography.Text type="secondary" style={{ fontSize: '12px' }}>
+                                <Typography.Text type="secondary" style={{ fontSize: '13px', fontWeight: 500 }}>
                                     Node: {flowState.currentNode.data.form.name || flowState.currentNode.id || 'None'}
                                 </Typography.Text>
                             </Tooltip>
                         </div>
                     )}
-
-
-                    {/* Streaming controls */}
                     {streamingMessage && (
                         <Button
                             icon={isStreamingPaused ? <SendOutlined /> : <StopOutlined />}
                             onClick={toggleStreamingPause}
                             size="small"
-                            style={{ marginRight: 8 }}
+                            style={{
+                                marginRight: 8,
+                                borderRadius: 16,
+                                border: 'none',
+                                background: isStreamingPaused ? '#e6f7ff' : '#fff1f0',
+                                color: isStreamingPaused ? '#1890ff' : '#ff4d4f',
+                                fontWeight: 600
+                            }}
                             type={isStreamingPaused ? "default" : "primary"}
                             shape="round"
                         >
                             {isStreamingPaused ? 'Resume' : 'Pause'}
                         </Button>
                     )}
-
-                    {/* New chat button */}
                     <Tooltip title="Start a new conversation">
                         <Button
                             icon={<ReloadOutlined />}
@@ -524,20 +562,33 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                             size="small"
                             type="default"
                             shape="round"
+                            style={{
+                                borderRadius: 16,
+                                border: 'none',
+                                background: '#f5faff',
+                                color: '#1890ff',
+                                fontWeight: 600
+                            }}
                         >
                             New Chat
                         </Button>
                     </Tooltip>
                 </div>
             </div>
-
-            <Divider style={{ margin: '0 0 8px 0' }} />
-
-            {/* Debug info bar - using component from DebugPanel */}
-
-
+            <Divider style={{ margin: '0 0 8px 0', borderColor: '#e6f0fa' }} />
             {/* Messages container */}
-            <div className={styles.messagesContainer}>
+            <div
+                className={styles.messagesContainer}
+                style={{
+                    flex: 1,
+                    overflowY: 'auto',
+                    padding: '24px 32px 8px 32px',
+                    background: 'rgba(255,255,255,0.85)',
+                    borderRadius: 0,
+                    minHeight: 320,
+                    maxHeight: 480
+                }}
+            >
                 {messages.length === 0 && !streamingMessage ? (
                     <div className={styles.emptyStateContainer}>
                         <Empty
@@ -620,28 +671,39 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
                 <div ref={messagesEndRef} />
             </div>
-
             {/* Input container */}
-            <div className={styles.inputContainer}>
-                <div className={styles.inputWrapper}>
+            <div
+                className={styles.inputContainer}
+
+            >
+                <div className={styles.inputWrapper} style={{ display: 'flex', alignItems: 'flex-end', gap: 8 }}>
                     {/* Action buttons on the left */}
-                    <div className={styles.inputLeftActions}>
+                    <div className={styles.inputLeftActions} style={{ display: 'flex', gap: 4 }}>
                         <Tooltip title="Add emoji">
                             <Button
                                 type="text"
-                                icon={<SmileOutlined style={{ fontSize: '16px', color: '#1890ff' }} />}
+                                icon={<SmileOutlined style={{ fontSize: '18px', color: '#1890ff' }} />}
                                 className={styles.actionButton}
+                                style={{
+                                    border: 'none',
+                                    background: 'transparent',
+                                    boxShadow: 'none'
+                                }}
                             />
                         </Tooltip>
                         <Tooltip title="Upload file">
                             <Button
                                 type="text"
-                                icon={<i className="fas fa-paperclip" style={{ fontSize: '16px', color: '#1890ff' }} />}
+                                icon={<i className="fas fa-paperclip" style={{ fontSize: '18px', color: '#1890ff' }} />}
                                 className={styles.actionButton}
+                                style={{
+                                    border: 'none',
+                                    background: 'transparent',
+                                    boxShadow: 'none'
+                                }}
                             />
                         </Tooltip>
                     </div>
-
                     {/* Main input area */}
                     <Input.TextArea
                         value={inputValue}
@@ -651,12 +713,16 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                         disabled={loading}
                         className={styles.chatInput}
                         style={{
-                            borderRadius: '18px',
-                            padding: '10px 14px',
+                            borderRadius: 0, // Remove border radius
+                            padding: '10px 12px', // Reduce padding
                             resize: 'none',
-                            boxShadow: '0 2px 10px rgba(0,0,0,0.08)',
-                            border: '1px solid #e8e8e8',
-                            transition: 'all 0.3s ease'
+                            boxShadow: 'none', // Remove shadow
+                            border: 'none', // Remove border
+                            fontSize: 16,
+                            background: 'transparent', // Flat background
+                            transition: 'all 0.3s ease',
+                            flex: 1,
+                            minHeight: 44
                         }}
                         onKeyDown={e => {
                             if (e.key === 'Enter' && !e.shiftKey) {
@@ -664,18 +730,17 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                                 handleSendMessage();
                             }
                         }}
-                        onFocus={(e) => {
-                            e.target.style.boxShadow = '0 2px 12px rgba(24, 144, 255, 0.15)';
-                            e.target.style.border = '1px solid #91d5ff';
+                        onFocus={e => {
+                            e.target.style.boxShadow = 'none';
+                            e.target.style.border = 'none';
                         }}
-                        onBlur={(e) => {
-                            e.target.style.boxShadow = '0 2px 10px rgba(0,0,0,0.08)';
-                            e.target.style.border = '1px solid #e8e8e8';
+                        onBlur={e => {
+                            e.target.style.boxShadow = 'none';
+                            e.target.style.border = 'none';
                         }}
                     />
-
                     {/* Send button */}
-                    <div className={styles.inputRightActions}>
+                    <div className={styles.inputRightActions} style={{ marginLeft: 8 }}>
                         {streamingMessage ? (
                             <Button
                                 type="primary"
@@ -686,8 +751,9 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                                 size="large"
                                 className={styles.sendButton}
                                 style={{
-                                    boxShadow: '0 2px 12px rgba(255, 77, 79, 0.25)',
-                                    transition: 'all 0.3s ease'
+                                    boxShadow: 'none',
+                                    transition: 'all 0.3s ease',
+                                    border: 'none'
                                 }}
                             />
                         ) : (
@@ -700,17 +766,17 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                                 size="large"
                                 className={`${styles.sendButton} ${!isSendDisabled ? styles.sendButtonActive : ''}`}
                                 style={{
-                                    boxShadow: isSendDisabled ? 'none' : '0 4px 12px rgba(24, 144, 255, 0.35)',
-                                    transform: isSendDisabled ? 'scale(1)' : 'scale(1.05)',
-                                    transition: 'all 0.3s ease'
+                                    boxShadow: 'none',
+                                    transform: 'scale(1)',
+                                    transition: 'all 0.3s ease',
+                                    border: 'none'
                                 }}
                             />
                         )}
                     </div>
                 </div>
-
                 {/* Send hint with animation */}
-                <div className={styles.sendHintContainer}>
+                <div className={styles.sendHintContainer} style={{ marginTop: 6 }}>
                     <Typography.Text
                         className={styles.sendHint}
                         type="secondary"
@@ -720,7 +786,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                             transition: 'opacity 0.3s ease'
                         }}
                     >
-                        Press Enter to send or Shift+Enter for new line
+                        Press <b>Enter</b> to send &nbsp;|&nbsp; <b>Shift+Enter</b> for new line
                     </Typography.Text>
                 </div>
             </div>

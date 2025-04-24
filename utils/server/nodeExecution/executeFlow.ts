@@ -13,12 +13,10 @@ export async function executeFlow(
   callback: (result: ExecutionResult) => void
 ): Promise<void> {
   try {
-    console.log('continueFlow', flowState.currentNode.id);
     const preparedState = await prepareFlowState(flowState);
     const result = await executeCurrentNode(flow, preparedState, input);
     callback(result);
     const status: ExecutionStatus[] = ['in_progress', 'completed', 'error'];
-    console.log('continueFlow result', result.nextNodes);
     if (status.includes(result.status)) await continueExecution(flow, result, callback);
   } catch (error: unknown) {
     throw new Error(`Error in continueFlow: ${error instanceof Error ? error.message : String(error)}`);

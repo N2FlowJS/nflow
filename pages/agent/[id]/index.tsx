@@ -12,6 +12,11 @@ import {
   Tabs,
   Switch,
   Modal,
+  Avatar,
+  Tag,
+  Row,
+  Col,
+  Divider,
 } from "antd";
 import {
   ArrowLeftOutlined,
@@ -38,7 +43,7 @@ import { IAgent } from "../../../types/IAgent";
 import ChatInterface from "../../../components/chat/ChatInterface";
 import { useAuth } from "../../../context/AuthContext";
 
-const { Title } = Typography;
+const { Title, Text } = Typography;
 const { TabPane } = Tabs;
 
 export default function AgentDetail() {
@@ -49,7 +54,7 @@ export default function AgentDetail() {
   const [loading, setLoading] = useState(true);
   const [flowLoading, setFlowLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditing, setIsEditing] = useState(true); // Always true
   const [form] = Form.useForm();
   const [activeTab, setActiveTab] = useState("info");
 
@@ -196,225 +201,164 @@ export default function AgentDetail() {
 
   return (
     <MainLayout title={`Agent: ${agent?.name || "Detail"}`}>
-      <div style={{ padding: "24px" }}>
-        <Space direction="vertical" size="large" style={{ width: "100%" }}>
-          <Breadcrumb
-            items={[
-              {
-                title: <Link href="/">Home</Link>,
-              },
-              {
-                title: <Link href="/agent">Agents</Link>,
-              },
-              {
-                title: agent?.name || "Detail",
-              },
-            ]}
-          />
+      <div style={{ padding: '24px' }}>
+        <Breadcrumb
+          items={[
+            {
+              title: <Link href="/">Home</Link>,
+            },
+            {
+              title: <Link href="/agent">Agents</Link>,
+            },
+            {
+              title: agent?.name || "Detail",
+            },
+          ]}
+        />
 
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "flex-start", // Align items to the start for better vertical alignment
-            }}
-          >
-            <Space direction="vertical" size="small">
-              <Space align="center">
-                <RobotOutlined style={{ fontSize: "24px", color: '#1890ff' }} />
-                <Title level={2} style={{ margin: 0 }}>
-                  {agent?.name}
-                </Title>
-              </Space>
-              {/* Owner Info */}
-              <Space style={{ marginLeft: '32px' }}>
-                {agent?.ownerType === "user" ? (
-                  <Space size="small">
-                    <UserOutlined />
-                    <Typography.Text type="secondary">Owned by:</Typography.Text>
-                    <Link href={`/user/${agent.user?.id}`}>
-                      {agent.user?.name}
-                    </Link>
-                  </Space>
-                ) : (
-                  <Space size="small">
-                    <TeamOutlined />
-                    <Typography.Text type="secondary">Owned by Team:</Typography.Text>
-                    <Link href={`/team/${agent?.team?.id}`}>
-                      {agent?.team?.name}
-                    </Link>
-                  </Space>
-                )}
-              </Space>
-            </Space>
+        <Row gutter={32} align="stretch">
 
-            <Space wrap> {/* Use wrap for responsiveness */}
-              <Button
-                icon={<ArrowLeftOutlined />}
-                onClick={() => router.push("/agent")}
-              >
-                Back to List
-              </Button>
-              {isEditing ? (
-                <>
-                  <Button onClick={() => { setIsEditing(false); form.resetFields(); }}>Cancel</Button>
-                  <Button
-                    type="primary"
-                    icon={<SaveOutlined />}
-                    onClick={handleSave}
-                    loading={saving}
-                  >
-                    Save Agent Info
-                  </Button>
-                </>
-              ) : (
-                <>
-                   <Button
-                    icon={<EditOutlined />}
-                    onClick={() => setIsEditing(true)}
-                  >
-                    Edit Agent Info
-                  </Button>
-                  <Button
-                    type="primary"
-                    icon={<EditOutlined />}
-                    onClick={() =>
-                      router.push(`/agent/flow-editor?agentId=${id}`)
-                    }
-                  >
-                    Open Flow Editor
-                  </Button>
-                  <Button
-                    type="primary"
-                    danger
-                    icon={<DeleteOutlined />}
-                    onClick={confirmDelete}
-                  >
-                    Delete Agent
-                  </Button>
-                </>
-              )}
-            </Space>
-          </div>
+          <Col xs={24} md={6}>
+            <Card
 
-          <Tabs activeKey={activeTab} onChange={setActiveTab}>
-            <TabPane
-              tab={
-                <span>
-                  <InfoCircleOutlined />
-                  Agent Information
-                </span>
-              }
-              key="info"
             >
-              <Card>
-                <Form form={form} layout="vertical" disabled={!isEditing}>
+              <Row align="middle" style={{ padding: 32 }}>
+                <Col flex="none">
+                  <Avatar
+                    size={72}
+                    icon={<RobotOutlined />}
+                    style={{ background: "#1677ff", marginRight: 32 }}
+                  />
+                </Col>
+                <Col flex="auto">
+                  <Title level={2} style={{ margin: 0 }}>{agent?.name}</Title>
+                  <Typography.Text type="secondary" style={{ fontSize: 16 }}>
+                    {agent?.description}
+                  </Typography.Text>
+                  <div style={{ marginTop: 12 }}>
+                    <Tag color={agent?.isActive ? "green" : "red"}>
+                      {agent?.isActive ? "Active" : "Inactive"}
+                    </Tag>
+                    {agent?.ownerType === "user" ? (
+                      <Tag icon={<UserOutlined />} color="blue" style={{ marginLeft: 8 }}>
+                        {agent?.user?.name}
+                      </Tag>
+                    ) : (
+                      <Tag icon={<TeamOutlined />} color="gold" style={{ marginLeft: 8 }}>
+                        {agent?.team?.name}
+                      </Tag>
+                    )}
+                  </div>
+                </Col>
+
+              </Row>
+              <Divider style={{ margin: 0 }} />
+              <div style={{ padding: 32 }}>
+                <Form form={form} layout="vertical" disabled={false /* Always editable */}>
                   <Form.Item
                     name="name"
-                    label="Name"
-                    rules={[{ required: true, message: "Please enter a name" }]}
+                    label={<b>Name</b>}
+                    rules={[{ required: true }]}
                   >
-                    <Input />
+                    <Input size="large" />
                   </Form.Item>
-
                   <Form.Item
                     name="description"
-                    label="Description"
-                    rules={[
-                      { required: true, message: "Please enter a description" },
-                    ]}
+                    label={<b>Description</b>}
+                    rules={[{ required: true }]}
                   >
                     <Input.TextArea rows={4} />
                   </Form.Item>
-
-                  <Form.Item name="isActive" label="Active" valuePropName="checked">
-                    <Switch />
+                  <Form.Item name="isActive" label={<b>Status</b>} valuePropName="checked">
+                    <Switch checkedChildren="Active" unCheckedChildren="Inactive" />
                   </Form.Item>
+                  <Divider />
+                  <Row gutter={24}>
+                    <Col span={12}>
+                      <Text type="secondary">Created By</Text>
+                      <div><b>{agent?.createdBy?.name}</b></div>
+                    </Col>
+                    <Col span={12}>
+                      <Text type="secondary">Created At</Text>
+                      <div><b>{new Date(agent?.createdAt || "").toLocaleString()}</b></div>
+                    </Col>
+                    <Col span={12} style={{ marginTop: 16 }}>
+                      <Text type="secondary">Last Updated</Text>
+                      <div><b>{new Date(agent?.updatedAt || "").toLocaleString()}</b></div>
+                    </Col>
+                  </Row>
+                  {/* Add Save button at the bottom */}
+                  <Row justify="space-between" style={{ marginTop: 24 }}>
 
-                  <Space direction="vertical" style={{ width: "100%" }}>
-                    <div>
-                      <strong>Created By:</strong> {agent?.createdBy?.name}
-                    </div>
-                    <div>
-                      <strong>Created At:</strong>{" "}
-                      {new Date(agent?.createdAt || "").toLocaleString()}
-                    </div>
-                    <div>
-                      <strong>Last Updated:</strong>{" "}
-                      {new Date(agent?.updatedAt || "").toLocaleString()}
-                    </div>
-                  </Space>
-                </Form>
-              </Card>
-            </TabPane>
-
-            <TabPane
-              tab={
-                <span>
-                  <CommentOutlined />
-                  Chat
-                </span>
-              }
-              key="chat"
-            >
-              <Card
-                title={
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span>Chat with Agent</span>
-                    <Space>
-                      <Switch
-                        checkedChildren={<><ThunderboltOutlined /> Streaming</>}
-                        unCheckedChildren={<><ThunderboltOutlined /> No Streaming</>}
-                        checked={enableStreaming}
-                        onChange={setEnableStreaming}
-                        disabled={flowLoading || !flowConfig} // Disable switch while loading or if no config
-                      />
-                    </Space>
-                  </div>
-                }
-              >
-                {/* Conditional Rendering for Chat Interface */}
-                {flowLoading ? (
-                  <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
-                    <Spin size="large" />
-                    <Typography.Text style={{ marginTop: 16 }}>Loading agent flow...</Typography.Text>
-                  </div>
-                ) : !flowConfig ? (
-                  <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '20px' }}>
-                    <InfoCircleOutlined style={{ fontSize: '48px', color: '#faad14', marginBottom: '16px' }}/>
-                    <Typography.Title level={4}>No Flow Configuration Found</Typography.Title>
-                    <Typography.Text type="secondary" style={{ marginBottom: '16px' }}>
-                      This agent needs a flow defined before you can chat with it.
-                    </Typography.Text>
-                    <Button
-                      type="primary"
-                      icon={<EditOutlined />}
-                      onClick={() => router.push(`/agent/flow-editor?agentId=${id}`)}
-                    >
-                      Go to Flow Editor
+                    <Button type="primary" danger icon={<DeleteOutlined />} onClick={confirmDelete}>
                     </Button>
-                  </div>
-                ) : (
-                  // Render ChatInterface only when flowConfig is loaded
-                  <ChatInterface
-                    agentId={id as string}
-                    flowConfig={flowConfig} // Pass the loaded config
-                    enableStreaming={enableStreaming}
-                    id={currentConversationId} // Pass current conversation ID
-                    onConversationCreated={handleConversationCreated}
-                    onConversationUpdated={handleConversationUpdated}
-                    onNewChatStarted={handleNewChatStarted} // Pass the new handler
-                    variables={{ // Pass relevant variables
-                      agentName: agent?.name,
-                      userDisplayName: user?.name || 'User', // Provide default
-                      // Add other necessary variables here
-                    }}
+                    <Button type="primary" icon={<SaveOutlined />} onClick={handleSave} loading={saving}>
+                      Save
+                    </Button>
+                  </Row>
+                </Form>
+              </div>
+            </Card>
+          </Col>
+          <Col xs={24} md={14} style={{ minHeight: 600 }}>
+            <Card
+              title={
+                <Space style={{ width: "100%", justifyContent: "space-between" }}>
+                  <Button
+                    icon={<EditOutlined />}
+                    onClick={() => router.push(`/agent/flow-editor?agentId=${id}`)}
+                  >
+                    Flow Editor
+                  </Button>
+                  <Typography.Text strong>Chat with Agent</Typography.Text>
+                  <Switch
+                    checkedChildren={<ThunderboltOutlined />}
+                    unCheckedChildren={<ThunderboltOutlined />}
+                    checked={enableStreaming}
+                    onChange={setEnableStreaming}
                   />
-                )}
-              </Card>
-            </TabPane>
-          </Tabs>
-        </Space>
+
+                </Space>
+              }
+            >
+              {flowLoading ? (
+                <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+                  <Spin size="large" />
+                  <Typography.Text style={{ marginTop: 16 }}>Loading agent flow...</Typography.Text>
+                </div>
+              ) : !flowConfig ? (
+                <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '20px' }}>
+                  <InfoCircleOutlined style={{ fontSize: '48px', color: '#faad14', marginBottom: '16px' }} />
+                  <Typography.Title level={4}>No Flow Configuration Found</Typography.Title>
+                  <Typography.Text type="secondary" style={{ marginBottom: '16px' }}>
+                    This agent needs a flow defined before you can chat with it.
+                  </Typography.Text>
+                  <Button
+                    type="primary"
+                    icon={<EditOutlined />}
+                    onClick={() => router.push(`/agent/flow-editor?agentId=${id}`)}
+                  >
+                    Go to Flow Editor
+                  </Button>
+                </div>
+              ) : (
+                <ChatInterface
+                  agentId={id as string}
+                  flowConfig={flowConfig}
+                  enableStreaming={enableStreaming}
+                  id={currentConversationId}
+                  onConversationCreated={handleConversationCreated}
+                  onConversationUpdated={handleConversationUpdated}
+                  onNewChatStarted={handleNewChatStarted}
+                  variables={{
+                    agentName: agent?.name,
+                    userDisplayName: user?.name || 'User',
+                  }}
+                />
+              )}
+            </Card>
+          </Col>
+        </Row>
       </div>
     </MainLayout>
   );
