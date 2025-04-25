@@ -21,7 +21,7 @@ export async function saveConversationToDatabase({ agentId, flowState, id, messa
     const title = message?.content ? `Conversation about: ${message?.content.slice(0, 50)}${message?.content.length > 50 ? '...' : ''}` : `Conversation ${new Date().toLocaleString()}`;
 
     // Optimize: Use a single transaction for creating conversation and message
-    const newConversation = await prisma.$transaction(async (tx): Promise<{ status: string; flowState: string; id: string; createdAt: Date; updatedAt: Date; title: string | null; agentId: string; lastMessageAt: Date; }> => {
+    const newConversation = await prisma.$transaction(async (tx: any): Promise<{ status: string; flowState: string; id: string; createdAt: Date; updatedAt: Date; title: string | null; agentId: string; lastMessageAt: Date; }> => {
       // Create conversation
       const conversation = await tx.conversation.create({
         data: {
@@ -63,25 +63,25 @@ export async function saveConversationToDatabase({ agentId, flowState, id, messa
       // Add user message if provided
       message?.content
         ? prisma.conversationMessage.create({
-            data: {
-              conversationId: id,
-              content: message.content,
-              role: message.role || 'user',
-            },
-          })
+          data: {
+            conversationId: id,
+            content: message.content,
+            role: message.role || 'user',
+          },
+        })
         : Promise.resolve(),
 
       // Add agent message if output is available
       flowState.history?.length > 0 && flowState.history[flowState.history.length - 1].output
         ? prisma.conversationMessage.create({
-            data: {
-              conversationId: id,
-              content: flowState.history[flowState.history.length - 1].output!,
-              role: 'agent',
-              nodeId: flowState.history[flowState.history.length - 1].nodeId,
-              nodeType: flowState.history[flowState.history.length - 1].nodeType,
-            },
-          })
+          data: {
+            conversationId: id,
+            content: flowState.history[flowState.history.length - 1].output!,
+            role: 'agent',
+            nodeId: flowState.history[flowState.history.length - 1].nodeId,
+            nodeType: flowState.history[flowState.history.length - 1].nodeType,
+          },
+        })
         : Promise.resolve(),
     ]);
 
