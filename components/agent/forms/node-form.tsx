@@ -1,5 +1,5 @@
 import React from "react";
-import { FlowNode } from "../../../models/flowTypes";
+import { FlowNode } from "@models/flowTypes";
 import BeginNodeForm from "./begin-node-form";
 import InterfaceNodeForm from "./Interface-node-form";
 import GenerateNodeForm from "./generate-node-form";

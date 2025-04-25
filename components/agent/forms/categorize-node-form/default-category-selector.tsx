@@ -1,7 +1,7 @@
 import React from "react";
 import { Form, Select, Space } from "antd";
 import { EditOutlined } from "@ant-design/icons";
-import { ICategory } from "../../../../models/flowTypes";
+import { ICategory } from "@models/flowTypes";
 
 interface DefaultCategorySelectorProps {
   categories: ICategory[];

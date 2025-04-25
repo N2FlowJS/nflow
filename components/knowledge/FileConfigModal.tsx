@@ -1,17 +1,13 @@
-import React, { useEffect } from "react";
-import {
-  Modal,
-  Form,
-  InputNumber,
-  Input,
-  Checkbox,
-  Typography,
-  Space,
-  Alert,
-} from "antd";
 import { SettingOutlined } from "@ant-design/icons";
+import {
+  Form,
+  Input,
+  InputNumber,
+  Modal,
+  Space,
+} from "antd";
+import React, { useEffect } from "react";
 
-const { Text } = Typography;
 
 interface FileConfigModalProps {
   visible: boolean;
@@ -27,7 +23,6 @@ const FileConfigModal: React.FC<FileConfigModalProps> = ({
   visible,
   onClose,
   onSave,
-  fileId,
   fileName,
   fileConfig,
   loading,

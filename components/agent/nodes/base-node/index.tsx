@@ -1,6 +1,6 @@
 import React, { memo } from "react";
 import { Handle, Position } from "@xyflow/react";
-import { NodeData } from "../../../../models/flowTypes";
+import { NodeData } from "@models/flowTypes";
 import NodeHeader from "./node-header";
 import { getHandleStyle } from "./handle-icon";
 import { NODE_REGISTRY } from "@utils/client";

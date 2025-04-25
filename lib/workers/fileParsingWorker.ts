@@ -163,16 +163,17 @@ class FileParsingWorker {
         // Update the task and file as completed
         await this.completeTask(task.id, task.file.id, fileContent);
         console.log(`Worker ${this.id}: Successfully parsed file ${task.file.originalName}`);
-      } catch (error: any) {
+      } catch (error: unknown) {
         // Mark the task as failed
-        await this.failTask(task.id, task.file.id, error.message);
-        console.error(`Worker ${this.id}: Failed to parse file ${task.file.originalName}:`, error);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        await this.failTask(task.id, task.file.id, errorMessage);
+        console.log(`Worker ${this.id}: Failed to parse file ${task.file.originalName}:`, errorMessage);
       }
 
       this.isProcessing = false;
       return true;
     } catch (error) {
-      console.error(`Worker ${this.id}: Error processing task:`, error);
+      console.log(`Worker ${this.id}: Error processing task:`, error);
       this.isProcessing = false;
       return false;
     }
@@ -201,10 +202,8 @@ class FileParsingWorker {
           // For unknown file types, try to read as text
           return this.parseTextFile(filePath);
       }
-    } catch (error: any) {
-      const errorMsg = `Failed to read file: ${error.message}`;
-      console.error(errorMsg);
-      throw new Error(errorMsg);
+    } catch (error: unknown) {
+      throw new Error(`Failed to read file: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -306,7 +305,8 @@ class FileParsingWorker {
           textContent = JSON.stringify(parsedContent);
         }
       } catch (e) {
-        // Not JSON, use as is (already text)
+        console.log(`Worker ${this.id}: Content is not JSON, using as-is`, e);
+
       }
 
       // Split content into chunks
@@ -366,6 +366,7 @@ class FileParsingWorker {
       }
     } catch (e) {
       // Not JSON, must be plain text
+      console.log(`Worker ${this.id}: Content is not JSON, defaulting to text`, e);
       contentType = 'text';
     }
 
@@ -411,7 +412,7 @@ class FileParsingWorker {
         });
 
         // Send SSE event via API endpoint
-        console.log(`Worker ${this.id}: Preparing to send completed event via API for file ${fileId} in knowledge ${file.knowledgeId}`);
+        console.log(`Worker ${this.id}: Preparing to send completed event via API for file ${updatedFile.filename} in knowledge ${file.knowledgeId}`);
         const eventData = {
           type: 'status-change',
           fileId,
@@ -494,6 +495,8 @@ class FileParsingWorker {
       }
     } catch (e) {
       // Ignore errors when fetching file info
+      console.log(`Worker ${this.id}: Error fetching file info for failure message:`, e);
+      
     }
 
     await prisma.$transaction([

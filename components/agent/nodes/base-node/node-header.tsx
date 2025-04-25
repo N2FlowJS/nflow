@@ -1,6 +1,6 @@
 import React from "react";
 import { Typography, Tooltip, Flex } from "antd";
-import { NodeTypeString } from "../../../../models/flowTypes";
+import { NodeTypeString } from "@models/flowTypes";
 import RoleIndicator from "../shared/RoleIndicator";
 
 interface NodeHeaderProps {
@@ -11,7 +11,7 @@ interface NodeHeaderProps {
   role?: 'developer' | 'assistant' | 'system' | 'user';
 }
 
-const NodeHeader: React.FC<NodeHeaderProps> = ({ id, name, type, icon, role }) => {
+const NodeHeader: React.FC<NodeHeaderProps> = ({ id, name, icon, role }) => {
   return (
     <Flex align="center" gap={8} justify="space-between">
       <Flex align="center" gap={8}>

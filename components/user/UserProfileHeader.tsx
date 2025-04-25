@@ -1,11 +1,11 @@
-import React from 'react';
-import { Card, Form, Input, Button, Typography, Space, Avatar, Row, Col, Statistic } from 'antd';
-import { UserOutlined, TeamOutlined, RobotOutlined, ApiOutlined, EditOutlined, SaveOutlined, ArrowLeftOutlined } from '@ant-design/icons';
+import { ApiOutlined, ArrowLeftOutlined, EditOutlined, RobotOutlined, SaveOutlined, TeamOutlined, UserOutlined } from '@ant-design/icons';
+import { Avatar, Button, Card, Col, Form, Input, Row, Space, Statistic, Tag, Typography } from 'antd';
 import { useRouter } from 'next/router';
+import React from 'react';
 import { IUser } from '../../models/IUser';
 import { LLMProvider } from '../../models/llm';
 
-const { Title, Paragraph } = Typography;
+const { Title, Paragraph, Text } = Typography;
 
 interface UserProfileHeaderProps {
   user: IUser;
@@ -34,10 +34,23 @@ const UserProfileHeader: React.FC<UserProfileHeaderProps> = ({
 }) => {
   const router = useRouter();
   
+  const getPermissionColor = (permission?: string) => {
+    switch (permission) {
+      case 'owner':
+        return 'gold';
+      case 'maintainer':
+        return 'green';
+      case 'developer':
+        return 'blue';
+      default:
+        return 'default';
+    }
+  };
+
   return (
     <Card>
       <Row gutter={24} align="middle">
-        {/* User Avatar */}
+        {/* User Avatar Column */}
         <Col xs={24} sm={6} md={4} style={{ textAlign: 'center' }}>
           <Avatar
             size={100}
@@ -47,39 +60,60 @@ const UserProfileHeader: React.FC<UserProfileHeaderProps> = ({
               marginBottom: 16
             }}
           />
-          {isCurrentUser && !isEditing && (
-            <Button
-              type="primary"
-              size="small"
-              icon={<EditOutlined />}
-              onClick={onEdit}
-              style={{ display: 'block', margin: '0 auto' }}
-            >
-              Edit Profile
-            </Button>
-          )}
         </Col>
 
-        {/* User Details */}
+        {/* User Details Column */}
         <Col xs={24} sm={18} md={20}>
           <Row>
             <Col span={24}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-                <Title level={2} style={{ margin: 0 }}>
-                  {isEditing ? (
-                    <Form.Item
-                      name="name"
-                      style={{ marginBottom: 0 }}
-                      rules={[{ required: true, message: 'Please enter a name' }]}
-                    >
-                      <Input placeholder="Enter name" />
-                    </Form.Item>
-                  ) : (
-                    user?.name
-                  )}
-                </Title>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
+                {/* User Name and Permission */}
+                <Space direction="vertical" size="small">
+                  <Space align="center">
+                    <Title level={2} style={{ margin: 0 }}>
+                      {isEditing ? (
+                        <Form.Item
+                          name="name"
+                          style={{ marginBottom: 0 }}
+                          rules={[{ required: true, message: 'Please enter a name' }]}
+                        >
+                          <Input placeholder="Enter name" />
+                        </Form.Item>
+                      ) : (
+                        user?.name
+                      )}
+                    </Title>
+                    <Tag color={getPermissionColor(user?.permission)} style={{ marginLeft: 8 }}>
+                      {user?.permission?.toUpperCase()}
+                    </Tag>
+                  </Space>
+                  <Text type="secondary" style={{ fontSize: '14px' }}>{user?.email}</Text>
+                </Space>
+
+                {/* Action Buttons */}
                 <Space>
-                  {isEditing ? (
+                  {!isEditing ? (
+                    <>
+                    
+                      {(isCurrentUser || (!isCurrentUser && currentUserId !== user?.id)) && (
+                        <Button
+                          type="default"
+                          icon={<EditOutlined />}
+                          onClick={onEdit}
+                        >
+                          Edit Profile
+                        </Button>
+                      )}
+                      {!isCurrentUser && (
+                        <Button
+                          icon={<ArrowLeftOutlined />}
+                          onClick={() => router.push('/user')}
+                        >
+                          Back to List
+                        </Button>
+                      )}
+                    </>
+                  ) : (
                     <>
                       <Button onClick={onCancel}>
                         Cancel
@@ -91,22 +125,6 @@ const UserProfileHeader: React.FC<UserProfileHeaderProps> = ({
                       >
                         Save Changes
                       </Button>
-                    </>
-                  ) : (
-                    <>
-                      {!isCurrentUser && (
-                        <Button
-                          icon={<ArrowLeftOutlined />}
-                          onClick={() => router.push('/user')}
-                        >
-                          Back to List
-                        </Button>
-                      )}
-                      {!isCurrentUser && currentUserId !== user?.id && (
-                        <Button type="primary" onClick={onEdit}>
-                          Edit
-                        </Button>
-                      )}
                     </>
                   )}
                 </Space>

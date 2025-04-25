@@ -17,7 +17,7 @@ import { fetchAllFiles, deleteFile, getFileDownloadUrl } from '../../services/fi
 import Link from 'next/link';
 import { getTypeFile } from '../../utils/client/formatters';
 
-const { Title, Text } = Typography;
+const { Title } = Typography;
 
 interface File {
   id: string;

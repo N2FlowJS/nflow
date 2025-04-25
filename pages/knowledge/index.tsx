@@ -1,15 +1,19 @@
-import React, { useEffect, useState } from 'react';
+import { DeleteOutlined, EditOutlined, FileOutlined, PlusOutlined } from '@ant-design/icons';
 import {
-  Table, Button, Modal, Form, Input,
-  Space, Typography, message, Popconfirm
+  Button,
+  Form,
+  message, Popconfirm,
+  Space,
+  Table,
+  Typography
 } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, FileOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/router';
-import { useAuth } from '../../context/AuthContext';
-import MainLayout from '../../components/layout/MainLayout';
-import { fetchAllKnowledge, createKnowledge, updateKnowledge, deleteKnowledge } from '../../services/knowledgeService';
-import { IKnowledge } from "../../models/IKnowledge";
+import { useEffect, useState } from 'react';
 import KnowledgeForm from '../../components/knowledge/KnowledgeForm';
+import MainLayout from '../../components/layout/MainLayout';
+import { useAuth } from '../../context/AuthContext';
+import { IKnowledge } from "../../models/IKnowledge";
+import { createKnowledge, deleteKnowledge, fetchAllKnowledge, updateKnowledge } from '../../services/knowledgeService';
 
 const { Title, Text } = Typography;
 

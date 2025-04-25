@@ -1,6 +1,6 @@
 import { compare, hash } from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { NextApiRequest, NextApiResponse } from 'next';
+import { NextApiRequest,  } from 'next';
 
 // Secret should be in environment variables in production
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
@@ -60,8 +60,8 @@ export async function getCurrentUser(req: NextApiRequest) {
   };
 }
 
-// Check if user is authenticated
-export async function isAuthenticated(req: NextApiRequest, res: NextApiResponse) {
+// // Check if user is authenticated
+export async function isAuthenticated(req: NextApiRequest) {
   try {
     const user = await getCurrentUser(req);
     return user;

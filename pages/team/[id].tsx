@@ -1,35 +1,45 @@
-import React, { useEffect, useState } from 'react';
-import { 
-  Space, message, Breadcrumb, Tabs, Form, Alert, Spin, Button,
+import {
+  ApiOutlined,
+  RobotOutlined,
+  SettingOutlined,
+  UserOutlined
+} from '@ant-design/icons';
+import {
+  Alert,
+  Breadcrumb,
+  Button,
+  Form,
+  message,
+  Space,
+  Spin,
+  Tabs,
   Typography
 } from 'antd';
-import {
-  UserOutlined, RobotOutlined, ApiOutlined, SettingOutlined, ArrowLeftOutlined
-} from '@ant-design/icons';
-import { useRouter } from 'next/router';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
+import { useEffect, useState } from 'react';
 import MainLayout from '../../components/layout/MainLayout';
-import {
-  fetchTeamById,
-  updateTeam,
-  addTeamMember,
-  updateTeamMember,
-  removeTeamMember,
-  fetchTeamMembers,
-  fetchAllUsers,
-  Team
-} from '../../services/teamService';
 import { checkAuthentication, redirectToLogin } from '../../services/authUtils';
+import {
+  addTeamMember,
+  fetchAllUsers,
+  fetchTeamById,
+  fetchTeamMembers,
+  removeTeamMember,
+  Team,
+  updateTeam,
+  updateTeamMember
+} from '../../services/teamService';
 
 // Import our new components
-import TeamProfileHeader from '../../components/team/TeamProfileHeader';
+import { User } from '@prisma/client';
+import AgentCreationModal from '../../components/team/modals/AgentCreationModal';
+import TeamAgentsTab from '../../components/team/TeamAgentsTab';
 import TeamDetailsTab from '../../components/team/TeamDetailsTab';
 import TeamMembersTab from '../../components/team/TeamMembersTab';
-import TeamAgentsTab from '../../components/team/TeamAgentsTab';
+import TeamProfileHeader from '../../components/team/TeamProfileHeader';
 import TeamLLMProviders from '../../components/teams/TeamLLMProviders';
-import AgentCreationModal from '../../components/team/modals/AgentCreationModal';
-const { Title, Text, Paragraph } = Typography;
-import { User } from '@prisma/client';
+const { Title, } = Typography;
 
 const { TabPane } = Tabs;
 
@@ -54,12 +64,12 @@ export default function TeamDetail() {
   const validateAuthentication = async () => {
     try {
       const authData = await checkAuthentication();
-      
+
       if (!authData) {
         setAuthenticated(false);
         return null;
       }
-      
+
       setAuthenticated(true);
       setUserData(authData);
       return authData;
@@ -76,8 +86,8 @@ export default function TeamDetail() {
     setLoading(true);
     try {
       const data = await fetchTeamById(id as string);
-      setTeam(data as  any);
-      
+      setTeam(data as any);
+
       // Set form values
       form.setFieldsValue({
         name: data.name,
@@ -87,7 +97,7 @@ export default function TeamDetail() {
       // Get team members
       const membersData = await fetchTeamMembers(id as string);
       setMembers(membersData);
-      
+
       // Find current user's role in this team
       const auth = await checkAuthentication();
       if (auth) {
@@ -118,22 +128,22 @@ export default function TeamDetail() {
   useEffect(() => {
     const initialize = async () => {
       const auth = await validateAuthentication();
-      
+
       if (!auth) {
         // Redirect if not logged in
         redirectToLogin(router.asPath);
         return;
       }
-      
+
       if (id && typeof id === 'string') {
         fetchTeamDetail();
         fetchAvailableUsers();
       }
     };
-    
+
     initialize();
   }, [id, router]);
-  
+
   // Redirect if not authenticated
   useEffect(() => {
     if (authenticated === false) {
@@ -157,7 +167,7 @@ export default function TeamDetail() {
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
-      
+
       await updateTeam(id as string, values);
       message.success('Team updated successfully');
       fetchTeamDetail();
@@ -179,7 +189,7 @@ export default function TeamDetail() {
       for (const member of newMembers) {
         await addTeamMember(id as string, member);
       }
-      
+
       message.success('Members added successfully');
       fetchTeamDetail();
     } catch (error) {
@@ -211,7 +221,7 @@ export default function TeamDetail() {
   };
 
   // Check if the current user has provider management permissions
-  const canManageProviders = userRole === 'owner' || userRole === 'admin' || 
+  const canManageProviders = userRole === 'owner' || userRole === 'admin' ||
     userData?.permission === 'owner';
 
   if (authenticated === null || loading) {
@@ -255,6 +265,7 @@ export default function TeamDetail() {
   }
 
   function handleCreateAgent(): void {
+    setCreatingAgent(true);
     throw new Error('Function not implemented.');
   }
 
@@ -268,7 +279,7 @@ export default function TeamDetail() {
             </Breadcrumb.Item>
             <Breadcrumb.Item>{team?.name || 'Detail'}</Breadcrumb.Item>
           </Breadcrumb>
-          
+
           <TeamProfileHeader
             teamName={team?.name || ''}
             isEditing={isEditing}
@@ -277,9 +288,9 @@ export default function TeamDetail() {
             onSubmit={handleSubmit}
             canEdit={userRole === 'owner' || userRole === 'admin'}
           />
-          
+
           <Tabs activeKey={mainTab} onChange={setMainTab}>
-            <TabPane 
+            <TabPane
               tab={<span><SettingOutlined /> Details</span>}
               key="details"
             >
@@ -289,8 +300,8 @@ export default function TeamDetail() {
                 form={form}
               />
             </TabPane>
-            
-            <TabPane 
+
+            <TabPane
               tab={<span><UserOutlined /> Members</span>}
               key="members"
             >
@@ -304,11 +315,20 @@ export default function TeamDetail() {
                 onUpdateRole={handleUpdateRole}
               />
             </TabPane>
-            
-            <TabPane 
+
+            <TabPane
               tab={<span><RobotOutlined /> Agents</span>}
               key="agents"
             >
+              <div style={{ marginBottom: 16 }}>
+                <Button 
+                  type="primary" 
+                  icon={<RobotOutlined />}
+                  onClick={() => setIsAgentModalVisible(true)}
+                >
+                  Create New Agent
+                </Button>
+              </div>
               <TeamAgentsTab
                 teamId={id as string}
                 agents={(team?.ownedAgents || []).map(agent => ({
@@ -320,19 +340,19 @@ export default function TeamDetail() {
                 onCreateAgent={() => setIsAgentModalVisible(true)}
               />
             </TabPane>
-            
-            <TabPane 
+
+            <TabPane
               tab={<span><ApiOutlined /> LLM Providers</span>}
               key="llm"
             >
-              <TeamLLMProviders 
-                teamId={id as string} 
+              <TeamLLMProviders
+                teamId={id as string}
                 userRole={userRole || ''}
                 canManageProviders={canManageProviders}
               />
             </TabPane>
           </Tabs>
-          
+
           {/* Agent Creation Modal */}
           <AgentCreationModal
             isVisible={isAgentModalVisible}

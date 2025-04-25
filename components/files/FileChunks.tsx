@@ -1,22 +1,20 @@
-import React, { useEffect, useState } from "react";
-import {
-  Space,
-  Typography,
-  List,
-  Empty,
-  Badge,
-  Tooltip,
-  Button,
-  Divider,
-  Skeleton,
-  message,
-} from "antd";
 import {
   CopyOutlined,
 } from "@ant-design/icons";
+import {
+  Button,
+  Divider,
+  Empty,
+  List,
+  Skeleton,
+  Tooltip,
+  Typography,
+  message
+} from "antd";
+import { useEffect, useState } from "react";
 import { getFileChunks } from "../../services/fileService";
 
-const { Paragraph, Text, Title } = Typography;
+const { Paragraph, } = Typography;
 
 interface FileChunk {
   id: string;
@@ -163,7 +161,7 @@ export default function FileChunks({ fileId }: FileChunksProps) {
             <span>
               No chunks found for this file.
               <br />
-              It might still be processing or wasn't chunked.
+              It might still be processing or wasn&apos;t chunked.
             </span>
           }
         />

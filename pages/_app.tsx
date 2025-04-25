@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { AppProps } from "next/app";
 import { LocaleProvider } from "../locale";
 import "../styles/globals.css";

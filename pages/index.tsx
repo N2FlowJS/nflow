@@ -1,42 +1,38 @@
 import {
+  AppstoreOutlined,
+  ArrowRightOutlined,
+  CloudOutlined,
   DatabaseOutlined,
   FileOutlined,
   LoginOutlined,
   RobotOutlined,
   UserAddOutlined,
   UserOutlined,
-  ArrowRightOutlined,
-  AppstoreOutlined,
-  CloudOutlined,
 } from "@ant-design/icons";
 import {
   Avatar,
   Button,
   Card,
   Col,
-  Divider,
+  List,
   Row,
   Space,
-  Typography,
   Statistic,
-  List,
   Tag,
+  Typography
 } from "antd";
 import { useRouter } from "next/router";
+import { useEffect, useState } from "react";
 import MainLayout from "../components/layout/MainLayout";
 import { useAuth } from "../context/AuthContext";
-import { useLocale } from "../locale";
-import { useTheme } from "../theme";
-import { useState, useEffect } from "react";
+import { getAgentCount } from "../services/agentService";
 import { fetchAllFiles } from "../services/fileService";
 import { fetchAllKnowledge } from "../services/knowledgeService";
-import { getAgentCount } from "../services/agentService";
 
 const { Title, Text, Paragraph } = Typography;
 
 export default function Home() {
-  const { locale } = useLocale();
-  const { theme } = useTheme();
+
   const { user, isAuthenticated, loading } = useAuth();
   const router = useRouter();
   const [files, setFiles] = useState<any[]>([]);
@@ -112,16 +108,16 @@ export default function Home() {
 
                   {!isAuthenticated ? (
                     <Space size="middle">
-                      <Button 
-                        type="primary" 
-                        size="large" 
-                        icon={<LoginOutlined />} 
+                      <Button
+                        type="primary"
+                        size="large"
+                        icon={<LoginOutlined />}
                         onClick={() => router.push("/auth/login")}
                       >
                         Sign In
                       </Button>
-                      <Button 
-                        size="large" 
+                      <Button
+                        size="large"
                         icon={<UserAddOutlined />}
                         onClick={() => router.push("/auth/register")}
                       >
@@ -129,9 +125,9 @@ export default function Home() {
                       </Button>
                     </Space>
                   ) : (
-                    <Button 
-                      type="primary" 
-                      size="large" 
+                    <Button
+                      type="primary"
+                      size="large"
                       icon={<AppstoreOutlined />}
                       onClick={() => router.push("/dashboard")}
                     >
@@ -150,7 +146,15 @@ export default function Home() {
                         style={{ backgroundColor: "#1677ff" }}
                       />
                       <div style={{ marginLeft: 16 }}>
-                        <Title level={3} style={{ marginBottom: 4 }}>{user?.name}</Title>
+                        <Title level={3} style={{ marginBottom: 4 }}>
+                          <Button 
+                            type="link" 
+                            style={{ padding: 0 }} 
+                            onClick={() => router.push(`/user/${user?.id}`)}
+                          >
+                            {user?.name}
+                          </Button>
+                        </Title>
                         <Text>{user?.email}</Text>
                         <div style={{ marginTop: 8 }}>
                           <Tag color="blue">{user?.permission}</Tag>
@@ -162,7 +166,7 @@ export default function Home() {
                       <CloudOutlined style={{ fontSize: 64, color: "#1677ff", marginBottom: 16 }} />
                       <Title level={4}>Cloud-Based Platform</Title>
                       <Paragraph>
-                        Access your data from anywhere, anytime. 
+                        Access your data from anywhere, anytime.
                         Create an account to get started.
                       </Paragraph>
                     </div>
@@ -230,13 +234,13 @@ export default function Home() {
               <Row gutter={[24, 24]}>
                 {features.map((feature, index) => (
                   <Col xs={24} md={8} key={index}>
-                    <Card 
-                      hoverable 
+                    <Card
+                      hoverable
                       style={{ height: '100%' }}
                       actions={[
-                        <Button 
-                          type="link" 
-                          key="explore" 
+                        <Button
+                          type="link"
+                          key="explore"
                           onClick={feature.action}
                         >
                           Explore <ArrowRightOutlined />
@@ -270,9 +274,9 @@ export default function Home() {
                       <List.Item
                         key={file.id}
                         actions={[
-                          <Button 
-                            type="link" 
-                            key="view" 
+                          <Button
+                            type="link"
+                            key="view"
                             onClick={() => router.push(`/files/${file.id}`)}
                           >
                             View
@@ -326,13 +330,13 @@ interface StepsProps {
   onAgentClick: () => void;
 }
 
-function Steps({ 
-  isAuthenticated, 
-  onLoginClick, 
-  onRegisterClick, 
-  onKnowledgeClick, 
-  onFileClick, 
-  onAgentClick 
+function Steps({
+  isAuthenticated,
+  onLoginClick,
+  onRegisterClick,
+  onKnowledgeClick,
+  onFileClick,
+  onAgentClick
 }: StepsProps) {
   return (
     <List
@@ -340,8 +344,8 @@ function Steps({
       dataSource={[
         {
           title: isAuthenticated ? "✅ Login" : "Step 1: Create an Account or Login",
-          description: isAuthenticated 
-            ? "You are logged in" 
+          description: isAuthenticated
+            ? "You are logged in"
             : "Create your account to get started with all features",
           action: isAuthenticated ? null : (
             <Space>

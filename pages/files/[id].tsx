@@ -1,58 +1,54 @@
-import React, { useEffect, useState } from "react";
 import {
-  Button,
-  Space,
-  Typography,
-  Card,
-  Spin,
-  Descriptions,
-  Image,
-  Tag,
-  Breadcrumb,
-  Divider,
-  Tabs,  // Using Tabs instead of Segmented for better look
-  List,
-  Empty,
-  Badge,
-  Alert,
-  Tooltip,
-  Row,
-  Col,
-  message,
-  Popconfirm,
-  Avatar,  // Added for better visual styling
-  Skeleton,  // Added for better loading states
-} from "antd";
-import {
-  DownloadOutlined,
   ArrowLeftOutlined,
+  CopyOutlined,
   DeleteOutlined,
-  FileImageOutlined,
+  DownloadOutlined,
   FileExcelOutlined,
-  FileTextOutlined,
+  FileImageOutlined, // Added for information icons
+  FileOutlined,
   FilePdfOutlined,
+  FileTextOutlined,
   FileUnknownOutlined,
   FileZipOutlined,
-  CopyOutlined,
-  InfoCircleOutlined,  // Added for information icons
-  FileOutlined,  // For file content tab
-  PartitionOutlined,  // For chunks tab
+  InfoCircleOutlined, // For file content tab
+  PartitionOutlined, // For chunks tab
 } from "@ant-design/icons";
+import {
+  Avatar,
+  Badge,
+  Breadcrumb,
+  Button,
+  Card,
+  Col,
+  Divider,
+  Empty,
+  Image,
+  message,
+  Popconfirm,
+  Row, // Added for better visual styling
+  Skeleton,
+  Space,
+  Spin,
+  Tabs,
+  Tag,
+  Typography
+} from "antd";
+import Link from "next/link";
 import { useRouter } from "next/router";
+import { useEffect, useState } from "react";
+import FileChunks from "../../components/files/FileChunks";
+import FileContentViewer from "../../components/files/FileContentViewer";
 import MainLayout from "../../components/layout/MainLayout";
 import { useAuth } from "../../context/AuthContext";
 import {
-  fetchFileById,
   deleteFile,
-  getFileDownloadUrl,
+  fetchFileById,
   getFileContent,
+  getFileDownloadUrl,
 } from "../../services/fileService";
-import Link from "next/link";
-import FileContentViewer from "../../components/files/FileContentViewer";
-import FileChunks from "../../components/files/FileChunks";
 import { getTypeFile } from "../../utils/client/formatters";
 
-const { Title, Text, Paragraph } = Typography;
+const { Title, Text } = Typography;
 
 interface File {
   id: string;
@@ -78,9 +74,7 @@ export default function FileDetailPage() {
   const [fileContent, setFileContent] = useState<string | null>(null);
   const [contentLoading, setContentLoading] = useState(false);
   const { isAuthenticated } = useAuth();
-  const [contentFormat, setContentFormat] = useState<
-    "raw" | "markdown" | "html"
-  >("raw");
+
   const [activeTabKey, setActiveTabKey] = useState("content"); // For the right panel tabs
   const isImage = file?.mimetype.startsWith("image/");
   const isPdf = file?.mimetype.includes("pdf");

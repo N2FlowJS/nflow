@@ -1,45 +1,42 @@
-import React, { useState, useEffect, useRef } from "react";
 import {
-  Card,
-  Button,
-  Table,
-  Space,
-  Typography,
+  CheckCircleOutlined,
+  ClearOutlined,
+  ClockCircleOutlined,
+  CloseCircleOutlined,
+  DeleteOutlined,
+  EyeOutlined,
+  FileOutlined,
+  MoreOutlined,
+  PlayCircleOutlined,
+  SelectOutlined,
+  SettingOutlined,
+  SyncOutlined,
+  UploadOutlined
+} from "@ant-design/icons";
+import {
+  Alert,
   Avatar,
+  Badge,
+  Button,
+  Card,
+  Dropdown,
+  Empty,
+  Grid,
+  Modal,
+  Progress,
+  Space,
+  Spin,
+  Table,
   Tag,
   Tooltip,
-  Modal,
-  message,
-  Empty,
-  Spin,
-  Badge,
-  Progress,
-  Alert,
-  Dropdown,
-  Menu,
-  Grid,
+  Typography,
+  message
 } from "antd";
-import {
-  UploadOutlined,
-  EyeOutlined,
-  SettingOutlined,
-  DeleteOutlined,
-  FileOutlined,
-  ClockCircleOutlined,
-  SyncOutlined,
-  CheckCircleOutlined,
-  CloseCircleOutlined,
-  PlayCircleOutlined,
-  FilterOutlined,
-  SelectOutlined,
-  ClearOutlined,
-  MoreOutlined,
-  DownOutlined,
-} from "@ant-design/icons";
-import { useRouter } from "next/router";
 import { format } from "date-fns";
+import { useRouter } from "next/router";
+import React, { useEffect, useState } from "react";
 import { Knowledge } from "../../models/knowledge";
-import { parseFile, deleteFile, fetchFilesByKnowledgeId } from "../../services/fileService";
+import { deleteFile, fetchFilesByKnowledgeId, parseFile } from "../../services/fileService";
 import { formatFileSize, getTypeFile } from "../../utils/client/formatters";
 
 const { useBreakpoint } = Grid;
@@ -64,7 +61,7 @@ export default function KnowledgeFileList({
   const [loading, setLoading] = useState(false);
   const [selectedFileIds, setSelectedFileIds] = useState<string[]>([]);
   const [batchActionLoading, setBatchActionLoading] = useState(false);
-  const [eventSource, setEventSource] = useState<EventSource | null>(null);
+  const [_eventSource, setEventSource] = useState<EventSource | null>(null);
   const screens = useBreakpoint();
 
   const fetchFiles = async () => {
@@ -164,6 +161,7 @@ export default function KnowledgeFileList({
         }
       };
     }
+    return undefined; // Ensure all code paths return a value
   }, [knowledge?.id]);
 
   const handleParseFile = async (fileId: string) => {
@@ -433,9 +431,9 @@ export default function KnowledgeFileList({
         type="info"
         showIcon
         message={
-          <div style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
             justifyContent: 'space-between',
             flexDirection: screens.sm ? 'row' : 'column',
             gap: screens.sm ? 0 : '10px'
@@ -642,7 +640,7 @@ export default function KnowledgeFileList({
           // On mobile, use dropdown menu for actions
           return (
             <Dropdown
-              menu={{ 
+              menu={{
                 items: actions.map(action => ({
                   key: action.key,
                   label: action.label,

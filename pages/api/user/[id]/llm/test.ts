@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { prisma } from '../../../../../lib/prisma';
-import { parseAuthHeader, verifyToken } from '../../../../../lib/auth';
+import { prisma } from '@lib/prisma';
+import { parseAuthHeader, verifyToken } from '@lib/auth';
 
 /**
  * API handler for testing LLM providers.
@@ -107,8 +107,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     }
 
-    // Start timer for latency measurement
-    const startTime = Date.now();
 
     // Handle different provider types
     let result;

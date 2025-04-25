@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { Position, NodeProps, Node } from "@xyflow/react";
-import { GenerateNodeData } from "../../../../models/flowTypes";
+import { GenerateNodeData } from "@models/flowTypes";
 import BaseNode from '../base-node';
 import { Flex, Tooltip, Spin } from 'antd';
-import { RobotOutlined, ApiOutlined, InfoCircleOutlined } from "@ant-design/icons";
+import { RobotOutlined, InfoCircleOutlined } from "@ant-design/icons";
 import ModelInfo from "./ModelInfo";
 import PromptInfo from "./PromptInfo";
-import { fetchLLMModelById } from "../../../../services/llmService";
+import { fetchLLMModelById } from "@services/llmService";
 
 const GenerateNode = ({ data, id, selected }: NodeProps<Node<GenerateNodeData>>) => {
   const { form } = data;

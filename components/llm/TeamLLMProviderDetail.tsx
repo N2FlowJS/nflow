@@ -21,7 +21,6 @@ import {
   StopOutlined,
   StarOutlined,
   StarFilled,
-  ApiOutlined,
   ArrowLeftOutlined
 } from '@ant-design/icons';
 import { LLMModel, LLMProvider } from '../../models/llm';
@@ -59,16 +58,9 @@ const TeamLLMProviderDetail: React.FC<TeamLLMProviderDetailProps> = ({
   const [isEditProviderModalVisible, setIsEditProviderModalVisible] = useState(false);
   const [editingModel, setEditingModel] = useState<LLMModel | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
-
-  useEffect(() => {
-    if (provider?.id) {
-      fetchModels();
-    }
-  }, [provider?.id]);
-
   const fetchModels = async () => {
     if (!provider?.id) return;
-    
+
     setLoading(true);
     try {
       const data = await fetchTeamProviderModels(teamId, provider.id);
@@ -80,10 +72,17 @@ const TeamLLMProviderDetail: React.FC<TeamLLMProviderDetailProps> = ({
       setLoading(false);
     }
   };
+  useEffect(() => {
+    if (provider?.id) {
+      fetchModels();
+    }
+  }, [provider?.id]);
+
+
 
   const handleAddModel = async (values: any) => {
     if (!provider?.id) return;
-    
+
     setActionLoading(true);
     try {
       await createTeamProviderModel(teamId, provider.id, values);
@@ -100,7 +99,7 @@ const TeamLLMProviderDetail: React.FC<TeamLLMProviderDetailProps> = ({
 
   const handleEditModel = async (values: any) => {
     if (!provider?.id || !editingModel?.id) return;
-    
+
     setActionLoading(true);
     try {
       await updateTeamProviderModel(teamId, provider.id, editingModel.id, values);
@@ -118,7 +117,7 @@ const TeamLLMProviderDetail: React.FC<TeamLLMProviderDetailProps> = ({
 
   const handleDeleteModel = async (modelId: string) => {
     if (!provider?.id) return;
-    
+
     try {
       await deleteTeamProviderModel(teamId, provider.id, modelId);
       message.success('Model deleted successfully');
@@ -131,7 +130,7 @@ const TeamLLMProviderDetail: React.FC<TeamLLMProviderDetailProps> = ({
 
   const handleEditProvider = async (values: any) => {
     if (!provider?.id) return;
-    
+
     setActionLoading(true);
     try {
       await updateTeamLLMProvider(teamId, provider.id, values);
@@ -225,16 +224,16 @@ const TeamLLMProviderDetail: React.FC<TeamLLMProviderDetailProps> = ({
         canManageModels ? (
           <Space size="small">
             <Tooltip title="Edit Model">
-              <Button 
-                type="text" 
-                icon={<EditOutlined />} 
+              <Button
+                type="text"
+                icon={<EditOutlined />}
                 onClick={() => {
                   setEditingModel(record);
                   setIsEditModalVisible(true);
-                }} 
+                }}
               />
             </Tooltip>
-            
+
             {!record.isDefault && (
               <Tooltip title="Set as Default for this type">
                 <Button
@@ -245,7 +244,7 @@ const TeamLLMProviderDetail: React.FC<TeamLLMProviderDetailProps> = ({
                 />
               </Tooltip>
             )}
-            
+
             <Popconfirm
               title="Delete this model?"
               description="This action cannot be undone."
@@ -293,8 +292,8 @@ const TeamLLMProviderDetail: React.FC<TeamLLMProviderDetailProps> = ({
             </Title>
           </Space>
           {canManageModels && (
-            <Button 
-              type="primary" 
+            <Button
+              type="primary"
               icon={<EditOutlined />}
               onClick={() => setIsEditProviderModalVisible(true)}
             >
@@ -322,8 +321,8 @@ const TeamLLMProviderDetail: React.FC<TeamLLMProviderDetailProps> = ({
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
           <Title level={4}>Models</Title>
           {canManageModels && (
-            <Button 
-              type="primary" 
+            <Button
+              type="primary"
               icon={<PlusOutlined />}
               onClick={() => setIsAddModalVisible(true)}
             >

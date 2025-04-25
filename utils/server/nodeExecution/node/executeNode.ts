@@ -1,5 +1,5 @@
 import { isBeginNodeData, isInterfaceNodeData, isGenerateNodeData, isCategorizeNodeData, isRetrievalNodeData } from '@utils/client';
-import { FlowExecutionContext, ExecutionResult } from '../../../../models/flowExecutionTypes';
+import { FlowExecutionContext, ExecutionResult } from '@models/flowExecutionTypes';
 import { executeBeginNode } from './executeBeginNode';
 import { executeInterfaceNode } from './executeInterfaceNode';
 import { executeGenerateNode } from './executeGenerateNode';
@@ -14,7 +14,7 @@ export async function executeNode(node: any, context: FlowExecutionContext, call
   } else if (isGenerateNodeData(node.data)) {
     return await executeGenerateNode(node, context, callback);
   } else if (isCategorizeNodeData(node.data)) {
-    return await executeCategorizeNode(node, context, callback);
+    return await executeCategorizeNode(node, context);
   } else if (isRetrievalNodeData(node.data)) {
     return await executeRetrievalNode(node, context);
   }

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, Form, Input, Typography, Space, Descriptions, Divider, Tag } from 'antd';
+import { Card, Form, Input, Typography, Space, Descriptions, Tag } from 'antd';
 import { TeamOutlined, UserOutlined, CalendarOutlined } from '@ant-design/icons';
 import { format } from 'date-fns';
 

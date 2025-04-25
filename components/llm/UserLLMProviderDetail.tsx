@@ -21,7 +21,6 @@ import {
     StopOutlined,
     StarOutlined,
     StarFilled,
-    ApiOutlined
 } from '@ant-design/icons';
 import { LLMModel, LLMProvider } from '../../models/llm';
 import LLMModelForm from './LLMModelForm';
@@ -32,7 +31,7 @@ import {
     deleteUserProviderModel
 } from '../../services/llmService';
 
-const { Title, Text } = Typography;
+const { Title } = Typography;
 
 interface UserLLMProviderDetailProps {
     userId: string;
@@ -45,7 +44,6 @@ const UserLLMProviderDetail: React.FC<UserLLMProviderDetailProps> = ({
     userId,
     provider,
     onBackToList,
-    onProviderUpdated
 }) => {
     const [models, setModels] = useState<LLMModel[]>([]);
     const [loading, setLoading] = useState(false);
@@ -53,13 +51,6 @@ const UserLLMProviderDetail: React.FC<UserLLMProviderDetailProps> = ({
     const [isEditModelModalVisible, setIsEditModelModalVisible] = useState(false);
     const [editingModel, setEditingModel] = useState<LLMModel | null>(null);
     const [actionLoading, setActionLoading] = useState(false);
-
-    useEffect(() => {
-        if (provider) {
-            fetchModels();
-        }
-    }, [provider]);
-
     const fetchModels = async () => {
         setLoading(true);
         try {
@@ -72,6 +63,13 @@ const UserLLMProviderDetail: React.FC<UserLLMProviderDetailProps> = ({
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        if (provider) {
+            fetchModels();
+        }
+    }, [provider]);
+
 
     const handleAddModel = async (values: any) => {
         setActionLoading(true);

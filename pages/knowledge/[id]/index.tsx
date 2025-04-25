@@ -2,14 +2,27 @@ import {
   ArrowLeftOutlined,
   CalendarOutlined,
   FileOutlined,
-  SaveOutlined,
-  TeamOutlined,
-  UserOutlined,
-  MenuOutlined,
   InfoCircleOutlined,
+  SaveOutlined,
   SearchOutlined,
-  SettingOutlined
+  SettingOutlined,
+  TeamOutlined,
+  UserOutlined
 } from "@ant-design/icons";
+import FileConfigModal from "@components/knowledge/FileConfigModal";
+import KnowledgeConfigForm from "@components/knowledge/KnowledgeConfigForm";
+import KnowledgeDetailForm from "@components/knowledge/KnowledgeDetailForm";
+import KnowledgeFileList from "@components/knowledge/KnowledgeFileList";
+import RetrievalTestingPanel from "@components/knowledge/RetrievalTestingPanel";
+import MainLayout from "@components/layout/MainLayout";
+import UploadFileModal from "@components/upload/UploadFileModal";
+import { useAuth } from "@context/AuthContext";
+import { Knowledge } from "@models/knowledge";
+import { updateFileConfig } from "@services/fileService";
+import {
+  fetchKnowledgeById,
+  updateKnowledge,
+} from "@services/knowledgeService";
 import {
   Avatar,
   Breadcrumb,
@@ -19,41 +32,25 @@ import {
   Divider,
   Empty,
   Form,
+  Grid,
   List,
+  message,
   Row,
   Space,
   Spin,
   Statistic,
-  Tag,
-  Typography,
-  message,
   Tabs,
-  Grid,
-  Collapse
+  Tag,
+  Typography
 } from "antd";
 import { format } from "date-fns";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import FileConfigModal from "../../../components/knowledge/FileConfigModal";
-import KnowledgeConfigForm from "../../../components/knowledge/KnowledgeConfigForm";
-import KnowledgeDetailForm from "../../../components/knowledge/KnowledgeDetailForm";
-import KnowledgeFileList from "../../../components/knowledge/KnowledgeFileList";
-import RetrievalTestingPanel from "../../../components/knowledge/RetrievalTestingPanel";
-import MainLayout from "../../../components/layout/MainLayout";
-import UploadFileModal from "../../../components/upload/UploadFileModal";
-import { useAuth } from "../../../context/AuthContext";
-import { updateFileConfig } from "../../../services/fileService";
-import {
-  fetchKnowledgeById,
-  updateKnowledge,
-} from "../../../services/knowledgeService";
-import { Knowledge } from "../../../models/knowledge";
 
-const { Title, Text, Paragraph } = Typography;
+const { Title, Text } = Typography;
 const { TabPane } = Tabs;
 const { useBreakpoint } = Grid;
-const { Panel } = Collapse;
 
 export default function KnowledgeDetail() {
   const router = useRouter();
@@ -61,13 +58,11 @@ export default function KnowledgeDetail() {
   const [knowledge, setKnowledge] = useState<Knowledge | null>(null);
   const [loading, setLoading] = useState(true);
   const [form] = Form.useForm();
-  const [isEditing, setIsEditing] = useState(true); // Always in editing mode
   const { isAuthenticated } = useAuth();
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [selectedFileForConfig, setSelectedFileForConfig] = useState<any>(null);
   const [fileConfigModalVisible, setFileConfigModalVisible] = useState(false);
   const [savingFileConfig, setSavingFileConfig] = useState(false);
-  const [activeTab, setActiveTab] = useState("files");
   const screens = useBreakpoint();
   const isMobile = !screens.md;
 
@@ -113,16 +108,7 @@ export default function KnowledgeDetail() {
     }
   }, [id]);
 
-  const handleCancel = () => {
-    // Just reset the form to original values without changing edit state
-    form.setFieldsValue({
-      name: knowledge?.name,
-      description: knowledge?.description,
-      config: knowledge?.config
-        ? JSON.parse(knowledge.config)
-        : { tokenChunk: 1000, chunkSeparator: "\n\n" },
-    });
-  };
+
 
   const handleSubmit = async () => {
     try {
@@ -141,7 +127,6 @@ export default function KnowledgeDetail() {
       const updated = await updateKnowledge(id, dataToSubmit);
       if (updated) {
         message.success("Knowledge updated successfully");
-        setIsEditing(false);
         fetchKnowledgeDetail();
       } else {
         message.error("Failed to update knowledge");
@@ -217,14 +202,14 @@ export default function KnowledgeDetail() {
     return (
       <Space direction="vertical" style={{ width: '100%' }} size={isMobile ? 'small' : 'middle'}>
         {/* Creator Information Card */}
-        <Card 
-          title="Creator Information" 
+        <Card
+          title="Creator Information"
           size={isMobile ? "small" : "default"}
           style={{ marginBottom: isMobile ? 12 : 24 }}
         >
           {knowledge?.createdBy ? (
-            <div style={{ 
-              display: "flex", 
+            <div style={{
+              display: "flex",
               alignItems: "center",
               flexDirection: isMobile ? "column" : "row",
               textAlign: isMobile ? "center" : "left"
@@ -234,9 +219,9 @@ export default function KnowledgeDetail() {
                 icon={<UserOutlined />}
                 style={{ backgroundColor: "#1677ff" }}
               />
-              <div style={{ 
+              <div style={{
                 marginLeft: isMobile ? 0 : 16,
-                marginTop: isMobile ? 12 : 0 
+                marginTop: isMobile ? 12 : 0
               }}>
                 <Text strong style={{ fontSize: isMobile ? 14 : 16 }}>
                   {knowledge.createdBy.name}
@@ -259,8 +244,8 @@ export default function KnowledgeDetail() {
         </Card>
 
         {/* Stats Card */}
-        <Card 
-          title="Statistics" 
+        <Card
+          title="Statistics"
           size={isMobile ? "small" : "default"}
           style={{ marginBottom: isMobile ? 12 : 24 }}
         >
@@ -293,8 +278,8 @@ export default function KnowledgeDetail() {
         </Card>
 
         {/* Dates Card */}
-        <Card 
-          title="Dates" 
+        <Card
+          title="Dates"
           size={isMobile ? "small" : "default"}
           style={{ marginBottom: isMobile ? 12 : 24 }}
         >
@@ -316,8 +301,8 @@ export default function KnowledgeDetail() {
         </Card>
 
         {/* Associated Users Card */}
-        <Card 
-          title="Associated Users" 
+        <Card
+          title="Associated Users"
           size={isMobile ? "small" : "default"}
           style={{ marginBottom: isMobile ? 12 : 24 }}
         >
@@ -343,8 +328,8 @@ export default function KnowledgeDetail() {
         </Card>
 
         {/* Associated Teams Card */}
-        <Card 
-          title="Associated Teams" 
+        <Card
+          title="Associated Teams"
           size={isMobile ? "small" : "default"}
         >
           {knowledge?.teams && knowledge.teams.length > 0 ? (
@@ -413,39 +398,39 @@ export default function KnowledgeDetail() {
       {/* Main Content - Unified layout for both mobile and desktop */}
       <Row>
         <Col span={24}>
-          <Tabs 
-            defaultActiveKey="files" 
+          <Tabs
+            defaultActiveKey="files"
             centered={isMobile}
             size={isMobile ? "small" : "large"}
             style={{ marginBottom: 12 }}
             tabPosition={isMobile ? "top" : "top"}
             tabBarGutter={isMobile ? 0 : 16}
           >
-            
-            <TabPane 
+
+            <TabPane
               tab={
                 <span>
                   <FileOutlined />
                   <span style={{ marginLeft: 8 }}>Data set</span>
                 </span>
-              } 
+              }
               key="files"
             >
-              <KnowledgeFileList 
+              <KnowledgeFileList
                 knowledge={knowledge!}
                 isAuthenticated={isAuthenticated}
                 handleOpenUploadModal={handleOpenUploadModal}
                 openFileConfigModal={openFileConfigModal}
               />
             </TabPane>
-            
-            <TabPane 
+
+            <TabPane
               tab={
                 <span>
                   <SettingOutlined />
                   <span style={{ marginLeft: 8 }}>Config</span>
                 </span>
-              } 
+              }
               key="content"
             >
               <Form form={form} layout="vertical">
@@ -456,15 +441,15 @@ export default function KnowledgeDetail() {
                   style={{ marginBottom: isMobile ? 12 : 24 }}
                   size={isMobile ? "small" : "default"}
                 >
-                  <KnowledgeDetailForm form={form} isEditing={true} />
+                  <KnowledgeDetailForm form={form}/>
                 </Card>
 
                 {/* Chunking Configuration */}
-                <Card 
-                  style={{ marginBottom: isMobile ? 12 : 24 }} 
+                <Card
+                  style={{ marginBottom: isMobile ? 12 : 24 }}
                   size={isMobile ? "small" : "default"}
                 >
-                  <KnowledgeConfigForm form={form} isEditing={true} />
+                  <KnowledgeConfigForm form={form} />
                 </Card>
 
                 {/* Save Button at bottom of form */}
@@ -480,28 +465,28 @@ export default function KnowledgeDetail() {
                 </Button>
               </Form>
             </TabPane>
-            
-            <TabPane 
+
+            <TabPane
               tab={
                 <span>
                   <SearchOutlined />
                   <span style={{ marginLeft: 8 }}>Testing</span>
                 </span>
-              } 
+              }
               key="testing"
             >
               {id && typeof id === "string" && (
                 <RetrievalTestingPanel knowledgeId={id} />
               )}
             </TabPane>
-            
-            <TabPane 
+
+            <TabPane
               tab={
                 <span>
                   <InfoCircleOutlined />
                   <span style={{ marginLeft: 8 }}>Info</span>
                 </span>
-              } 
+              }
               key="info"
             >
               {renderInfoContent()}

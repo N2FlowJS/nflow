@@ -28,7 +28,6 @@ interface TeamMembersTabProps {
 }
 
 const TeamMembersTab: React.FC<TeamMembersTabProps> = ({
-  teamId,
   members,
   userRole,
   availableUsers,

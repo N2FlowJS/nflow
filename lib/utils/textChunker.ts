@@ -8,7 +8,7 @@ export function chunkText(
 ): string[] {
   // Create a regular expression that matches any character in the chunkSeparator
   const separatorRegex = new RegExp(`[${chunkSeparator.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&')}]`);
-  
+
   // Split by any character in the separator
   const rawChunks = text.split(separatorRegex).filter(chunk => chunk.trim().length > 0);
   const resultChunks: string[] = [];
@@ -19,16 +19,16 @@ export function chunkText(
   for (const chunk of rawChunks) {
     // Estimate token count (rough approximation: 4 chars ~ 1 token)
     const estimatedTokens = Math.ceil(chunk.length / 4);
-    
+
     // If adding this chunk would exceed the limit, save current chunk and start a new one
     if (currentTokenCount + estimatedTokens > maxTokensPerChunk && currentChunk.length > 0) {
       resultChunks.push(currentChunk);
       currentChunk = chunk;
       currentTokenCount = estimatedTokens;
-    } 
+    }
     // Start accumulating
     else {
-      currentChunk = currentChunk.length > 0 
+      currentChunk = currentChunk.length > 0
         ? `${currentChunk}${chunkSeparator[0]}${chunk}` // Use first character of separator when rejoining
         : chunk;
       currentTokenCount += estimatedTokens;
@@ -46,7 +46,7 @@ export function chunkText(
 /**
  * Extracts metadata for a chunk
  */
-export function extractChunkMetadata(chunk: string, index: number): Record<string, any> {
+export function extractChunkMetadata(chunk: string, index: number): Record<string, string | number> {
   return {
     chunkIndex: index,
     charCount: chunk.length,

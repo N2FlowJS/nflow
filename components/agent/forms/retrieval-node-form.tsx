@@ -1,15 +1,13 @@
-import React, { useEffect, useState } from "react";
-import { Form, InputNumber, Select, Typography, Spin, Space, Collapse } from "antd";
 import { DatabaseOutlined, LoadingOutlined } from "@ant-design/icons";
-import { FlowNode } from "../../../models/flowTypes";
+import { FlowNode } from "@models/flowTypes";
+import { IKnowledge } from "@models/IKnowledge";
+import { fetchAllKnowledge, } from "@services/knowledgeService";
+import { Form, InputNumber, Select, Spin, Typography } from "antd";
+import React, { useEffect, useState } from "react";
 import BaseNodeForm from "./base-node-form";
-import { fetchAllKnowledge, } from "../../../services/knowledgeService";
-import { IKnowledge } from "../../../models/IKnowledge";
-import { usePredecessorNodes } from "../hooks/usePredecessorNodes";
-import RoleSelector from "./shared/RoleSelector";
 import InputReferences from "./shared/InputReferences";
+import RoleSelector from "./shared/RoleSelector";
 
-const { Panel } = Collapse;
 
 interface RetrievalNodeFormProps {
   form: any;

@@ -1,7 +1,7 @@
-import React from 'react';
-import { Form, Select, Space, Input, Button, Tag, Collapse } from 'antd';
-import { LinkOutlined, DeleteOutlined } from '@ant-design/icons';
+import { DeleteOutlined, LinkOutlined } from '@ant-design/icons';
 import { usePredecessorNodes } from '@components/agent/hooks/usePredecessorNodes';
+import { Button, Collapse, Form, Select, Space, Tag } from 'antd';
+import React from 'react';
 
 const { Panel } = Collapse;
 

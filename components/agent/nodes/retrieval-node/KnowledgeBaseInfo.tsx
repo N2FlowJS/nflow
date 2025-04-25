@@ -1,6 +1,6 @@
-import React from 'react';
-import { Flex, Typography, Tag, Card, Space } from 'antd';
 import { DatabaseOutlined, WarningOutlined } from '@ant-design/icons';
+import { Card, Space, Tag, Typography } from 'antd';
+import React from 'react';
 
 interface KnowledgeBaseInfoProps {
   knowledgeIds: string[];

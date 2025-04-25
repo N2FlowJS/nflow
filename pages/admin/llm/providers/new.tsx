@@ -9,10 +9,10 @@ import {
 } from 'antd';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
-import LLMProviderForm from '../../../../components/llm/LLMProviderForm';
-import { createLLMProvider } from '../../../../services/llmService';
-import { CreateLLMProviderRequest } from '../../../../models/llm';
-import { checkAuthentication, hasAdminAccess, redirectToLogin } from '../../../../services/authUtils';
+import LLMProviderForm from '@components/llm/LLMProviderForm';
+import { createLLMProvider } from '@services/llmService';
+import { CreateLLMProviderRequest } from '@models/llm';
+import { checkAuthentication, hasAdminAccess, redirectToLogin } from '@services/authUtils';
 
 const { Content } = Layout;
 const { Title } = Typography;
@@ -21,7 +21,7 @@ export default function NewLLMProvider() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [authenticated, setAuthenticated] = useState<boolean | null>(null);
-  const [userData, setUserData] = useState<any>(null);
+  const [_, setUserData] = useState<any>(null);
 
   // Check authentication
   const validateAuthentication = async () => {

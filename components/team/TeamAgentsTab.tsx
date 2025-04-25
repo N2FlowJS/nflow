@@ -24,7 +24,6 @@ interface TeamAgentsTabProps {
 }
 
 const TeamAgentsTab: React.FC<TeamAgentsTabProps> = ({
-  teamId,
   agents,
   userRole,
   onCreateAgent

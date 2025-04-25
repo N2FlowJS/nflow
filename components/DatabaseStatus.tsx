@@ -159,6 +159,11 @@ export default function DatabaseStatus() {
             <Text type="danger">{errorMsg}</Text>
           </div>
         )}
+        <div>
+          <Text type="secondary">
+            Setup {setupAttempted ? "has been" : "has not been"} attempted
+          </Text>
+        </div>
       </div>
 
       <div style={{ marginTop: "8px" }}>

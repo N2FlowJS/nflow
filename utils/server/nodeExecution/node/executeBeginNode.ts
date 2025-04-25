@@ -1,12 +1,12 @@
-import { FlowNode, BeginNodeData } from '../../../../models/flowTypes';
-import { ExecutionResult, FlowExecutionContext } from '../../../../models/flowExecutionTypes';
+import { FlowNode, BeginNodeData } from '@models/flowTypes';
+import { ExecutionResult, FlowExecutionContext } from '@models/flowExecutionTypes';
 import { processTemplate } from '../../templateProcessor';
 import { findNextNodes } from '@utils/server/findNextNode';
 
 /**
  * Handler for executing Begin nodes
  */
-export async function executeBeginNode(node: FlowNode, { flow, flowState, input }: FlowExecutionContext): Promise<ExecutionResult> {
+export async function executeBeginNode(node: FlowNode, { flow, flowState }: FlowExecutionContext): Promise<ExecutionResult> {
   const data = node.data as BeginNodeData;
   const form = data.form;
   const startTime = new Date().toISOString();

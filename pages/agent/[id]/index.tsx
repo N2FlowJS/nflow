@@ -1,46 +1,43 @@
-import React, { useEffect, useState, useCallback } from "react";
 import {
-  Card,
-  Form,
-  Input,
-  Button,
-  Spin,
-  Typography,
-  Space,
-  message,
-  Breadcrumb, // Keep Breadcrumb import
-  Tabs,
-  Switch,
-  Modal,
-  Avatar,
-  Tag,
-  Row,
-  Col,
-  Divider,
-} from "antd";
-import {
-  ArrowLeftOutlined,
-  SaveOutlined,
-  UserOutlined,
-  TeamOutlined,
-  RobotOutlined,
   DeleteOutlined,
   EditOutlined,
-  CommentOutlined,
   InfoCircleOutlined,
+  RobotOutlined,
+  SaveOutlined,
+  TeamOutlined,
   ThunderboltOutlined,
+  UserOutlined
 } from "@ant-design/icons";
-import { useRouter } from "next/router";
-import Link from "next/link";
-import MainLayout from "../../../components/layout/MainLayout";
 import {
-  fetchAgent,
-  updateAgent,
+  Avatar,
+  Breadcrumb,
+  Button,
+  Card,
+  Col,
+  Divider,
+  Form,
+  Input,
+  Modal,
+  Row,
+  Space,
+  Spin,
+  Switch,
+  Tag,
+  Typography,
+  message
+} from "antd";
+import Link from "next/link";
+import { useRouter } from "next/router";
+import { useCallback, useEffect, useState } from "react";
+import ChatInterface from "@components/chat/ChatInterface";
+import MainLayout from "@components/layout/MainLayout";
+import { IAgent } from "@models/IAgent";
+import {
   deleteAgent,
+  fetchAgent,
   fetchFlowConfig,
-} from "../../../services/agentService"; // Use the new service
-import { IAgent } from "../../../models/IAgent";
-import ChatInterface from "../../../components/chat/ChatInterface";
+  updateAgent,
+} from "@services/agentService"; // Use the new service
 import { useAuth } from "../../../context/AuthContext";
 
 const { Title, Text } = Typography;

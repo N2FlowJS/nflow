@@ -1,39 +1,37 @@
-import React, { useEffect, useState } from 'react';
 import {
-  Card,
-  Table,
-  Typography,
-  Badge,
-  Statistic,
-  Row,
-  Col,
-  Space,
-  Tag,
-  Progress,
-  Alert,
-  Button,
-  Modal,
-  Descriptions,
-  Divider,
-  Spin,
-} from 'antd';
-import {
-  SyncOutlined,
   CheckCircleOutlined,
-  CloseCircleOutlined,
   ClockCircleOutlined,
-  DatabaseOutlined,
-  RobotOutlined,
-  ReloadOutlined,
-  EyeOutlined,
+  CloseCircleOutlined,
   DashboardOutlined,
+  DatabaseOutlined,
+  EyeOutlined,
+  ReloadOutlined,
+  RobotOutlined,
+  SyncOutlined,
 } from '@ant-design/icons';
-import MainLayout from '../../../components/layout/MainLayout';
-import { useAuth } from '../../../context/AuthContext';
-import { useRouter } from 'next/router';
-import { getWorkerStatus } from '../../../services/adminService';
-import { parseFile, deleteParsingTask } from '../../../services/fileService';
+import MainLayout from '@components/layout/MainLayout';
+import { useAuth } from '@context/AuthContext';
+import { getWorkerStatus } from '@services/adminService';
+import { deleteParsingTask, parseFile } from '@services/fileService';
+import {
+  Alert,
+  Badge,
+  Button,
+  Card,
+  Col,
+  Descriptions,
+  Modal,
+  Progress,
+  Row,
+  Space,
+  Spin,
+  Statistic,
+  Table,
+  Typography
+} from 'antd';
 import { format, formatDistance } from 'date-fns';
+import { useRouter } from 'next/router';
+import { useEffect, useState } from 'react';
 
 const { Title, Text } = Typography;
 
@@ -181,12 +179,12 @@ export default function TasksMonitorPage() {
         if (!record || !record.id) {
           return <Text type="danger">Invalid task data</Text>;
         }
-        
+
         return (
           <Space>
-            <Button 
-              type="text" 
-              icon={<EyeOutlined />} 
+            <Button
+              type="text"
+              icon={<EyeOutlined />}
               onClick={() => handleViewTask(record)}
             />
             <Button
@@ -195,13 +193,13 @@ export default function TasksMonitorPage() {
               onClick={() => router.push(`/admin/tasks/${record.id}`)}
             />
             {record.status === 'failed' && record.file && record.file.id && (
-              <Button 
-                type="text" 
-                icon={<ReloadOutlined />} 
+              <Button
+                type="text"
+                icon={<ReloadOutlined />}
                 onClick={() => handleRetryTask(record.file.id)}
               />
             )}
-            <Button 
+            <Button
               type="text"
               danger
               icon={<CloseCircleOutlined />}
@@ -232,9 +230,9 @@ export default function TasksMonitorPage() {
               </Col>
               <Col flex="auto" />
               <Col>
-                <Button 
-                  type="primary" 
-                  icon={<ReloadOutlined />} 
+                <Button
+                  type="primary"
+                  icon={<ReloadOutlined />}
                   onClick={handleRefresh}
                   loading={loadingData}
                 >
@@ -245,12 +243,12 @@ export default function TasksMonitorPage() {
           </Card>
 
           {error && (
-            <Alert 
-              message="Error Loading Data" 
-              description={error} 
-              type="error" 
-              showIcon 
-              closable 
+            <Alert
+              message="Error Loading Data"
+              description={error}
+              type="error"
+              showIcon
+              closable
             />
           )}
 
@@ -258,42 +256,42 @@ export default function TasksMonitorPage() {
             <Row gutter={[16, 16]}>
               <Col xs={24} sm={12} md={6}>
                 <Card>
-                  <Statistic 
-                    title="Database Status" 
-                    value="Connected" 
+                  <Statistic
+                    title="Database Status"
+                    value="Connected"
                     valueStyle={{ color: '#3f8600' }}
-                    prefix={<DatabaseOutlined />} 
+                    prefix={<DatabaseOutlined />}
                   />
                 </Card>
               </Col>
               <Col xs={24} sm={12} md={6}>
                 <Card>
-                  <Statistic 
-                    title="Worker Status" 
-                    value={data.workerConfig.enabled ? 'Enabled' : 'Disabled'} 
+                  <Statistic
+                    title="Worker Status"
+                    value={data.workerConfig.enabled ? 'Enabled' : 'Disabled'}
                     valueStyle={{ color: data.workerConfig.enabled ? '#3f8600' : '#cf1322' }}
-                    prefix={<RobotOutlined />} 
+                    prefix={<RobotOutlined />}
                   />
                   <Text type="secondary">Workers: {data.workerConfig.maxWorkers}</Text>
                 </Card>
               </Col>
               <Col xs={24} sm={12} md={6}>
                 <Card>
-                  <Statistic 
-                    title="Active Tasks" 
-                    value={data.taskStats.processing} 
+                  <Statistic
+                    title="Active Tasks"
+                    value={data.taskStats.processing}
                     valueStyle={{ color: '#1890ff' }}
-                    prefix={<SyncOutlined spin={data.taskStats.processing > 0} />} 
+                    prefix={<SyncOutlined spin={data.taskStats.processing > 0} />}
                   />
                 </Card>
               </Col>
               <Col xs={24} sm={12} md={6}>
                 <Card>
-                  <Statistic 
-                    title="Pending Tasks" 
-                    value={data.taskStats.pending} 
+                  <Statistic
+                    title="Pending Tasks"
+                    value={data.taskStats.pending}
                     valueStyle={{ color: data.taskStats.pending > 0 ? '#faad14' : '#8c8c8c' }}
-                    prefix={<ClockCircleOutlined />} 
+                    prefix={<ClockCircleOutlined />}
                   />
                 </Card>
               </Col>
@@ -304,46 +302,48 @@ export default function TasksMonitorPage() {
             <Card title="Processing Summary">
               <Row gutter={[16, 16]}>
                 <Col span={24}>
-                  <Progress 
+                  <Progress
                     percent={Math.round(
-                      (data.taskStats.completed / 
+                      (data.taskStats.completed /
                         (data.taskStats.completed + data.taskStats.failed + data.taskStats.pending + data.taskStats.processing)) * 100 || 0
                     )}
-                    success={{ percent: Math.round(
-                      (data.taskStats.completed / 
-                        (data.taskStats.completed + data.taskStats.failed + data.taskStats.pending + data.taskStats.processing)) * 100 || 0
-                    )}}
+                    success={{
+                      percent: Math.round(
+                        (data.taskStats.completed /
+                          (data.taskStats.completed + data.taskStats.failed + data.taskStats.pending + data.taskStats.processing)) * 100 || 0
+                      )
+                    }}
                     status={data.taskStats.failed > 0 ? 'exception' : 'normal'}
                   />
                 </Col>
                 <Col xs={12} sm={6}>
-                  <Statistic 
-                    title="Completed" 
-                    value={data.taskStats.completed} 
+                  <Statistic
+                    title="Completed"
+                    value={data.taskStats.completed}
                     prefix={<CheckCircleOutlined />}
                     valueStyle={{ color: '#52c41a' }}
                   />
                 </Col>
                 <Col xs={12} sm={6}>
-                  <Statistic 
-                    title="Failed" 
-                    value={data.taskStats.failed} 
+                  <Statistic
+                    title="Failed"
+                    value={data.taskStats.failed}
                     prefix={<CloseCircleOutlined />}
                     valueStyle={{ color: '#f5222d' }}
                   />
                 </Col>
                 <Col xs={12} sm={6}>
-                  <Statistic 
-                    title="Processing" 
-                    value={data.taskStats.processing} 
+                  <Statistic
+                    title="Processing"
+                    value={data.taskStats.processing}
                     prefix={<SyncOutlined spin={data.taskStats.processing > 0} />}
                     valueStyle={{ color: '#1890ff' }}
                   />
                 </Col>
                 <Col xs={12} sm={6}>
-                  <Statistic 
-                    title="Pending" 
-                    value={data.taskStats.pending} 
+                  <Statistic
+                    title="Pending"
+                    value={data.taskStats.pending}
                     prefix={<ClockCircleOutlined />}
                     valueStyle={{ color: '#faad14' }}
                   />
@@ -354,9 +354,9 @@ export default function TasksMonitorPage() {
 
           {data && (
             <Card title="Recent Tasks">
-              <Table 
-                dataSource={data.recentTasks} 
-                columns={columns} 
+              <Table
+                dataSource={data.recentTasks}
+                columns={columns}
                 rowKey="id"
                 pagination={{ pageSize: 10 }}
                 loading={loadingData}
@@ -372,9 +372,9 @@ export default function TasksMonitorPage() {
           onCancel={() => setTaskModalVisible(false)}
           footer={[
             taskDetail && (  // Only show this button if taskDetail exists
-              <Button 
-                key="view" 
-                type="primary" 
+              <Button
+                key="view"
+                type="primary"
                 onClick={() => {
                   setTaskModalVisible(false);
                   router.push(`/admin/tasks/${taskDetail.id}`);
@@ -393,7 +393,7 @@ export default function TasksMonitorPage() {
             <Descriptions bordered column={1}>
               <Descriptions.Item label="Task ID">{taskDetail.id}</Descriptions.Item>
               <Descriptions.Item label="Status">{getStatusBadge(taskDetail.status)}</Descriptions.Item>
-              
+
               {/* Add null checking for nested objects */}
               {taskDetail.file && (
                 <>
@@ -401,30 +401,30 @@ export default function TasksMonitorPage() {
                   <Descriptions.Item label="File ID">{taskDetail.file.id}</Descriptions.Item>
                 </>
               )}
-              
+
               <Descriptions.Item label="Created At">{formatDate(taskDetail.createdAt)}</Descriptions.Item>
               <Descriptions.Item label="Updated At">{formatDate(taskDetail.updatedAt)}</Descriptions.Item>
-              
+
               {taskDetail.completedAt && (
                 <Descriptions.Item label="Completed At">{formatDate(taskDetail.completedAt)}</Descriptions.Item>
               )}
-              
+
               {taskDetail.errorMessage && (
                 <Descriptions.Item label="Error Message">
                   <Alert message={taskDetail.errorMessage} type="error" />
                 </Descriptions.Item>
               )}
-              
+
               {taskDetail.message && (
                 <Descriptions.Item label="Task Message">
-                  <Alert 
-                    message={taskDetail.status === 'failed' ? "Error" : "Information"} 
+                  <Alert
+                    message={taskDetail.status === 'failed' ? "Error" : "Information"}
                     description={taskDetail.message}
                     type={taskDetail.status === 'failed' ? "error" : "info"}
                   />
                 </Descriptions.Item>
               )}
-              
+
               {taskDetail.file && taskDetail.file.knowledge && (
                 <Descriptions.Item label="Knowledge">
                   <a href={`/knowledge/${taskDetail.file.knowledge.id}`}>
@@ -432,11 +432,11 @@ export default function TasksMonitorPage() {
                   </a>
                 </Descriptions.Item>
               )}
-              
+
               <Descriptions.Item label="Actions">
                 <Space>
                   {taskDetail.status === 'failed' && taskDetail.file && (
-                    <Button 
+                    <Button
                       type="primary"
                       onClick={() => {
                         handleRetryTask(taskDetail.file.id);
@@ -446,7 +446,7 @@ export default function TasksMonitorPage() {
                       Retry Parsing
                     </Button>
                   )}
-                  <Button 
+                  <Button
                     danger
                     onClick={() => {
                       handleDeleteTask(taskDetail.id);

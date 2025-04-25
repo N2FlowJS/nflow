@@ -1,5 +1,5 @@
-import { Flow, FlowState, ExecutionResult } from '../../../models';
-import { MessagePart } from '../../../models/MessagePart';
+import { Flow, FlowState, ExecutionResult } from '@models';
+import { MessagePart } from '@models/MessagePart';
 import { executeNode } from './node/executeNode';
 
 export async function executeCurrentNode(

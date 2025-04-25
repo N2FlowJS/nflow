@@ -1,38 +1,38 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  Card, 
-  Typography, 
-  Select, 
-  Form, 
-  Button, 
-  Row, 
-  Col, 
-  Divider, 
-  Spin, 
-  Empty, 
-  Tabs, 
-  message, 
-  Tooltip,
-  Space,
-  Alert,
-  Modal,
-  Input
-} from 'antd';
-import { 
-  SaveOutlined, 
-  ApiOutlined, 
-  SettingOutlined, 
-  RobotOutlined,
+import {
+  ApiOutlined,
+  PlusOutlined,
   QuestionCircleOutlined,
-  PlusOutlined
+  RobotOutlined,
+  SaveOutlined,
+  SettingOutlined
 } from '@ant-design/icons';
-import { 
-  fetchAllLLMProviders, 
-  createDefaultLLMProvider 
+import {
+  Alert,
+  Button,
+  Card,
+  Col,
+  Divider,
+  Empty,
+  Form,
+  Input,
+  message,
+  Modal,
+  Row,
+  Select,
+  Space,
+  Spin,
+  Tabs,
+  Tooltip,
+  Typography
+} from 'antd';
+import { useEffect, useState } from 'react';
+import {
+  createDefaultLLMProvider,
+  fetchAllLLMProviders
 } from '../../services/llmService';
-import { updateUserPreferences, getUserPreferences } from '../../services/userService';
+import { getUserPreferences, updateUserPreferences } from '../../services/userService';
 
-const { Title, Text, Paragraph } = Typography;
+const { Title,  Paragraph } = Typography;
 const { TabPane } = Tabs;
 const { Option, OptGroup } = Select;
 
@@ -226,7 +226,7 @@ export default function LLMPreferences({ userId }: LLMPreferencesProps) {
           >
             <Paragraph>
               This will create a default OpenAI provider with standard models.
-              You'll need to provide your OpenAI API key.
+              You&apos;ll need to provide your OpenAI API key.
             </Paragraph>
             
             <Form layout="vertical">

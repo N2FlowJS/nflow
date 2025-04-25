@@ -17,6 +17,7 @@ interface UserLLMTabProps {
   onOpenEditModal: (provider: LLMProvider) => void;
   onDeleteProvider: (providerId: string) => void;
   onRefreshProviders: () => void;
+  userName?: string;  // Add this line
 }
 
 const UserLLMTab: React.FC<UserLLMTabProps> = ({
@@ -28,7 +29,8 @@ const UserLLMTab: React.FC<UserLLMTabProps> = ({
   onOpenAddModal,
   onOpenEditModal,
   onDeleteProvider,
-  onRefreshProviders
+  onRefreshProviders,
+  userName  // Add this line
 }) => {
   const [selectedProvider, setSelectedProvider] = useState<LLMProvider | null>(null);
 
@@ -144,7 +146,7 @@ const UserLLMTab: React.FC<UserLLMTabProps> = ({
 
   return (
     <>
-      {userId && <LLMProviderPreferences userId={userId} viewOnly={!isCurrentUser && currentUserId !== userId} />}
+      {userId && <LLMProviderPreferences userId={userId} viewOnly={!isCurrentUser && currentUserId !== userId} userName={userName} />}
       
       {/* Provider detail view or list view */}
       {selectedProvider ? (
@@ -160,7 +162,7 @@ const UserLLMTab: React.FC<UserLLMTabProps> = ({
             <Title level={4}>
               <Space>
                 <ApiOutlined />
-                Personal LLM Providers
+                {`${isCurrentUser ? 'My' : userName + "'s"} LLM Providers`}
               </Space>
             </Title>
           }

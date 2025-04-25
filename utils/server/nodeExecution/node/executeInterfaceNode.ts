@@ -1,5 +1,5 @@
-import { FlowNode, InterfaceNodeData } from '../../../../models/flowTypes';
-import { ExecutionResult, FlowExecutionContext } from '../../../../models/flowExecutionTypes';
+import { FlowNode, InterfaceNodeData } from '@models/flowTypes';
+import { ExecutionResult, FlowExecutionContext } from '@models/flowExecutionTypes';
 import { findNextNodes } from '@utils/server/findNextNode';
 
 /**

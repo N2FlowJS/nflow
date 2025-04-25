@@ -1,4 +1,4 @@
-import { Flow, ExecutionResult } from '../../../models';
+import { Flow, ExecutionResult } from '@models';
 import { executeNode } from './node/executeNode';
 import { EXECUTION_STATUS } from '../EXECUTION_STATUS';
 

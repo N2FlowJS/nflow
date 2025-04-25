@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { prisma } from '../../../../../lib/prisma';
+import { prisma } from '@lib/prisma';
 import { Prisma } from '@prisma/client'; // Add this import for Prisma types
 import multer from 'multer';
 import path from 'path';
@@ -9,22 +9,22 @@ import { v4 as uuidv4 } from 'uuid';
 // Configure multer for file uploads with knowledge-specific folders
 const upload = (knowledgeId: string) => multer({
   storage: multer.diskStorage({
-    destination: function (req, file, cb) {
+    destination: function (_req, _file, cb) {
       // Create the base uploads directory if it doesn't exist
-      const baseUploadDir = path.join(process.cwd(), 'uploads','knowledge');
+      const baseUploadDir = path.join(process.cwd(), 'uploads', 'knowledge');
       if (!fs.existsSync(baseUploadDir)) {
         fs.mkdirSync(baseUploadDir, { recursive: true });
       }
-      
+
       // Create a knowledge-specific directory
       const knowledgeUploadDir = path.join(baseUploadDir, knowledgeId);
       if (!fs.existsSync(knowledgeUploadDir)) {
         fs.mkdirSync(knowledgeUploadDir, { recursive: true });
       }
-      
+
       cb(null, knowledgeUploadDir);
     },
-    filename: function (req, file, cb) {
+    filename: function (_req, file, cb) {
       // Sanitize the file name to ensure it's correctly handled
       // Use UUID for the actual filename to avoid any encoding issues
       const uniqueFilename = uuidv4() + path.extname(file.originalname);
@@ -89,23 +89,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method === 'POST') {
     try {
       console.log("Processing file upload for knowledge:", id);
-      
+
       // Extract form fields first to get fileName
       const uploadWithFields = upload(id).fields([
         { name: 'file', maxCount: 10 },
         { name: 'fileName', maxCount: 1 }
       ]);
-      
+
       await runMiddleware(req, res, uploadWithFields);
-      
+
       // @ts-ignore - Added by multer
       const files = req.files?.file;
       // @ts-ignore - Access the fileName from form fields
       const fileName = req.body?.fileName;
-      
+
       console.log("Files received:", files);
       console.log("Custom file name received:", fileName);
-      
+
       if (!files || files.length === 0) {
         console.error("No files received in request");
         return res.status(400).json({ error: 'No files uploaded' });
@@ -115,16 +115,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // Get the knowledge config if it exists
       const knowledge = await prisma.knowledge.findUnique({
         where: { id },
-      });      
+      });
       // Create records for all uploaded files
       const fileRecords = await Promise.all(
         files.map(async (file: any) => {
           // Use custom fileName if provided, otherwise use original name from file
           const originalName = fileName || file.originalname;
           // Safely encode the original filename to handle Unicode characters
-          
+
           // Fix the config type issue by properly handling the JSON field
-          const fileConfig = knowledge?.config 
+          const fileConfig = knowledge?.config
             ? knowledge.config as Prisma.InputJsonValue
             : undefined;
 
@@ -147,9 +147,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(201).json(fileRecords);
     } catch (error) {
       console.error('Upload error:', error);
-      return res.status(500).json({ 
-        error: 'Error uploading file', 
-        details: error instanceof Error ? error.message : 'Unknown error' 
+      return res.status(500).json({
+        error: 'Error uploading file',
+        details: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   }

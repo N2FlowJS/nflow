@@ -24,6 +24,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 // Get agent by ID
 async function getAgentById(req: NextApiRequest, res: NextApiResponse, id: string) {
   try {
+    const token = parseAuthHeader(req.headers.authorization);
+
+    // Verify the token
+    if (!token) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    const payload = verifyToken(token);
+    if (!payload) {
+      return res.status(401).json({ error: 'Invalid token' });
+    }
     const agent = await prisma.agent.findUnique({
       where: { id },
       include: {

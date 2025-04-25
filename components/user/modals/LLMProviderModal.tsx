@@ -1,6 +1,6 @@
 import React from 'react';
 import { Modal, Typography } from 'antd';
-import { LLMProvider } from '../../../models/llm';
+import { LLMProvider } from '@models/llm';
 import LLMProviderForm from '../../llm/LLMProviderForm';
 
 const { Title } = Typography;

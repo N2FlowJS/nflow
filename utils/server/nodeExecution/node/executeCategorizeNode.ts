@@ -1,13 +1,13 @@
-import { FlowNode, CategorizeNodeData, ICategory } from '../../../../models/flowTypes';
-import { ExecutionResult, FlowExecutionContext } from '../../../../models/flowExecutionTypes';
-import { getQueryFromSource, getInputs } from '../../../../hooks/useInputReferences';
-import { prisma } from '../../../../lib/prisma';
+import { FlowNode, CategorizeNodeData, ICategory } from '@models/flowTypes';
+import { ExecutionResult, FlowExecutionContext } from '@models/flowExecutionTypes';
+import { getQueryFromSource, getInputs } from '@hooks/useInputReferences';
+import { prisma } from '@lib/prisma';
 import { isNodeReady } from '../../isNodeReady';
 
 /**
  * Handler for executing Categorize nodes
  */
-export async function executeCategorizeNode(node: FlowNode, { flow, flowState, input }: FlowExecutionContext, callback?: (result: ExecutionResult) => void): Promise<ExecutionResult> {
+export async function executeCategorizeNode(node: FlowNode, { flowState }: FlowExecutionContext): Promise<ExecutionResult> {
   const data = node.data as CategorizeNodeData;
   const form = data.form || {};
 
@@ -133,9 +133,7 @@ Analyze the text and determine which category it belongs to. Respond with ONLY t
         };
     }
 
-    // Parse the JSON response
     let categoryToUse = defaultCategory;
-    let confidence = 0;
 
     try {
       // Extract JSON from potential text (in case LLM adds extra explanation)
@@ -150,8 +148,6 @@ Analyze the text and determine which category it belongs to. Respond with ONLY t
           // If no category matched, use the default category
           categoryToUse = matchedCategory ? matchedCategory.name : defaultCategory;
 
-          // Ensure confidence is a number between 0 and 1
-          confidence = typeof responseJson.confidence === 'number' ? Math.min(Math.max(responseJson.confidence, 0), 1) : 1.0;
         }
       }
     } catch (error) {

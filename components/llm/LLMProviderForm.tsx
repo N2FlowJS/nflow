@@ -47,7 +47,6 @@ const LLMProviderForm: React.FC<LLMProviderFormProps> = ({
     try {
       setIsTesting(true);
       
-      const formValues = form.getFieldsValue();
       const testMessage = "Hello, this is a test message. Please respond with a short greeting.";
       
       const testData = {

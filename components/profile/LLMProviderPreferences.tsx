@@ -15,10 +15,8 @@ import {
 } from 'antd';
 import {
   ApiOutlined,
-  StarOutlined,
   StarFilled,
   CheckCircleOutlined,
-  ExperimentOutlined
 } from '@ant-design/icons';
 import { updateUserPreferences, fetchUserPreferences } from '../../services/userService';
 import { LLMProvider } from '../../models/llm';
@@ -31,23 +29,19 @@ interface LLMProviderPreferencesProps {
   userId?: string;
   teamId?: string;
   viewOnly?: boolean;
+  userName?: string;
 }
 
 const LLMProviderPreferences: React.FC<LLMProviderPreferencesProps> = ({
   userId,
-  teamId,
-  viewOnly = false
+  viewOnly = false,
+  userName
 }) => {
   const [loading, setLoading] = useState(false);
   const [preferences, setPreferences] = useState<any>(null);
   const [selectedProvider, setSelectedProvider] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    if (userId) {
-      fetchPreferences();
-    }
-  }, [userId]);
 
   const fetchPreferences = async () => {
     if (!userId) return;
@@ -130,6 +124,11 @@ const LLMProviderPreferences: React.FC<LLMProviderPreferencesProps> = ({
     }
     return null;
   };
+  useEffect(() => {
+    if (userId) {
+      fetchPreferences();
+    }
+  }, [userId]);
 
   const columns = [
     {
@@ -250,7 +249,7 @@ const LLMProviderPreferences: React.FC<LLMProviderPreferencesProps> = ({
             locale={{ emptyText: <Empty description="No system providers available" /> }}
           />
         </TabPane>
-        <TabPane tab="My Providers" key="user">
+        <TabPane tab={`${userName ? `${userName}'s Providers` : 'My Providers'}`} key="user">
           <Table
             dataSource={preferences.availableProviders?.userProviders || []}
             columns={columns}

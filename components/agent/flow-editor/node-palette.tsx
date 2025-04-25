@@ -1,7 +1,7 @@
 import React from "react";
 import { Tooltip } from "antd";
 import { NODE_REGISTRY } from "@utils/client";
-import { FlowNode } from "../../../models/flowTypes";
+import { FlowNode } from "@models/flowTypes";
 
 interface NodePaletteProps {
   nodes: FlowNode[];

@@ -1,13 +1,24 @@
-import { useEffect, useState } from "react";
-import { 
-  Row, Col, Card, Statistic, Table, Spin, Typography, 
-  Tabs, Progress, Alert, Button, Divider 
-} from "antd";
 import {
-  TeamOutlined, UserOutlined, DatabaseOutlined, FileOutlined,
-  RobotOutlined, CloudServerOutlined, FileTextOutlined, SyncOutlined
+  DatabaseOutlined, FileOutlined,
+  FileTextOutlined,
+  RobotOutlined,
+  SyncOutlined,
+  TeamOutlined, UserOutlined
 } from "@ant-design/icons";
+import {
+  Alert, Button,
+  Card,
+  Col,
+  Divider,
+  Progress,
+  Row,
+  Spin,
+  Statistic, Table,
+  Tabs,
+  Typography
+} from "antd";
 import { useRouter } from "next/router";
+import { useEffect, useState } from "react";
 import MainLayout from "../components/layout/MainLayout";
 import { useAuth } from "../context/AuthContext";
 import { getSystemStats, getWorkerStatus } from "../services/adminService";

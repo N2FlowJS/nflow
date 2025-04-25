@@ -19,7 +19,6 @@ import { useRouter } from "next/router";
 import { useLocale } from "../../locale";
 import { useTheme } from "../../theme";
 import { useAuth } from "../../context/AuthContext";
-import { Select } from "antd";
 import styles from '../../styles/MainLayout.module.css';
 
 interface MainLayoutProps {
@@ -27,19 +26,16 @@ interface MainLayoutProps {
   title?: string;
 }
 
-const { Option } = Select;
 const { Header, Content, Footer } = Layout;
 
-export default function MainLayout({ children, title }: MainLayoutProps) {
+export default function MainLayout({ children }: MainLayoutProps) {
   const { locale, antdLocale, changeLocale } = useLocale();
   const { theme, toggleTheme } = useTheme();
   const { user, isAuthenticated, logout } = useAuth();
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const handleLocaleChange = (value: string) => {
-    changeLocale(value);
-  };
+
 
   const handleMenuClick = (e: any) => {
     if (e.key === "knowledge") {
@@ -134,7 +130,7 @@ export default function MainLayout({ children, title }: MainLayoutProps) {
         {
           key: "profile",
           icon: <UserOutlined />,
-          label: "My Profile",
+          label: user?.name || "Profile",
         },
         {
           key: "logout",

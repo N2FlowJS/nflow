@@ -32,8 +32,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
   if (req.method !== 'POST') return sendErrorResponse(res, 405, 'Method not allowed', 'invalid_request_error', 'method_not_allowed');
   try {
     let flowId = req.query.id as string;
-    const {  variables = {}, stream = false, model = 'default', messages = [], max_tokens: maxTokens = 1024, temperature = 0.7, top_p: topP = 1 } = req.body;
+    const { variables = {}, stream = false, model = 'default', messages = [], max_tokens: maxTokens = 1024, temperature = 0.7, top_p: topP = 1 } = req.body;
     let { id: conversationId } = req.body;
+    console.log('Flow ID:', { flowId, model, temperature, maxTokens, topP, stream });
 
     if (!flowId) return sendErrorResponse(res, 400, 'Flow ID is required', 'invalid_request_error', 'missing_parameter');
     const message: MessagePart = { role: 'system', content: 'Hello!', };

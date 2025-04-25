@@ -1,39 +1,37 @@
-import React, { useCallback, useState } from "react";
+import { SaveOutlined } from "@ant-design/icons";
 import {
-  ReactFlow,
-  Controls,
-  Background,
-  MiniMap,
   addEdge,
-  ConnectionLineType,
+  Background,
   Connection,
-  useNodesState,
-  useEdgesState,
-  useReactFlow,
-  NodeTypes as ReactFlowNodeTypes,
-  Edge,
+  ConnectionLineType,
+  Controls,
   EdgeTypes,
   IsValidConnection,
   MarkerType,
-  OnConnectStart, // Import OnConnectStart type
+  MiniMap,
+  ReactFlow,
+  NodeTypes as ReactFlowNodeTypes,
+  useEdgesState,
+  useNodesState,
+  useReactFlow
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import { Button, Drawer, Form, Space, message } from "antd";
-import { SaveOutlined } from "@ant-design/icons";
+import { Button, Drawer, Form, message } from "antd";
+import React, { useCallback, useState } from "react";
 
-import { saveFlowConfig } from "../../../services/agentService";
-import NodePalette from "./node-palette";
+import { saveFlowConfig } from "@services/agentService";
 import NodeForm from "../forms/node-form";
+import NodePalette from "./node-palette";
 
-import BeginNode from "../nodes/begin-node";
-import InterfaceNode from "../nodes/interface-node";
-import GenerateNode from "../nodes/generate-node";
-import CategorizeNode from "../nodes/categorize-node";
-import RetrievalNode from "../nodes/retrieval-node";
-import DecisionNode from "../nodes/decision-node";
-import CustomEdge from "../edges/CustomEdge";
-import { CategorizeForm, FlowNode, NodeTypeString } from "../../../models/flowTypes";
+import { CategorizeForm, FlowNode, NodeTypeString } from "@models/flowTypes";
 import { isConnectionAllowed, NODE_REGISTRY, parseFlowConfig } from "@utils/client";
+import CustomEdge from "../edges/CustomEdge";
+import BeginNode from "../nodes/begin-node";
+import CategorizeNode from "../nodes/categorize-node";
+import DecisionNode from "../nodes/decision-node";
+import GenerateNode from "../nodes/generate-node";
+import InterfaceNode from "../nodes/interface-node";
+import RetrievalNode from "../nodes/retrieval-node";
 
 const nodeTypes: ReactFlowNodeTypes = {
   begin: BeginNode,

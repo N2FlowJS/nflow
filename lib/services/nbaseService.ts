@@ -2,7 +2,7 @@
  * Simplified NBase service using the new server API
  */
 import { startNbaseServer } from '../nbase-init';
-import { log } from '../../utils/logger';
+import { log } from '@utils/logger';
 
 // Core configuration with sensible defaults
 const NBASE_HOST = process.env.NBASE_HOST || 'localhost';

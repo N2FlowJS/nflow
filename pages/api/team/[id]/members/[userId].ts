@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { prisma } from "../../../../../lib/prisma";
-import { isAuthenticated } from "../../../../../lib/auth";
+import { prisma } from "@lib/prisma";
+import { isAuthenticated } from "@lib/auth";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { id, userId } = req.query;
@@ -40,7 +40,7 @@ async function removeTeamMember(req: NextApiRequest, res: NextApiResponse, teamI
     }
     
     // Check permissions (only admins can remove members)
-    const user = await isAuthenticated(req, res);
+    const user = await isAuthenticated(req);
     if (!user) {
       return res.status(401).json({ message: "Unauthorized" });
     }
@@ -126,7 +126,7 @@ async function updateMemberRole(req: NextApiRequest, res: NextApiResponse, teamI
     }
     
     // Check permissions (only admins can change roles)
-    const user = await isAuthenticated(req, res);
+    const user = await isAuthenticated(req);
     if (!user) {
       return res.status(401).json({ message: "Unauthorized" });
     }

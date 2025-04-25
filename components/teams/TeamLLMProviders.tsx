@@ -10,7 +10,6 @@ import {
   Space,
   Modal,
   Popconfirm,
-  Tooltip,
   Empty
 } from 'antd';
 import {
@@ -37,7 +36,6 @@ interface TeamLLMProvidersProps {
 
 const TeamLLMProviders: React.FC<TeamLLMProvidersProps> = ({
   teamId,
-  userRole,
   canManageProviders
 }) => {
   const [loading, setLoading] = useState(false);
@@ -47,14 +45,7 @@ const TeamLLMProviders: React.FC<TeamLLMProvidersProps> = ({
   const [editingProvider, setEditingProvider] = useState<LLMProvider | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [selectedProvider, setSelectedProvider] = useState<LLMProvider | null>(null);
-
-  useEffect(() => {
-    if (teamId) {
-      fetchProviders();
-    }
-  }, [teamId]);
-
-  const fetchProviders = async () => {
+  const fetchProviders = React.useCallback(async () => {
     setLoading(true);
     try {
       const data = await fetchTeamLLMProviders(teamId);
@@ -65,7 +56,14 @@ const TeamLLMProviders: React.FC<TeamLLMProvidersProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+  useEffect(() => {
+    if (teamId) {
+      fetchProviders();
+    }
+  }, [teamId]);
+
+
 
   const handleDelete = async (providerId: string) => {
     try {
@@ -98,7 +96,7 @@ const TeamLLMProviders: React.FC<TeamLLMProvidersProps> = ({
 
   const handleEditProvider = async (values: any) => {
     if (!editingProvider?.id) return;
-    
+
     setActionLoading(true);
     try {
       await updateTeamLLMProvider(teamId, editingProvider.id, values);
@@ -216,7 +214,7 @@ const TeamLLMProviders: React.FC<TeamLLMProvidersProps> = ({
           >
             Manage Models
           </Button>
-          
+
           {canManageProviders && record.teamOwnerId === teamId && (
             <>
               <Button

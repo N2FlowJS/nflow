@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Input, Button, Space } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
-import { ICategory } from "../../../../models/flowTypes";
+import { ICategory } from "@models/flowTypes";
 
 interface CategoryCreatorProps {
   categories: ICategory[];
@@ -11,7 +11,6 @@ interface CategoryCreatorProps {
 
 const CategoryCreator: React.FC<CategoryCreatorProps> = ({
   categories,
-  defaultCategory,
   onAddCategory
 }) => {
   const [categoryName, setCategoryName] = useState("");

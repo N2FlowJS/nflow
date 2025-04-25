@@ -1,9 +1,8 @@
-import React, { useEffect, useState } from "react";
-import { Position, NodeProps, Node, useReactFlow } from "@xyflow/react";
-import { InterfaceNodeData } from "../../../../models/flowTypes";
+import { SendOutlined } from "@ant-design/icons";
+import { InterfaceNodeData } from "@models/flowTypes";
+import { Node, NodeProps, Position } from "@xyflow/react";
+import { Badge } from "antd";
 import BaseNode from "../base-node";
-import { Flex, Badge, Tag } from "antd";
-import { SendOutlined, FlagOutlined, EyeOutlined } from "@ant-design/icons";
 
 const InterfaceNode = ({
   data,
@@ -11,7 +10,6 @@ const InterfaceNode = ({
   selected,
 }: NodeProps<Node<InterfaceNodeData>>) => {
   const { form } = data;
-  const { getEdges } = useReactFlow();
 
   return (
     <BaseNode

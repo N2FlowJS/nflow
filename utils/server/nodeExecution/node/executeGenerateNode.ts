@@ -1,16 +1,16 @@
-import { FlowNode, GenerateNodeData } from '../../../../models/flowTypes';
-import { ExecutionResult, FlowExecutionContext } from '../../../../models/flowExecutionTypes';
+import { FlowNode, GenerateNodeData } from '@models/flowTypes';
+import { ExecutionResult, FlowExecutionContext } from '@models/flowExecutionTypes';
 import { getInputFromTemplate, processTemplate } from '../../templateProcessor';
 import { findNextNodes } from '@utils/server/findNextNode';
-import { prisma } from '../../../../lib/prisma';
+import { prisma } from '@lib/prisma';
 import { isNodeReady } from '../../isNodeReady';
-import { MessagePart } from '../../../../models/MessagePart';
+import { MessagePart } from '@models/MessagePart';
 import OpenAI from 'openai';
 
 /**
  * Handler for executing Generate nodes
  */
-export async function executeGenerateNode(node: FlowNode, { flow, flowState, input }: FlowExecutionContext, callback?: (result: ExecutionResult) => void): Promise<ExecutionResult> {
+export async function executeGenerateNode(node: FlowNode, { flow, flowState }: FlowExecutionContext, callback?: (result: ExecutionResult) => void): Promise<ExecutionResult> {
   const data = node.data as GenerateNodeData;
   const form = data.form || {};
   const ready = isNodeReady(node.id, flowState);

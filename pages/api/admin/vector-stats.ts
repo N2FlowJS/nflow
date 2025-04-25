@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { getWorkerStatus } from '../../../lib/worker-init';
-import { getLocalVectorStats } from '../../../lib/services/localVectorService';
-import { getFileVectorStats } from '../../../lib/services/nbaseService';
+import { getWorkerStatus } from '@lib/worker-init';
+import { getLocalVectorStats } from '@lib/services/localVectorService';
+import { getFileVectorStats } from '@lib/services/nbaseService';
 
 export default async function handler(
   req: NextApiRequest,

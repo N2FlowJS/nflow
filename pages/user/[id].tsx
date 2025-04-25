@@ -1,29 +1,27 @@
-import React, { useEffect, useState } from 'react';
-import { Spin, Space, message, Breadcrumb, Tabs, Form, Alert, Skeleton, Button } from 'antd';
-import { UserOutlined, LockOutlined, ApiOutlined, TeamOutlined, RobotOutlined, ArrowLeftOutlined } from '@ant-design/icons';
-import { useRouter } from 'next/router';
-import { useLocale } from '../../locale';
-import { useTheme } from '../../theme';
+import { ApiOutlined, ArrowLeftOutlined, DashboardOutlined, LockOutlined, RobotOutlined, TeamOutlined, UserOutlined } from '@ant-design/icons';
+import MainLayout from '@components/layout/MainLayout';
+import PasswordChangeForm from '@components/profile/PasswordChangeForm';
+import { createAgent } from "@services/agentService";
+import { checkAuthentication, redirectToLogin } from '@services/authUtils';
+import { createUserLLMProvider, deleteUserLLMProvider, fetchUserLLMProviders, updateUserLLMProvider } from '@services/llmService';
+import { createTeam } from "@services/teamService";
+import { fetchUserById, updateUser } from "@services/userService";
+import { Alert, Breadcrumb, Button, Form, Skeleton, Space, Tabs, message } from 'antd';
 import Link from 'next/link';
-import MainLayout from '../../components/layout/MainLayout';
-import { createTeam } from "../../services/teamService";
-import { createAgent } from "../../services/agentService";
-import { updateUser, fetchUserById } from "../../services/userService";
+import { useRouter } from 'next/router';
+import { useEffect, useState } from 'react';
 import { IUser } from '../../models/IUser';
-import PasswordChangeForm from '../../components/profile/PasswordChangeForm';
-import { checkAuthentication, redirectToLogin } from '../../services/authUtils';
-import { fetchUserLLMProviders, createUserLLMProvider, deleteUserLLMProvider, updateUserLLMProvider } from '../../services/llmService';
 import { LLMProvider } from '../../models/llm';
+import { useTheme } from '../../theme';
 
-// Import our new components
-import UserProfileHeader from '../../components/user/UserProfileHeader';
-import UserProfileTab from '../../components/user/UserProfileTab';
-import UserLLMTab from '../../components/user/UserLLMTab';
-import UserTeamsTab from '../../components/user/UserTeamsTab';
-import UserAgentsTab from '../../components/user/UserAgentsTab';
-import TeamCreationModal from '../../components/user/modals/TeamCreationModal';
-import AgentCreationModal from '../../components/user/modals/AgentCreationModal';
-import LLMProviderModal from '../../components/user/modals/LLMProviderModal';
+import UserAgentsTab from '@components/user/UserAgentsTab';
+import UserLLMTab from '@components/user/UserLLMTab';
+import UserProfileHeader from '@components/user/UserProfileHeader';
+import UserProfileTab from '@components/user/UserProfileTab';
+import UserTeamsTab from '@components/user/UserTeamsTab';
+import AgentCreationModal from '@components/user/modals/AgentCreationModal';
+import LLMProviderModal from '@components/user/modals/LLMProviderModal';
+import TeamCreationModal from '@components/user/modals/TeamCreationModal';
 
 const { TabPane } = Tabs;
 
@@ -40,7 +38,6 @@ export default function UserDetail() {
   const [isAgentModalVisible, setIsAgentModalVisible] = useState(false);
   const [creatingTeam, setCreatingTeam] = useState(false);
   const [creatingAgent, setCreatingAgent] = useState(false);
-  const { locale, antdLocale } = useLocale();
   const { theme } = useTheme();
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [isCurrentUser, setIsCurrentUser] = useState(false);
@@ -315,24 +312,28 @@ export default function UserDetail() {
     <MainLayout title={isCurrentUser ? "My Profile" : `${user?.name}'s Profile`}>
       <div style={{ padding: '24px' }}>
         <Space direction="vertical" size="large" style={{ width: '100%' }}>
-          {/* Breadcrumb Navigation */}
-          <Breadcrumb style={{ fontSize: '14px' }}>
-            {isCurrentUser ? (
-              <>
-                <Breadcrumb.Item>Dashboard</Breadcrumb.Item>
-                <Breadcrumb.Item>My Profile</Breadcrumb.Item>
-              </>
-            ) : (
-              <>
-                <Breadcrumb.Item>
-                  <Link href="/user">Users</Link>
-                </Breadcrumb.Item>
-                <Breadcrumb.Item>{user?.name || 'User Profile'}</Breadcrumb.Item>
-              </>
+          {/* Breadcrumb with Admin Link */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Breadcrumb
+              style={{ fontSize: '14px' }}
+              items={isCurrentUser ? [
+                { title: 'Dashboard' },
+                { title: user?.name || 'My Profile' }
+              ] : [
+                {
+                  title: <Link href="/user">Users</Link>
+                },
+                { title: user?.name || 'User Profile' }
+              ]}
+            />
+            {isCurrentUser && user?.permission === 'owner' && (
+              <Link href="/admin">
+                <Button type="primary" icon={<DashboardOutlined />}>
+                  Admin Dashboard
+                </Button>
+              </Link>
             )}
-          </Breadcrumb>
-
-          {/* User Profile Header */}
+          </div>
           <UserProfileHeader
             user={user as IUser}
             isCurrentUser={isCurrentUser}
@@ -345,8 +346,6 @@ export default function UserDetail() {
             onCancel={handleCancel}
             onSubmit={handleSubmit}
           />
-
-          {/* Tabs Section */}
           <Tabs defaultActiveKey="profile" type="card" size="large">
             {/* Profile Tab */}
             <TabPane tab={<span><UserOutlined /> Profile</span>} key="profile">
@@ -379,6 +378,7 @@ export default function UserDetail() {
                 }}
                 onDeleteProvider={handleDeleteLLMProvider}
                 onRefreshProviders={fetchUserProviders}
+                userName={user?.name}  // Add this line
               />
             </TabPane>
 
@@ -395,7 +395,6 @@ export default function UserDetail() {
             {/* Agents Tab */}
             <TabPane tab={<span><RobotOutlined /> Agents</span>} key="agents">
               <UserAgentsTab
-                userId={id as string}
                 isCurrentUser={isCurrentUser}
                 agents={user?.ownedAgents || []}
                 onShowCreateAgent={() => setIsAgentModalVisible(true)}

@@ -21,7 +21,6 @@ interface UserTeamsTabProps {
 }
 
 const UserTeamsTab: React.FC<UserTeamsTabProps> = ({
-  userId,
   isCurrentUser,
   teams,
   onShowCreateTeam

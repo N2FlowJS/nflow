@@ -8,19 +8,19 @@ function cosineSimilarity(vecA: number[], vecB: number[]): number {
   if (vecA.length !== vecB.length) {
     throw new Error(`Vector dimensions don't match: ${vecA.length} vs ${vecB.length}`);
   }
-  
+
   let dotProduct = 0;
   let normA = 0;
   let normB = 0;
-  
+
   for (let i = 0; i < vecA.length; i++) {
     dotProduct += vecA[i] * vecB[i];
     normA += vecA[i] * vecA[i];
     normB += vecB[i] * vecB[i];
   }
-  
+
   if (normA === 0 || normB === 0) return 0;
-  
+
   return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
 }
 
@@ -33,16 +33,16 @@ export async function storeLocalVectors(
   chunks: {
     id: string,
     content: string,
-    metadata: any,
+    metadata: Record<string, any>,
     embedding: number[]
   }[]
 ): Promise<boolean> {
   try {
     console.log(`Storing ${chunks.length} vectors in local SQLite database`);
-    
+
     // Store chunks in batches to avoid SQLite limitations
     const BATCH_SIZE = 50;
-    
+
     for (let i = 0; i < chunks.length; i += BATCH_SIZE) {
       const batch = chunks.slice(i, i + BATCH_SIZE);
       const batchPromises = batch.map((chunk, idx) => {
@@ -52,19 +52,19 @@ export async function storeLocalVectors(
             fileId: fileId,
             content: chunk.content,
             chunkIndex: index,
-            metadata: chunk.metadata,
+            metadata: { ...chunk.metadata, knowledgeId },
             vectorData: JSON.stringify(chunk.embedding) // Serialize the vector as JSON
           }
         });
       });
-      
+
       await Promise.all(batchPromises);
-      console.log(`Stored vector batch ${Math.floor(i/BATCH_SIZE) + 1}/${Math.ceil(chunks.length/BATCH_SIZE)}`);
+      console.log(`Stored vector batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(chunks.length / BATCH_SIZE)}`);
     }
-    
+
     console.log(`Successfully stored ${chunks.length} vectors in SQLite`);
     return true;
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error storing vectors in SQLite:', error);
     return false;
   }
@@ -80,7 +80,7 @@ export async function deleteLocalVectors(fileId: string): Promise<boolean> {
     });
     console.log(`Deleted all vectors for file ${fileId} from SQLite`);
     return true;
-  } catch (error) {
+  } catch (error: any) {
     console.error(`Error deleting vectors for file ${fileId} from SQLite:`, error);
     return false;
   }
@@ -90,6 +90,8 @@ export async function deleteLocalVectors(fileId: string): Promise<boolean> {
  * Search for similar content using vector similarity in SQLite
  * This is a memory-intensive operation as we load vectors and compute similarity in-memory
  */
+
+
 export async function searchLocalVectors(
   queryVector: number[],
   options?: {
@@ -102,10 +104,10 @@ export async function searchLocalVectors(
   try {
     const limit = options?.limit || 5;
     const threshold = options?.similarityThreshold || 0.7;
-    
+
     // Build where clause for SQLite
     const where: any = {};
-    
+
     if (options?.fileId) {
       where.fileId = options.fileId;
     } else if (options?.knowledgeId) {
@@ -113,7 +115,7 @@ export async function searchLocalVectors(
         knowledgeId: options.knowledgeId
       };
     }
-    
+
     // We need to load chunks with vector data
     const chunks = await prisma.textChunk.findMany({
       where,
@@ -127,15 +129,15 @@ export async function searchLocalVectors(
         }
       }
     });
-    
+
     // Compute similarity for each chunk - this happens in memory
     const results = chunks
-      .filter(chunk => chunk.vectorData) // Only process chunks with vector data
-      .map(chunk => {
+      .filter((chunk: any) => chunk.vectorData) // Only process chunks with vector data
+      .map((chunk: any) => {
         try {
           const vectorData = JSON.parse(chunk.vectorData || '[]');
           const similarity = cosineSimilarity(queryVector, vectorData);
-          
+
           return {
             id: chunk.id,
             content: chunk.content,
@@ -145,7 +147,7 @@ export async function searchLocalVectors(
             similarity,
             metadata: chunk.metadata
           };
-        } catch (e) {
+        } catch (e: any) {
           console.error(`Error processing vector for chunk ${chunk.id}:`, e);
           return null;
         }
@@ -153,10 +155,10 @@ export async function searchLocalVectors(
       .filter(result => result !== null && result.similarity >= threshold)
       .sort((a, b) => b!.similarity - a!.similarity) // Sort by similarity descending
       .slice(0, limit);
-      
+
     console.log(`Local vector search found ${results.length} results above threshold ${threshold}`);
     return results as any[];
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error searching local vectors:', error);
     return [];
   }
@@ -175,9 +177,9 @@ export async function isLocalVectorDBAvailable(): Promise<boolean> {
         }
       }
     });
-    
+
     return count > 0;
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error checking local vector DB availability:', error);
     return false;
   }
@@ -199,7 +201,7 @@ export async function getLocalVectorStats(): Promise<{
         }
       }
     });
-    
+
     const filesWithVectors = await prisma.file.count({
       where: {
         TextChunk: {
@@ -211,15 +213,15 @@ export async function getLocalVectorStats(): Promise<{
         }
       }
     });
-    
+
     const averageVectorsPerFile = filesWithVectors > 0 ? totalVectors / filesWithVectors : 0;
-    
+
     return {
       totalVectors,
       filesWithVectors,
       averageVectorsPerFile
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error getting local vector stats:', error);
     return {
       totalVectors: 0,
@@ -235,7 +237,7 @@ export async function getLocalVectorStats(): Promise<{
 export async function fetchTextChunksByFileId(fileId: string): Promise<IChunk[]> {
   try {
     console.log(`Fetching text chunks for file ID: ${fileId} from SQLite`);
-    
+
     const chunks = await prisma.textChunk.findMany({
       where: { fileId },
       include: {
@@ -251,9 +253,9 @@ export async function fetchTextChunksByFileId(fileId: string): Promise<IChunk[]>
         chunkIndex: 'asc'
       }
     });
-    
+
     console.log(`Successfully fetched ${chunks.length} chunks for file ID: ${fileId}`);
-    
+
     return chunks.map(chunk => ({
       id: chunk.id,
       content: chunk.content,
@@ -263,7 +265,7 @@ export async function fetchTextChunksByFileId(fileId: string): Promise<IChunk[]>
       knowledgeId: chunk.file.knowledgeId,
       metadata: chunk.metadata
     }));
-  } catch (error) {
+  } catch (error: any) {
     console.error(`Error fetching text chunks for file ID: ${fileId} from SQLite:`, error);
     return [];
   }

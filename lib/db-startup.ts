@@ -1,5 +1,4 @@
 import { prisma, testConnection } from './prisma'
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library'
 import { execSync } from 'child_process'
 import path from 'path'
 import fs from 'fs'
@@ -51,7 +50,7 @@ async function attemptDatabaseSetup() {
           execSync('npx prisma migrate deploy', 
             { stdio: 'inherit', timeout: 30000 });
         } catch (e) {
-          console.log('[db-startup] Migration creation had issues, trying direct push...');
+          console.log('[db-startup] Migration creation had issues, trying direct push...' , e);
           execSync('npx prisma db push', { stdio: 'inherit' });
         }
       }

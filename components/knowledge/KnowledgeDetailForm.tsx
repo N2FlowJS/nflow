@@ -3,15 +3,13 @@ import { Form, Input } from "antd";
 
 interface KnowledgeDetailFormProps {
   form: any;
-  isEditing: boolean;
 }
 
-const KnowledgeDetailForm: React.FC<KnowledgeDetailFormProps> = ({ 
-  form, 
-  isEditing 
+const KnowledgeDetailForm: React.FC<KnowledgeDetailFormProps> = ({
+  form,
 }) => {
   return (
-    <Form form={form} layout="vertical" disabled={!isEditing}>
+    <Form form={form} layout="vertical" >
       <Form.Item
         name="name"
         label="Name"

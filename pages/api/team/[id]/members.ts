@@ -1,17 +1,17 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { prisma } from "../../../../lib/prisma";
-import { isAuthenticated } from "../../../../lib/auth";
+import { prisma } from "@lib/prisma";
+import { isAuthenticated } from "@lib/auth";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { id } = req.query;
-  
+
   if (!id || typeof id !== "string") {
     return res.status(400).json({ error: "Valid team ID is required" });
   }
-  
+
   switch (req.method) {
     case 'GET':
-      return getTeamMembers(req, res, id);
+      return getTeamMembers(res, id);
     case 'POST':
       return addTeamMembers(req, res, id);
     default:
@@ -20,11 +20,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 }
 
 // Get team members with their roles
-async function getTeamMembers(req: NextApiRequest, res: NextApiResponse, teamId: string) {
+async function getTeamMembers(res: NextApiResponse, teamId: string) {
   try {
     const team = await prisma.team.findUnique({
       where: { id: teamId },
-      include: { 
+      include: {
         members: {
           where: {
             leftAt: null // Only active members
@@ -35,11 +35,11 @@ async function getTeamMembers(req: NextApiRequest, res: NextApiResponse, teamId:
         }
       }
     });
-    
+
     if (!team) {
       return res.status(404).json({ message: 'Team not found' });
     }
-    
+
     return res.status(200).json(team.members);
   } catch (error) {
     console.error("Request error", error);
@@ -51,26 +51,26 @@ async function getTeamMembers(req: NextApiRequest, res: NextApiResponse, teamId:
 async function addTeamMembers(req: NextApiRequest, res: NextApiResponse, teamId: string) {
   try {
     const { members } = req.body;
-    
+
     if (!members || !Array.isArray(members) || members.length === 0) {
       return res.status(400).json({ message: 'Members data is required' });
     }
-    
+
     // Check if team exists
     const team = await prisma.team.findUnique({
       where: { id: teamId }
     });
-    
+
     if (!team) {
       return res.status(404).json({ message: 'Team not found' });
     }
-    
+
     // Check if current user has permission (is admin of the team)
-    const user = await isAuthenticated(req, res);
+    const user = await isAuthenticated(req);
     if (!user) {
       return res.status(401).json({ message: "Unauthorized" });
     }
-    
+
     const currentUserId = user.id;
     const isAdmin = await prisma.memberTeam.findFirst({
       where: {
@@ -80,17 +80,17 @@ async function addTeamMembers(req: NextApiRequest, res: NextApiResponse, teamId:
         leftAt: null
       }
     });
-    
+
     if (!isAdmin) {
       return res.status(403).json({ message: "Only team admins can add members" });
     }
-    
+
     // Process each member to add
     const membershipData = members.map((member: { userId: string, role: string }) => ({
       userId: member.userId,
       role: member.role || 'guest', // Default to guest if role not specified
     }));
-    
+
     // Add members to team with their roles
     const results = await Promise.all(
       membershipData.map(async (member) => {
@@ -101,7 +101,7 @@ async function addTeamMembers(req: NextApiRequest, res: NextApiResponse, teamId:
             userId: member.userId,
           }
         });
-        
+
         if (existingMembership) {
           if (existingMembership.leftAt) {
             // Reactivate former member
@@ -118,7 +118,7 @@ async function addTeamMembers(req: NextApiRequest, res: NextApiResponse, teamId:
             return existingMembership;
           }
         }
-        
+
         // Create new membership
         return prisma.memberTeam.create({
           data: {
@@ -130,7 +130,7 @@ async function addTeamMembers(req: NextApiRequest, res: NextApiResponse, teamId:
         });
       })
     );
-    
+
     // Also connect to the legacy relationship
     await prisma.team.update({
       where: { id: teamId },
@@ -140,7 +140,7 @@ async function addTeamMembers(req: NextApiRequest, res: NextApiResponse, teamId:
         }
       }
     });
-    
+
     return res.status(200).json(results);
   } catch (error) {
     console.error("Request error", error);

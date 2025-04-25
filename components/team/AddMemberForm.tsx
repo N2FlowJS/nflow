@@ -1,6 +1,6 @@
+import { DeleteOutlined, PlusOutlined } from '@ant-design/icons';
+import { Button, Card, Empty, Select, Space, Table } from 'antd';
 import React, { useState } from 'react';
-import { Card, Select, Button, Table, Tag, Space, Empty } from 'antd';
-import { PlusOutlined, DeleteOutlined } from '@ant-design/icons';
 
 const { Option } = Select;
 

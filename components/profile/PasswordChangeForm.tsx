@@ -73,7 +73,7 @@ export default function PasswordChangeForm({ userId }: PasswordChangeFormProps) 
             <li>Use a minimum of 8 characters</li>
             <li>Include uppercase and lowercase letters</li>
             <li>Add numbers and special characters</li>
-            <li>Don't reuse passwords from other sites</li>
+            <li>Don&apos;t reuse passwords from other sites</li>
           </ul>
         }
         type="info"

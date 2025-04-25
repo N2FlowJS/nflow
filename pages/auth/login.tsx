@@ -1,12 +1,10 @@
-import React, { useState } from 'react';
-import { Form, Input, Button, Card, Typography, message, Spin } from 'antd';
-import { UserOutlined, LockOutlined } from '@ant-design/icons';
-import { useRouter } from 'next/router';
-import { useAuth } from '../../context/AuthContext';
+import { LockOutlined, UserOutlined } from '@ant-design/icons';
+import { Button, Card, ConfigProvider, Form, Input, Typography, message } from 'antd';
 import Link from 'next/link';
-import { ConfigProvider } from 'antd';
+import { useRouter } from 'next/router';
+import { useState } from 'react';
+import { useAuth } from '../../context/AuthContext';
 import { useLocale } from '../../locale';
-import { useTheme } from '../../theme';
 
 const { Title, Text } = Typography;
 
@@ -14,8 +12,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const router = useRouter();
-  const { locale, antdLocale } = useLocale();
-  const { theme } = useTheme();
+  const {  antdLocale } = useLocale();
 
   const onFinish = async (values: { email: string; password: string }) => {
     setLoading(true);

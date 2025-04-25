@@ -1,7 +1,5 @@
+import { BaseEdge, Edge, EdgeProps, getBezierPath } from "@xyflow/react";
 import React from "react";
-import { EdgeProps, BaseEdge, getSmoothStepPath, Edge, getBezierPath } from "@xyflow/react";
-import { Button, Tooltip } from "antd";
-import { DeleteOutlined, ArrowRightOutlined } from "@ant-design/icons";
 
 interface CustomEdgeData extends Edge {
   onDelete?: (edgeId: string) => void;

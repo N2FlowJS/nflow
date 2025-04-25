@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, Form, Input, Button, Typography, Row, Col, Divider, Tag } from 'antd';
+import { Card, Form, Input, Button, Typography, Row, Col, Divider } from 'antd';
 import { EditOutlined, UserOutlined, MailOutlined, CalendarOutlined } from '@ant-design/icons';
 import { IUser } from '../../models/IUser';
 

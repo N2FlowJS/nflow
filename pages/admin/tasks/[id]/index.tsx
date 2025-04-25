@@ -1,7 +1,17 @@
-import React, { useEffect, useState } from "react";
-import { useRouter } from "next/router";
+import {
+  ArrowLeftOutlined,
+  CheckCircleOutlined,
+  ClockCircleOutlined,
+  CloseCircleOutlined,
+  DatabaseOutlined,
+  DeleteOutlined,
+  FileOutlined,
+  ReloadOutlined,
+  SyncOutlined
+} from "@ant-design/icons";
 import {
   Alert,
+  Badge,
   Button,
   Card,
   Col,
@@ -10,41 +20,23 @@ import {
   Row,
   Space,
   Spin,
-  Tabs,
-  Typography,
-  Tag,
-  Badge,
   Timeline,
-  Table,
-  Tooltip,
+  Typography
 } from "antd";
-import {
-  ArrowLeftOutlined,
-  CheckCircleOutlined,
-  ClockCircleOutlined,
-  CloseCircleOutlined,
-  CodeOutlined,
-  DatabaseOutlined,
-  DeleteOutlined,
-  FileOutlined,
-  FileTextOutlined,
-  ReloadOutlined,
-  SyncOutlined,
-  UserOutlined,
-} from "@ant-design/icons";
-import MainLayout from "../../../../components/layout/MainLayout";
-import { useAuth } from "../../../../context/AuthContext";
 import { format } from "date-fns";
+import { useRouter } from "next/router";
+import { useEffect, useState } from "react";
+import FileContentViewer from "@components/files/FileContentViewer";
+import MainLayout from "@components/layout/MainLayout";
+import { useAuth } from "@context/AuthContext";
 import {
-  getParsingTaskStatus,
-  parseFile,
   deleteParsingTask,
   fetchFileById,
-} from "../../../../services/fileService";
-import FileContentViewer from "../../../../components/files/FileContentViewer";
+  getParsingTaskStatus,
+  parseFile,
+} from "@services/fileService";
 
-const { Title, Text, Paragraph } = Typography;
-const { TabPane } = Tabs;
+const { Title, Text } = Typography;
 
 export default function TaskDetailPage() {
   const router = useRouter();
@@ -55,7 +47,6 @@ export default function TaskDetailPage() {
   const [task, setTask] = useState<any>(null);
   const [fileDetails, setFileDetails] = useState<any>(null);
   const [fileContent, setFileContent] = useState<string | null>(null);
-  const [contentLoading, setContentLoading] = useState(false);
 
   useEffect(() => {
     // Redirect if not authenticated
@@ -73,7 +64,7 @@ export default function TaskDetailPage() {
     try {
       setLoading(true);
       const taskData = await getParsingTaskStatus(taskId);
-      
+
       setTask(taskData);
 
       if (taskData?.fileId) {

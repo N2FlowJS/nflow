@@ -10,4 +10,5 @@ export interface IUser {
   teamsWithRoles?: any[];
   ownedAgents?: any[];
   lastLoginAt?: string;
+  permission?: string;
 }

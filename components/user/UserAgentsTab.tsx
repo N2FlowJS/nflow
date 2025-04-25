@@ -16,14 +16,12 @@ interface Agent {
 }
 
 interface UserAgentsTabProps {
-  userId: string;
   isCurrentUser: boolean;
   agents: Agent[];
   onShowCreateAgent: () => void;
 }
 
 const UserAgentsTab: React.FC<UserAgentsTabProps> = ({
-  userId,
   isCurrentUser,
   agents,
   onShowCreateAgent

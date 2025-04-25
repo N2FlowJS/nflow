@@ -8,10 +8,10 @@ import {
   Alert,
 } from 'antd';
 import { useRouter } from 'next/router';
-import LLMProvidersTable from '../../../components/llm/LLMProvidersTable';
-import { fetchAllLLMProviders } from '../../../services/llmService';
-import { LLMProvider } from '../../../models/llm';
-import { checkAuthentication, hasAdminAccess, redirectToLogin } from '../../../services/authUtils';
+import LLMProvidersTable from '@components/llm/LLMProvidersTable';
+import { fetchAllLLMProviders } from '@services/llmService';
+import { LLMProvider } from '@models/llm';
+import { checkAuthentication, hasAdminAccess, redirectToLogin } from '@services/authUtils';
 
 const { Content } = Layout;
 const { Title } = Typography;
@@ -23,7 +23,7 @@ export default function LLMAdministration() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [authenticated, setAuthenticated] = useState<boolean | null>(null);
-  const [userData, setUserData] = useState<any>(null);
+  const [_userData, setUserData] = useState<any>(null);
 
   // Check authentication
   const validateAuthentication = async () => {
