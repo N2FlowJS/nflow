@@ -1,14 +1,13 @@
-import { ReloadOutlined, RobotOutlined, SendOutlined, StopOutlined, SmileOutlined, BugOutlined } from '@ant-design/icons';
-import { Alert, Button, Divider, Empty, Input, Spin, Typography, Avatar, Tooltip, Badge, Tag } from 'antd';
+import { ReloadOutlined, RobotOutlined, SendOutlined, SmileOutlined, StopOutlined } from '@ant-design/icons';
+import { Alert, Avatar, Button, Card, Divider, Empty, Input, Layout, Space, Spin, theme, Tooltip, Typography } from 'antd';
+import { AnimatePresence, motion } from 'framer-motion';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import styles from './ChatInterface.module.css';
-import ChatMessage from './ChatMessage';
-import { motion, AnimatePresence } from 'framer-motion';
 import { v4 as uuidv4 } from 'uuid';
-import { ISender, MessageType } from './types';
-import { flowExecutionService } from '../../services/flowExecutionService';
 import { OpenAIExecutionResult } from '../../models/flow';
 import { FlowState } from '../../models/flowExecutionTypes';
+import { flowExecutionService } from '../../services/flowExecutionService';
+import ChatMessage from './ChatMessage';
+import { ISender, MessageType } from './types';
 
 interface ChatInterfaceProps {
     agentId: string;
@@ -36,6 +35,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     onNewChatStarted,
     variables = {}
 }) => {
+    const { token } = theme.useToken();
     // State for chat messages and input
     const [messages, setMessages] = useState<MessageType[]>([]);
     const [inputValue, setInputValue] = useState('');
@@ -474,83 +474,56 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
     // Render the chat interface
     return (
-        <div
-            className={styles.chatContainer}
+        <Card
+            bordered={false}
             style={{
-                background: 'linear-gradient(135deg, #f8fafc 0%, #e6f0fa 100%)',
-                borderRadius: 18,
-                boxShadow: '0 4px 32px rgba(24, 144, 255, 0.08)',
-                border: '1px solid #e6f0fa',
-                padding: 0,
-                minHeight: 600,
+                height: '100%',
                 display: 'flex',
                 flexDirection: 'column',
-                maxWidth: 700,
-                margin: '0 auto'
+                borderRadius: token.borderRadiusLG,
+            }}
+            bodyStyle={{
+                padding: 0,
+                display: 'flex',
+                flexDirection: 'column',
+                height: '100%',
+                minHeight: 600
             }}
         >
-            {/* Chat header */}
-            <div
-                className={styles.chatHeader}
+            <Layout.Header
                 style={{
-                    background: 'rgba(255,255,255,0.95)',
-                    borderTopLeftRadius: 18,
-                    borderTopRightRadius: 18,
-                    borderBottom: '1px solid #e6f0fa',
-                    padding: '18px 28px 12px 28px',
+                    background: 'transparent',
+                    padding: `${token.paddingMD}px ${token.paddingLG}px`,
+                    height: 'auto',
+                    lineHeight: 'normal',
                     display: 'flex',
-                    alignItems: 'center',
                     justifyContent: 'space-between',
-                    minHeight: 64
+                    alignItems: 'center'
                 }}
             >
-                <Typography.Title
-                    level={5}
-                    style={{
-                        margin: 0,
-                        display: 'flex',
-                        alignItems: 'center',
-                        fontWeight: 700,
-                        fontSize: 20,
-                        letterSpacing: 0.2
-                    }}
-                >
+                <Space>
                     <Avatar
                         icon={<RobotOutlined />}
                         style={{
-                            backgroundColor: '#1890ff',
-                            marginRight: 12,
-                            boxShadow: '0 2px 8px rgba(24,144,255,0.12)'
+                            backgroundColor: token.colorPrimary,
                         }}
                         size={40}
                     />
-                    Chat with Agent
-                </Typography.Title>
-                <div className={styles.headerActions} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <Typography.Title level={5} style={{ margin: 0 }}>
+                        Chat with Agent
+                    </Typography.Title>
+                </Space>
+                <Space>
                     {flowState && (
-                        <div className={styles.nodeStatus} style={{ marginRight: 16 }}>
-                            <Tooltip title="Current node in the flow">
-                                <Typography.Text type="secondary" style={{ fontSize: '13px', fontWeight: 500 }}>
-                                    Node: {flowState.currentNode.data.form.name || flowState.currentNode.id || 'None'}
-                                </Typography.Text>
-                            </Tooltip>
-                        </div>
+                        <Typography.Text type="secondary">
+                            Node: {flowState.currentNode.data.form.name || flowState.currentNode.id}
+                        </Typography.Text>
                     )}
                     {streamingMessage && (
                         <Button
                             icon={isStreamingPaused ? <SendOutlined /> : <StopOutlined />}
                             onClick={toggleStreamingPause}
-                            size="small"
-                            style={{
-                                marginRight: 8,
-                                borderRadius: 16,
-                                border: 'none',
-                                background: isStreamingPaused ? '#e6f7ff' : '#fff1f0',
-                                color: isStreamingPaused ? '#1890ff' : '#ff4d4f',
-                                fontWeight: 600
-                            }}
                             type={isStreamingPaused ? "default" : "primary"}
-                            shape="round"
                         >
                             {isStreamingPaused ? 'Resume' : 'Pause'}
                         </Button>
@@ -559,70 +532,47 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                         <Button
                             icon={<ReloadOutlined />}
                             onClick={startNewChat}
-                            size="small"
-                            type="default"
-                            shape="round"
-                            style={{
-                                borderRadius: 16,
-                                border: 'none',
-                                background: '#f5faff',
-                                color: '#1890ff',
-                                fontWeight: 600
-                            }}
                         >
                             New Chat
                         </Button>
                     </Tooltip>
-                </div>
-            </div>
-            <Divider style={{ margin: '0 0 8px 0', borderColor: '#e6f0fa' }} />
-            {/* Messages container */}
+                </Space>
+            </Layout.Header>
+
+            <Divider style={{ margin: 0 }} />
+
             <div
-                className={styles.messagesContainer}
                 style={{
                     flex: 1,
                     overflowY: 'auto',
-                    padding: '24px 32px 8px 32px',
-                    background: 'rgba(255,255,255,0.85)',
-                    borderRadius: 0,
+                    padding: token.paddingLG,
                     minHeight: 320,
                     maxHeight: 480
                 }}
             >
                 {messages.length === 0 && !streamingMessage ? (
-                    <div className={styles.emptyStateContainer}>
-                        <Empty
-                            image={<RobotOutlined style={{ fontSize: 64, color: '#1890ff' }} />}
-                            style={{ height: 80 }}
-                            description={
-                                <Typography.Text style={{ fontSize: 16 }}>
-                                    Start a conversation with this agent
-                                </Typography.Text>
-                            }
-                        />
-                    </div>
+                    <Empty
+                        image={<RobotOutlined style={{ fontSize: 64, color: token.colorPrimary }} />}
+                        description="Start a conversation with this agent"
+                    />
                 ) : (
                     <AnimatePresence>
-                        {/* Regular messages */}
                         {messages.map(message => (
                             <motion.div
                                 key={message.id}
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0 }}
-                                transition={{ duration: 0.3 }}
                             >
                                 <ChatMessage message={message} />
                             </motion.div>
                         ))}
 
-                        {/* Streaming message */}
                         {streamingMessage && (
                             <motion.div
                                 key={streamingMessage.id}
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.3 }}
                             >
                                 <ChatMessage message={streamingMessage} />
                             </motion.div>
@@ -630,167 +580,66 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                     </AnimatePresence>
                 )}
 
-                {/* Loading indicator */}
                 {loading && !streamingMessage && (
-                    <motion.div
-                        className={styles.loadingMessage}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ duration: 0.3 }}
-                    >
-                        <Spin size="small" />
-                        <Typography.Text type="secondary" style={{ marginLeft: 8 }}>
-                            Agent is thinking<span className={styles.loadingDots}>...</span>
+                    <Space style={{ width: '100%', justifyContent: 'center', margin: token.margin }}>
+                        <Spin />
+                        <Typography.Text type="secondary">
+                            Agent is processing...
                         </Typography.Text>
-                    </motion.div>
+                    </Space>
                 )}
 
-                {/* Error message */}
                 {error && (
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 0.3 }}
-                    >
-                        <Alert
-                            message="Execution Error"
-                            description={error}
-                            type="error"
-                            showIcon
-                            closable
-                            action={
-                                <Button size="small" type="primary" onClick={startNewChat}>
-                                    Restart Chat
-                                </Button>
-                            }
-                            onClose={() => setError(null)}
-                            style={{ margin: '10px', borderRadius: '8px' }}
-                        />
-                    </motion.div>
+                    <Alert
+                        message="Error"
+                        description={error}
+                        type="error"
+                        showIcon
+                        closable
+                        action={
+                            <Button size="small" onClick={startNewChat}>
+                                Restart Chat
+                            </Button>
+                        }
+                        style={{ margin: token.margin }}
+                    />
                 )}
 
                 <div ref={messagesEndRef} />
             </div>
-            {/* Input container */}
-            <div
-                className={styles.inputContainer}
 
-            >
-                <div className={styles.inputWrapper} style={{ display: 'flex', alignItems: 'flex-end', gap: 8 }}>
-                    {/* Action buttons on the left */}
-                    <div className={styles.inputLeftActions} style={{ display: 'flex', gap: 4 }}>
-                        <Tooltip title="Add emoji">
-                            <Button
-                                type="text"
-                                icon={<SmileOutlined style={{ fontSize: '18px', color: '#1890ff' }} />}
-                                className={styles.actionButton}
-                                style={{
-                                    border: 'none',
-                                    background: 'transparent',
-                                    boxShadow: 'none'
-                                }}
-                            />
-                        </Tooltip>
-                        <Tooltip title="Upload file">
-                            <Button
-                                type="text"
-                                icon={<i className="fas fa-paperclip" style={{ fontSize: '18px', color: '#1890ff' }} />}
-                                className={styles.actionButton}
-                                style={{
-                                    border: 'none',
-                                    background: 'transparent',
-                                    boxShadow: 'none'
-                                }}
-                            />
-                        </Tooltip>
-                    </div>
-                    {/* Main input area */}
+            <Card>
+                <Space.Compact block>
+                    <Button
+                        icon={<SmileOutlined />}
+                        type="text"
+                    />
                     <Input.TextArea
                         value={inputValue}
                         onChange={e => setInputValue(e.target.value)}
                         placeholder={inputPlaceholder}
                         autoSize={{ minRows: 1, maxRows: 4 }}
                         disabled={loading}
-                        className={styles.chatInput}
-                        style={{
-                            borderRadius: 0, // Remove border radius
-                            padding: '10px 12px', // Reduce padding
-                            resize: 'none',
-                            boxShadow: 'none', // Remove shadow
-                            border: 'none', // Remove border
-                            fontSize: 16,
-                            background: 'transparent', // Flat background
-                            transition: 'all 0.3s ease',
-                            flex: 1,
-                            minHeight: 44
-                        }}
                         onKeyDown={e => {
                             if (e.key === 'Enter' && !e.shiftKey) {
                                 e.preventDefault();
                                 handleSendMessage();
                             }
                         }}
-                        onFocus={e => {
-                            e.target.style.boxShadow = 'none';
-                            e.target.style.border = 'none';
-                        }}
-                        onBlur={e => {
-                            e.target.style.boxShadow = 'none';
-                            e.target.style.border = 'none';
-                        }}
+                        style={{ resize: 'none' }}
                     />
-                    {/* Send button */}
-                    <div className={styles.inputRightActions} style={{ marginLeft: 8 }}>
-                        {streamingMessage ? (
-                            <Button
-                                type="primary"
-                                danger
-                                icon={<StopOutlined />}
-                                onClick={stopStreaming}
-                                shape="circle"
-                                size="large"
-                                className={styles.sendButton}
-                                style={{
-                                    boxShadow: 'none',
-                                    transition: 'all 0.3s ease',
-                                    border: 'none'
-                                }}
-                            />
-                        ) : (
-                            <Button
-                                type="primary"
-                                icon={<SendOutlined />}
-                                onClick={handleSendMessage}
-                                disabled={isSendDisabled}
-                                shape="circle"
-                                size="large"
-                                className={`${styles.sendButton} ${!isSendDisabled ? styles.sendButtonActive : ''}`}
-                                style={{
-                                    boxShadow: 'none',
-                                    transform: 'scale(1)',
-                                    transition: 'all 0.3s ease',
-                                    border: 'none'
-                                }}
-                            />
-                        )}
-                    </div>
-                </div>
-                {/* Send hint with animation */}
-                <div className={styles.sendHintContainer} style={{ marginTop: 6 }}>
-                    <Typography.Text
-                        className={styles.sendHint}
-                        type="secondary"
-                        style={{
-                            fontSize: '12px',
-                            opacity: inputValue.length > 0 ? 1 : 0.6,
-                            transition: 'opacity 0.3s ease'
-                        }}
-                    >
-                        Press <b>Enter</b> to send &nbsp;|&nbsp; <b>Shift+Enter</b> for new line
-                    </Typography.Text>
-                </div>
-            </div>
-        </div>
+                    <Button
+                        type="primary"
+                        icon={streamingMessage ? <StopOutlined /> : <SendOutlined />}
+                        onClick={streamingMessage ? stopStreaming : handleSendMessage}
+                        disabled={isSendDisabled}
+                    />
+                </Space.Compact>
+                <Typography.Text type="secondary" style={{ fontSize: token.fontSizeSM, textAlign: 'center', display: 'block', marginTop: token.marginXS }}>
+                    Press <Typography.Text keyboard>Enter</Typography.Text> to send, <Typography.Text keyboard>Shift + Enter</Typography.Text> for new line
+                </Typography.Text>
+            </Card>
+        </Card>
     );
 };
 

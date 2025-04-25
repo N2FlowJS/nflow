@@ -1,8 +1,7 @@
 import { LoadingOutlined, RobotOutlined, UserOutlined } from '@ant-design/icons';
-import { Card, Progress, Tag, Typography } from 'antd';
+import { Avatar, Card, Flex, Progress, Space, Tag, theme, Typography } from 'antd';
 import React, { useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
-import styles from './ChatMessage.module.css';
 import { MessageType } from './types';
 
 interface ChatMessageProps {
@@ -10,7 +9,8 @@ interface ChatMessageProps {
 }
 
 const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
-  const { sender, text, executionStatus, hasError, nodeId, timestamp } = message;
+  const { token } = theme.useToken();
+  const { sender, text, executionStatus, hasError, timestamp } = message;
 
   // memoize timestamp formatting and icon
   const formattedTime = useMemo(
@@ -23,60 +23,100 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
   );
   const roleLabel = sender === 'user' ? 'You' : sender === 'system' ? 'System' : sender === 'developer' ? 'Developer' : 'Agent';
 
-  // Developer log view
-  if (sender === 'developer') {
-    return (
-      <div className={`${styles.messageContainer} ${styles.developerMessage}`}>
-        <pre className={styles.developerLog}>
-          <code>{`[${formattedTime}] ${text}`}</code>
-        </pre>
-      </div>
-    );
+  if (sender === 'user') {
+    return (<Flex justify="flex-end" style={{
+      marginBottom: token.marginMD,
+      background: token.colorBgContainer,
+      maxWidth: '85%',
+      alignSelf: 'flex-end',
+    }}>
+      <Typography.Paragraph
+        style={{ margin: 0 }}
+        copyable
+      >
+        <ReactMarkdown>{text}</ReactMarkdown>
+      </Typography.Paragraph>
+    </Flex>)
   }
 
-  // Existing view for user, system, agent
   return (
-    <div className={`${styles.messageContainer} ${sender === 'user' ? styles.userMessage : sender === 'system' ? styles.systemMessage : styles.agentMessage}`}>
-      <Card className={styles.messageCard} style={hasError ? { borderLeft: '3px solid #ff4d4f' } : {}}>
-        <div className={styles.messageHeader}>
-          {icon && <span className={styles.messageIcon}>{icon}</span>}
-          <span className={styles.messageSender}>{roleLabel}</span>
-          <span className={styles.messageTime}>{formattedTime}</span>
-          {sender !== 'user' && executionStatus && ( // Also check executionStatus exists
-            <Tag color={executionStatus.nodeType === 'interface' ? 'blue' : 'default'} className={styles.nodeTag}>
-              {executionStatus.nodeType}{nodeId ? `: ${nodeId}` : ''}
-            </Tag>
+    <div style={{
+      marginBottom: token.marginMD,
+      maxWidth: '85%',
+      alignSelf: 'flex-start',
+    }}>
+      <Card
+        size="small"
+        style={{
+          background: token.colorBgContainer,
+          borderLeft: hasError ? `3px solid ${token.colorError}` : undefined,
+          ...(sender === 'developer' && {
+            background: token.colorBgContainerDisabled,
+            padding: token.paddingXS,
+            borderRadius: token.borderRadius,
+            fontFamily: 'monospace',
+            fontSize: '0.9em',
+          })
+        }}
+      >
+        <Space direction="vertical" size="small" style={{ width: '100%' }}>
+          {sender !== 'developer' && (
+            <Space>
+              <Avatar icon={icon} size="small" />
+              <Typography.Text type="secondary" style={{ fontSize: token.fontSizeSM }}>
+                {roleLabel}
+              </Typography.Text>
+              <Typography.Text type="secondary" style={{ fontSize: token.fontSizeSM }}>
+                {formattedTime}
+              </Typography.Text>
+              {executionStatus && (
+                <Tag color={executionStatus.nodeType === 'interface' ? 'blue' : 'default'}>
+                  {executionStatus.nodeType}
+                </Tag>
+              )}
+            </Space>
           )}
-        </div>
 
-        {sender !== 'user' && executionStatus && (
-          <div className={styles.executionStatus}>
-            <Progress
-              percent={executionStatus.status === 'completed' ? 100 : 50}
-              status={executionStatus.status === 'error' ? 'exception' : 'active'}
-              size="small"
-              showInfo={false}
-              style={{ marginBottom: 8 }}
-            />
-            <Typography.Text type="secondary" style={{ fontSize: '12px' }}>
-              {executionStatus.status === 'in_progress' && <LoadingOutlined style={{ marginRight: 5 }} />}
-              {executionStatus.status === 'completed' ? 'Completed: ' : executionStatus.status === 'error' ? 'Error: ' : 'Processing: '}
-              {executionStatus.nodeName || executionStatus.nodeId || 'Unknown node'}
-            </Typography.Text>
-          </div>
-        )}
+          {executionStatus && (
+            <div style={{ background: token.colorBgContainerDisabled, padding: token.paddingXS, borderRadius: token.borderRadius }}>
+              <Progress
+                percent={
+                  executionStatus?.status === 'completed' ? 100 :
+                    executionStatus?.status === 'error' ? 100 :
+                      executionStatus?.status === 'in_progress' ? 90 : 100
+                }
+                status={
+                  executionStatus?.status === 'error' ? 'exception' :
+                    executionStatus?.status === 'completed' ? 'success' : 'active'
+                }
+                size="small"
+                showInfo={false}
+                strokeWidth={2}
+              />
 
-        {/* always show content; use Paragraph for copyable, pre-wrap */}
-        <div className={styles.messageContent}>
+              {executionStatus && (
+                <Typography.Text type="secondary" style={{ fontSize: token.fontSizeSM }}>
+                  {executionStatus.status === 'in_progress' && <LoadingOutlined style={{ marginRight: token.marginXS }} />}
+                  {executionStatus.status === 'completed' ? 'Completed: ' : executionStatus.status === 'error' ? 'Error: ' : 'Processing: '}
+                  {executionStatus.nodeName || executionStatus.nodeId}
+                </Typography.Text>
+              )}
+            </div>
+          )}
+
           <Typography.Paragraph
-            style={{ margin: 0, whiteSpace: 'pre-wrap' }}
+            style={{ margin: 0 }}
             copyable
           >
-            <ReactMarkdown>
-              {text}
-            </ReactMarkdown>
+            {sender === 'developer' ? (
+              <Typography.Text type="secondary">
+                {`[${formattedTime}] ${text}`}
+              </Typography.Text>
+            ) : (
+              <ReactMarkdown>{text}</ReactMarkdown>
+            )}
           </Typography.Paragraph>
-        </div>
+        </Space>
       </Card>
     </div>
   );
