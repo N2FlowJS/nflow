@@ -1,4 +1,4 @@
-import { FlowState } from '../../../types';
+import { FlowState } from '../../../models';
 
 
 export async function prepareFlowState(flowState: FlowState): Promise<FlowState> {

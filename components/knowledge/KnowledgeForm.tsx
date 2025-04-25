@@ -1,6 +1,6 @@
 import React from 'react';
 import { Modal, Form, Input, Typography, FormInstance } from 'antd';
-import { User } from '../../types/auth';
+import { User } from '../../models/auth';
 
 interface KnowledgeFormProps {
   form: FormInstance;

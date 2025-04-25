@@ -8,7 +8,7 @@ import { useRouter } from 'next/router';
 import { useAuth } from '../../context/AuthContext';
 import MainLayout from '../../components/layout/MainLayout';
 import { fetchAllKnowledge, createKnowledge, updateKnowledge, deleteKnowledge } from '../../services/knowledgeService';
-import { IKnowledge } from "../../types/IKnowledge";
+import { IKnowledge } from "../../models/IKnowledge";
 import KnowledgeForm from '../../components/knowledge/KnowledgeForm';
 
 const { Title, Text } = Typography;

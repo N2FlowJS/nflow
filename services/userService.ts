@@ -1,5 +1,5 @@
 import { apiRequest } from './apiUtils';
-import { IUser } from '../types/IUser';
+import { IUser } from '../models/IUser';
 
 export const fetchAllUsers = async () => {
   return apiRequest<IUser[]>('/api/user');

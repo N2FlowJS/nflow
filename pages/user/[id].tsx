@@ -9,11 +9,11 @@ import MainLayout from '../../components/layout/MainLayout';
 import { createTeam } from "../../services/teamService";
 import { createAgent } from "../../services/agentService";
 import { updateUser, fetchUserById } from "../../services/userService";
-import { IUser } from '../../types/IUser';
+import { IUser } from '../../models/IUser';
 import PasswordChangeForm from '../../components/profile/PasswordChangeForm';
 import { checkAuthentication, redirectToLogin } from '../../services/authUtils';
 import { fetchUserLLMProviders, createUserLLMProvider, deleteUserLLMProvider, updateUserLLMProvider } from '../../services/llmService';
-import { LLMProvider } from '../../types/llm';
+import { LLMProvider } from '../../models/llm';
 
 // Import our new components
 import UserProfileHeader from '../../components/user/UserProfileHeader';

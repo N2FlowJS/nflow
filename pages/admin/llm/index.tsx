@@ -10,7 +10,7 @@ import {
 import { useRouter } from 'next/router';
 import LLMProvidersTable from '../../../components/llm/LLMProvidersTable';
 import { fetchAllLLMProviders } from '../../../services/llmService';
-import { LLMProvider } from '../../../types/llm';
+import { LLMProvider } from '../../../models/llm';
 import { checkAuthentication, hasAdminAccess, redirectToLogin } from '../../../services/authUtils';
 
 const { Content } = Layout;

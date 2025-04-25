@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, Avatar, Typography, Divider, Space, Button } from 'antd';
 import { UserOutlined } from '@ant-design/icons';
-import { User } from '../../types/auth';
+import { User } from '../../models/auth';
 import { useRouter } from 'next/router';
 import { useAuth } from '../../context/AuthContext';
 

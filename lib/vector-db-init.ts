@@ -3,7 +3,7 @@
  */
 import { isLocalVectorDBAvailable } from './services/localVectorService';
 import { initializeNbase } from './services/nbaseService';
-import { VectorDBType } from '../types/vectorDBType';
+import { VectorDBType } from '../models/vectorDBType';
 // Initialization state
 let initialized = false;
 let vectorDBType: VectorDBType = (process.env.VECTOR_DB_TYPE as VectorDBType) || 'local';

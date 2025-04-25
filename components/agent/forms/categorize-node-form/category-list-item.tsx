@@ -17,7 +17,7 @@ import {
   FileTextOutlined,
   PlusOutlined
 } from "@ant-design/icons";
-import { ICategory } from "../../../../types/flowTypes";
+import { ICategory } from "../../../../models/flowTypes";
 import { Node } from "@xyflow/react";
 
 const { Panel } = Collapse;

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Position, NodeProps, Node } from "@xyflow/react";
-import { GenerateNodeData } from "../../../../types/flowTypes";
+import { GenerateNodeData } from "../../../../models/flowTypes";
 import BaseNode from '../base-node';
 import { Flex, Tooltip, Spin } from 'antd';
 import { RobotOutlined, ApiOutlined, InfoCircleOutlined } from "@ant-design/icons";

@@ -21,7 +21,7 @@ import {
   ExperimentOutlined
 } from '@ant-design/icons';
 import { updateUserPreferences, fetchUserPreferences } from '../../services/userService';
-import { LLMProvider } from '../../types/llm';
+import { LLMProvider } from '../../models/llm';
 
 const { Title, Text } = Typography;
 const { TabPane } = Tabs;

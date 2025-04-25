@@ -1,6 +1,6 @@
-import { Flow } from '../../../types/flowTypes';
+import { Flow } from '../../../models/flowTypes';
 import { EXECUTION_STATUS } from '@utils/server/EXECUTION_STATUS';
-import { ExecutionResult } from '../../../types/flowExecutionTypes';
+import { ExecutionResult } from '../../../models/flowExecutionTypes';
 import { processNode } from './processNode';
 
 

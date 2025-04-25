@@ -1,4 +1,4 @@
-import { Flow } from "../../types/flowTypes";
+import { Flow } from "../../models/flowTypes";
 
 export function parseFlowConfig(flowConfig: string): Flow {
   try {

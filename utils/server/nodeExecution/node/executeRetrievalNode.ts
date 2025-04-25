@@ -1,5 +1,5 @@
-import { FlowNode, RetrievalNodeData, InputReference } from '../../../../types/flowTypes';
-import { ExecutionResult, ExecutionStatusType, FlowExecutionContext } from '../../../../types/flowExecutionTypes';
+import { FlowNode, RetrievalNodeData, InputReference } from '../../../../models/flowTypes';
+import { ExecutionResult, ExecutionStatusType, FlowExecutionContext } from '../../../../models/flowExecutionTypes';
 import { retrieveFromKnowledgeBase } from '../../../../services/knowledgeService';
 import { findNextNodes } from '@utils/server/findNextNode';
 import { getQueryFromSource, getInputs } from '../../../../hooks/useInputReferences';

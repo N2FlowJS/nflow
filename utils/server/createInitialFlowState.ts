@@ -1,5 +1,5 @@
-import { BeginNode, Flow, FlowNode } from '../../types/flowTypes';
-import { FlowState } from '../../types/flowExecutionTypes';
+import { BeginNode, Flow, FlowNode } from '../../models/flowTypes';
+import { FlowState } from '../../models/flowExecutionTypes';
 
 // Create an initial flow state
 

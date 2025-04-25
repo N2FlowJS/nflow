@@ -39,7 +39,7 @@ import {
   deleteAgent,
   fetchFlowConfig,
 } from "../../../services/agentService"; // Use the new service
-import { IAgent } from "../../../types/IAgent";
+import { IAgent } from "../../../models/IAgent";
 import ChatInterface from "../../../components/chat/ChatInterface";
 import { useAuth } from "../../../context/AuthContext";
 

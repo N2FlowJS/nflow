@@ -1,5 +1,5 @@
-import { FlowNode, CategorizeNodeData, ICategory } from '../../../../types/flowTypes';
-import { ExecutionResult, FlowExecutionContext } from '../../../../types/flowExecutionTypes';
+import { FlowNode, CategorizeNodeData, ICategory } from '../../../../models/flowTypes';
+import { ExecutionResult, FlowExecutionContext } from '../../../../models/flowExecutionTypes';
 import { getQueryFromSource, getInputs } from '../../../../hooks/useInputReferences';
 import { prisma } from '../../../../lib/prisma';
 import { isNodeReady } from '../../isNodeReady';

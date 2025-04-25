@@ -1,5 +1,5 @@
 import { isBeginNodeData, isInterfaceNodeData, isGenerateNodeData, isCategorizeNodeData, isRetrievalNodeData } from '@utils/client';
-import { FlowExecutionContext, ExecutionResult } from '../../../../types/flowExecutionTypes';
+import { FlowExecutionContext, ExecutionResult } from '../../../../models/flowExecutionTypes';
 import { executeBeginNode } from './executeBeginNode';
 import { executeInterfaceNode } from './executeInterfaceNode';
 import { executeGenerateNode } from './executeGenerateNode';

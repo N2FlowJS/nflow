@@ -1,6 +1,6 @@
 import React from 'react';
 import { Position, NodeProps, Node } from '@xyflow/react';
-import { RetrievalNodeData } from '../../../../types/flowTypes';
+import { RetrievalNodeData } from '../../../../models/flowTypes';
 import BaseNode from '../base-node';
 import { Flex } from 'antd';
 import { DatabaseOutlined } from '@ant-design/icons';

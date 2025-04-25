@@ -1,5 +1,5 @@
-import { FlowNode, BeginNodeData } from '../../../../types/flowTypes';
-import { ExecutionResult, FlowExecutionContext } from '../../../../types/flowExecutionTypes';
+import { FlowNode, BeginNodeData } from '../../../../models/flowTypes';
+import { ExecutionResult, FlowExecutionContext } from '../../../../models/flowExecutionTypes';
 import { processTemplate } from '../../templateProcessor';
 import { findNextNodes } from '@utils/server/findNextNode';
 

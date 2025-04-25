@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, Form, Input, Button, Typography, Row, Col, Divider, Tag } from 'antd';
 import { EditOutlined, UserOutlined, MailOutlined, CalendarOutlined } from '@ant-design/icons';
-import { IUser } from '../../types/IUser';
+import { IUser } from '../../models/IUser';
 
 const { Title, Text, Paragraph } = Typography;
 

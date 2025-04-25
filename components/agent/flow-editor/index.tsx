@@ -32,7 +32,7 @@ import CategorizeNode from "../nodes/categorize-node";
 import RetrievalNode from "../nodes/retrieval-node";
 import DecisionNode from "../nodes/decision-node";
 import CustomEdge from "../edges/CustomEdge";
-import { CategorizeForm, FlowNode, NodeTypeString } from "../../../types/flowTypes";
+import { CategorizeForm, FlowNode, NodeTypeString } from "../../../models/flowTypes";
 import { isConnectionAllowed, NODE_REGISTRY, parseFlowConfig } from "@utils/client";
 
 const nodeTypes: ReactFlowNodeTypes = {

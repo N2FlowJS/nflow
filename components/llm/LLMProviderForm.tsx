@@ -12,7 +12,7 @@ import {
   Alert
 } from 'antd';
 import { SaveOutlined, ApiOutlined } from '@ant-design/icons';
-import { CreateLLMProviderRequest, UpdateLLMProviderRequest, LLMProviderType, LLMProvider } from '../../types/llm';
+import { CreateLLMProviderRequest, UpdateLLMProviderRequest, LLMProviderType, LLMProvider } from '../../models/llm';
 import { testLLMProvider } from '../../services/llmService';
 
 const { Title, Text } = Typography;

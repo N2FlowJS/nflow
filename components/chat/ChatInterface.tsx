@@ -7,8 +7,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { v4 as uuidv4 } from 'uuid';
 import { ISender, MessageType } from './types';
 import { flowExecutionService } from '../../services/flowExecutionService';
-import { OpenAIExecutionResult } from '../../types/flow';
-import { FlowState } from '../../types/flowExecutionTypes';
+import { OpenAIExecutionResult } from '../../models/flow';
+import { FlowState } from '../../models/flowExecutionTypes';
 
 interface ChatInterfaceProps {
     agentId: string;

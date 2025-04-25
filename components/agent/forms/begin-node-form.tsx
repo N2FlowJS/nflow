@@ -19,7 +19,7 @@ import {
   CodeOutlined,
   EditOutlined
 } from "@ant-design/icons";
-import { FlowNode } from "../../../types/flowTypes";
+import { FlowNode } from "../../../models/flowTypes";
 import BaseNodeForm from "./base-node-form";
 import RoleSelector from "./shared/RoleSelector";
 

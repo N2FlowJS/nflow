@@ -2,8 +2,8 @@ import React from 'react';
 import { Card, Form, Input, Button, Typography, Space, Avatar, Row, Col, Statistic } from 'antd';
 import { UserOutlined, TeamOutlined, RobotOutlined, ApiOutlined, EditOutlined, SaveOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/router';
-import { IUser } from '../../types/IUser';
-import { LLMProvider } from '../../types/llm';
+import { IUser } from '../../models/IUser';
+import { LLMProvider } from '../../models/llm';
 
 const { Title, Paragraph } = Typography;
 

@@ -1,4 +1,4 @@
-import { OpenAIExecutionResult } from '../types/flow';
+import { OpenAIExecutionResult } from '../models/flow';
 
 /**
  * Execute a flow - handles both starting a new flow and continuing an existing one
@@ -22,7 +22,6 @@ export async function flowExecutionService(
   try {
     // Build request payload that matches the API expectations
     const requestBody: Record<string, any> = {
-      flowId: agentId,
       messages,
       // Only include fields with actual values
       ...(variables && Object.keys(variables).length > 0 && { variables }),
@@ -34,7 +33,7 @@ export async function flowExecutionService(
     };
 
     // Execute the flow API request
-    const response = await fetch('/api/flow', {
+    const response = await fetch(`/api/agent/${agentId}/openai/chat/completions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

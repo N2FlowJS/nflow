@@ -38,7 +38,7 @@ import {
 } from "@ant-design/icons";
 import { useRouter } from "next/router";
 import { format } from "date-fns";
-import { Knowledge } from "../../types/knowledge";
+import { Knowledge } from "../../models/knowledge";
 import { parseFile, deleteFile, fetchFilesByKnowledgeId } from "../../services/fileService";
 import { formatFileSize, getTypeFile } from "../../utils/client/formatters";
 

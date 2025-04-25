@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from "react"; // Import useMemo
 import { Form, Input, Select, Spin, Typography, Space, Collapse } from "antd";
 import { FileTextOutlined, UserOutlined } from "@ant-design/icons";
 import { MentionsInput, Mention, SuggestionDataItem } from 'react-mentions';
-import { FlowNode, } from "../../../types/flowTypes"; // Import Edge type
+import { FlowNode, } from "../../../models/flowTypes"; // Import Edge type
 import BaseNodeForm from "./base-node-form";
 import { fetchAllLLMProviders } from "../../../services/llmService";
 import { usePredecessorNodes } from "../hooks/usePredecessorNodes";

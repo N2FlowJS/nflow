@@ -1,5 +1,5 @@
 import { apiRequest } from './apiUtils';
-import { IAgent } from '../types/IAgent';
+import { IAgent } from '../models/IAgent';
 
 export const fetchAgent = async (agentId: string) => {
   return apiRequest<IAgent>(`/api/agent/${agentId}`);

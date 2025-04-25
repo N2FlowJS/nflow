@@ -1,4 +1,4 @@
-import { LLMProvider, LLMModel } from '../types/llm';
+import { LLMProvider, LLMModel } from '../models/llm';
 
 /**
  * Get the best LLM model to use based on user preferences and available models

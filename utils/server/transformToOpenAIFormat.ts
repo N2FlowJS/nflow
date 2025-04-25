@@ -1,5 +1,5 @@
-import { OpenAIExecutionResult } from '../../types/flow';
-import { ExecutionResult } from '../../types/flowExecutionTypes';
+import { OpenAIExecutionResult } from '../../models/flow';
+import { ExecutionResult } from '../../models/flowExecutionTypes';
 import { EXECUTION_STATUS } from './EXECUTION_STATUS'; // Import EXECUTION_STATUS
 
 // Transform our result to OpenAI format

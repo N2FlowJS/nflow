@@ -1,6 +1,6 @@
 import React from "react"; // Remove memo
 import { Handle, Position, NodeProps, Node } from "@xyflow/react";
-import { CategorizeNodeData, ICategory } from "../../../../types/flowTypes";
+import { CategorizeNodeData, ICategory } from "../../../../models/flowTypes";
 import { NODE_REGISTRY } from '../../../../utils/client/NODE_REGISTRY';
 import BaseNode from "../base-node";
 import { BranchesOutlined } from "@ant-design/icons";

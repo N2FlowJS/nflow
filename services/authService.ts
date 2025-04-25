@@ -1,4 +1,4 @@
-import { User, RegisterData, AuthResponse } from '../types/auth';
+import { User, RegisterData, AuthResponse } from '../models/auth';
 import { logApiRequest, logApiResponse, logApiError } from '../utils/logger';
 
 // Login service

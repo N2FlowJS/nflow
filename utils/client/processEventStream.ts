@@ -1,4 +1,4 @@
-import { OpenAIExecutionResult } from '../../types/flow';
+import { OpenAIExecutionResult } from '../../models/flow';
 
 /**
  * Process a server-sent event stream into a structured ReadableStream

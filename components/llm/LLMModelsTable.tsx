@@ -19,7 +19,7 @@ import {
   StarOutlined,
   StarFilled,
 } from '@ant-design/icons';
-import { LLMModel, LLMProvider } from '../../types/llm';
+import { LLMModel, LLMProvider } from '../../models/llm';
 import LLMModelForm from './LLMModelForm';
 import { deleteLLMModel, setDefaultLLMModel, updateLLMModel } from '../../services/llmService';
 

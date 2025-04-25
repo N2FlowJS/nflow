@@ -1,10 +1,10 @@
-import { FlowNode, GenerateNodeData } from '../../../../types/flowTypes';
-import { ExecutionResult, FlowExecutionContext } from '../../../../types/flowExecutionTypes';
+import { FlowNode, GenerateNodeData } from '../../../../models/flowTypes';
+import { ExecutionResult, FlowExecutionContext } from '../../../../models/flowExecutionTypes';
 import { getInputFromTemplate, processTemplate } from '../../templateProcessor';
 import { findNextNodes } from '@utils/server/findNextNode';
 import { prisma } from '../../../../lib/prisma';
 import { isNodeReady } from '../../isNodeReady';
-import { MessagePart } from '../../../../types/MessagePart';
+import { MessagePart } from '../../../../models/MessagePart';
 import OpenAI from 'openai';
 
 /**

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Card, Typography, Button, Space, Table, Tag, Popconfirm, Alert } from 'antd';
 import { PlusOutlined, ApiOutlined, EditOutlined, DeleteOutlined, CheckCircleOutlined, StopOutlined, ExperimentOutlined } from '@ant-design/icons';
-import { LLMProvider } from '../../types/llm';
+import { LLMProvider } from '../../models/llm';
 import UserLLMProviderDetail from '../llm/UserLLMProviderDetail';
 import LLMProviderPreferences from '../profile/LLMProviderPreferences';
 

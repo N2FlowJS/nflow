@@ -48,7 +48,7 @@ import {
   fetchKnowledgeById,
   updateKnowledge,
 } from "../../../services/knowledgeService";
-import { Knowledge } from "../../../types/knowledge";
+import { Knowledge } from "../../../models/knowledge";
 
 const { Title, Text, Paragraph } = Typography;
 const { TabPane } = Tabs;

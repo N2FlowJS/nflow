@@ -1,4 +1,4 @@
-import { CreateLLMModelRequest, LLMModel, LLMProvider, TestLLMProviderRequest, TestLLMProviderResponse, UpdateLLMModelRequest } from '../types/llm';
+import { CreateLLMModelRequest, LLMModel, LLMProvider, TestLLMProviderRequest, TestLLMProviderResponse, UpdateLLMModelRequest } from '../models/llm';
 import { apiRequest } from './apiUtils';
 
 export interface CreateLLMProviderRequest {

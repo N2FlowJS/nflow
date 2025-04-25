@@ -2,7 +2,7 @@ import { startFileParsingWorker, stopFileParsingWorker } from './workers/filePar
 import { isLocalVectorDBAvailable } from './services/localVectorService';
 import { initializeNbase } from './services/nbaseService';
 import { stopNbaseServer } from './nbase-init';
-import { VectorDBType } from '../types/vectorDBType';
+import { VectorDBType } from '../models/vectorDBType';
 
 // Worker state
 let workerStarted = false;

@@ -1,4 +1,4 @@
-import { NodeTypeString } from "../../types/flowTypes";
+import { NodeTypeString } from "../../models/flowTypes";
 
 // Define which node types can be connected to which other node types
 export const CONNECTION_RULES: Record<NodeTypeString, NodeTypeString[]> = {

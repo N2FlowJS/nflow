@@ -11,7 +11,7 @@ import { useRouter } from 'next/router';
 import Link from 'next/link';
 import LLMProviderForm from '../../../../components/llm/LLMProviderForm';
 import { createLLMProvider } from '../../../../services/llmService';
-import { CreateLLMProviderRequest } from '../../../../types/llm';
+import { CreateLLMProviderRequest } from '../../../../models/llm';
 import { checkAuthentication, hasAdminAccess, redirectToLogin } from '../../../../services/authUtils';
 
 const { Content } = Layout;

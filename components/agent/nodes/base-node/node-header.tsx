@@ -1,6 +1,6 @@
 import React from "react";
 import { Typography, Tooltip, Flex } from "antd";
-import { NodeTypeString } from "../../../../types/flowTypes";
+import { NodeTypeString } from "../../../../models/flowTypes";
 import RoleIndicator from "../shared/RoleIndicator";
 
 interface NodeHeaderProps {

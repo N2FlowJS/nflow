@@ -24,7 +24,7 @@ import {
 } from '@ant-design/icons';
 import LLMProviderForm from '../llm/LLMProviderForm';
 import { fetchTeamLLMProviders, deleteTeamLLMProvider, createTeamLLMProvider, updateTeamLLMProvider } from '../../services/teamService';
-import { LLMProvider } from '../../types/llm';
+import { LLMProvider } from '../../models/llm';
 import TeamLLMProviderDetail from '../llm/TeamLLMProviderDetail';
 
 const { Title, Text } = Typography;

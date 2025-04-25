@@ -1,7 +1,7 @@
 import { continueExecution } from '@utils/server/nodeExecution/continueExecution';
-import { ExecutionResult, ExecutionStatus, FlowState } from '../../../types/flowExecutionTypes';
-import { Flow } from '../../../types/flowTypes';
-import { MessagePart } from '../../../types/MessagePart';
+import { ExecutionResult, ExecutionStatus, FlowState } from '../../../models/flowExecutionTypes';
+import { Flow } from '../../../models/flowTypes';
+import { MessagePart } from '../../../models/MessagePart';
 import { prepareFlowState } from './prepareFlowState';
 import { executeCurrentNode } from './executeCurrentNode';
 

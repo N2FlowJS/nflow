@@ -25,7 +25,8 @@
       "@utils/*": ["./utils/*"],
       "@components/*": ["./components/*"],
       "@hooks/*": ["./hooks/*"],
-      "@database/*": ["./database/*"]
+      "@database/*": ["./database/*"],
+      "@models/*": ["./models/*"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "nbase/index.js"],

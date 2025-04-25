@@ -1,5 +1,5 @@
 import { apiRequest } from './apiUtils';
-import { FlowState } from '../types/flowExecutionTypes';
+import { FlowState } from '../models/flowExecutionTypes';
 
 /**
  * Service for managing conversation persistence via API

@@ -1,6 +1,6 @@
 import { prisma } from '@lib/prisma';
-import type { FlowState } from '../types/flowExecutionTypes';
-import type { MessagePart } from '../types/MessagePart';
+import type { FlowState } from '../models/flowExecutionTypes';
+import type { MessagePart } from '../models/MessagePart';
 
 /**
  * Persist conversation state to database
@@ -21,7 +21,7 @@ export async function saveConversationToDatabase({ agentId, flowState, id, messa
     const title = message?.content ? `Conversation about: ${message?.content.slice(0, 50)}${message?.content.length > 50 ? '...' : ''}` : `Conversation ${new Date().toLocaleString()}`;
 
     // Optimize: Use a single transaction for creating conversation and message
-    const newConversation = await prisma.$transaction(async (tx) => {
+    const newConversation = await prisma.$transaction(async (tx): Promise<{ status: string; flowState: string; id: string; createdAt: Date; updatedAt: Date; title: string | null; agentId: string; lastMessageAt: Date; }> => {
       // Create conversation
       const conversation = await tx.conversation.create({
         data: {

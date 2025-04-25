@@ -1,6 +1,6 @@
 import React from 'react';
 import { Position, NodeProps, Node } from '@xyflow/react';
-import { BeginNodeData } from '../../../../types/flowTypes';
+import { BeginNodeData } from '../../../../models/flowTypes';
 import BaseNode from '../base-node';
 import { Flex } from 'antd';
 import { PlayCircleOutlined } from '@ant-design/icons';

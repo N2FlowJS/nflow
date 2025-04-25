@@ -18,7 +18,7 @@ import {
   LLMModelType, 
   LLMModel,
   LLMProvider 
-} from '../../types/llm';
+} from '../../models/llm';
 import { fetchAllLLMProviders } from '../../services/llmService';
 import { fetchTeamLLMProviders } from '@services/teamService';
 

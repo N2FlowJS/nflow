@@ -23,7 +23,7 @@ import {
   ApiOutlined
 } from '@ant-design/icons';
 import { useRouter } from 'next/router';
-import { LLMProvider } from '../../types/llm';
+import { LLMProvider } from '../../models/llm';
 import LLMProviderForm from './LLMProviderForm';
 import { deleteLLMProvider, setDefaultLLMProvider, updateLLMProvider } from '../../services/llmService';
 

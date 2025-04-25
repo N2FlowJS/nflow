@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Position, NodeProps, Node, useReactFlow } from "@xyflow/react";
-import { InterfaceNodeData } from "../../../../types/flowTypes";
+import { InterfaceNodeData } from "../../../../models/flowTypes";
 import BaseNode from "../base-node";
 import { Flex, Badge, Tag } from "antd";
 import { SendOutlined, FlagOutlined, EyeOutlined } from "@ant-design/icons";

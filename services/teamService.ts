@@ -1,4 +1,4 @@
-import { CreateLLMModelRequest, LLMModel, LLMProvider, UpdateLLMModelRequest } from '../types/llm';
+import { CreateLLMModelRequest, LLMModel, LLMProvider, UpdateLLMModelRequest } from '../models/llm';
 import { apiRequest } from './apiUtils';
 import { Agent, User, MemberTeam } from '@prisma/client';
 

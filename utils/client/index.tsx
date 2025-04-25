@@ -1,4 +1,4 @@
-import { BeginNodeData, CategorizeNodeData, GenerateNodeData, InterfaceNodeData, NodeData, RetrievalNodeData } from '../../types/flowTypes';
+import { BeginNodeData, CategorizeNodeData, GenerateNodeData, InterfaceNodeData, NodeData, RetrievalNodeData } from '../../models/flowTypes';
 
 export * from './NODE_REGISTRY'
 export * from '../server/parseFlowConfig'

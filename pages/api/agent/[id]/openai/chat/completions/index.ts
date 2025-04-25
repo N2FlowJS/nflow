@@ -1,17 +1,18 @@
 // This file is part of the Flow Execution API for handling flow execution requests in a Next.js application.
 
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { BeginForm, BeginNode, Flow, NODE_TYPES } from '../../../types/flowTypes';
-import { MessagePart } from '../../../types/MessagePart';
-import { OpenAIError, OpenAIExecutionResult } from '../../../types/flow';
-import { ExecutionResult, } from '../../../types/flowExecutionTypes';
-import { executeFlow } from '../../../utils/server/nodeExecution/executeFlow';
-import { createInitialFlowState } from '../../../utils/server/createInitialFlowState';
-import { extractUserInputFromMessages } from '../../../utils/server/extractUserInputFromMessages';
-import { getConversationFlowState } from '../../../database/getConversationFlowState';
-import { getFlowConfig } from '../../../database/getFlowConfig';
-import { AddMessageToDatabase, saveConversationToDatabase } from '../../../database/persistConversationState';
-import { transformToOpenAIFormat } from '../../../utils/server/transformToOpenAIFormat';
+import { BeginForm, BeginNode, Flow, NODE_TYPES } from '@models/flowTypes';
+import { MessagePart } from '@models/MessagePart';
+import { OpenAIError, OpenAIExecutionResult } from '@models/flow';
+import type { ExecutionResult, } from '@models/flowExecutionTypes';
+import { executeFlow } from '@utils/server/nodeExecution/executeFlow';
+import { createInitialFlowState } from '@utils/server/createInitialFlowState';
+import { extractUserInputFromMessages } from '@utils/server/extractUserInputFromMessages';
+import { getConversationFlowState } from '@database/getConversationFlowState';
+import { getFlowConfig } from '@database/getFlowConfig';
+import { AddMessageToDatabase, saveConversationToDatabase } from '@database/persistConversationState';
+import { transformToOpenAIFormat } from '@utils/server/transformToOpenAIFormat';
+import { FlowNode } from '@models/flowTypes';
 
 
 // Main handler for OpenAI-compatible flow execution
@@ -25,14 +26,15 @@ import { transformToOpenAIFormat } from '../../../utils/server/transformToOpenAI
  * 6. Flow state is stored in the database for persistence.
  * 7. Interface node output returns content to the client.
  * 8. User input text is provided to the latest interface node of the flow and processed.
- * 9. Flow state is returned to the client for tracking via the API endpoint /flows/state/[id].
  */
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<OpenAIExecutionResult | { error: string | OpenAIError }>) {
   if (req.method !== 'POST') return sendErrorResponse(res, 405, 'Method not allowed', 'invalid_request_error', 'method_not_allowed');
   try {
-    const { flowId, variables = {}, stream = false, model = 'default', messages = [], max_tokens: maxTokens = 1024, temperature = 0.7, top_p: topP = 1 } = req.body;
+    let flowId = req.query.id as string;
+    const {  variables = {}, stream = false, model = 'default', messages = [], max_tokens: maxTokens = 1024, temperature = 0.7, top_p: topP = 1 } = req.body;
     let { id: conversationId } = req.body;
+
     if (!flowId) return sendErrorResponse(res, 400, 'Flow ID is required', 'invalid_request_error', 'missing_parameter');
     const message: MessagePart = { role: 'system', content: 'Hello!', };
     const flowConfig: Flow = await getFlowConfig(flowId);
@@ -40,7 +42,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     let flowState = conversationId ? await getConversationFlowState(conversationId) : undefined;
 
     if (!flowState) {
-      const beginNode = flowConfig.nodes.find((node) => node.type === NODE_TYPES.begin) as BeginNode | undefined;
+      const beginNode = flowConfig.nodes.find((node: FlowNode) => node.type === NODE_TYPES.begin) as BeginNode | undefined;
       if (!beginNode) return sendErrorResponse(res, 400, 'No begin node found in flow', 'invalid_request_error', 'invalid_flow');
       flowState = createInitialFlowState({ beginNode, variables, flowConfig });
       const newId = await saveConversationToDatabase({ flowState, agentId: flowId, id: conversationId, });

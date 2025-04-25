@@ -1,4 +1,4 @@
-import { IChunk } from "../../types/IChunk";
+import { IChunk } from "../../models/IChunk";
 import { prisma } from "../prisma";
 
 /**
