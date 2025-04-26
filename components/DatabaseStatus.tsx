@@ -257,7 +257,7 @@ export default function DatabaseStatus() {
       </div>
 
       <div style={{ marginTop: "8px" }}>
-        <Typography.Text strong>Conversation Cleanup Worker: </Typography.Text>
+        <Typography.Text strong>Cleanup Worker: </Typography.Text>
         <Badge
           status={
             !cleanupWorkerStatus.enabled
