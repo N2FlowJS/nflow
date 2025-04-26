@@ -1,5 +1,5 @@
 import { ISender } from '@components/chat/types';
-import { ExecutionResult, FlowState, NodeInfo } from './flowExecutionTypes';
+import { FlowState, NodeInfo } from './flowExecutionTypes';
 
 // Define OpenAI-compatible error structure
 export interface OpenAIError {
