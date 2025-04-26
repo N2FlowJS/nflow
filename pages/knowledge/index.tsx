@@ -65,9 +65,9 @@ export default function KnowledgeList() {
 
     try {
       const values = await form.validateFields();
-      
+
       let success = false;
-      
+
       if (editingId) {
         // Update existing knowledge
         const updated = await updateKnowledge(editingId, values);
@@ -103,13 +103,7 @@ export default function KnowledgeList() {
   };
 
   const columns = [
-    // {
-    //   title: 'ID',
-    //   dataIndex: 'id',
-    //   key: 'id',
-    //   ellipsis: true,
-    //   width: '20%',
-    // },
+
     {
       title: 'Name',
       dataIndex: 'name',
@@ -174,7 +168,7 @@ export default function KnowledgeList() {
               Add Knowledge
             </Button>
           </div>
-          
+
           {!isAuthenticated && (
             <div style={{ marginBottom: 16 }}>
               <Text type="warning">
@@ -182,7 +176,7 @@ export default function KnowledgeList() {
               </Text>
             </div>
           )}
-          
+
           <Table
             columns={columns}
             dataSource={knowledgeItems}
@@ -190,7 +184,7 @@ export default function KnowledgeList() {
             loading={loading}
             pagination={{ pageSize: 10 }}
           />
-          
+
           <KnowledgeForm
             form={form}
             visible={isModalVisible}

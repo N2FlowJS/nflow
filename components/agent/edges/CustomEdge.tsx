@@ -1,4 +1,5 @@
 import { BaseEdge, Edge, EdgeProps, getBezierPath } from "@xyflow/react";
+import { theme } from "antd";
 import React from "react";
 
 interface CustomEdgeData extends Edge {
@@ -28,6 +29,7 @@ const CustomEdge: React.FC<EdgeProps<CustomEdgeData>> = ({
     curvature: 1
   });
 
+  const { token } = theme.useToken();
 
 
   const handleDelete = (e: React.MouseEvent) => {
@@ -46,7 +48,7 @@ const CustomEdge: React.FC<EdgeProps<CustomEdgeData>> = ({
         style={{
           ...style,
           strokeWidth: 1.5,
-          stroke: "#d9d9d9",
+          stroke: token.colorBgBase,
         }}
       />
 
@@ -55,16 +57,16 @@ const CustomEdge: React.FC<EdgeProps<CustomEdgeData>> = ({
         cx={labelX}
         cy={labelY}
         r={6}
-        fill="#f0f7ff"
+        fill={token.colorBgBase}
         stroke="red"
         strokeWidth={1}
       />
       <foreignObject
         onClick={handleDelete}
-        x={labelX - 6}
-        y={labelY - 6}
-        width={12}
-        height={12}
+        x={labelX - 5}
+        y={labelY - 5}
+        width={10}
+        height={10}
       >
         <div
           style={{

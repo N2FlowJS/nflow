@@ -1,6 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '@lib/prisma';
-import { Prisma } from '@prisma/client'; // Add this import for Prisma types
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';

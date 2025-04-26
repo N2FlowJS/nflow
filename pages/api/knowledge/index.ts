@@ -9,7 +9,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (!token) {
         return res.status(401).json({ error: 'Authentication required' });
       }
-      
+
       const payload = verifyToken(token);
       if (!payload) {
         return res.status(401).json({ error: 'Invalid token' });
@@ -47,14 +47,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           files: true
         }
       });
-      
+
       return res.status(200).json(knowledgeItems);
     } catch (error) {
       console.error("Request error", error);
       return res.status(500).json({ error: "Error fetching knowledge" });
     }
   }
-  
+
   if (req.method === 'POST') {
     try {
       // Get token from Authorization header
@@ -62,19 +62,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (!token) {
         return res.status(401).json({ error: 'Authentication required' });
       }
-      
+
       // Verify token
       const payload = verifyToken(token);
       if (!payload) {
         return res.status(401).json({ error: 'Invalid token' });
       }
-      
+
       const { name, description, userIds, teamIds } = req.body;
-      
+
       if (!name || !description) {
         return res.status(400).json({ error: 'Name and description are required' });
       }
-      
+
       // Create knowledge with authenticated user as creator
       const knowledge = await prisma.knowledge.create({
         data: {
@@ -83,6 +83,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           // Associate with creator
           createdBy: {
             connect: { id: payload.userId }
+          },
+          //configuration of the knowledge item
+          config: {
+            tokenChunk: 128,
+            chunkSeparator: ['\n'],
           },
           // Associate with specified users if any
           ...(userIds && userIds.length > 0 && {
@@ -110,14 +115,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           teams: true
         }
       });
-      
+
       return res.status(201).json(knowledge);
     } catch (error) {
       console.error('Error creating knowledge:', error);
       return res.status(500).json({ error: 'Error creating knowledge' });
     }
   }
-  
+
   res.setHeader('Allow', ['GET', 'POST']);
   res.status(405).end(`Method ${req.method} Not Allowed`);
 }

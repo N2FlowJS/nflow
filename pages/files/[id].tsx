@@ -11,11 +11,10 @@ import {
   FileUnknownOutlined,
   FileZipOutlined,
   InfoCircleOutlined, // For file content tab
-  PartitionOutlined, // For chunks tab
+  PartitionOutlined, // For chunks tab -> Now used as Card title icon
 } from "@ant-design/icons";
 import {
   Avatar,
-  Badge,
   Breadcrumb,
   Button,
   Card,
@@ -29,7 +28,7 @@ import {
   Skeleton,
   Space,
   Spin,
-  Tabs,
+  // Tabs, // Removed Tabs import
   Tag,
   Typography
 } from "antd";
@@ -65,7 +64,19 @@ interface File {
     name: string;
   };
 }
-
+function getFileIcon(mimetype: string) {
+  if (mimetype.startsWith("image/"))
+    return <FileImageOutlined style={{ fontSize: 24 }} />;
+  if (mimetype.includes("pdf"))
+    return <FilePdfOutlined style={{ fontSize: 24 }} />;
+  if (mimetype.includes("excel") || mimetype.includes("spreadsheet"))
+    return <FileExcelOutlined style={{ fontSize: 24 }} />;
+  if (mimetype.includes("zip") || mimetype.includes("compressed"))
+    return <FileZipOutlined style={{ fontSize: 24 }} />;
+  if (mimetype.includes("text") || mimetype.includes("document"))
+    return <FileTextOutlined style={{ fontSize: 24 }} />;
+  return <FileUnknownOutlined style={{ fontSize: 24 }} />;
+}
 export default function FileDetailPage() {
   const router = useRouter();
   const { id } = router.query;
@@ -75,10 +86,10 @@ export default function FileDetailPage() {
   const [contentLoading, setContentLoading] = useState(false);
   const { isAuthenticated } = useAuth();
 
-  const [activeTabKey, setActiveTabKey] = useState("content"); // For the right panel tabs
+  // const [activeTabKey, setActiveTabKey] = useState("content"); // Removed state for Tabs
   const isImage = file?.mimetype.startsWith("image/");
   const isPdf = file?.mimetype.includes("pdf");
-  const fileUrl = file ? `/files/${file.knowledgeId}/${file.filename}` : "";
+  const fileUrl = file ? getFileDownloadUrl(file.knowledgeId, file.id) : "";
 
   useEffect(() => {
     if (id && typeof id === "string") {
@@ -149,19 +160,7 @@ export default function FileDetailPage() {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
   };
 
-  const getFileIcon = (mimetype: string) => {
-    if (mimetype.startsWith("image/"))
-      return <FileImageOutlined style={{ fontSize: 24 }} />;
-    if (mimetype.includes("pdf"))
-      return <FilePdfOutlined style={{ fontSize: 24 }} />;
-    if (mimetype.includes("excel") || mimetype.includes("spreadsheet"))
-      return <FileExcelOutlined style={{ fontSize: 24 }} />;
-    if (mimetype.includes("zip") || mimetype.includes("compressed"))
-      return <FileZipOutlined style={{ fontSize: 24 }} />;
-    if (mimetype.includes("text") || mimetype.includes("document"))
-      return <FileTextOutlined style={{ fontSize: 24 }} />;
-    return <FileUnknownOutlined style={{ fontSize: 24 }} />;
-  };
+
 
 
   if (loading) {
@@ -393,107 +392,95 @@ export default function FileDetailPage() {
               </Card>
             </Col>
 
-            {/* Right Column: Preview/Content/Chunks with enhanced UI */}
+            {/* Right Column: Preview/Content and Chunks */}
             <Col xs={24} md={16}>
-              {isImage ? (
+              <Space direction="vertical" size="large" style={{ width: '100%' }}>
+                {/* Card for Preview or Content */}
+                {isImage ? (
+                  <Card
+                    title={<Space><FileImageOutlined /> Image Preview</Space>}
+                    style={{ borderRadius: '8px', }}
+                  >
+                    <div style={{ textAlign: "center" }}>
+                      <Image
+                        src={fileUrl}
+                        alt={file?.originalName}
+                        style={{ maxWidth: "100%", maxHeight: "70vh", borderRadius: '4px' }}
+                      />
+                    </div>
+                  </Card>
+                ) : isPdf ? (
+                  <Card
+                    title={<Space><FilePdfOutlined /> PDF Preview</Space>}
+                    style={{ borderRadius: '8px', }}
+                  >
+                    <div style={{ height: "80vh", width: "100%" }}>
+                      <iframe
+                        src={fileUrl}
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          border: "1px solid #f0f0f0",
+                          borderRadius: '4px'
+                        }}
+                        title={file?.originalName}
+                      />
+                    </div>
+                  </Card>
+                ) : (
+                  <Card
+                    title={<Space><FileTextOutlined /> File Content</Space>} // Changed icon
+                    style={{ borderRadius: '8px', }}
+                  >
+                    <div style={{ padding: '16px 0' }}> {/* Adjusted padding */}
+                      {contentLoading ? (
+                        <div style={{ padding: "40px 0" }}>
+                          <Skeleton active paragraph={{ rows: 10 }} />
+                        </div>
+                      ) : fileContent ? (
+                        <div className="file-content-viewer">
+                          <FileContentViewer content={fileContent} />
+                        </div>
+                      ) : (
+                        <Empty
+                          image={Empty.PRESENTED_IMAGE_SIMPLE}
+                          description={
+                            <span>
+                              Preview not available or content is empty.
+                              <br />
+                              Try downloading the file.
+                            </span>
+                          }
+                        >
+                          <Button
+                            type="primary"
+                            icon={<DownloadOutlined />}
+                            onClick={handleDownload}
+                          >
+                            Download File
+                          </Button>
+                        </Empty>
+                      )}
+                    </div>
+                  </Card>
+                )}
+
+                {/* Card for File Chunks - Always visible */}
                 <Card
-                  title={<Space><FileImageOutlined /> Image Preview</Space>}
-                  style={{ borderRadius: '8px', }}
+                  title={
+                    <Space>
+                      <PartitionOutlined /> File Chunks
+                    </Space>
+                  }
+                  style={{ borderRadius: '8px' }}
                 >
-                  <div style={{ textAlign: "center" }}>
-                    <Image
-                      src={fileUrl}
-                      alt={file?.originalName}
-                      style={{ maxWidth: "100%", maxHeight: "70vh", borderRadius: '4px' }}
-                    />
-                  </div>
+                  {file?.id ? (
+                    <FileChunks fileId={file.id} />
+                  ) : (
+                    <Empty description="File ID not available to load chunks" />
+                  )}
                 </Card>
-              ) : isPdf ? (
-                <Card
-                  title={<Space><FilePdfOutlined /> PDF Preview</Space>}
-                  style={{ borderRadius: '8px', }}
-                >
-                  <div style={{ height: "80vh", width: "100%" }}>
-                    <iframe
-                      src={fileUrl}
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        border: "1px solid #f0f0f0",
-                        borderRadius: '4px'
-                      }}
-                      title={file?.originalName}
-                    />
-                  </div>
-                </Card>
-              ) : (
-                <Card
-                  style={{ borderRadius: '8px', }}
-                >
-                  <Tabs
-                    activeKey={activeTabKey}
-                    onChange={setActiveTabKey}
-                    items={[
-                      {
-                        key: "content",
-                        label: (
-                          <span>
-                            <FileOutlined /> File Content
-                          </span>
-                        ),
-                        children: (
-                          <div style={{ padding: '16px 24px' }}>
-                            {contentLoading ? (
-                              <div style={{ padding: "40px 0" }}>
-                                <Skeleton active paragraph={{ rows: 10 }} />
-                              </div>
-                            ) : fileContent ? (
-                              <div className="file-content-viewer">
-                                <FileContentViewer content={fileContent} />
-                              </div>
-                            ) : (
-                              <Empty
-                                image={Empty.PRESENTED_IMAGE_SIMPLE}
-                                description={
-                                  <span>
-                                    Preview not available or content is empty.
-                                    <br />
-                                    Try downloading the file.
-                                  </span>
-                                }
-                              >
-                                <Button
-                                  type="primary"
-                                  icon={<DownloadOutlined />}
-                                  onClick={handleDownload}
-                                >
-                                  Download File
-                                </Button>
-                              </Empty>
-                            )}
-                          </div>
-                        )
-                      },
-                      {
-                        key: "chunks",
-                        label: (
-                          <span>
-                            <PartitionOutlined /> File Chunks
-                          </span>
-                        ),
-                        children: file?.id ? (
-                          <FileChunks fileId={file.id} />
-                        ) : (
-                          <Empty description="File ID not available" />
-                        )
-                      }
-                    ]}
-                    centered
-                    type="card"
-                    size="large"
-                  />
-                </Card>
-              )}
+              </Space>
             </Col>
           </Row>
         </Space >

@@ -1,5 +1,4 @@
 import {
-  ArrowLeftOutlined,
   CalendarOutlined,
   FileOutlined,
   InfoCircleOutlined,

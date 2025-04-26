@@ -17,6 +17,7 @@ import { storeVectorsInNbase as storeNbaseChunkVectors, deleteFileVectors as del
 // Configuration
 const POLLING_INTERVAL = parseInt(process.env.PARSING_POLLING_INTERVAL || '5000'); // Default: 5 seconds
 const MAX_WORKERS = parseInt(process.env.MAX_PARSING_WORKERS || '3'); // Default: 3 parallel workers
+// Configuration for storage batching
 
 // Worker pool management
 let isShuttingDown = false;
@@ -312,8 +313,8 @@ class FileParsingWorker {
           // Attempt to stringify object-like content
           textContent = JSON.stringify(parsedContent);
         }
-      } catch (e) {
-        console.log(`Worker ${this.id}: Content is not JSON, using as-is`, e);
+      } catch (_e) {
+        console.log(`Worker ${this.id}: Content is not JSON, using as-is`);
       }
 
       // Split content into chunks
@@ -321,7 +322,7 @@ class FileParsingWorker {
       console.log(`Worker ${this.id}: Split content into ${chunks.length} chunks`);
 
       // Generate embeddings for chunks (in batches to avoid rate limits)
-      const embeddings = await generateEmbeddingsInBatches(chunks);
+      const embedding = await generateEmbeddingsInBatches(chunks); // Changed variable name for clarity
 
       // Determine which vector storage to use
       const vectorDBType = process.env.VECTOR_DB_TYPE || 'local';
@@ -331,25 +332,45 @@ class FileParsingWorker {
         id: `${fileId}_chunk_${index}`,
         content: chunk,
         metadata: extractChunkMetadata(chunk, index),
-        embedding: embeddings[index].embedding,
+        embedding: embedding[index].embedding, // Use embeddingResponses
       }));
 
-      // Delete existing vectors first and store new ones
-      console.log(`Worker ${this.id}: Using ${vectorDBType} for vector storage`);
-
+      // Delete existing vectors first
+      console.log(`Worker ${this.id}: Deleting existing vectors for file ${fileId} using ${vectorDBType}`);
       switch (vectorDBType) {
         case 'nbase':
           await deleteNbaseFileVectors(fileId);
-          await storeNbaseChunkVectors(fileId, knowledgeId, vectorChunks);
           break;
-
         default: // 'local'
           await deleteLocalVectors(fileId);
-          await storeLocalVectors(fileId, knowledgeId, vectorChunks);
           break;
       }
+      console.log(`Worker ${this.id}: Existing vectors deleted for file ${fileId}`);
 
-      console.log(`Worker ${this.id}: Successfully stored ${chunks.length} text chunks with embeddings`);
+      const STORAGE_BATCH_SIZE = 5 // Default: 100 chunks per batch
+
+      // Store new vectors in batches
+      console.log(`Worker ${this.id}: Storing ${vectorChunks.length} vectors in batches of ${STORAGE_BATCH_SIZE} using ${vectorDBType}`);
+
+      for (let i = 0; i < vectorChunks.length; i += STORAGE_BATCH_SIZE) {
+        const batch = vectorChunks.slice(i, i + STORAGE_BATCH_SIZE);
+        console.log(`Worker ${this.id}: Storing batch ${i / STORAGE_BATCH_SIZE + 1} (size: ${batch.length})`);
+
+        switch (vectorDBType) {
+          case 'nbase':
+            await storeNbaseChunkVectors(fileId, knowledgeId, batch);
+            break;
+
+          default: // 'local'
+            await storeLocalVectors(fileId, knowledgeId, batch);
+            break;
+        }
+        // Optional: Add a small delay between batches if needed for rate limiting the storage service
+        // await new Promise(resolve => setTimeout(resolve, 200));
+      }
+
+
+      console.log(`Worker ${this.id}: Successfully stored ${vectorChunks.length} text chunks with embeddings`);
     } catch (error) {
       console.error(`Worker ${this.id}: Error processing content into vectors:`, error);
       throw error;

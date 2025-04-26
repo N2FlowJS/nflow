@@ -35,7 +35,10 @@ export function chunkText(
   for (let chunk of rawChunks) {
     chunk = chunk.trim();
     if (!chunk) continue; // Skip empty chunks
+    console.log(`len`, chunk.length)
+
     const estimatedTokens = Math.ceil(chunk.length);
+    console.log(`estimatedTokens`, estimatedTokens)
 
     if (currentTokenCount + estimatedTokens > maxTokensPerChunk) {
       resultChunks.push(currentChunk);
@@ -52,6 +55,7 @@ export function chunkText(
   if (currentChunk.length > 0) {
     resultChunks.push(currentChunk);
   }
+  console.log(resultChunks);
 
   return resultChunks;
 }

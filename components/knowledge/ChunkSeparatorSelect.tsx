@@ -12,13 +12,13 @@ export const separatorOptions = [
     { label: 'Space ( )', value: ' ' },
     { label: 'Comma (,)', value: ',' },
     { label: 'Semicolon (;)', value: ';' },
-    { label: 'Dấu chấm tiếng Trung (。)', value: '。' },
-    { label: 'Dấu phẩy tiếng Trung (，)', value: '，' },
-    { label: 'Dấu chấm hỏi tiếng Trung (？)', value: '？' },
-    { label: 'Dấu chấm than tiếng Trung (！)', value: '！' },
-    { label: 'Dấu chấm phẩy tiếng Trung (；)', value: '；' },
-    { label: 'Dấu ngoặc kép tiếng Trung (“ ”)', value: '“' },
-    { label: 'Dấu ngoặc kép tiếng Trung (“ ”)', value: '”' },
+    { label: 'Chinese Period (。)', value: '。' },
+    { label: 'Chinese Comma (，)', value: '，' },
+    { label: 'Chinese Question Mark (？)', value: '？' },
+    { label: 'Chinese Exclamation Mark (！)', value: '！' },
+    { label: 'Chinese Semicolon (；)', value: '；' },
+    { label: 'Chinese Left Double Quotation Mark (“)', value: '“' },
+    { label: 'Chinese Right Double Quotation Mark (”)', value: '”' },
 ];
 
 export const renderSeparatorTokens = (separators: string[]) => {
