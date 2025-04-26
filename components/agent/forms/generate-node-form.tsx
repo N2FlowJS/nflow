@@ -203,7 +203,11 @@ const GenerateNodeForm: React.FC<GenerateNodeFormProps> = (props) => {
               a11ySuggestionsListLabel={"Suggested variables"}
               allowSpaceInQuery={true} // Allows searching for multi-word variables if needed
               // Control the component value
-              onChange={(event, value: string) => props.form.setFieldsValue({ prompt: value })} // Update form on change
+              onChange={(event: any, value: string) => {
+                console.log(event);
+
+                props.form.setFieldsValue({ prompt: value })
+              }} // Update form on change
             >
               <Mention
                 trigger="@" // Use @ to trigger suggestions
