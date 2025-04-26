@@ -7,9 +7,9 @@ const { Option } = Select;
 interface AddMemberFormProps {
   availableUsers: any[];
   teamMembers: any[];
-  onAdd: (members: { userId: string, role: string }[]) => void;
+  onAdd: (members: { userId: string, permission: string }[]) => void;
   onCancel: () => void;
-  userRole: string | null;
+  userPermission: string | null;
 }
 
 const AddMemberForm: React.FC<AddMemberFormProps> = ({
@@ -17,28 +17,28 @@ const AddMemberForm: React.FC<AddMemberFormProps> = ({
   teamMembers,
   onAdd,
   onCancel,
-  userRole
+  userPermission
 }) => {
-  const [selectedUsers, setSelectedUsers] = useState<{ userId: string, role: string }[]>([]);
+  const [selectedUsers, setSelectedUsers] = useState<{ userId: string, permission: string }[]>([]);
   const [selectedRole, setSelectedRole] = useState<string>("guest");
 
   const handleUserSelect = (userId: string) => {
     if (!userId) return;
-    
+
     // Check if this user is already in the selection
     if (selectedUsers.some(u => u.userId === userId)) {
       return;
     }
-    
-    setSelectedUsers([...selectedUsers, { userId, role: selectedRole }]);
+
+    setSelectedUsers([...selectedUsers, { userId, permission: selectedRole }]);
   };
 
   const handleRemoveSelectedUser = (userId: string) => {
     setSelectedUsers(selectedUsers.filter(u => u.userId !== userId));
   };
 
-  const filteredUsers = availableUsers.filter(user => 
-    !teamMembers.some(member => member.userId === user.id) && 
+  const filteredUsers = availableUsers.filter(user =>
+    !teamMembers.some(member => member.userId === user.id) &&
     !selectedUsers.some(selected => selected.userId === user.id)
   );
 
@@ -46,29 +46,29 @@ const AddMemberForm: React.FC<AddMemberFormProps> = ({
     {
       title: 'Name',
       key: 'name',
-      render: (_: any, record: { userId: string, role: string }) => {
+      render: (_: any, record: { userId: string, permission: string }) => {
         const user = availableUsers.find(u => u.id === record.userId);
         return user?.name || record.userId;
       },
     },
     {
-      title: 'Role',
-      key: 'role',
-      dataIndex: 'role',
-      render: (role: string, record: { userId: string, role: string }) => (
-        <Select 
-          value={role} 
+      title: 'Permission',
+      key: 'permission',
+      dataIndex: 'permission',
+      render: (permission: string, record: { userId: string, permission: string }) => (
+        <Select
+          value={permission}
           style={{ width: 120 }}
-          onChange={(newRole) => {
+          onChange={(permission) => {
             setSelectedUsers(
-              selectedUsers.map(u => 
-                u.userId === record.userId ? { ...u, role: newRole } : u
+              selectedUsers.map(u =>
+                u.userId === record.userId ? { ...u, permission: permission } : u
               )
             );
           }}
         >
-          {userRole === 'owner' && <Option value="owner">Owner</Option>}
-          {(userRole === 'owner' || userRole === 'admin') && <Option value="admin">Admin</Option>}
+          {userPermission === 'owner' && <Option value="owner">Owner</Option>}
+          {(userPermission === 'owner' || userPermission === 'admin') && <Option value="admin">Admin</Option>}
           <Option value="maintainer">Maintainer</Option>
           <Option value="developer">Developer</Option>
           <Option value="guest">Guest</Option>
@@ -78,7 +78,7 @@ const AddMemberForm: React.FC<AddMemberFormProps> = ({
     {
       title: 'Actions',
       key: 'actions',
-      render: (_: any, record: { userId: string, role: string }) => (
+      render: (_: any, record: { userId: string, permission: string }) => (
         <Button
           type="text"
           danger
@@ -104,14 +104,14 @@ const AddMemberForm: React.FC<AddMemberFormProps> = ({
             <Option key={user.id} value={user.id}>{user.name}</Option>
           ))}
         </Select>
-        
+
         <Select
           value={selectedRole}
           style={{ width: 120 }}
           onChange={setSelectedRole}
         >
-          {userRole === 'owner' && <Option value="owner">Owner</Option>}
-          {(userRole === 'owner' || userRole === 'admin') && <Option value="admin">Admin</Option>}
+          {userPermission === 'owner' && <Option value="owner">Owner</Option>}
+          {(userPermission === 'owner' || userPermission === 'admin') && <Option value="admin">Admin</Option>}
           <Option value="maintainer">Maintainer</Option>
           <Option value="developer">Developer</Option>
           <Option value="guest">Guest</Option>
@@ -120,20 +120,20 @@ const AddMemberForm: React.FC<AddMemberFormProps> = ({
 
       {selectedUsers.length > 0 ? (
         <>
-          <Table 
-            columns={columns} 
-            dataSource={selectedUsers} 
+          <Table
+            columns={columns}
+            dataSource={selectedUsers}
             rowKey="userId"
             pagination={false}
             size="small"
           />
-          
+
           <Space style={{ marginTop: 16 }}>
             <Button onClick={onCancel}>
               Cancel
             </Button>
-            <Button 
-              type="primary" 
+            <Button
+              type="primary"
               icon={<PlusOutlined />}
               onClick={() => onAdd(selectedUsers)}
             >

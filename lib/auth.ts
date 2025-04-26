@@ -43,29 +43,3 @@ export function parseAuthHeader(authHeader?: string): string | null {
   return authHeader.substring(7);
 }
 
-// This is a simplified auth check function
-// In a real application, you would use proper session management with NextAuth
-export async function getCurrentUser(req: NextApiRequest) {
-  // For now, just return a fake user ID for development
-  // In production, you would verify the session token and get the real user
-  
-  // Get the user ID from the request headers or cookies
-  // This is just for testing - replace with actual auth logic
-  const userId = req.headers['x-user-id'] as string || 'default-user-id';
-  
-  return {
-    id: userId,
-    name: 'Current User',
-    email: 'user@example.com'
-  };
-}
-
-// // Check if user is authenticated
-export async function isAuthenticated(req: NextApiRequest) {
-  try {
-    const user = await getCurrentUser(req);
-    return user;
-  } catch (error) {
-    return null;
-  }
-}

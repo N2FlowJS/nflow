@@ -166,7 +166,6 @@ export async function storeVectorsInNbase(
         knowledgeId,
       },
     }));
-    console.log(JSON.stringify(vectors, null, 2));
 
     const response = await fetch(`${NBASE_URL}/api/vectors`, {
       method: 'POST',

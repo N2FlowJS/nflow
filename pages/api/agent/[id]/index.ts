@@ -208,7 +208,7 @@ async function isUserTeamAdmin(userId: string, teamId: string | null): Promise<b
       userId,
       teamId,
       leftAt: null,
-      role: {
+      permission: {
         in: ['owner', 'admin'] // Only owner or admin can delete
       }
     }

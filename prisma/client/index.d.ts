@@ -3453,7 +3453,7 @@ export namespace Prisma {
 
   export type MemberTeamMinAggregateOutputType = {
     id: string | null
-    role: string | null
+    permission: string | null
     joinedAt: Date | null
     leftAt: Date | null
     teamId: string | null
@@ -3462,7 +3462,7 @@ export namespace Prisma {
 
   export type MemberTeamMaxAggregateOutputType = {
     id: string | null
-    role: string | null
+    permission: string | null
     joinedAt: Date | null
     leftAt: Date | null
     teamId: string | null
@@ -3471,7 +3471,7 @@ export namespace Prisma {
 
   export type MemberTeamCountAggregateOutputType = {
     id: number
-    role: number
+    permission: number
     joinedAt: number
     leftAt: number
     teamId: number
@@ -3482,7 +3482,7 @@ export namespace Prisma {
 
   export type MemberTeamMinAggregateInputType = {
     id?: true
-    role?: true
+    permission?: true
     joinedAt?: true
     leftAt?: true
     teamId?: true
@@ -3491,7 +3491,7 @@ export namespace Prisma {
 
   export type MemberTeamMaxAggregateInputType = {
     id?: true
-    role?: true
+    permission?: true
     joinedAt?: true
     leftAt?: true
     teamId?: true
@@ -3500,7 +3500,7 @@ export namespace Prisma {
 
   export type MemberTeamCountAggregateInputType = {
     id?: true
-    role?: true
+    permission?: true
     joinedAt?: true
     leftAt?: true
     teamId?: true
@@ -3582,7 +3582,7 @@ export namespace Prisma {
 
   export type MemberTeamGroupByOutputType = {
     id: string
-    role: string
+    permission: string
     joinedAt: Date
     leftAt: Date | null
     teamId: string
@@ -3608,7 +3608,7 @@ export namespace Prisma {
 
   export type MemberTeamSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
-    role?: boolean
+    permission?: boolean
     joinedAt?: boolean
     leftAt?: boolean
     teamId?: boolean
@@ -3619,7 +3619,7 @@ export namespace Prisma {
 
   export type MemberTeamSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
-    role?: boolean
+    permission?: boolean
     joinedAt?: boolean
     leftAt?: boolean
     teamId?: boolean
@@ -3630,7 +3630,7 @@ export namespace Prisma {
 
   export type MemberTeamSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
-    role?: boolean
+    permission?: boolean
     joinedAt?: boolean
     leftAt?: boolean
     teamId?: boolean
@@ -3641,14 +3641,14 @@ export namespace Prisma {
 
   export type MemberTeamSelectScalar = {
     id?: boolean
-    role?: boolean
+    permission?: boolean
     joinedAt?: boolean
     leftAt?: boolean
     teamId?: boolean
     userId?: boolean
   }
 
-  export type MemberTeamOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "role" | "joinedAt" | "leftAt" | "teamId" | "userId", ExtArgs["result"]["memberTeam"]>
+  export type MemberTeamOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "permission" | "joinedAt" | "leftAt" | "teamId" | "userId", ExtArgs["result"]["memberTeam"]>
   export type MemberTeamInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     team?: boolean | TeamDefaultArgs<ExtArgs>
     user?: boolean | UserDefaultArgs<ExtArgs>
@@ -3670,7 +3670,7 @@ export namespace Prisma {
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
-      role: string
+      permission: string
       joinedAt: Date
       leftAt: Date | null
       teamId: string
@@ -4101,7 +4101,7 @@ export namespace Prisma {
    */
   interface MemberTeamFieldRefs {
     readonly id: FieldRef<"MemberTeam", 'String'>
-    readonly role: FieldRef<"MemberTeam", 'String'>
+    readonly permission: FieldRef<"MemberTeam", 'String'>
     readonly joinedAt: FieldRef<"MemberTeam", 'DateTime'>
     readonly leftAt: FieldRef<"MemberTeam", 'DateTime'>
     readonly teamId: FieldRef<"MemberTeam", 'String'>
@@ -16453,7 +16453,7 @@ export namespace Prisma {
 
   export const MemberTeamScalarFieldEnum: {
     id: 'id',
-    role: 'role',
+    permission: 'permission',
     joinedAt: 'joinedAt',
     leftAt: 'leftAt',
     teamId: 'teamId',
@@ -16800,7 +16800,7 @@ export namespace Prisma {
     OR?: MemberTeamWhereInput[]
     NOT?: MemberTeamWhereInput | MemberTeamWhereInput[]
     id?: StringFilter<"MemberTeam"> | string
-    role?: StringFilter<"MemberTeam"> | string
+    permission?: StringFilter<"MemberTeam"> | string
     joinedAt?: DateTimeFilter<"MemberTeam"> | Date | string
     leftAt?: DateTimeNullableFilter<"MemberTeam"> | Date | string | null
     teamId?: StringFilter<"MemberTeam"> | string
@@ -16811,7 +16811,7 @@ export namespace Prisma {
 
   export type MemberTeamOrderByWithRelationInput = {
     id?: SortOrder
-    role?: SortOrder
+    permission?: SortOrder
     joinedAt?: SortOrder
     leftAt?: SortOrderInput | SortOrder
     teamId?: SortOrder
@@ -16826,7 +16826,7 @@ export namespace Prisma {
     AND?: MemberTeamWhereInput | MemberTeamWhereInput[]
     OR?: MemberTeamWhereInput[]
     NOT?: MemberTeamWhereInput | MemberTeamWhereInput[]
-    role?: StringFilter<"MemberTeam"> | string
+    permission?: StringFilter<"MemberTeam"> | string
     joinedAt?: DateTimeFilter<"MemberTeam"> | Date | string
     leftAt?: DateTimeNullableFilter<"MemberTeam"> | Date | string | null
     teamId?: StringFilter<"MemberTeam"> | string
@@ -16837,7 +16837,7 @@ export namespace Prisma {
 
   export type MemberTeamOrderByWithAggregationInput = {
     id?: SortOrder
-    role?: SortOrder
+    permission?: SortOrder
     joinedAt?: SortOrder
     leftAt?: SortOrderInput | SortOrder
     teamId?: SortOrder
@@ -16852,7 +16852,7 @@ export namespace Prisma {
     OR?: MemberTeamScalarWhereWithAggregatesInput[]
     NOT?: MemberTeamScalarWhereWithAggregatesInput | MemberTeamScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"MemberTeam"> | string
-    role?: StringWithAggregatesFilter<"MemberTeam"> | string
+    permission?: StringWithAggregatesFilter<"MemberTeam"> | string
     joinedAt?: DateTimeWithAggregatesFilter<"MemberTeam"> | Date | string
     leftAt?: DateTimeNullableWithAggregatesFilter<"MemberTeam"> | Date | string | null
     teamId?: StringWithAggregatesFilter<"MemberTeam"> | string
@@ -17810,7 +17810,7 @@ export namespace Prisma {
 
   export type MemberTeamCreateInput = {
     id?: string
-    role: string
+    permission?: string
     joinedAt?: Date | string
     leftAt?: Date | string | null
     team: TeamCreateNestedOneWithoutMembersInput
@@ -17819,7 +17819,7 @@ export namespace Prisma {
 
   export type MemberTeamUncheckedCreateInput = {
     id?: string
-    role: string
+    permission?: string
     joinedAt?: Date | string
     leftAt?: Date | string | null
     teamId: string
@@ -17828,7 +17828,7 @@ export namespace Prisma {
 
   export type MemberTeamUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
-    role?: StringFieldUpdateOperationsInput | string
+    permission?: StringFieldUpdateOperationsInput | string
     joinedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     leftAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     team?: TeamUpdateOneRequiredWithoutMembersNestedInput
@@ -17837,7 +17837,7 @@ export namespace Prisma {
 
   export type MemberTeamUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
-    role?: StringFieldUpdateOperationsInput | string
+    permission?: StringFieldUpdateOperationsInput | string
     joinedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     leftAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     teamId?: StringFieldUpdateOperationsInput | string
@@ -17846,7 +17846,7 @@ export namespace Prisma {
 
   export type MemberTeamCreateManyInput = {
     id?: string
-    role: string
+    permission?: string
     joinedAt?: Date | string
     leftAt?: Date | string | null
     teamId: string
@@ -17855,14 +17855,14 @@ export namespace Prisma {
 
   export type MemberTeamUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
-    role?: StringFieldUpdateOperationsInput | string
+    permission?: StringFieldUpdateOperationsInput | string
     joinedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     leftAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type MemberTeamUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
-    role?: StringFieldUpdateOperationsInput | string
+    permission?: StringFieldUpdateOperationsInput | string
     joinedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     leftAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     teamId?: StringFieldUpdateOperationsInput | string
@@ -18996,7 +18996,7 @@ export namespace Prisma {
 
   export type MemberTeamCountOrderByAggregateInput = {
     id?: SortOrder
-    role?: SortOrder
+    permission?: SortOrder
     joinedAt?: SortOrder
     leftAt?: SortOrder
     teamId?: SortOrder
@@ -19005,7 +19005,7 @@ export namespace Prisma {
 
   export type MemberTeamMaxOrderByAggregateInput = {
     id?: SortOrder
-    role?: SortOrder
+    permission?: SortOrder
     joinedAt?: SortOrder
     leftAt?: SortOrder
     teamId?: SortOrder
@@ -19014,7 +19014,7 @@ export namespace Prisma {
 
   export type MemberTeamMinOrderByAggregateInput = {
     id?: SortOrder
-    role?: SortOrder
+    permission?: SortOrder
     joinedAt?: SortOrder
     leftAt?: SortOrder
     teamId?: SortOrder
@@ -21173,7 +21173,7 @@ export namespace Prisma {
 
   export type MemberTeamCreateWithoutTeamInput = {
     id?: string
-    role: string
+    permission?: string
     joinedAt?: Date | string
     leftAt?: Date | string | null
     user: UserCreateNestedOneWithoutTeamMembershipsInput
@@ -21181,7 +21181,7 @@ export namespace Prisma {
 
   export type MemberTeamUncheckedCreateWithoutTeamInput = {
     id?: string
-    role: string
+    permission?: string
     joinedAt?: Date | string
     leftAt?: Date | string | null
     userId: string
@@ -21434,7 +21434,7 @@ export namespace Prisma {
     OR?: MemberTeamScalarWhereInput[]
     NOT?: MemberTeamScalarWhereInput | MemberTeamScalarWhereInput[]
     id?: StringFilter<"MemberTeam"> | string
-    role?: StringFilter<"MemberTeam"> | string
+    permission?: StringFilter<"MemberTeam"> | string
     joinedAt?: DateTimeFilter<"MemberTeam"> | Date | string
     leftAt?: DateTimeNullableFilter<"MemberTeam"> | Date | string | null
     teamId?: StringFilter<"MemberTeam"> | string
@@ -22082,7 +22082,7 @@ export namespace Prisma {
 
   export type MemberTeamCreateWithoutUserInput = {
     id?: string
-    role: string
+    permission?: string
     joinedAt?: Date | string
     leftAt?: Date | string | null
     team: TeamCreateNestedOneWithoutMembersInput
@@ -22090,7 +22090,7 @@ export namespace Prisma {
 
   export type MemberTeamUncheckedCreateWithoutUserInput = {
     id?: string
-    role: string
+    permission?: string
     joinedAt?: Date | string
     leftAt?: Date | string | null
     teamId: string
@@ -23956,7 +23956,7 @@ export namespace Prisma {
 
   export type MemberTeamCreateManyTeamInput = {
     id?: string
-    role: string
+    permission?: string
     joinedAt?: Date | string
     leftAt?: Date | string | null
     userId: string
@@ -23994,7 +23994,7 @@ export namespace Prisma {
 
   export type MemberTeamUpdateWithoutTeamInput = {
     id?: StringFieldUpdateOperationsInput | string
-    role?: StringFieldUpdateOperationsInput | string
+    permission?: StringFieldUpdateOperationsInput | string
     joinedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     leftAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     user?: UserUpdateOneRequiredWithoutTeamMembershipsNestedInput
@@ -24002,7 +24002,7 @@ export namespace Prisma {
 
   export type MemberTeamUncheckedUpdateWithoutTeamInput = {
     id?: StringFieldUpdateOperationsInput | string
-    role?: StringFieldUpdateOperationsInput | string
+    permission?: StringFieldUpdateOperationsInput | string
     joinedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     leftAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     userId?: StringFieldUpdateOperationsInput | string
@@ -24010,7 +24010,7 @@ export namespace Prisma {
 
   export type MemberTeamUncheckedUpdateManyWithoutTeamInput = {
     id?: StringFieldUpdateOperationsInput | string
-    role?: StringFieldUpdateOperationsInput | string
+    permission?: StringFieldUpdateOperationsInput | string
     joinedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     leftAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     userId?: StringFieldUpdateOperationsInput | string
@@ -24363,7 +24363,7 @@ export namespace Prisma {
 
   export type MemberTeamCreateManyUserInput = {
     id?: string
-    role: string
+    permission?: string
     joinedAt?: Date | string
     leftAt?: Date | string | null
     teamId: string
@@ -24467,7 +24467,7 @@ export namespace Prisma {
 
   export type MemberTeamUpdateWithoutUserInput = {
     id?: StringFieldUpdateOperationsInput | string
-    role?: StringFieldUpdateOperationsInput | string
+    permission?: StringFieldUpdateOperationsInput | string
     joinedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     leftAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     team?: TeamUpdateOneRequiredWithoutMembersNestedInput
@@ -24475,7 +24475,7 @@ export namespace Prisma {
 
   export type MemberTeamUncheckedUpdateWithoutUserInput = {
     id?: StringFieldUpdateOperationsInput | string
-    role?: StringFieldUpdateOperationsInput | string
+    permission?: StringFieldUpdateOperationsInput | string
     joinedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     leftAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     teamId?: StringFieldUpdateOperationsInput | string
@@ -24483,7 +24483,7 @@ export namespace Prisma {
 
   export type MemberTeamUncheckedUpdateManyWithoutUserInput = {
     id?: StringFieldUpdateOperationsInput | string
-    role?: StringFieldUpdateOperationsInput | string
+    permission?: StringFieldUpdateOperationsInput | string
     joinedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     leftAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     teamId?: StringFieldUpdateOperationsInput | string

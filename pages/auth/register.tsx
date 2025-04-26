@@ -1,12 +1,10 @@
-import React, { useState } from 'react';
-import { Form, Input, Button, Card, Typography, message } from 'antd';
-import { UserOutlined, LockOutlined, MailOutlined, IdcardOutlined, FileTextOutlined } from '@ant-design/icons';
-import { useRouter } from 'next/router';
-import { useAuth } from '../../context/AuthContext';
+import { IdcardOutlined, LockOutlined, MailOutlined, UserOutlined } from '@ant-design/icons';
+import { Button, Card, ConfigProvider, Form, Input, Typography, message } from 'antd';
 import Link from 'next/link';
-import { ConfigProvider } from 'antd';
+import { useRouter } from 'next/router';
+import { useState } from 'react';
+import { useAuth } from '../../context/AuthContext';
 import { useLocale } from '../../locale';
-import { useTheme } from '../../theme';
 
 const { Title, Text } = Typography;
 
@@ -14,8 +12,7 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
   const { register } = useAuth();
   const router = useRouter();
-  const { locale, antdLocale } = useLocale();
-  const { theme } = useTheme();
+  const { antdLocale } = useLocale();
 
   const onFinish = async (values: any) => {
     setLoading(true);
@@ -44,7 +41,7 @@ export default function Register() {
 
   return (
     <ConfigProvider locale={antdLocale}>
-      <div style={{ 
+      <div style={{
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
@@ -57,7 +54,7 @@ export default function Register() {
             <Title level={2}>Create an Account</Title>
             <Text type="secondary">Fill in the form to create your account</Text>
           </div>
-          
+
           <Form
             name="register"
             onFinish={onFinish}
@@ -68,9 +65,9 @@ export default function Register() {
               name="name"
               rules={[{ required: true, message: 'Please enter your name!' }]}
             >
-              <Input 
-                prefix={<UserOutlined />} 
-                placeholder="Full Name" 
+              <Input
+                prefix={<UserOutlined />}
+                placeholder="Full Name"
                 size="large"
               />
             </Form.Item>
@@ -82,9 +79,9 @@ export default function Register() {
                 { type: 'email', message: 'Please enter a valid email!' }
               ]}
             >
-              <Input 
-                prefix={<MailOutlined />} 
-                placeholder="Email" 
+              <Input
+                prefix={<MailOutlined />}
+                placeholder="Email"
                 size="large"
               />
             </Form.Item>
@@ -93,9 +90,9 @@ export default function Register() {
               name="code"
               rules={[{ required: true, message: 'Please enter a user code!' }]}
             >
-              <Input 
-                prefix={<IdcardOutlined />} 
-                placeholder="User Code" 
+              <Input
+                prefix={<IdcardOutlined />}
+                placeholder="User Code"
                 size="large"
               />
             </Form.Item>
@@ -144,10 +141,10 @@ export default function Register() {
             </Form.Item>
 
             <Form.Item>
-              <Button 
-                type="primary" 
-                htmlType="submit" 
-                size="large" 
+              <Button
+                type="primary"
+                htmlType="submit"
+                size="large"
                 block
                 loading={loading}
               >
@@ -155,7 +152,7 @@ export default function Register() {
               </Button>
             </Form.Item>
           </Form>
-          
+
           <div style={{ textAlign: 'center' }}>
             <Text>Already have an account? </Text>
             <Link href="/auth/login">Login</Link>

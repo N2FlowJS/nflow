@@ -146,8 +146,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
       
       // Collect all team-owned providers from user's teams
-      const teamProviders = userTeams.flatMap(membership => 
-        membership.team.ownedLLMProviders.filter(provider => provider.isActive)
+      const teamProviders = userTeams.flatMap((membership: any) => 
+        membership.team.ownedLLMProviders.filter((provider: any) => provider.isActive)
       );
       
       // Return user preferences along with available providers
@@ -159,10 +159,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           userProviders,
           teamProviders,
           systemProviders,
-          teams: userTeams.map(membership => ({
+          teams: userTeams.map((membership: any) => ({
             teamId: membership.team.id,
             teamName: membership.team.name,
-            role: membership.role
+            permission: membership.permission
           }))
         }
       });

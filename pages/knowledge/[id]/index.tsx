@@ -77,10 +77,19 @@ export default function KnowledgeDetail() {
         setKnowledge(data as Knowledge);
 
         // Parse config JSON
-        let config = { tokenChunk: 1000, chunkSeparator: "\n\n" };
+        let config = { tokenChunk: 1000, chunkSeparator: ["\n", "\n"] };
         if (data.config) {
           try {
-            config = JSON.parse(data.config);
+            const parsed = JSON.parse(data.config);
+            // Đảm bảo chunkSeparator là mảng
+            if (parsed && typeof parsed.chunkSeparator === "string") {
+              parsed.chunkSeparator = [parsed.chunkSeparator];
+            }
+            if (parsed && Array.isArray(parsed.chunkSeparator)) {
+              config = parsed;
+            } else {
+              config = { ...parsed, chunkSeparator: ["\n", "\n"] };
+            }
           } catch (e) {
             console.error("Error parsing config JSON:", e);
           }
@@ -120,7 +129,14 @@ export default function KnowledgeDetail() {
       const dataToSubmit = {
         name: values.name,
         description: values.description,
-        config: JSON.stringify(values.config),
+        config: JSON.stringify({
+          ...values.config,
+          chunkSeparator: Array.isArray(values.config.chunkSeparator)
+            ? values.config.chunkSeparator
+            : typeof values.config.chunkSeparator === "string"
+              ? [values.config.chunkSeparator]
+              : [],
+        }),
       };
       console.log(dataToSubmit);
 

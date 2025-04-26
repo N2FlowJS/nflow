@@ -49,7 +49,7 @@ async function getUserById(res: NextApiResponse, id: string) {
       id: membership.team.id,
       name: membership.team.name,
       description: membership.team.description,
-      role: membership.role,
+      role: membership.permission,
       joinedAt: membership.joinedAt
     }));
 

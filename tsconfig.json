@@ -27,14 +27,14 @@
       "@hooks/*": ["./hooks/*"],
       "@database/*": ["./database/*"],
       "@models/*": ["./models/*"],
-      "@context/*": ["./context/*"]
+      "@context/*": ["./context/*"],
+      "@prisma/*": ["./prisma/*"]
     },
     "noImplicitThis": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true
-    
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "nbase/index.js"],
   "exclude": ["node_modules"]

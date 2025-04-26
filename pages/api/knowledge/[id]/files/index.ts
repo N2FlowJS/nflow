@@ -5,6 +5,7 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 import { v4 as uuidv4 } from 'uuid';
+import { InputJsonValue } from '@prisma/client/runtime/library';
 
 // Configure multer for file uploads with knowledge-specific folders
 const upload = (knowledgeId: string) => multer({
@@ -125,7 +126,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
           // Fix the config type issue by properly handling the JSON field
           const fileConfig = knowledge?.config
-            ? knowledge.config as Prisma.InputJsonValue
+            ? knowledge.config as InputJsonValue
             : undefined;
 
           return prisma.file.create({

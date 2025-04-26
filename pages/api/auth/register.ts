@@ -33,10 +33,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(409).json({ error: 'User code already in use' });
     }
 
+    // Check if there's any existing owner
+    const existingOwner = await prisma.user.findFirst({
+      where: { permission: 'owner' }
+    });
+
+    // Set permission based on whether an owner exists
+    const permission = existingOwner ? 'developer' : 'owner';
+
     // Hash password
     const hashedPassword = await hashPassword(password);
 
-    // Create user
+    // Create user with determined permission
     const user = await prisma.user.create({
       data: {
         name,
@@ -44,7 +52,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         code,
         password: hashedPassword,
         description: description || '',
-        permission: "owner"
+        permission
       }
     });
 

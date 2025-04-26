@@ -48,14 +48,14 @@ export const fetchTeamMembers = async (teamId: string) => {
   return apiRequest<any[]>(`/api/team/${teamId}/members`);
 };
 
-export const addTeamMember = async (teamId: string, data: { userId: string; role: string }) => {
+export const addTeamMember = async (teamId: string, data: { userId: string; permission: string }[] ) => {
   return apiRequest<any>(`/api/team/${teamId}/members`, {
     method: 'POST',
-    body: JSON.stringify(data),
+    body: JSON.stringify({members: data}),
   });
 };
 
-export const updateTeamMember = async (teamId: string, userId: string, data: { role: string }) => {
+export const updateTeamMember = async (teamId: string, userId: string, data: { permission: string }) => {
   return apiRequest<any>(`/api/team/${teamId}/members/${userId}`, {
     method: 'PUT',
     body: JSON.stringify(data),

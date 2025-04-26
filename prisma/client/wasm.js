@@ -125,7 +125,7 @@ exports.Prisma.TeamScalarFieldEnum = {
 
 exports.Prisma.MemberTeamScalarFieldEnum = {
   id: 'id',
-  role: 'role',
+  permission: 'permission',
   joinedAt: 'joinedAt',
   leftAt: 'leftAt',
   teamId: 'teamId',

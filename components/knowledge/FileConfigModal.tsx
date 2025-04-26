@@ -1,13 +1,12 @@
 import { SettingOutlined } from "@ant-design/icons";
 import {
   Form,
-  Input,
   InputNumber,
   Modal,
   Space,
+  Select,
 } from "antd";
 import React, { useEffect } from "react";
-
 
 interface FileConfigModalProps {
   visible: boolean;
@@ -18,6 +17,15 @@ interface FileConfigModalProps {
   fileConfig: any;
   loading: boolean;
 }
+
+const separatorOptions = [
+  { label: 'Newline (\\n)', value: '\n' },
+  { label: 'Carriage Return (\\r)', value: '\r' },
+  { label: 'Tab (\\t)', value: '\t' },
+  { label: 'Space ( )', value: ' ' },
+  { label: 'Comma (,)', value: ',' },
+  { label: 'Semicolon (;)', value: ';' },
+];
 
 const FileConfigModal: React.FC<FileConfigModalProps> = ({
   visible,
@@ -31,10 +39,13 @@ const FileConfigModal: React.FC<FileConfigModalProps> = ({
 
   useEffect(() => {
     if (visible) {
-      // Initialize form with either file config or knowledge config
       form.setFieldsValue({
         tokenChunk: fileConfig?.tokenChunk || 1000,
-        chunkSeparator: fileConfig?.chunkSeparator || "\n\r.",
+        chunkSeparator: Array.isArray(fileConfig?.chunkSeparator)
+          ? fileConfig.chunkSeparator
+          : typeof fileConfig?.chunkSeparator === "string"
+            ? [fileConfig.chunkSeparator]
+            : ["\n", "\n"],
       });
     }
   }, [visible, fileConfig]);
@@ -42,17 +53,47 @@ const FileConfigModal: React.FC<FileConfigModalProps> = ({
   const handleOk = async () => {
     try {
       const values = await form.validateFields();
-
-      // If using knowledge config, pass null for fileConfig
       const configToSave = {
-        tokenChunk: values.tokenChunk || "1000",
-        chunkSeparator: values.chunkSeparator || ".\r\n",
+        tokenChunk: values.tokenChunk || 1000,
+        chunkSeparator: Array.isArray(values.chunkSeparator)
+          ? values.chunkSeparator
+          : typeof values.chunkSeparator === "string"
+            ? [values.chunkSeparator]
+            : ["\n", "\n"],
       };
       await onSave(configToSave);
     } catch (error) {
       console.error("Validation failed:", error);
     }
   };
+
+  // Hiển thị token cho từng ký tự
+  const renderSeparatorTokens = (separators: string[]) => {
+    if (!Array.isArray(separators)) return null;
+    return (
+      <div style={{ marginTop: 8 }}>
+        {separators.map((sep, idx) => (
+          <span
+            key={idx}
+            style={{
+              display: 'inline-block',
+              background: '#f0f0f0',
+              borderRadius: 4,
+              padding: '2px 8px',
+              marginRight: 4,
+              fontFamily: 'monospace',
+              fontSize: 13,
+              border: '1px solid #d9d9d9',
+            }}
+          >
+            {JSON.stringify(sep)}
+          </span>
+        ))}
+      </div>
+    );
+  };
+
+  const chunkSeparator = Form.useWatch("chunkSeparator", form);
 
   return (
     <Modal
@@ -85,16 +126,32 @@ const FileConfigModal: React.FC<FileConfigModalProps> = ({
         <Form.Item
           name="chunkSeparator"
           label="Chunk Separator"
-          tooltip="Characters used to divide text into chunks (e.g., '\n\r' for paragraphs)"
+          tooltip="Characters used to divide text into chunks (e.g., ['\\n','\\r'] for paragraphs)"
           rules={[
             {
               required: true,
               message: "Please enter chunk separator",
             },
           ]}
+          getValueProps={(value) => ({
+            value: Array.isArray(value) ? value : typeof value === 'string' ? [value] : [],
+          })}
+          normalize={(value) => {
+            if (Array.isArray(value)) return value;
+            if (typeof value === 'string') return [value];
+            return [];
+          }}
         >
-          <Input />
+          <Select
+            mode="tags"
+            style={{ width: '100%' }}
+            placeholder="Enter or select chunk separators"
+            tokenSeparators={[]}
+            options={separatorOptions}
+            open={false}
+          />
         </Form.Item>
+        {renderSeparatorTokens(chunkSeparator)}
       </Form>
     </Modal>
   );

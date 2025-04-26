@@ -50,7 +50,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       userId: payload.userId,
       teamId,
       leftAt: null, // Only active memberships
-      role: { in: ['owner', 'admin'] } // Only owners and admins can manage providers
+      permission: { in: ['owner', 'admin'] } // Only owners and admins can manage providers
     }
   });
   

@@ -99,7 +99,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // Handle POST request - add a new LLM provider to the team
   if (req.method === 'POST') {
     // Check if user has admin permissions in the team
-    if (membership?.role !== 'owner' && membership?.role !== 'admin' && payload.permission !== 'owner') {
+    if (membership?.permission !== 'owner' && membership?.permission !== 'admin' && payload.permission !== 'owner') {
       return res.status(403).json({ 
         error: 'You do not have permission to add LLM providers to this team' 
       });

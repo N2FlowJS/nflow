@@ -20,16 +20,16 @@ interface TeamMember {
 interface TeamMembersTabProps {
   teamId: string;
   members: TeamMember[];
-  userRole: string | null;
+  userPermission: string | null;
   availableUsers: any[];
-  onAddMembers: (members: { userId: string, role: string }[]) => void;
+  onAddMembers: (members: { userId: string, permission: string }[]) => void;
   onRemoveMember: (userId: string) => void;
-  onUpdateRole: (userId: string, role: string) => void;
+  onUpdateRole: (userId: string, permission: string) => void;
 }
 
 const TeamMembersTab: React.FC<TeamMembersTabProps> = ({
   members,
-  userRole,
+  userPermission,
   availableUsers,
   onAddMembers,
   onRemoveMember,
@@ -37,18 +37,27 @@ const TeamMembersTab: React.FC<TeamMembersTabProps> = ({
 }) => {
   const [memberTab, setMemberTab] = useState<string>("current");
   const [showAddForm, setShowAddForm] = useState(false);
-  
-  const canManageMembers = userRole === 'owner' || userRole === 'admin';
+
+  const canManageMembers = userPermission === 'owner' || userPermission === 'admin';
   const activeMembers = members.filter(member => !member.leftAt) || [];
   const formerMembers = members.filter(member => member.leftAt) || [];
 
   return (
     <Card
-      title={<Title level={4}><UserOutlined /> Team Members</Title>}
+      title={
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 4 }}>
+          <Title level={4} style={{ margin: 0, display: 'flex', alignItems: 'center' }}>
+            <UserOutlined style={{ marginRight: 8 }} /> Team Members
+          </Title>
+          <span style={{ fontSize: 14, color: '#888' }}>
+            Your role: <b style={{ textTransform: 'capitalize' }}>{userPermission ? userPermission : 'Guest'}</b>
+          </span>
+        </div>
+      }
       extra={
         canManageMembers && (
-          <Button 
-            type="primary" 
+          <Button
+            type="primary"
             icon={<PlusOutlined />}
             onClick={() => setShowAddForm(true)}
           >
@@ -63,44 +72,44 @@ const TeamMembersTab: React.FC<TeamMembersTabProps> = ({
           teamMembers={activeMembers}
           onAdd={onAddMembers}
           onCancel={() => setShowAddForm(false)}
-          userRole={userRole}
+          userPermission={userPermission}
         />
       )}
-      
-      <Tabs 
-        activeKey={memberTab} 
+
+      <Tabs
+        activeKey={memberTab}
         onChange={setMemberTab}
         style={{ marginTop: showAddForm ? 16 : 0 }}
       >
-        <TabPane 
+        <TabPane
           tab={
             <span>
               Current Members
               <Badge count={activeMembers.length} style={{ marginLeft: 8 }} />
             </span>
-          } 
+          }
           key="current"
         >
           <MemberList
             members={activeMembers}
-            currentUserRole={userRole}
+            currentUserRole={userPermission}
             onRemove={onRemoveMember}
             onUpdateRole={onUpdateRole}
             showActions={canManageMembers}
           />
         </TabPane>
-        <TabPane 
+        <TabPane
           tab={
             <span>
               Former Members
               <Badge count={formerMembers.length} style={{ marginLeft: 8 }} />
             </span>
-          } 
+          }
           key="former"
         >
           <MemberList
             members={formerMembers}
-            currentUserRole={userRole}
+            currentUserRole={userPermission}
             isFormerMembers={true}
             showActions={false}
           />

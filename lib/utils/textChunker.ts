@@ -3,39 +3,52 @@
  */
 export function chunkText(
   text: string,
-  chunkSeparator: string = "\n\r",
-  maxTokensPerChunk: number = 1000
+  chunkSeparator: string[] | string = ["\n"],
+  maxTokensPerChunk: number = 128
 ): string[] {
-  // Create a regular expression that matches any character in the chunkSeparator
-  const separatorRegex = new RegExp(`[${chunkSeparator.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&')}]`);
+  let separators: string[] = [];
+  if (Array.isArray(chunkSeparator)) {
+    separators = chunkSeparator;
+  } else if (typeof chunkSeparator === "string") {
+    separators = [chunkSeparator];
+  } else {
+    separators = ["\n"];
+  }
 
-  // Split by any character in the separator
+  if (separators.length === 0) {
+    separators = ["\n"];
+  }
+
+  const escaped = separators.map(sep =>
+    sep.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&')
+  );
+  const separatorRegex = new RegExp(escaped.join('|'), 'g');
+  console.log("Separator regex:", separatorRegex);
+
+
+  // Split text theo separator
   const rawChunks = text.split(separatorRegex).filter(chunk => chunk.trim().length > 0);
   const resultChunks: string[] = [];
   let currentChunk = "";
   let currentTokenCount = 0;
 
-  // Process each chunk
-  for (const chunk of rawChunks) {
-    // Estimate token count (rough approximation: 4 chars ~ 1 token)
-    const estimatedTokens = Math.ceil(chunk.length / 4);
+  for (let chunk of rawChunks) {
+    chunk = chunk.trim();
+    if (!chunk) continue; // Skip empty chunks
+    const estimatedTokens = Math.ceil(chunk.length);
 
-    // If adding this chunk would exceed the limit, save current chunk and start a new one
-    if (currentTokenCount + estimatedTokens > maxTokensPerChunk && currentChunk.length > 0) {
+    if (currentTokenCount + estimatedTokens > maxTokensPerChunk) {
       resultChunks.push(currentChunk);
       currentChunk = chunk;
       currentTokenCount = estimatedTokens;
-    }
-    // Start accumulating
-    else {
+    } else {
       currentChunk = currentChunk.length > 0
-        ? `${currentChunk}${chunkSeparator[0]}${chunk}` // Use first character of separator when rejoining
+        ? `${currentChunk} `
         : chunk;
       currentTokenCount += estimatedTokens;
     }
   }
-
-  // Add the last chunk if not empty
+  currentChunk = currentChunk.trim();
   if (currentChunk.length > 0) {
     resultChunks.push(currentChunk);
   }

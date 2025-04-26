@@ -2,44 +2,6 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from "@lib/prisma";
 import { parseAuthHeader, verifyToken } from '@lib/auth';
 
-/**
- * API handler for managing LLM providers.
- *
- * This handler supports the following HTTP methods:
- * - `GET`: Retrieves all LLM providers.
- * - `POST`: Creates a new LLM provider.
- *
- * @param req - The HTTP request object.
- * @param res - The HTTP response object.
- *
- * ### GET Method:
- * Retrieves a list of all LLM providers with their associated models.
- * The response masks API keys for security purposes.
- *
- * #### Response:
- * - `200 OK`: Returns an array of LLM providers with API keys masked.
- * - `401 Unauthorized`: If authentication fails.
- * - `500 Internal Server Error`: If an error occurs while fetching providers.
- *
- * ### POST Method:
- * Creates a new LLM provider. Requires authentication via a token in the `Authorization` header.
- *
- * #### Request Body:
- * - `name` (string, required): The name of the provider.
- * - `description` (string, optional): A description of the provider.
- * - `providerType` (string, required): Type of provider (e.g., "openai", "azure", "custom").
- * - `endpointUrl` (string, required): The API endpoint URL.
- * - `isActive` (boolean, optional): Whether the provider is active, defaults to true.
- * - `isDefault` (boolean, optional): Whether the provider is the default, defaults to false.
- * - `apiKey` (string, optional): API key for the provider.
- * - `config` (object, optional): Additional configuration options.
- *
- * #### Response:
- * - `201 Created`: Returns the created provider with API key masked.
- * - `400 Bad Request`: If required fields are missing.
- * - `401 Unauthorized`: If authentication fails or the token is invalid.
- * - `500 Internal Server Error`: If an error occurs while creating the provider.
- */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   // Get token from Authorization header
   const token = parseAuthHeader(req.headers.authorization);
@@ -63,7 +25,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
         select: {
           teamId: true,
-          role: true
+          permission: true
         }
       });
       
@@ -170,14 +132,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           return res.status(400).json({ error: "Team ID is required for team-owned providers" });
         }
         
-        // Check if the user is a member of this team with appropriate role
+        // Check if the user is a member of this team with appropriate permission
         const membership = await prisma.memberTeam.findFirst({
           where: {
             userId: payload.userId,
             teamId: teamOwnerId,
             leftAt: null,
             // Only owners and admins can add providers
-            role: { in: ['owner', 'admin'] }
+            permission: { in: ['owner', 'admin'] }
           }
         });
         

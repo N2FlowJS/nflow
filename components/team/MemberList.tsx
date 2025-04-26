@@ -33,11 +33,11 @@ const MemberList: React.FC<MemberListProps> = ({
     }
   };
 
-  const getRoleBadge = (role: string) => {
-    if (role === 'owner') {
-      return <Tag color="gold" icon={<CrownOutlined />}>{role.toUpperCase()}</Tag>;
+  const getRoleBadge = (permission: string) => {
+    if (permission === 'owner') {
+      return <Tag color="gold" icon={<CrownOutlined />}>{permission?.toUpperCase()}</Tag>;
     }
-    return <Tag color={getRoleColor(role)}>{role.toUpperCase()}</Tag>;
+    return <Tag color={getRoleColor(permission)}>{permission?.toUpperCase()}</Tag>;
   };
 
   const columns = [
@@ -59,13 +59,13 @@ const MemberList: React.FC<MemberListProps> = ({
       ),
     },
     {
-      title: 'Role',
-      dataIndex: 'role',
-      key: 'role',
-      render: (role: string, record: any) => (
-        showActions && !isFormerMembers && currentUserRole === 'owner' && role !== 'owner' ? (
+      title: 'Permission',
+      dataIndex: 'permission',
+      key: 'permission',
+      render: (permission: string, record: any) => (
+        showActions && !isFormerMembers && currentUserRole === 'owner' && permission !== 'owner' ? (
           <Select 
-            value={role} 
+            value={permission} 
             style={{ width: 120 }}
             onChange={(newRole) => onUpdateRole && onUpdateRole(record.userId, newRole)}
           >
@@ -74,7 +74,7 @@ const MemberList: React.FC<MemberListProps> = ({
             <Option value="developer">Developer</Option>
             <Option value="guest">Guest</Option>
           </Select>
-        ) : getRoleBadge(role)
+        ) : getRoleBadge(permission)
       ),
     },
     {

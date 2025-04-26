@@ -285,10 +285,18 @@ class FileParsingWorker {
   async processContentIntoVectors(content: string, fileId: string, knowledgeId: string, config: any): Promise<void> {
     try {
       // Extract configuration for chunking
-      const tokenChunk = config?.tokenChunk || 1000;
-      const chunkSeparator = config?.chunkSeparator || '\n\r.';
+      const tokenChunk = config?.tokenChunk || 128;
+      let chunkSeparator = config?.chunkSeparator ?? ['\n',];
 
-      console.log(`Worker ${this.id}: Processing content into chunks with tokenChunk=${tokenChunk}, separator="${chunkSeparator}"`);
+      // Đảm bảo chunkSeparator là mảng ký tự
+      if (typeof chunkSeparator === 'string') {
+        chunkSeparator = [chunkSeparator];
+      }
+      if (!Array.isArray(chunkSeparator)) {
+        chunkSeparator = ['\n'];
+      }
+
+      console.log(`Worker ${this.id}: Processing content into chunks with tokenChunk=${tokenChunk}, separator=${JSON.stringify(chunkSeparator)}`);
 
       // Extract text content from parsed result if it's in JSON format
       let textContent = content;
@@ -306,7 +314,6 @@ class FileParsingWorker {
         }
       } catch (e) {
         console.log(`Worker ${this.id}: Content is not JSON, using as-is`, e);
-
       }
 
       // Split content into chunks
@@ -496,7 +503,7 @@ class FileParsingWorker {
     } catch (e) {
       // Ignore errors when fetching file info
       console.log(`Worker ${this.id}: Error fetching file info for failure message:`, e);
-      
+
     }
 
     await prisma.$transaction([

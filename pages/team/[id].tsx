@@ -17,7 +17,7 @@ import {
 } from 'antd';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import MainLayout from '../../components/layout/MainLayout';
 import { checkAuthentication, redirectToLogin } from '../../services/authUtils';
 import {
@@ -39,6 +39,7 @@ import TeamDetailsTab from '../../components/team/TeamDetailsTab';
 import TeamMembersTab from '../../components/team/TeamMembersTab';
 import TeamProfileHeader from '../../components/team/TeamProfileHeader';
 import TeamLLMProviders from '../../components/teams/TeamLLMProviders';
+import { createAgent } from '@services/agentService';
 const { Title, } = Typography;
 
 const { TabPane } = Tabs;
@@ -55,8 +56,15 @@ export default function TeamDetail() {
   const [agentForm] = Form.useForm();
   const [isAgentModalVisible, setIsAgentModalVisible] = useState(false);
   const [creatingAgent, setCreatingAgent] = useState(false);
-  const [userRole, setUserRole] = useState<any>();
-  const [userData, setUserData] = useState<any>();
+  const [userPermission, setUserPermission] = useState<any>();
+  const [userData, setUserData] = useState<{
+    authenticated: boolean;
+    userId: string;
+    email?: string;
+    name?: string;
+    permission?: string;
+    roles?: string[];
+  }>();
   const [authenticated, setAuthenticated] = useState<boolean>();
   const [members, setMembers] = useState<any[]>([]);
 
@@ -98,14 +106,16 @@ export default function TeamDetail() {
       const membersData = await fetchTeamMembers(id as string);
       setMembers(membersData);
 
-      // Find current user's role in this team
+      // Find current user's permission in this team
       const auth = await checkAuthentication();
       if (auth) {
         setUserData(auth);
         const currentUserMember = membersData.find(
           (member: any) => member.userId === auth.userId
         );
-        setUserRole(currentUserMember?.role || null);
+        console.log(currentUserMember, "Current user membership:", currentUserMember);
+
+        setUserPermission(currentUserMember?.permission || null);
       }
     } catch (error) {
       message.error('Failed to fetch team details');
@@ -181,14 +191,12 @@ export default function TeamDetail() {
   // Handle member management functions
   interface NewMember {
     userId: string;
-    role: string;
+    permission: string;
   }
 
   const handleAddMembers = async (newMembers: NewMember[]): Promise<void> => {
     try {
-      for (const member of newMembers) {
-        await addTeamMember(id as string, member);
-      }
+      await addTeamMember(id as string, newMembers);
 
       message.success('Members added successfully');
       fetchTeamDetail();
@@ -211,7 +219,7 @@ export default function TeamDetail() {
 
   const handleUpdateRole = async (userId: string, newRole: any) => {
     try {
-      await updateTeamMember(id as string, userId, { role: newRole });
+      await updateTeamMember(id as string, userId, { permission: newRole });
       message.success('Role updated successfully');
       fetchTeamDetail();
     } catch (error) {
@@ -221,7 +229,7 @@ export default function TeamDetail() {
   };
 
   // Check if the current user has provider management permissions
-  const canManageProviders = userRole === 'owner' || userRole === 'admin' ||
+  const canManageProviders = userPermission === 'owner' || userPermission === 'admin' ||
     userData?.permission === 'owner';
 
   if (authenticated === null || loading) {
@@ -264,10 +272,39 @@ export default function TeamDetail() {
     );
   }
 
-  function handleCreateAgent(): void {
-    setCreatingAgent(true);
-    throw new Error('Function not implemented.');
+  async function handleCreateAgent() {
+
+    try {
+      const values = await agentForm.validateFields();
+      setCreatingAgent(true);
+
+      try {
+        const agentData = {
+          ...values,
+          ownerType: 'team',
+          teamId: id as string,
+          flowConfig: JSON.stringify({ nodes: [], edges: [] })
+        };
+
+        const newAgent = await createAgent(agentData);
+        if (newAgent) {
+          message.success('Agent created successfully');
+          setIsAgentModalVisible(false);
+          agentForm.resetFields();
+          fetchTeamDetail();
+        }
+      } catch (error: any) {
+        console.error('Error creating agent:', error);
+        message.error(error.message || 'Failed to create agent');
+      } finally {
+        setCreatingAgent(false);
+      }
+    } catch (error) {
+      console.error('Form validation error:', error);
+    }
   }
+
+
 
   return (
     <MainLayout title={team?.name || "Team Profile"}>
@@ -286,7 +323,7 @@ export default function TeamDetail() {
             onEdit={handleEdit}
             onCancel={handleCancel}
             onSubmit={handleSubmit}
-            canEdit={userRole === 'owner' || userRole === 'admin'}
+            canEdit={userPermission === 'owner' || userPermission === 'admin'}
           />
 
           <Tabs activeKey={mainTab} onChange={setMainTab}>
@@ -302,13 +339,13 @@ export default function TeamDetail() {
             </TabPane>
 
             <TabPane
-              tab={<span><UserOutlined /> Members</span>}
+              tab={<span><UserOutlined /> Members 's {team?.name}</span>}
               key="members"
             >
               <TeamMembersTab
                 teamId={id as string}
                 members={members}
-                userRole={userRole}
+                userPermission={userPermission}
                 availableUsers={availableUsers}
                 onAddMembers={handleAddMembers}
                 onRemoveMember={handleRemoveMember}
@@ -321,8 +358,8 @@ export default function TeamDetail() {
               key="agents"
             >
               <div style={{ marginBottom: 16 }}>
-                <Button 
-                  type="primary" 
+                <Button
+                  type="primary"
                   icon={<RobotOutlined />}
                   onClick={() => setIsAgentModalVisible(true)}
                 >
@@ -336,7 +373,7 @@ export default function TeamDetail() {
                   createdAt: new Date(agent.createdAt).toLocaleDateString(),
                   updatedAt: new Date(agent.updatedAt).toLocaleDateString(),
                 }))}
-                userRole={userRole}
+                userRole={userPermission}
                 onCreateAgent={() => setIsAgentModalVisible(true)}
               />
             </TabPane>
@@ -347,7 +384,7 @@ export default function TeamDetail() {
             >
               <TeamLLMProviders
                 teamId={id as string}
-                userRole={userRole || ''}
+                userRole={userPermission || ''}
                 canManageProviders={canManageProviders}
               />
             </TabPane>

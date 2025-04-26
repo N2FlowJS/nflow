@@ -63,7 +63,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
         select: {
           teamId: true,
-          role: true
+          permission: true
         }
       });
       
@@ -181,7 +181,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             teamId: teamOwnerId,
             leftAt: null,
             // Only owners and admins can add providers
-            role: { in: ['owner', 'admin'] }
+            permission: { in: ['owner', 'admin'] }
           }
         });
         

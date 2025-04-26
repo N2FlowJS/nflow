@@ -37,10 +37,10 @@ model Team {
 }
 
 model MemberTeam {
-  id       String    @id @default(uuid())
-  role     String // "owner", "admin", "maintainer", "developer", "guest"
-  joinedAt DateTime  @default(now())
-  leftAt   DateTime? // null if still active in the team
+  id         String    @id @default(uuid())
+  permission String    @default("guest") // "owner", "admin", "maintainer", "developer", "guest"
+  joinedAt   DateTime  @default(now())
+  leftAt     DateTime? // null if still active in the team
 
   // Relations
   team   Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
