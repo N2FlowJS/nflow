@@ -40,6 +40,7 @@ import TeamMembersTab from '../../components/team/TeamMembersTab';
 import TeamProfileHeader from '../../components/team/TeamProfileHeader';
 import TeamLLMProviders from '../../components/teams/TeamLLMProviders';
 import { createAgent } from '@services/agentService';
+import { useLocale } from '@locale/index'; // Import the useLocale hook
 const { Title, } = Typography;
 
 const { TabPane } = Tabs;
@@ -67,6 +68,7 @@ export default function TeamDetail() {
   }>();
   const [authenticated, setAuthenticated] = useState<boolean>();
   const [members, setMembers] = useState<any[]>([]);
+  const { t } = useLocale('teamDetail'); // Initialize the hook
 
   // Check authentication
   const validateAuthentication = async () => {
@@ -88,7 +90,7 @@ export default function TeamDetail() {
     }
   };
 
-  const fetchTeamDetail = async () => {
+  const fetchTeamDetail = React.useCallback(async () => {
     if (!id) return;
 
     setLoading(true);
@@ -123,7 +125,7 @@ export default function TeamDetail() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, form]);
 
   const fetchAvailableUsers = async () => {
     try {
@@ -146,13 +148,13 @@ export default function TeamDetail() {
       }
 
       if (id && typeof id === 'string') {
-        fetchTeamDetail();
+        fetchTeamDetail && fetchTeamDetail();
         fetchAvailableUsers();
       }
     };
 
     initialize();
-  }, [id, router]);
+  }, [id, router, fetchTeamDetail]);
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -234,10 +236,10 @@ export default function TeamDetail() {
 
   if (authenticated === null || loading) {
     return (
-      <MainLayout title="Loading Team">
+      <MainLayout title={t('loadingTeam')}>
         <div style={{ padding: '24px', textAlign: 'center' }}>
           <Spin size="large" />
-          <p>Loading team data...</p>
+          <p>{t('loadingTeamData')}</p>
         </div>
       </MainLayout>
     );
@@ -245,11 +247,11 @@ export default function TeamDetail() {
 
   if (authenticated === false) {
     return (
-      <MainLayout title="Authentication Required">
+      <MainLayout title={t('authenticationRequired')}>
         <div style={{ padding: '24px' }}>
           <Alert
-            message="Authentication Required"
-            description="You need to be logged in to view this page. Redirecting to login..."
+            message={t('authenticationRequired')}
+            description={t('authenticationDescription')}
             type="warning"
             showIcon
           />
@@ -260,12 +262,12 @@ export default function TeamDetail() {
 
   if (!team && !loading) {
     return (
-      <MainLayout title="Team Not Found">
+      <MainLayout title={t('teamNotFound')}>
         <div style={{ padding: '24px' }}>
-          <Title level={4}>Team not found</Title>
-          <p>The requested team does not exist or you don't have permission to view it.</p>
+          <Title level={4}>{t('teamNotFound')}</Title>
+          <p>{t('teamNotFoundDescription')}</p>
           <Button type="primary" onClick={() => router.push('/team')}>
-            Back to Team List
+            {t('backToTeamList')}
           </Button>
         </div>
       </MainLayout>
@@ -307,14 +309,14 @@ export default function TeamDetail() {
 
 
   return (
-    <MainLayout title={team?.name || "Team Profile"}>
+    <MainLayout title={team?.name || t('teamProfile')}>
       <div style={{ padding: '24px' }}>
         <Space direction="vertical" size="large" style={{ width: '100%' }}>
           <Breadcrumb>
             <Breadcrumb.Item>
-              <Link href="/team">Teams</Link>
+              <Link href="/team">{t('teams')}</Link>
             </Breadcrumb.Item>
-            <Breadcrumb.Item>{team?.name || 'Detail'}</Breadcrumb.Item>
+            <Breadcrumb.Item>{team?.name || t('detail')}</Breadcrumb.Item>
           </Breadcrumb>
 
           <TeamProfileHeader
@@ -328,7 +330,7 @@ export default function TeamDetail() {
 
           <Tabs activeKey={mainTab} onChange={setMainTab}>
             <TabPane
-              tab={<span><SettingOutlined /> Details</span>}
+              tab={<span><SettingOutlined /> {t('details')}</span>}
               key="details"
             >
               <TeamDetailsTab
@@ -339,7 +341,7 @@ export default function TeamDetail() {
             </TabPane>
 
             <TabPane
-              tab={<span><UserOutlined /> Members 's {team?.name}</span>}
+              tab={<span><UserOutlined /> {t('members')} {team?.name}</span>}
               key="members"
             >
               <TeamMembersTab
@@ -354,7 +356,7 @@ export default function TeamDetail() {
             </TabPane>
 
             <TabPane
-              tab={<span><RobotOutlined /> Agents</span>}
+              tab={<span><RobotOutlined /> {t('agents')}</span>}
               key="agents"
             >
               <div style={{ marginBottom: 16 }}>
@@ -363,7 +365,7 @@ export default function TeamDetail() {
                   icon={<RobotOutlined />}
                   onClick={() => setIsAgentModalVisible(true)}
                 >
-                  Create New Agent
+                  {t('createNewAgent')}
                 </Button>
               </div>
               <TeamAgentsTab
@@ -379,7 +381,7 @@ export default function TeamDetail() {
             </TabPane>
 
             <TabPane
-              tab={<span><ApiOutlined /> LLM Providers</span>}
+              tab={<span><ApiOutlined /> {t('llmProviders')}</span>}
               key="llm"
             >
               <TeamLLMProviders

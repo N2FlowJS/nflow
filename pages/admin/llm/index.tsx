@@ -23,21 +23,21 @@ export default function LLMAdministration() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [authenticated, setAuthenticated] = useState<boolean | null>(null);
-  const [_userData, setUserData] = useState<any>(null);
+  const [, setUserData] = useState<any>(null);
 
   // Check authentication
-  const validateAuthentication = async () => {
+  const validateAuthentication = React.useCallback(async () => {
     try {
       const authData = await checkAuthentication();
-      
+
       if (!authData) {
         setAuthenticated(false);
         return;
       }
-      
+
       setAuthenticated(true);
       setUserData(authData);
-      
+
       // Check if user has admin permission
       if (!hasAdminAccess(authData)) {
         router.push('/dashboard');
@@ -46,7 +46,7 @@ export default function LLMAdministration() {
       console.error('Authentication error:', error);
       setAuthenticated(false);
     }
-  };
+  }, [router]);
 
   const fetchProviders = async () => {
     try {
@@ -63,8 +63,8 @@ export default function LLMAdministration() {
   };
 
   useEffect(() => {
-    validateAuthentication();
-  }, []);
+    validateAuthentication && validateAuthentication();
+  }, [validateAuthentication]);
 
   useEffect(() => {
     if (authenticated) {
@@ -109,24 +109,24 @@ export default function LLMAdministration() {
     <Layout>
       <Content style={{ padding: '24px' }}>
         <Title level={2}>LLM Management</Title>
-        
+
         {error && (
-          <Alert 
-            message="Error" 
-            description={error} 
-            type="error" 
-            showIcon 
-            style={{ marginBottom: 16 }} 
+          <Alert
+            message="Error"
+            description={error}
+            type="error"
+            showIcon
+            style={{ marginBottom: 16 }}
           />
         )}
-        
+
         <Card>
           <Tabs defaultActiveKey="providers">
             <TabPane tab="LLM Providers" key="providers">
-              <LLMProvidersTable 
-                providers={providers} 
-                loading={loading} 
-                onRefresh={fetchProviders} 
+              <LLMProvidersTable
+                providers={providers}
+                loading={loading}
+                onRefresh={fetchProviders}
               />
             </TabPane>
             <TabPane tab="Settings" key="settings">

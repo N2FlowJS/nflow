@@ -144,7 +144,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
       
       // Determine the owner type and verify permissions
-      let createData: any = {
+      const createData: any = {
         name,
         description,
         providerType,
@@ -221,6 +221,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       // Mask API key in response
       const { apiKey: _, ...sanitizedProvider } = newProvider;
+      console.log(_);
       
       return res.status(201).json(sanitizedProvider);
     } catch (error) {

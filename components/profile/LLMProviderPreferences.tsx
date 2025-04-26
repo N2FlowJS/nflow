@@ -43,7 +43,7 @@ const LLMProviderPreferences: React.FC<LLMProviderPreferencesProps> = ({
   const [saving, setSaving] = useState(false);
 
 
-  const fetchPreferences = async () => {
+  const fetchPreferences = React.useCallback(async () => {
     if (!userId) return;
 
     setLoading(true);
@@ -57,7 +57,7 @@ const LLMProviderPreferences: React.FC<LLMProviderPreferencesProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [userId]);
 
   const handleProviderChange = (providerId: string) => {
     setSelectedProvider(providerId);
@@ -125,10 +125,9 @@ const LLMProviderPreferences: React.FC<LLMProviderPreferencesProps> = ({
     return null;
   };
   useEffect(() => {
-    if (userId) {
-      fetchPreferences();
-    }
-  }, [userId]);
+    fetchPreferences && fetchPreferences();
+
+  }, [fetchPreferences]);
 
   const columns = [
     {

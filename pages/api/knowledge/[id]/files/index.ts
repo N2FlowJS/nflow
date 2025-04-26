@@ -98,9 +98,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       await runMiddleware(req, res, uploadWithFields);
 
-      // @ts-ignore - Added by multer
-      const files = req.files?.file;
-      // @ts-ignore - Access the fileName from form fields
+      const files = (req as any).files?.file;
       const fileName = req.body?.fileName;
 
       console.log("Files received:", files);

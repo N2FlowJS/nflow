@@ -45,7 +45,7 @@ import {
 import { format } from "date-fns";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useLocale } from "@locale/index";
 
 const { Title, Text } = Typography;
@@ -67,7 +67,7 @@ export default function KnowledgeDetail() {
   const isMobile = !screens.md;
   const { messages } = useLocale();
 
-  const fetchKnowledgeDetail = async () => {
+  const fetchKnowledgeDetail = React.useCallback(async () => {
     if (!id || typeof id !== "string") return;
 
     setLoading(true);
@@ -110,13 +110,12 @@ export default function KnowledgeDetail() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, form, messages]);
 
   useEffect(() => {
-    if (id) {
-      fetchKnowledgeDetail();
-    }
-  }, [id]);
+    fetchKnowledgeDetail && fetchKnowledgeDetail();
+
+  }, [fetchKnowledgeDetail]);
 
 
 

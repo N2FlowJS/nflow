@@ -242,7 +242,7 @@ class FileParsingWorker {
           // Attempt to stringify object-like content
           textContent = JSON.stringify(parsedContent);
         }
-      } catch (_e) {
+      } catch {
         console.log(`Worker ${this.id}: Content is not JSON, using as-is`);
       }
 

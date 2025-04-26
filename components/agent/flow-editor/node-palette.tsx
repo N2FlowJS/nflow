@@ -13,7 +13,7 @@ const NodePalette: React.FC<NodePaletteProps> = ({ nodes }) => {
 
   // Lọc các node có thể thêm
   const availableNodes = Object.entries(NODE_REGISTRY)
-    .filter(([type, _]) => !(type === 'begin' && beginNodeExists));
+    .filter(([type, ]) => !(type === 'begin' && beginNodeExists));
 
   return (
     <div>

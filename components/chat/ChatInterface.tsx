@@ -23,18 +23,7 @@ interface ChatInterfaceProps {
     variables?: Record<string, any>;
 }
 
-const ChatInterface: React.FC<ChatInterfaceProps> = ({
-    agentId,
-    model,
-    temperature,
-    maxTokens,
-    enableStreaming = false,
-    id: initialId,
-    onConversationCreated,
-    onConversationUpdated,
-    onNewChatStarted,
-    variables = {}
-}) => {
+const ChatInterface: React.FC<ChatInterfaceProps> = ({ agentId, model, temperature, maxTokens, enableStreaming = false, id: initialId, onConversationCreated, onConversationUpdated, onNewChatStarted, variables = {} }) => {
     const { token } = theme.useToken();
     // State for chat messages and input
     const [messages, setMessages] = useState<MessageType[]>([]);
@@ -53,17 +42,297 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     // memoize disable check
-    const isSendDisabled = useMemo(
-        () => loading || !inputValue.trim(),
-        [loading, inputValue]
+    const isSendDisabled = useMemo(() => loading || !inputValue.trim(), [loading, inputValue]);
+    // Handle normal (non-streaming) response
+    const handleNormalResponse = useCallback(
+        async (options: any) => {
+            try {
+                // Call service with streaming disabled
+                const result = (await flowExecutionService(agentId, {
+                    ...options,
+                    stream: false,
+                })) as OpenAIExecutionResult;
+
+                // Update conversation ID if needed
+                if (result.id && result.id !== conversationId) {
+                    setConversationId(result.id);
+                    if (onConversationCreated && !conversationId) {
+                        onConversationCreated(result.id);
+                    } else if (onConversationUpdated) {
+                        onConversationUpdated(result.id);
+                    }
+                }
+
+                // Update flow state
+                if (result.flowState) {
+                    setFlowState(result.flowState); // Update local flow state
+                }
+
+                // Extract message content
+                let messageText = '';
+                let messageRole: ISender = 'assistant';
+
+                if (result.choices && result.choices.length > 0) {
+                    const choice = result.choices[0];
+                    messageText = choice.delta?.content || choice.delta?.content || '';
+                    messageRole = choice.delta?.role || 'assistant';
+                }
+
+                console.log('Normal response:', result, messageText, messageRole);
+
+                // Add response message
+                const newMessage: MessageType = {
+                    id: uuidv4(),
+                    sender: messageRole,
+                    text: messageText,
+                    timestamp: Date.now(),
+                    executionStatus: {
+                        status: result.choices?.[0]?.finish_reason === 'error' ? 'error' : result.choices?.[0]?.finish_reason ? 'completed' : 'in_progress',
+                        nodeId: result.flowState.currentNode.id,
+                        nodeName: result.flowState.currentNode.data.form.name,
+                        nodeType: result.flowState.currentNode.type,
+                    },
+                };
+
+                setMessages((prev) => [...prev, newMessage]);
+            } catch (err) {
+                console.error('Error in handleNormalResponse:', err);
+                setError(err instanceof Error ? err.message : 'Failed to get response');
+            } finally {
+                setLoading(false);
+            }
+        },
+        [agentId, conversationId, onConversationCreated, onConversationUpdated]
+    );
+    const updateConversationAndFlowState = useCallback(
+        (result: any) => {
+            // Update conversation ID if needed
+            if (result.id && result.id !== conversationId) {
+                setConversationId(result.id);
+                if (onConversationCreated && !conversationId) {
+                    onConversationCreated(result.id);
+                } else if (onConversationUpdated) {
+                    onConversationUpdated(result.id);
+                }
+            }
+
+            // Update flow state
+            if (result.flowState) {
+                setFlowState(result.flowState);
+            }
+        },
+        [conversationId, onConversationCreated, onConversationUpdated]
+    );
+    const processStreamChunk = useCallback(
+        (chunk: string, currentText: string): { sender: ISender; updatedText: string; isDone: boolean; executionStatus?: MessageType['executionStatus'] } => {
+            const lines = chunk.split('\n\n').filter((line) => line.trim() !== '' && line.startsWith('data: '));
+
+            let isDone = false;
+            let updatedText = currentText;
+            let executionStatus: MessageType['executionStatus'] | undefined = undefined;
+            let sender: ISender = 'developer'; // Default sender
+            for (const line of lines) {
+                if (line.includes('data: [DONE]')) {
+                    isDone = true;
+                    continue; // Don't parse [DONE] as JSON
+                }
+
+                try {
+                    const jsonData: OpenAIExecutionResult = JSON.parse(line.replace('data: ', ''));
+
+                    // Update conversation ID and flow state (side effect)
+                    updateConversationAndFlowState(jsonData);
+
+                    // Extract message content
+                    const messageContent = jsonData.choices?.[0]?.delta?.content || '';
+
+                    if (messageContent) {
+                        updatedText = messageContent; // Append new content
+                    }
+
+                    // Update execution status if available in the chunk
+                    if (jsonData.flowState && jsonData.nodeInfo) {
+                        executionStatus = {
+                            status: jsonData.choices?.[0]?.finish_reason === 'error' ? 'error' : jsonData.choices?.[0]?.finish_reason ? 'completed' : 'in_progress',
+                            nodeId: jsonData.flowState.currentNode.id,
+                            nodeName: jsonData.flowState.currentNode.data.form.name,
+                            nodeType: jsonData.flowState.currentNode.type,
+                        };
+                        sender = jsonData.nodeInfo.role || 'assistant'; // Use role from nodeInfo if available
+                    }
+
+                    // Check if the chunk indicates completion
+                    if (jsonData.choices?.[0]?.finish_reason) {
+                        isDone = true;
+                        // If a finish reason is provided, update status to completed/error
+                        if (executionStatus) {
+                            executionStatus.status = jsonData.choices[0].finish_reason === 'error' ? 'error' : 'completed';
+                        }
+                    }
+                } catch (e) {
+                    console.log('Error parsing streaming data:', e);
+                    // Potentially mark as done with error?
+                    // isDone = true;
+                }
+            }
+
+            return { updatedText, isDone, executionStatus, sender };
+        },
+        [updateConversationAndFlowState]
+    );
+    const processStreamResponse = useCallback(
+        async (stream: ReadableStream, streamingMsg: MessageType) => {
+            const reader = stream.getReader();
+            const decoder = new TextDecoder();
+            let done = false;
+            let accumulatedText = streamingMsg.text; // Initialize with potentially existing text
+            let finalExecutionStatus = streamingMsg.executionStatus; // Track the latest status
+
+            try {
+                while (!done && !isStreamingPaused) {
+                    const { value, done: doneReading } = await reader.read();
+                    done = doneReading;
+
+                    if (done) break;
+
+                    // Process the received chunk
+                    const chunk = decoder.decode(value, { stream: true });
+                    const result = processStreamChunk(chunk, accumulatedText); // Pass current text
+
+                    // Update accumulated text and check completion status
+                    accumulatedText = result.updatedText;
+                    finalExecutionStatus = result.executionStatus || finalExecutionStatus; // Update if status provided
+
+                    // Update the streaming message state in real-time
+                    setStreamingMessage((prev) =>
+                        prev
+                            ? {
+                                ...prev,
+                                text: accumulatedText,
+                                executionStatus: finalExecutionStatus,
+                                sender: result.sender, // Update sender if changed
+                            }
+                            : null
+                    );
+
+                    if (result.isDone) {
+                        done = true;
+                        break;
+                    }
+                }
+            } catch (error) {
+                console.error('Error reading stream:', error);
+                // Optionally update message state to reflect error
+                setStreamingMessage((prev) => (prev ? { ...prev, hasError: true, text: accumulatedText + '\n(Error reading stream)' } : null));
+            } finally {
+                // Make sure to release the reader
+                try {
+                    reader.releaseLock();
+                } catch (e) {
+                    console.warn('Error releasing reader lock:', e);
+                }
+
+                // Finalize the streaming message when done or stopped
+                // Use the latest accumulated text and status
+                const finalMessage: MessageType = {
+                    ...streamingMsg,
+                    text: accumulatedText,
+                    executionStatus: {
+                        ...finalExecutionStatus,
+                        // Ensure status is marked completed if loop finished normally
+                        status: finalExecutionStatus.status !== 'error' ? 'completed' : 'error',
+                    },
+                };
+
+                setMessages((prev) => [...prev, finalMessage]);
+                setStreamingMessage(null); // Clear the temporary streaming message
+            }
+        },
+        [isStreamingPaused, processStreamChunk]
     );
 
-    // Scroll to bottom when messages change
-    useEffect(() => {
-        if (messagesEndRef.current) {
-            messagesEndRef.current.scrollIntoView();
+
+    const handleNonStreamResponse = useCallback(
+        (result: any, streamingMsg: MessageType) => {
+            const finalMessage: MessageType = {
+                ...streamingMsg,
+                text: result.choices?.[0]?.delta?.content || '',
+                executionStatus: {
+                    status: result.choices?.[0]?.finish_reason === 'error' ? 'error' : result.choices?.[0]?.finish_reason ? 'completed' : 'in_progress',
+                    nodeId: result.flowState.currentNodeId,
+                    nodeName: result.flowState.currentNodeName,
+                    nodeType: result.nodeInfo.type,
+                },
+            };
+
+            setMessages((prev) => [...prev, finalMessage]);
+            setStreamingMessage(null);
+
+            // Update conversation ID and flow state
+            updateConversationAndFlowState(result);
+        },
+        [updateConversationAndFlowState]
+    );
+    const handleStreamingError = useCallback((err: any, streamingMsg: MessageType) => {
+        if (err.name !== 'AbortError') {
+            console.error('Streaming error:', err);
+            setError(err instanceof Error ? err.message : 'Streaming failed');
+
+            // Add error message to the chat
+            if (streamingMsg) {
+                setMessages((prev) => [
+                    ...prev,
+                    {
+                        ...streamingMsg,
+                        text: streamingMsg.text || 'Error occurred during streaming',
+                        hasError: true,
+                    },
+                ]);
+                setStreamingMessage(null);
+            }
         }
-    }, [messages, streamingMessage]);
+    }, []);
+    const handleStreamingResponse = useCallback(
+        async (options: any) => {
+            // Create a new streaming message
+            const newStreamingMsg: MessageType = {
+                id: uuidv4(),
+                sender: 'assistant',
+                text: '',
+                timestamp: Date.now(),
+                executionStatus: {
+                    status: 'in_progress',
+                    nodeId: '',
+                    nodeName: '',
+                    nodeType: 'interface',
+                },
+            };
+
+            setStreamingMessage(newStreamingMsg);
+
+            // Create abort controller for cancelling the stream
+            abortControllerRef.current = new AbortController();
+
+            try {
+                const result = await flowExecutionService(agentId, options);
+
+                // Handle non-stream response (error case)
+                if (!(result instanceof ReadableStream)) {
+                    handleNonStreamResponse(result, newStreamingMsg);
+                    return;
+                }
+
+                // Process the stream
+                await processStreamResponse(result, newStreamingMsg);
+            } catch (err: any) {
+                handleStreamingError(err, newStreamingMsg);
+            } finally {
+                abortControllerRef.current = null;
+                setLoading(false);
+            }
+        },
+        [agentId, processStreamResponse, handleNonStreamResponse, handleStreamingError]
+    );
 
     // Handle sending message
     const handleSendMessage = useCallback(async () => {
@@ -83,7 +352,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         };
 
         // Update UI immediately with user message
-        setMessages(prev => [...prev, userMessage]);
+        setMessages((prev) => [...prev, userMessage]);
         setInputValue('');
         setLoading(true);
         setError(null);
@@ -91,14 +360,14 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         try {
             // Format messages for API
             const apiMessages = [
-                ...messages.map(msg => ({
+                ...messages.map((msg) => ({
                     role: msg.sender,
-                    content: msg.text
+                    content: msg.text,
                 })),
                 {
                     role: 'user',
-                    content: userMessage.text
-                }
+                    content: userMessage.text,
+                },
             ];
 
             // Create service options
@@ -109,7 +378,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                 temperature: temperature || 0.7,
                 maxTokens: maxTokens || 1024,
                 id: conversationId,
-                stream: enableStreaming
+                stream: enableStreaming,
             };
 
             if (enableStreaming) {
@@ -120,294 +389,21 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         } catch (err) {
             console.error('Error sending message:', err);
             setError(err instanceof Error ? err.message : 'Failed to send message');
-        }
-        finally {
+        } finally {
             setLoading(false);
         }
-    }, [isSendDisabled, inputValue, messages, conversationId, agentId, model, variables, temperature, maxTokens, enableStreaming, flowState]); // Added flowState dependency
-    // Helper function to update conversation ID and flow state
-    const updateConversationAndFlowState = useCallback((result: any) => {
-        // Update conversation ID if needed
-        if (result.id && result.id !== conversationId) {
-            setConversationId(result.id);
-            if (onConversationCreated && !conversationId) {
-                onConversationCreated(result.id);
-            } else if (onConversationUpdated) {
-                onConversationUpdated(result.id);
-            }
-        }
-
-        // Update flow state
-        if (result.flowState) {
-            setFlowState(result.flowState);
-        }
-    }, [conversationId, onConversationCreated, onConversationUpdated]);
-
-    // Handle streaming response
-    const handleStreamingResponse = useCallback(async (options: any) => {
-        // Create a new streaming message
-        const newStreamingMsg: MessageType = {
-            id: uuidv4(),
-            sender: 'assistant',
-            text: '',
-            timestamp: Date.now(),
-            executionStatus: {
-                status: 'in_progress',
-                nodeId: '',
-                nodeName: '',
-                nodeType: 'interface',
-            },
-        };
-
-        setStreamingMessage(newStreamingMsg);
-
-        // Create abort controller for cancelling the stream
-        abortControllerRef.current = new AbortController();
-
-        try {
-            const result = await flowExecutionService(agentId, options);
-
-            // Handle non-stream response (error case)
-            if (!(result instanceof ReadableStream)) {
-                handleNonStreamResponse(result, newStreamingMsg);
-                return;
-            }
-
-            // Process the stream
-            await processStreamResponse(result, newStreamingMsg);
-        } catch (err: any) {
-            handleStreamingError(err, newStreamingMsg);
-        } finally {
-            abortControllerRef.current = null;
-            setLoading(false);
-        }
-    }, [agentId, conversationId, onConversationCreated, onConversationUpdated, isStreamingPaused]);
-
-    // Helper function to handle non-stream response
-    const handleNonStreamResponse = useCallback((result: any, streamingMsg: MessageType) => {
-        const finalMessage: MessageType = {
-            ...streamingMsg,
-            text: result.choices?.[0]?.delta?.content || '',
-            executionStatus: {
-                status: result.choices?.[0]?.finish_reason === 'error' ? 'error' :
-                    result.choices?.[0]?.finish_reason ? 'completed' : 'in_progress',
-                nodeId: result.flowState.currentNodeId,
-                nodeName: result.flowState.currentNodeName,
-                nodeType: result.nodeInfo.type,
-            }
-        };
-
-        setMessages(prev => [...prev, finalMessage]);
-        setStreamingMessage(null);
-
-        // Update conversation ID and flow state
-        updateConversationAndFlowState(result);
-    }, [conversationId, onConversationCreated, onConversationUpdated]);
-
-    // Helper function to process streaming response
-    const processStreamResponse = useCallback(async (stream: ReadableStream, streamingMsg: MessageType) => {
-        const reader = stream.getReader();
-        const decoder = new TextDecoder();
-        let done = false;
-        let accumulatedText = streamingMsg.text; // Initialize with potentially existing text
-        let finalExecutionStatus = streamingMsg.executionStatus; // Track the latest status
-
-        try {
-            while (!done && !isStreamingPaused) {
-                const { value, done: doneReading } = await reader.read();
-                done = doneReading;
-
-                if (done) break;
-
-                // Process the received chunk
-                const chunk = decoder.decode(value, { stream: true });
-                const result = processStreamChunk(chunk, accumulatedText); // Pass current text
-
-                // Update accumulated text and check completion status
-                accumulatedText = result.updatedText;
-                finalExecutionStatus = result.executionStatus || finalExecutionStatus; // Update if status provided
-
-                // Update the streaming message state in real-time
-                setStreamingMessage(prev => prev ? {
-                    ...prev,
-                    text: accumulatedText,
-                    executionStatus: finalExecutionStatus,
-                    sender: result.sender // Update sender if changed
-                } : null);
-
-                if (result.isDone) {
-                    done = true;
-                    break;
-                }
-            }
-        } catch (error) {
-            console.error('Error reading stream:', error);
-            // Optionally update message state to reflect error
-            setStreamingMessage(prev => prev ? { ...prev, hasError: true, text: accumulatedText + "\n(Error reading stream)" } : null);
-        } finally {
-            // Make sure to release the reader
-            try { reader.releaseLock(); } catch (e) { console.warn("Error releasing reader lock:", e); }
-
-            // Finalize the streaming message when done or stopped
-            // Use the latest accumulated text and status
-            const finalMessage: MessageType = {
-                ...streamingMsg,
-                text: accumulatedText,
-                executionStatus: {
-                    ...finalExecutionStatus,
-                    // Ensure status is marked completed if loop finished normally
-                    status: finalExecutionStatus.status !== 'error' ? 'completed' : 'error',
-                }
-            };
-
-            setMessages(prev => [...prev, finalMessage]);
-            setStreamingMessage(null); // Clear the temporary streaming message
-        }
-    }, [isStreamingPaused, updateConversationAndFlowState]); // Removed streamingMessage dependency here
-
-    // Helper function to process each chunk of the stream
-    // Now returns the updated text and completion status
-    const processStreamChunk = useCallback((chunk: string, currentText: string): { sender: ISender, updatedText: string, isDone: boolean, executionStatus?: MessageType['executionStatus'] } => {
-        const lines = chunk.split('\n\n')
-            .filter(line => line.trim() !== '' && line.startsWith('data: '));
-
-        let isDone = false;
-        let updatedText = currentText;
-        let executionStatus: MessageType['executionStatus'] | undefined = undefined;
-        let sender: ISender = 'developer'; // Default sender
-        for (const line of lines) {
-            if (line.includes('data: [DONE]')) {
-                isDone = true;
-                continue; // Don't parse [DONE] as JSON
-            }
-
-            try {
-                const jsonData: OpenAIExecutionResult = JSON.parse(line.replace('data: ', ''));
-
-                // Update conversation ID and flow state (side effect)
-                updateConversationAndFlowState(jsonData);
-
-                // Extract message content
-                const messageContent = jsonData.choices?.[0]?.delta?.content || '';
-
-                if (messageContent) {
-                    updatedText = messageContent; // Append new content
-                }
-
-                // Update execution status if available in the chunk
-                if (jsonData.flowState && jsonData.nodeInfo) {
-                    executionStatus = {
-                        status: jsonData.choices?.[0]?.finish_reason === 'error' ? 'error' :
-                            jsonData.choices?.[0]?.finish_reason ? 'completed' : 'in_progress',
-                        nodeId: jsonData.flowState.currentNode.id,
-                        nodeName: jsonData.flowState.currentNode.data.form.name,
-                        nodeType: jsonData.flowState.currentNode.type,
-                    };
-                    sender = jsonData.nodeInfo.role || 'assistant'; // Use role from nodeInfo if available
-                }
+    }, [isSendDisabled, inputValue, messages, conversationId, handleStreamingResponse, handleNormalResponse, model, variables, temperature, maxTokens, enableStreaming]); // Added flowState dependency
 
 
-                // Check if the chunk indicates completion
-                if (jsonData.choices?.[0]?.finish_reason) {
-                    isDone = true;
-                    // If a finish reason is provided, update status to completed/error
-                    if (executionStatus) {
-                        executionStatus.status = jsonData.choices[0].finish_reason === 'error' ? 'error' : 'completed';
-                    }
-                }
-            } catch (e) {
-                console.log('Error parsing streaming data:', e);
-                // Potentially mark as done with error?
-                // isDone = true;
-            }
-        }
 
-        return { updatedText, isDone, executionStatus, sender };
-    }, [updateConversationAndFlowState]);
+
+
 
     // Helper function to handle streaming errors
-    const handleStreamingError = useCallback((err: any, streamingMsg: MessageType) => {
-        if (err.name !== 'AbortError') {
-            console.error('Streaming error:', err);
-            setError(err instanceof Error ? err.message : 'Streaming failed');
-
-            // Add error message to the chat
-            if (streamingMsg) {
-                setMessages(prev => [...prev, {
-                    ...streamingMsg,
-                    text: streamingMsg.text || 'Error occurred during streaming',
-                    hasError: true
-                }]);
-                setStreamingMessage(null);
-            }
-        }
-    }, []);
-
-    // Handle normal (non-streaming) response
-    const handleNormalResponse = useCallback(async (options: any) => {
-        try {
-            // Call service with streaming disabled
-            const result = await flowExecutionService(agentId, {
-                ...options,
-                stream: false,
-            }) as OpenAIExecutionResult;
-
-
-            // Update conversation ID if needed
-            if (result.id && result.id !== conversationId) {
-                setConversationId(result.id);
-                if (onConversationCreated && !conversationId) {
-                    onConversationCreated(result.id);
-                } else if (onConversationUpdated) {
-                    onConversationUpdated(result.id);
-                }
-            }
-
-            // Update flow state
-            if (result.flowState) {
-                setFlowState(result.flowState); // Update local flow state
-            }
-
-            // Extract message content
-            let messageText = '';
-            let messageRole: ISender = 'assistant';
-
-            if (result.choices && result.choices.length > 0) {
-                const choice = result.choices[0];
-                messageText = choice.delta?.content || choice.delta?.content || '';
-                messageRole = choice.delta?.role || 'assistant';
-            }
-
-            console.log('Normal response:', result, messageText, messageRole);
-
-
-            // Add response message
-            const newMessage: MessageType = {
-                id: uuidv4(),
-                sender: messageRole,
-                text: messageText,
-                timestamp: Date.now(),
-                executionStatus: {
-                    status: result.choices?.[0]?.finish_reason === 'error' ? 'error' :
-                        result.choices?.[0]?.finish_reason ? 'completed' : 'in_progress',
-                    nodeId: result.flowState.currentNode.id,
-                    nodeName: result.flowState.currentNode.data.form.name,
-                    nodeType: result.flowState.currentNode.type,
-                }
-            };
-
-            setMessages(prev => [...prev, newMessage]);
-        } catch (err) {
-            console.error('Error in handleNormalResponse:', err);
-            setError(err instanceof Error ? err.message : 'Failed to get response');
-        } finally {
-            setLoading(false);
-        }
-    }, [agentId, conversationId, onConversationCreated, onConversationUpdated]);
 
     // Toggle streaming pause/resume
     const toggleStreamingPause = useCallback(() => {
-        setIsStreamingPaused(prev => !prev);
+        setIsStreamingPaused((prev) => !prev);
     }, []);
 
     // Stop streaming
@@ -426,16 +422,15 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
             // Optionally add a message indicating streaming was stopped by user
             const stoppedMessage: MessageType = {
                 ...streamingMessage,
-                text: streamingMessage.text + "\n(Streaming stopped by user)",
+                text: streamingMessage.text + '\n(Streaming stopped by user)',
                 executionStatus: {
                     ...streamingMessage.executionStatus,
-                    status: 'completed' // Or another appropriate status
-                }
+                    status: 'completed', // Or another appropriate status
+                },
             };
-            setMessages(prev => [...prev, stoppedMessage]);
+            setMessages((prev) => [...prev, stoppedMessage]);
             setStreamingMessage(null); // Clear immediately for UI responsiveness
         }
-
 
         setLoading(false); // Ensure loading is stopped
     }, [streamingMessage]); // Keep dependency if reading streamingMessage
@@ -465,12 +460,17 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
     // Determine placeholder text based on flow state
     const inputPlaceholder = useMemo(() => {
-
         if (loading) {
-            return "Agent is processing...";
+            return 'Agent is processing...';
         }
-        return "Type a message and press Enter to send";
-    }, [flowState, loading]);
+        return 'Type a message and press Enter to send';
+    }, [loading]);
+    useEffect(() => {
+        if (messagesEndRef.current) {
+            messagesEndRef.current.scrollIntoView();
+        }
+    }, [messages, streamingMessage]);
+    // Handle streaming response
 
     // Render the chat interface
     return (
@@ -487,9 +487,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                 display: 'flex',
                 flexDirection: 'column',
                 height: '100%',
-                minHeight: 600
-            }}
-        >
+                minHeight: 600,
+            }}>
             <Layout.Header
                 style={{
                     background: 'transparent',
@@ -498,9 +497,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                     lineHeight: 'normal',
                     display: 'flex',
                     justifyContent: 'space-between',
-                    alignItems: 'center'
-                }}
-            >
+                    alignItems: 'center',
+                }}>
                 <Space>
                     <Avatar
                         icon={<RobotOutlined />}
@@ -514,25 +512,14 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                     </Typography.Title>
                 </Space>
                 <Space>
-                    {flowState && (
-                        <Typography.Text type="secondary">
-                            Node: {flowState.currentNode.data.form.name || flowState.currentNode.id}
-                        </Typography.Text>
-                    )}
+                    {flowState && <Typography.Text type="secondary">Node: {flowState.currentNode.data.form.name || flowState.currentNode.id}</Typography.Text>}
                     {streamingMessage && (
-                        <Button
-                            icon={isStreamingPaused ? <SendOutlined /> : <StopOutlined />}
-                            onClick={toggleStreamingPause}
-                            type={isStreamingPaused ? "default" : "primary"}
-                        >
+                        <Button icon={isStreamingPaused ? <SendOutlined /> : <StopOutlined />} onClick={toggleStreamingPause} type={isStreamingPaused ? 'default' : 'primary'}>
                             {isStreamingPaused ? 'Resume' : 'Pause'}
                         </Button>
                     )}
                     <Tooltip title="Start a new conversation">
-                        <Button
-                            icon={<ReloadOutlined />}
-                            onClick={startNewChat}
-                        >
+                        <Button icon={<ReloadOutlined />} onClick={startNewChat}>
                             New Chat
                         </Button>
                     </Tooltip>
@@ -547,33 +534,20 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                     overflowY: 'auto',
                     padding: token.paddingLG,
                     minHeight: 320,
-                    maxHeight: 480
-                }}
-            >
+                    maxHeight: 480,
+                }}>
                 {messages.length === 0 && !streamingMessage ? (
-                    <Empty
-                        image={<RobotOutlined style={{ fontSize: 64, color: token.colorPrimary }} />}
-                        description="Start a conversation with this agent"
-                    />
+                    <Empty image={<RobotOutlined style={{ fontSize: 64, color: token.colorPrimary }} />} description="Start a conversation with this agent" />
                 ) : (
                     <AnimatePresence>
-                        {messages.map(message => (
-                            <motion.div
-                                key={message.id}
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0 }}
-                            >
+                        {messages.map((message) => (
+                            <motion.div key={message.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
                                 <ChatMessage message={message} />
                             </motion.div>
                         ))}
 
                         {streamingMessage && (
-                            <motion.div
-                                key={streamingMessage.id}
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                            >
+                            <motion.div key={streamingMessage.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
                                 <ChatMessage message={streamingMessage} />
                             </motion.div>
                         )}
@@ -583,9 +557,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                 {loading && !streamingMessage && (
                     <Space style={{ width: '100%', justifyContent: 'center', margin: token.margin }}>
                         <Spin />
-                        <Typography.Text type="secondary">
-                            Agent is processing...
-                        </Typography.Text>
+                        <Typography.Text type="secondary">Agent is processing...</Typography.Text>
                     </Space>
                 )}
 
@@ -610,17 +582,14 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
             <Card>
                 <Space.Compact block>
-                    <Button
-                        icon={<SmileOutlined />}
-                        type="text"
-                    />
+                    <Button icon={<SmileOutlined />} type="text" />
                     <Input.TextArea
                         value={inputValue}
-                        onChange={e => setInputValue(e.target.value)}
+                        onChange={(e) => setInputValue(e.target.value)}
                         placeholder={inputPlaceholder}
                         autoSize={{ minRows: 1, maxRows: 4 }}
                         disabled={loading}
-                        onKeyDown={e => {
+                        onKeyDown={(e) => {
                             if (e.key === 'Enter' && !e.shiftKey) {
                                 e.preventDefault();
                                 handleSendMessage();
@@ -628,12 +597,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                         }}
                         style={{ resize: 'none' }}
                     />
-                    <Button
-                        type="primary"
-                        icon={streamingMessage ? <StopOutlined /> : <SendOutlined />}
-                        onClick={streamingMessage ? stopStreaming : handleSendMessage}
-                        disabled={isSendDisabled}
-                    />
+                    <Button type="primary" icon={streamingMessage ? <StopOutlined /> : <SendOutlined />} onClick={streamingMessage ? stopStreaming : handleSendMessage} disabled={isSendDisabled} />
                 </Space.Compact>
                 <Typography.Text type="secondary" style={{ fontSize: token.fontSizeSM, textAlign: 'center', display: 'block', marginTop: token.marginXS }}>
                     Press <Typography.Text keyboard>Enter</Typography.Text> to send, <Typography.Text keyboard>Shift + Enter</Typography.Text> for new line

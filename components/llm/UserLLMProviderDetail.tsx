@@ -51,7 +51,9 @@ const UserLLMProviderDetail: React.FC<UserLLMProviderDetailProps> = ({
     const [isEditModelModalVisible, setIsEditModelModalVisible] = useState(false);
     const [editingModel, setEditingModel] = useState<LLMModel | null>(null);
     const [actionLoading, setActionLoading] = useState(false);
-    const fetchModels = async () => {
+    const fetchModels = React.useCallback(async () => {
+        if (!provider?.id) return
+        if (!userId) return
         setLoading(true);
         try {
             const data = await fetchUserProviderModels(userId, provider.id);
@@ -62,13 +64,12 @@ const UserLLMProviderDetail: React.FC<UserLLMProviderDetailProps> = ({
         } finally {
             setLoading(false);
         }
-    };
+    }, [provider?.id, userId]);
 
     useEffect(() => {
-        if (provider) {
-            fetchModels();
-        }
-    }, [provider]);
+        fetchModels && fetchModels();
+
+    }, [fetchModels]);
 
 
     const handleAddModel = async (values: any) => {

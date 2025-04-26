@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useMemo } from "react"; // Import useMemo
-import { Form, Input, Select, Spin, Typography, Space, Collapse } from "antd";
-import { FileTextOutlined, UserOutlined } from "@ant-design/icons";
-import { MentionsInput, Mention, SuggestionDataItem } from 'react-mentions';
+import { FileTextOutlined } from "@ant-design/icons";
 import { FlowNode, } from "@models/flowTypes"; // Import Edge type
-import BaseNodeForm from "./base-node-form";
 import { fetchAllLLMProviders } from "@services/llmService";
+import { Collapse, Form, Select, Space, Spin, Typography } from "antd";
+import React, { useEffect, useMemo, useState } from "react"; // Import useMemo
+import { Mention, MentionsInput, SuggestionDataItem } from 'react-mentions';
 import { usePredecessorNodes } from "../hooks/usePredecessorNodes";
+import BaseNodeForm from "./base-node-form";
 import RoleSelector from "./shared/RoleSelector";
 
 const { Text } = Typography;

@@ -57,7 +57,7 @@ export default function Dashboard() {
     if (isAuthenticated) {
       fetchDashboardData();
     }
-  }, [isAuthenticated, authLoading]);
+  }, [isAuthenticated, authLoading, router]);
 
   const fetchDashboardData = async () => {
     setLoading(true);

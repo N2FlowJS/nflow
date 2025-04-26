@@ -40,7 +40,7 @@ const FileConfigModal: React.FC<FileConfigModalProps> = ({
             : ["\n"],
       });
     }
-  }, [visible, fileConfig]);
+  }, [visible, fileConfig, form]);
 
   const handleOk = async () => {
     try {

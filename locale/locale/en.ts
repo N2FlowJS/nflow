@@ -248,5 +248,25 @@ export default {
       expandLabel: 'more',
       metadataHeader: 'Metadata'
     }
+  },
+  teamDetail: {
+    loadingTeam: 'Loading Team',
+    loadingTeamData: 'Loading team data...',
+    authenticationRequired: 'Authentication Required',
+    authenticationDescription: 'You need to be logged in to view this page.',
+    teamNotFound: 'Team Not Found',
+    teamNotFoundDescription: 'The requested team does not exist or you don\'t have permission to view it.',
+    backToTeamList: 'Back to Team List',
+    teamProfile: 'Team Profile',
+    teams: 'Teams',
+    detail: 'Detail',
+    details: 'Details',
+    members: 'Members',
+    agents: 'Agents',
+    createNewAgent: 'Create New Agent',
+    llmProviders: 'LLM Providers'
+  },
+  greetingSection: {
+    greetingLabel: 'Greeting'
   }
 };

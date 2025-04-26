@@ -71,7 +71,7 @@ export default function TasksMonitorPage() {
         clearInterval(refreshInterval);
       }
     };
-  }, [isAuthenticated, loading, router]);
+  }, [isAuthenticated, loading, router,refreshInterval]);
 
   // Function to fetch worker status data
   const fetchData = async () => {

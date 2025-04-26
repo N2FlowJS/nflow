@@ -153,7 +153,7 @@ export default function DatabaseStatus() {
           lastRun: data.lastRun,
           lastDeleted: data.lastDeleted,
         });
-      } catch (error) {
+      } catch {
         setCleanupWorkerStatus((prev) => ({ ...prev, status: "error" }));
       }
     }

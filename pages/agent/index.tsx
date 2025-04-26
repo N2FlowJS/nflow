@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { 
-  Table, Card, Button, Space, Tag, 
+import {
+  Table, Card, Button, Space, Tag,
   Breadcrumb, // Keep Breadcrumb import
   Typography, message, Spin,
   Select, Input, Modal
 } from 'antd';
-import { 
-  PlusOutlined, SearchOutlined, 
+import {
+  PlusOutlined, SearchOutlined,
   TeamOutlined, UserOutlined,
   EditOutlined, DeleteOutlined
 } from '@ant-design/icons';
@@ -46,25 +46,25 @@ export default function AgentsList() {
   const [searchText, setSearchText] = useState('');
   const [filterOwnerType, setFilterOwnerType] = useState<string | null>(null);
   const [filterActive, setFilterActive] = useState<boolean | null>(null);
-  
+
   // Fetch agents
-  const fetchAgents = async () => {
+  const fetchAgents = React.useCallback(async () => {
     setLoading(true);
-    
+
     try {
       // Build query params for filtering
       const params = new URLSearchParams();
       if (searchText) params.append('search', searchText);
       if (filterOwnerType) params.append('ownerType', filterOwnerType);
       if (filterActive !== null) params.append('isActive', String(filterActive));
-      
+
       const queryString = params.toString() ? `?${params.toString()}` : '';
       const res = await fetch(`/api/agent${queryString}`);
-      
+
       if (!res.ok) {
         throw new Error('Failed to fetch agents');
       }
-      
+
       const data = await res.json();
       setAgents(data);
     } catch (error) {
@@ -73,17 +73,17 @@ export default function AgentsList() {
     } finally {
       setLoading(false);
     }
-  };
-  
+  }, [searchText, filterActive, filterOwnerType]);
+
   useEffect(() => {
     fetchAgents();
-  }, [filterOwnerType, filterActive]);
-  
+  }, [fetchAgents]);
+
   // Handle search
   const handleSearch = () => {
     fetchAgents();
   };
-  
+
   // Handle agent deletion
   const confirmDelete = (id: string) => {
     Modal.confirm({
@@ -95,19 +95,19 @@ export default function AgentsList() {
       onOk: () => deleteAgent(id)
     });
   };
-  
+
   const deleteAgent = async (id: string) => {
     try {
       // Get auth token
       const token = localStorage.getItem('token');
-      
+
       const res = await fetch(`/api/agent/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
-      
+
       if (res.ok) {
         message.success('Agent deleted successfully');
         fetchAgents(); // Refresh the list
@@ -119,7 +119,7 @@ export default function AgentsList() {
       message.error('An error occurred while deleting the agent');
     }
   };
-  
+
   // Table columns
   const columns = [
     {
@@ -183,13 +183,13 @@ export default function AgentsList() {
       key: 'actions',
       render: (_: any, record: Agent) => (
         <Space>
-          <Button 
-            icon={<EditOutlined />} 
+          <Button
+            icon={<EditOutlined />}
             onClick={() => router.push(`/agent/${record.id}`)}
             type="text"
           />
-          <Button 
-            icon={<DeleteOutlined />} 
+          <Button
+            icon={<DeleteOutlined />}
             onClick={() => confirmDelete(record.id)}
             type="text"
             danger
@@ -198,7 +198,7 @@ export default function AgentsList() {
       )
     }
   ];
-  
+
   return (
     <MainLayout title="Agents">
       <div style={{ padding: '24px' }}>
@@ -213,18 +213,18 @@ export default function AgentsList() {
             },
           ]}
         />
-        
+
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <Title level={2}>Agents</Title>
-          <Button 
-            type="primary" 
+          <Button
+            type="primary"
             icon={<PlusOutlined />}
             onClick={() => router.push('/agent/new')}
           >
             Create Agent
           </Button>
         </div>
-        
+
         <Card style={{ marginBottom: '24px' }}>
           <Space style={{ marginBottom: '16px', width: '100%', justifyContent: 'space-between' }}>
             <Space>
@@ -234,14 +234,14 @@ export default function AgentsList() {
                 onChange={(e) => setSearchText(e.target.value)}
                 style={{ width: 200 }}
                 suffix={
-                  <SearchOutlined 
-                    style={{ cursor: 'pointer' }} 
+                  <SearchOutlined
+                    style={{ cursor: 'pointer' }}
                     onClick={handleSearch}
                   />
                 }
                 onPressEnter={handleSearch}
               />
-              
+
               <Select
                 placeholder="Owner Type"
                 allowClear
@@ -251,7 +251,7 @@ export default function AgentsList() {
                 <Option value="user">User</Option>
                 <Option value="team">Team</Option>
               </Select>
-              
+
               <Select
                 placeholder="Status"
                 allowClear
@@ -263,7 +263,7 @@ export default function AgentsList() {
               </Select>
             </Space>
           </Space>
-          
+
           {loading ? (
             <div style={{ textAlign: 'center', padding: '50px' }}>
               <Spin size="large" />

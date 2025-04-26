@@ -62,11 +62,11 @@ export default function KnowledgeFileList({
   const [loading, setLoading] = useState(false);
   const [selectedFileIds, setSelectedFileIds] = useState<string[]>([]);
   const [batchActionLoading, setBatchActionLoading] = useState(false);
-  const [_eventSource, setEventSource] = useState<EventSource | null>(null);
+  const [, setEventSource] = useState<EventSource | null>(null);
   const screens = useBreakpoint();
   const { t } = useLocale('');
 
-  const fetchFiles = async () => {
+  const fetchFiles = React.useCallback(async () => {
     if (!knowledge?.id) return;
 
     setLoading(true);
@@ -79,7 +79,7 @@ export default function KnowledgeFileList({
     } finally {
       setLoading(false);
     }
-  };
+  }, [knowledge.id, t]);
 
   useEffect(() => {
     if (knowledge?.id) {
@@ -164,7 +164,7 @@ export default function KnowledgeFileList({
       };
     }
     return undefined; // Ensure all code paths return a value
-  }, [knowledge?.id]);
+  }, [knowledge?.id, fetchFiles, t]);
 
   const handleParseFile = async (fileId: string) => {
     if (!isAuthenticated) {

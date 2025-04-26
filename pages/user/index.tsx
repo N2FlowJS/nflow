@@ -1,12 +1,16 @@
-import React, { useEffect, useState } from 'react';
+import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
 import {
-  Table, Button, Modal, Form, Input,
-  Space, Typography, message, Popconfirm
+  Button,
+  Form, Input,
+  message,
+  Modal,
+  Popconfirm,
+  Space,
+  Table,
+  Typography
 } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/router';
-import { useLocale } from '../../locale';
-import { useTheme } from '../../theme';
+import { useEffect, useState } from 'react';
 import MainLayout from '../../components/layout/MainLayout';
 
 const { Title } = Typography;
@@ -25,8 +29,6 @@ export default function UserList() {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [form] = Form.useForm();
   const [editingId, setEditingId] = useState<string | null>(null);
-  const { locale, antdLocale } = useLocale();
-  const { theme } = useTheme();
   const router = useRouter();
 
   const fetchUsers = async () => {

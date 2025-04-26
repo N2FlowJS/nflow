@@ -107,8 +107,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     }
 
-    // Start timer for latency measurement
-    const startTime = Date.now();
 
     // Handle different provider types
     let result;

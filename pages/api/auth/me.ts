@@ -32,6 +32,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Return user data (excluding password)
     const { password, ...userData } = user;
+    console.log(password);
+    
     res.status(200).json(userData);
   } catch (error) {
     console.error('Auth error:', error);

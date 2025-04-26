@@ -137,6 +137,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       
       // Mask API key in response
       const { apiKey: _, ...sanitizedProvider } = newProvider;
+      console.log(_);
       
       return res.status(201).json(sanitizedProvider);
     } catch (error) {

@@ -1,25 +1,24 @@
-import React, { useState } from "react";
 import {
-  Form,
-  Input,
-  Button,
-  Space,
-  Divider,
-  Typography,
-  Collapse,
-  List,
-  Empty,
-  Tag,
-  Tooltip
-} from "antd";
-import {
-  PlusOutlined,
-  DeleteOutlined,
-  MessageOutlined,
   CodeOutlined,
-  EditOutlined
+  DeleteOutlined,
+  EditOutlined,
+  MessageOutlined,
+  PlusOutlined
 } from "@ant-design/icons";
 import { FlowNode } from "@models/flowTypes";
+import {
+  Button,
+  Collapse,
+  Empty,
+  Form,
+  Input,
+  List,
+  Space,
+  Tag,
+  Tooltip,
+  Typography
+} from "antd";
+import React, { useState } from "react";
 import BaseNodeForm from "./base-node-form";
 import RoleSelector from "./shared/RoleSelector";
 
@@ -124,7 +123,7 @@ const BeginNodeForm: React.FC<BeginNodeFormProps> = (props) => {
                 renderItem={(variable: any) => (
                   <List.Item
                     actions={[
-                      <Tooltip title="Remove">
+                      <Tooltip key={'remove'} title="Remove">
                         <Button
                           type="text"
                           danger

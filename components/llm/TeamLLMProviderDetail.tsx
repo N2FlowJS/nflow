@@ -58,8 +58,9 @@ const TeamLLMProviderDetail: React.FC<TeamLLMProviderDetailProps> = ({
   const [isEditProviderModalVisible, setIsEditProviderModalVisible] = useState(false);
   const [editingModel, setEditingModel] = useState<LLMModel | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
-  const fetchModels = async () => {
+  const fetchModels = React.useCallback(async () => {
     if (!provider?.id) return;
+    if (teamId) return;
 
     setLoading(true);
     try {
@@ -71,12 +72,11 @@ const TeamLLMProviderDetail: React.FC<TeamLLMProviderDetailProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [teamId, provider?.id]);
   useEffect(() => {
-    if (provider?.id) {
-      fetchModels();
-    }
-  }, [provider?.id]);
+    fetchModels && fetchModels();
+
+  }, [fetchModels]);
 
 
 

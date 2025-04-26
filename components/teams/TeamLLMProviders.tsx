@@ -46,6 +46,7 @@ const TeamLLMProviders: React.FC<TeamLLMProvidersProps> = ({
   const [actionLoading, setActionLoading] = useState(false);
   const [selectedProvider, setSelectedProvider] = useState<LLMProvider | null>(null);
   const fetchProviders = React.useCallback(async () => {
+    if (!teamId) return
     setLoading(true);
     try {
       const data = await fetchTeamLLMProviders(teamId);
@@ -56,12 +57,10 @@ const TeamLLMProviders: React.FC<TeamLLMProvidersProps> = ({
     } finally {
       setLoading(false);
     }
-  }, []);
-  useEffect(() => {
-    if (teamId) {
-      fetchProviders();
-    }
   }, [teamId]);
+  useEffect(() => {
+    fetchProviders && fetchProviders();
+  }, [fetchProviders]);
 
 
 

@@ -8,7 +8,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!token) {
     return res.status(401).json({ error: 'Authentication required' });
   }
-  
+
   // Verify token
   const payload = verifyToken(token);
   if (!payload) {
@@ -19,7 +19,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     try {
       // Get user teams to find accessible team providers
       const userTeams = await prisma.memberTeam.findMany({
-        where: { 
+        where: {
           userId: payload.userId,
           leftAt: null // Only active team memberships
         },
@@ -28,9 +28,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           permission: true
         }
       });
-      
+
       const teamIds = userTeams.map(t => t.teamId);
+      console.log(teamIds);
       
+
       // Build the query to get all providers the user has access to
       const providers = await prisma.lLMProvider.findMany({
         where: {
@@ -38,11 +40,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             // System providers
             { ownerType: 'system' },
             // User's own providers
-            { 
+            {
               ownerType: 'user',
-              userOwnerId: payload.userId 
+              userOwnerId: payload.userId
             },
-           
+
           ]
         },
         include: {
@@ -69,13 +71,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           createdAt: 'desc'
         }
       });
-      
+
       // Mask API keys for security
       const sanitizedProviders = providers.map(provider => ({
         ...provider,
         apiKey: provider.apiKey ? '********' : null,
       }));
-      
+
       return res.status(200).json(sanitizedProviders);
     } catch (error) {
       console.error("Error fetching LLM providers:", error);
@@ -100,9 +102,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (!name || !providerType || !endpointUrl) {
         return res.status(400).json({ error: "Missing required fields" });
       }
-      
+
       // Determine the owner type and verify permissions
-      let createData: any = {
+      const createData: any = {
         name,
         description,
         providerType,
@@ -113,25 +115,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         config: config || {},
         ownerType
       };
-      
+
       // If system-owned, verify admin permissions
       if (ownerType === 'system' && payload.permission !== 'owner') {
-        return res.status(403).json({ 
-          error: "You don't have permission to create system-wide providers" 
+        return res.status(403).json({
+          error: "You don't have permission to create system-wide providers"
         });
       }
-      
+
       // If user-owned, set the user ID
       if (ownerType === 'user') {
         createData.userOwnerId = payload.userId;
       }
-      
+
       // If team-owned, verify team membership and permissions
       if (ownerType === 'team') {
         if (!teamOwnerId) {
           return res.status(400).json({ error: "Team ID is required for team-owned providers" });
         }
-        
+
         // Check if the user is a member of this team with appropriate permission
         const membership = await prisma.memberTeam.findFirst({
           where: {
@@ -142,11 +144,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             permission: { in: ['owner', 'admin'] }
           }
         });
-        
+
         if (!membership) {
           return res.status(403).json({ error: "You don't have permission to add providers to this team" });
         }
-        
+
         createData.teamOwnerId = teamOwnerId;
       }
 
@@ -179,14 +181,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       // Mask API key in response
       const { apiKey: _, ...sanitizedProvider } = newProvider;
-      
+      console.log(_);
+
       return res.status(201).json(sanitizedProvider);
     } catch (error) {
       console.error("Error creating LLM provider:", error);
       return res.status(500).json({ error: "Failed to create LLM provider" });
     }
   }
-  
+
   res.setHeader('Allow', ['GET', 'POST']);
   return res.status(405).end(`Method ${req.method} Not Allowed`);
 }

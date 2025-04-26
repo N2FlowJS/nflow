@@ -21,21 +21,21 @@ export default function NewLLMProvider() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [authenticated, setAuthenticated] = useState<boolean | null>(null);
-  const [_, setUserData] = useState<any>(null);
+  const [, setUserData] = useState<any>(null);
 
   // Check authentication
-  const validateAuthentication = async () => {
+  const validateAuthentication = React.useCallback(async () => {
     try {
       const authData = await checkAuthentication();
-      
+
       if (!authData) {
         setAuthenticated(false);
         return;
       }
-      
+
       setAuthenticated(true);
       setUserData(authData);
-      
+
       // Check if user has admin permission
       if (!hasAdminAccess(authData)) {
         message.error('You do not have permission to access this page');
@@ -45,11 +45,11 @@ export default function NewLLMProvider() {
       console.error('Authentication error:', error);
       setAuthenticated(false);
     }
-  };
+  }, [router]);
 
   useEffect(() => {
-    validateAuthentication();
-  }, []);
+    validateAuthentication && validateAuthentication();
+  }, [validateAuthentication]);
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -117,8 +117,8 @@ export default function NewLLMProvider() {
         />
 
         <Title level={2}>Add New LLM Provider</Title>
-        
-        <LLMProviderForm 
+
+        <LLMProviderForm
           onSubmit={(values) => handleSubmit(values as CreateLLMProviderRequest)}
           isLoading={loading}
         />

@@ -205,7 +205,7 @@ const FlowEditor: React.FC<FlowEditorProps> = ({
       const defaultData = NODE_REGISTRY[nodeType].data as any;
 
       const form = defaultData.form || {};
-      let baseName = form.name || nodeType; // Use default form name or node type as base
+      const baseName = form.name || nodeType; // Use default form name or node type as base
       let newName = baseName;
       let counter = 1;
 

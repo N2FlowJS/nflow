@@ -1,34 +1,33 @@
-import React, { useState } from 'react';
 import {
-  Table,
+  CheckCircleOutlined,
+  DeleteOutlined,
+  EditOutlined,
+  PlusOutlined,
+  StarFilled,
+  StarOutlined,
+  StopOutlined,
+} from '@ant-design/icons';
+import {
   Button,
+  Modal,
+  Popconfirm,
   Space,
-  Typography,
+  Table,
   Tag,
   Tooltip,
-  Popconfirm,
-  Modal,
+  Typography,
   message
 } from 'antd';
-import {
-  EditOutlined,
-  DeleteOutlined,
-  PlusOutlined,
-  CheckCircleOutlined,
-  StopOutlined,
-  StarOutlined,
-  StarFilled,
-} from '@ant-design/icons';
+import React, { useState } from 'react';
 import { LLMModel, LLMProvider } from '../../models/llm';
-import LLMModelForm from './LLMModelForm';
 import { deleteLLMModel, setDefaultLLMModel, updateLLMModel } from '../../services/llmService';
+import LLMModelForm from './LLMModelForm';
 
 const { Title } = Typography;
 
 interface LLMModelsTableProps {
   models: LLMModel[];
   provider: LLMProvider;
-  allProviders: LLMProvider[];
   loading: boolean;
   onRefresh: () => void;
 }
@@ -36,7 +35,6 @@ interface LLMModelsTableProps {
 const LLMModelsTable: React.FC<LLMModelsTableProps> = ({
   models,
   provider,
-  allProviders,
   loading,
   onRefresh
 }) => {
@@ -252,13 +250,13 @@ const LLMModelsTable: React.FC<LLMModelsTableProps> = ({
       >
         <LLMModelForm
           providerId={provider.id}
-          onSubmit={async (values) => {
+          onSubmit={async () => {
             try {
               // Will be implemented by integrating with API
               message.success('Model added successfully');
               setIsAddModalVisible(false);
               onRefresh();
-            } catch (error) {
+            } catch {
               message.error('Failed to add model');
             }
           }}

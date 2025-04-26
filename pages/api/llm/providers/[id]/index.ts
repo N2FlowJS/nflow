@@ -135,7 +135,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
 
       // Create update data object
-      let updateData: any = {
+      const updateData: any = {
         name,
         description,
         endpointUrl,

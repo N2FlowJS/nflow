@@ -28,7 +28,7 @@ import {
 } from "antd";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import ChatInterface from "@components/chat/ChatInterface";
 import MainLayout from "@components/layout/MainLayout";
 import { IAgent } from "@models/IAgent";
@@ -62,7 +62,7 @@ export default function AgentDetail() {
   const { user } = useAuth();
 
   // Fetch agent data
-  const fetchAgentData = async () => {
+  const fetchAgentData = React.useCallback(async () => {
     if (!id) return;
 
     setLoading(true);
@@ -82,10 +82,10 @@ export default function AgentDetail() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, form]);
 
   // Fetch flow configuration when needed
-  const loadFlowConfig = async () => {
+  const loadFlowConfig = React.useCallback(async () => {
     if (!id) return;
 
     setFlowLoading(true);
@@ -98,19 +98,18 @@ export default function AgentDetail() {
     } finally {
       setFlowLoading(false);
     }
-  };
+  }, [id]);
 
   useEffect(() => {
-    if (id) {
-      fetchAgentData();
-    }
-  }, [id]);
+    fetchAgentData && fetchAgentData();
+
+  }, [fetchAgentData]);
 
   // Load flow config only when the chat tab is active and config isn't loaded yet
   useEffect(() => {
-    loadFlowConfig();
+    loadFlowConfig && loadFlowConfig();
 
-  }, []); // Added flowLoading dependency
+  }, [loadFlowConfig]); // Added flowLoading dependency
 
   // Handle form submission
   const handleSave = async () => {

@@ -57,7 +57,8 @@ const ChunkSeparatorSelect: React.FC<ChunkSeparatorSelectProps> = ({
     name,
     form,
 }) => {
-    const chunkSeparator = form ? Form.useWatch(name, form) : undefined;
+    const watchedValue = Form.useWatch(name, form);
+    const chunkSeparator = form ? watchedValue : [];
     const { t } = useLocale('knowledgeDetail');
 
     return (

@@ -1,6 +1,6 @@
-import React from 'react';
+import { CodeOutlined, RobotOutlined, SettingOutlined, UserOutlined } from '@ant-design/icons';
 import { Tag, Tooltip } from 'antd';
-import { UserOutlined, RobotOutlined, ApiOutlined, CodeOutlined, SettingOutlined } from '@ant-design/icons';
+import React from 'react';
 
 interface RoleIndicatorProps {
   role: 'developer' | 'assistant' | 'system' | 'user';

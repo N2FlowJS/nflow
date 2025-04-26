@@ -18,35 +18,37 @@ async function getAgents(req: NextApiRequest, res: NextApiResponse) {
   try {
     // Xác thực token (tùy chọn cho request GET)
     const token = parseAuthHeader(req.headers.authorization);
-    let userId = null;
-    
-    if (token) {
-      const payload = verifyToken(token);
-      if (payload) {
-        userId = payload.userId;
-      }
+    if (!token) {
+      return res.status(401).json({ error: 'Authentication required' });
     }
-    
+
+    // Verify token
+    const payload = verifyToken(token);
+    if (!payload) {
+      return res.status(401).json({ error: 'Invalid token' });
+    }
+
+
     const { userId: queryUserId, teamId, isActive } = req.query;
-    
+
     const where: any = {};
-    
+
     // Filter by owner
     if (queryUserId) {
       where.userId = queryUserId as string;
       where.ownerType = "user";
     }
-    
+
     if (teamId) {
       where.teamId = teamId as string;
       where.ownerType = "team";
     }
-    
+
     // Filter by active status
     if (isActive !== undefined) {
       where.isActive = isActive === 'true';
     }
-    
+
     const agents = await prisma.agent.findMany({
       where,
       include: {
@@ -73,7 +75,7 @@ async function getAgents(req: NextApiRequest, res: NextApiResponse) {
         updatedAt: 'desc'
       }
     });
-    
+
     return res.status(200).json(agents);
   } catch (error) {
     console.error("Request error", error);
@@ -89,32 +91,32 @@ async function createAgent(req: NextApiRequest, res: NextApiResponse) {
     if (!token) {
       return res.status(401).json({ error: 'Authentication required' });
     }
-    
+
     // Verify token
     const payload = verifyToken(token);
     if (!payload) {
       return res.status(401).json({ error: 'Invalid token' });
     }
-    
+
     const createdById = payload.userId;
     const { name, description, flowConfig, ownerType, userId, teamId, isActive = true } = req.body;
-    
+
     if (!name || !description) {
       return res.status(400).json({ error: "Name and description are required" });
     }
-    
+
     if (ownerType !== 'user' && ownerType !== 'team') {
       return res.status(400).json({ error: "Owner type must be 'user' or 'team'" });
     }
-    
+
     if (ownerType === 'user' && !userId) {
       return res.status(400).json({ error: "User ID is required for user-owned agents" });
     }
-    
+
     if (ownerType === 'team' && !teamId) {
       return res.status(400).json({ error: "Team ID is required for team-owned agents" });
     }
-    
+
     const agent = await prisma.agent.create({
       data: {
         name,
@@ -132,7 +134,7 @@ async function createAgent(req: NextApiRequest, res: NextApiResponse) {
         team: true
       }
     });
-    
+
     return res.status(201).json(agent);
   } catch (error) {
     console.error("Request error", error);

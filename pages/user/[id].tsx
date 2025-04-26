@@ -9,7 +9,7 @@ import { fetchUserById, updateUser } from "@services/userService";
 import { Alert, Breadcrumb, Button, Form, Skeleton, Space, Tabs, message } from 'antd';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { IUser } from '../../models/IUser';
 import { LLMProvider } from '../../models/llm';
 import { useTheme } from '../../theme';
@@ -50,7 +50,8 @@ export default function UserDetail() {
   const [llmActionLoading, setLLMActionLoading] = useState(false);
 
   // Check authentication
-  const validateAuthentication = async () => {
+  const validateAuthentication = React.useCallback(async () => {
+    if (!id) return
     try {
       const authData = await checkAuthentication();
 
@@ -74,9 +75,9 @@ export default function UserDetail() {
       redirectToLogin(window.location.pathname);
       return null;
     }
-  };
+  }, [id]);
 
-  const fetchUserDetail = async () => {
+  const fetchUserDetail = React.useCallback(async () => {
     if (!id) return;
 
     setLoading(true);
@@ -95,10 +96,10 @@ export default function UserDetail() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [form, id]);
 
   // Fetch user's personal LLM providers
-  const fetchUserProviders = async () => {
+  const fetchUserProviders = React.useCallback(async () => {
     if (!id) return;
 
     setLLMProviderLoading(true);
@@ -111,7 +112,7 @@ export default function UserDetail() {
     } finally {
       setLLMProviderLoading(false);
     }
-  };
+  }, [id]);
 
   useEffect(() => {
     const initialize = async () => {
@@ -123,7 +124,7 @@ export default function UserDetail() {
     };
 
     initialize();
-  }, [id]);
+  }, [id, fetchUserProviders, fetchUserDetail, validateAuthentication]);
 
   const handleEdit = () => {
     setIsEditing(true);

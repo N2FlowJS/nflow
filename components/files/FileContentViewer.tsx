@@ -243,7 +243,7 @@ const FileContentViewer: React.FC<FileContentViewerProps> = ({ content }) => {
         </pre>
       </div>
     );
-  } catch (e) {
+  } catch {
     // Fallback for plain text
     return (
       <div

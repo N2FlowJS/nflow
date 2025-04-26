@@ -247,5 +247,25 @@ export default {
       expandLabel: 'thêm',
       metadataHeader: 'Metadata'
     }
+  },
+  teamDetail: {
+    loadingTeam: 'Đang tải Nhóm',
+    loadingTeamData: 'Đang tải dữ liệu nhóm...',
+    authenticationRequired: 'Yêu cầu xác thực',
+    authenticationDescription: 'Bạn cần đăng nhập để xem trang này.',
+    teamNotFound: 'Không tìm thấy Nhóm',
+    teamNotFoundDescription: 'Nhóm bạn yêu cầu không tồn tại hoặc bạn không có quyền xem nó.',
+    backToTeamList: 'Quay lại Danh sách Nhóm',
+    teamProfile: 'Hồ sơ Nhóm',
+    teams: 'Các Nhóm',
+    detail: 'Chi tiết',
+    details: 'Chi tiết',
+    members: 'Thành viên',
+    agents: 'Agents',
+    createNewAgent: 'Tạo Agent mới',
+    llmProviders: 'Nhà cung cấp LLM'
+  },
+  greetingSection: {
+    greetingLabel: 'Lời chào'
   }
 };

@@ -299,7 +299,7 @@ async function waitForServerReady(url: string): Promise<boolean> {
         log('info', '✅ NBase server is ready!');
         return true;
       }
-    } catch (error) {
+    } catch  {
       // Continue trying
       log('debug', `🔄 NBase not ready yet, retrying in ${RETRY_DELAY}ms...`);
     }
