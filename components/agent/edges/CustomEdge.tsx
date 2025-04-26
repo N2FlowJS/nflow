@@ -48,7 +48,6 @@ const CustomEdge: React.FC<EdgeProps<CustomEdgeData>> = ({
         style={{
           ...style,
           strokeWidth: 1.5,
-          stroke: token.colorBgBase,
         }}
       />
 

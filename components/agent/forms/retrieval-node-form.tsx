@@ -2,7 +2,7 @@ import { DatabaseOutlined, LoadingOutlined } from "@ant-design/icons";
 import { FlowNode } from "@models/flowTypes";
 import { IKnowledge } from "@models/IKnowledge";
 import { fetchAllKnowledge, } from "@services/knowledgeService";
-import { Form, InputNumber, Select, Spin, Typography } from "antd";
+import { Form, InputNumber, Select, Slider, Spin, Typography } from "antd";
 import React, { useEffect, useState } from "react";
 import BaseNodeForm from "./base-node-form";
 import InputReferences from "./shared/InputReferences";
@@ -76,8 +76,32 @@ const RetrievalNodeForm: React.FC<RetrievalNodeFormProps> = (props) => {
         </Select>
       </Form.Item>
 
-      <Form.Item name="maxResults" label="Max Results" rules={[{ required: true }]}>
-        <InputNumber min={1} max={20} style={{ width: '100%' }} />
+      <Form.Item
+        name="maxResults"
+        label="Max Results"
+        rules={[{ required: true }]}
+      >
+        <Form.Item  shouldUpdate>
+          {({ getFieldValue, setFieldsValue }) => (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+              <Slider
+                min={1}
+                max={20}
+                style={{ flex: 1 }}
+                value={getFieldValue('maxResults')}
+                onChange={value => setFieldsValue({ maxResults: value })}
+                marks={{ 1: '1', 20: '20' }}
+              />
+              <InputNumber
+                min={1}
+                max={20}
+                value={getFieldValue('maxResults')}
+                onChange={value => setFieldsValue({ maxResults: value })}
+                style={{ width: 70 }}
+              />
+            </div>
+          )}
+        </Form.Item>
       </Form.Item>
       <RoleSelector />
 

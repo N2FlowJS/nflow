@@ -131,7 +131,7 @@ export const NODE_REGISTRY: Record<NodeTypeString, NodeConfig> = {
         role: 'developer',
         description: 'Retrieve information from knowledge base',
         knowledgeIds: [],
-        maxResults: 3,
+        maxResults: 15,
         threshold: 0.7,
         inputRefs: [], // Only retrieval node needs this initialized
       },

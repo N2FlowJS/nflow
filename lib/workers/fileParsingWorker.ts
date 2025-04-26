@@ -10,6 +10,8 @@ import { readFileContent } from './parse-file/readFileContent';
 import { ConfigChunk } from '@components/knowledge/ChunkSeparatorSelect';
 // Remove direct import of SSE sender
 // import { sendFileParsingEvent } from '../../pages/api/events/fileParsingEvents';
+import fs from 'fs';
+import path from 'path';
 
 // Configuration
 const POLLING_INTERVAL = parseInt(process.env.PARSING_POLLING_INTERVAL || '5000'); // Default: 5 seconds
@@ -20,6 +22,41 @@ const MAX_WORKERS = parseInt(process.env.MAX_PARSING_WORKERS || '3'); // Default
 let isShuttingDown = false;
 const activeWorkers = new Map<number, boolean>();
 let workerIdCounter = 0;
+
+const STATUS_FILE = path.resolve(process.cwd(), "logs", 'FileParsingWorkerStatus.json');
+
+function writeStatusToFile() {
+  const status = {
+    enabled: !isShuttingDown,
+    status: activeWorkers.size > 0 && !isShuttingDown ? 'running' : (isShuttingDown ? 'stopping' : 'stopped'),
+    activeWorkers: activeWorkers.size,
+    maxWorkers: MAX_WORKERS,
+    lastUpdated: new Date().toISOString(),
+  };
+  try {
+    fs.writeFileSync(STATUS_FILE, JSON.stringify(status, null, 2), 'utf-8');
+  } catch (err) {
+    console.error('[FileParsingWorker] Error writing status file:', err);
+  }
+}
+
+function readStatusFromFile() {
+  try {
+    if (fs.existsSync(STATUS_FILE)) {
+      const raw = fs.readFileSync(STATUS_FILE, 'utf-8');
+      return JSON.parse(raw);
+    }
+  } catch (err) {
+    console.error('[FileParsingWorker] Error reading status file:', err);
+  }
+  return {
+    enabled: false,
+    status: 'stopped',
+    activeWorkers: 0,
+    maxWorkers: MAX_WORKERS,
+    lastUpdated: undefined,
+  };
+}
 
 /**
  * Helper function to create structured task messages
@@ -477,6 +514,7 @@ export async function startFileParsingWorker() {
 
   // Reset shutdown flag
   isShuttingDown = false;
+  writeStatusToFile();
 
   // Create and start workers
   for (let i = 0; i < MAX_WORKERS; i++) {
@@ -485,15 +523,18 @@ export async function startFileParsingWorker() {
 
     // Register the worker
     activeWorkers.set(workerId, true);
+    writeStatusToFile();
 
     // Start the worker (non-blocking)
     worker.start().catch((error) => {
       console.error(`Error in worker ${workerId}:`, error);
       activeWorkers.delete(workerId);
+      writeStatusToFile();
     });
   }
 
   console.log(`Worker pool started with ${activeWorkers.size} workers`);
+  writeStatusToFile();
 }
 
 /**
@@ -502,6 +543,7 @@ export async function startFileParsingWorker() {
 export function stopFileParsingWorker() {
   console.log('Stopping file parsing worker pool...');
   isShuttingDown = true;
+  writeStatusToFile();
 
   // Return a promise that resolves when all workers have stopped
   return new Promise<void>((resolve) => {
@@ -509,6 +551,7 @@ export function stopFileParsingWorker() {
       if (activeWorkers.size === 0) {
         clearInterval(checkInterval);
         console.log('All workers stopped');
+        writeStatusToFile();
         resolve();
       }
     }, 100);
@@ -517,7 +560,15 @@ export function stopFileParsingWorker() {
     setTimeout(() => {
       clearInterval(checkInterval);
       console.log(`Force stopping with ${activeWorkers.size} workers still active`);
+      writeStatusToFile();
       resolve();
     }, 10000);
   });
+}
+
+/**
+ * Get file parsing worker status from file
+ */
+export function getFileParsingWorkerStatus() {
+  return readStatusFromFile();
 }

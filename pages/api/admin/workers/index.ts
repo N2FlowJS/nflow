@@ -1,7 +1,7 @@
-
 import { NextApiRequest, NextApiResponse } from "next";
 import { prisma } from "@lib/prisma";
 import { parseAuthHeader, verifyToken } from "@lib/auth";
+import { getFileParsingWorkerStatus } from "@lib/workers/fileParsingWorker";
 
 export default async function handler(
   req: NextApiRequest,
@@ -53,14 +53,20 @@ export default async function handler(
         recentTasks,
       ] = taskStats;
 
+      // Get worker status from file
+      const workerStatus = getFileParsingWorkerStatus();
+
       // Return statistics
       return res.status(200).json({
         workerConfig: {
-          enabled: process.env.ENABLE_FILE_PARSING_WORKER === "true",
-          maxWorkers: parseInt(process.env.MAX_PARSING_WORKERS || "3"),
+          enabled: workerStatus.enabled,
+          maxWorkers: workerStatus.maxWorkers,
           pollingInterval: parseInt(
             process.env.PARSING_POLLING_INTERVAL || "5000"
           ),
+          status: workerStatus.status,
+          activeWorkers: workerStatus.activeWorkers,
+          lastUpdated: workerStatus.lastUpdated,
         },
         taskStats: {
           byStatus: groupedStats,
