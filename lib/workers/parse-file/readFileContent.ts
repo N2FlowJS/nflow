@@ -140,9 +140,8 @@ function extractLinesFromPage(page: any) {
     const lines = [];
     let currentLine = [];
     let lastY = null;
-    const yThreshold = 0.5; // Ngưỡng để xác định sự thay đổi dòng
+    const yThreshold = 0.5;
 
-    // Sắp xếp các đoạn văn bản theo tọa độ y tăng dần, sau đó theo x
     const sortedTexts = page.Texts.sort((a: any, b: any) => {
         if (Math.abs(a.y - b.y) > yThreshold) {
             return a.y - b.y;
