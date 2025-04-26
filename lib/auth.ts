@@ -1,6 +1,5 @@
 import { compare, hash } from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { NextApiRequest,  } from 'next';
 
 // Secret should be in environment variables in production
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';

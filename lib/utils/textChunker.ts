@@ -3,27 +3,16 @@
  */
 export function chunkText(
   text: string,
-  chunkSeparator: string[] | string = ["\n"],
+  chunkSeparator: string[] = ["\n"],
   maxTokensPerChunk: number = 128
 ): string[] {
-  let separators: string[] = [];
-  if (Array.isArray(chunkSeparator)) {
-    separators = chunkSeparator;
-  } else if (typeof chunkSeparator === "string") {
-    separators = [chunkSeparator];
-  } else {
-    separators = ["\n"];
-  }
 
-  if (separators.length === 0) {
-    separators = ["\n"];
-  }
 
-  const escaped = separators.map(sep =>
+  const escaped = chunkSeparator.map(sep =>
     sep.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&')
   );
   const separatorRegex = new RegExp(escaped.join('|'), 'g');
-  console.log("Separator regex:", separatorRegex);
+
 
 
   // Split text theo separator
@@ -35,27 +24,22 @@ export function chunkText(
   for (let chunk of rawChunks) {
     chunk = chunk.trim();
     if (!chunk) continue; // Skip empty chunks
-    console.log(`len`, chunk.length)
 
-    const estimatedTokens = Math.ceil(chunk.length);
-    console.log(`estimatedTokens`, estimatedTokens)
 
-    if (currentTokenCount + estimatedTokens > maxTokensPerChunk) {
-      resultChunks.push(currentChunk);
-      currentChunk = chunk;
-      currentTokenCount = estimatedTokens;
-    } else {
-      currentChunk = currentChunk.length > 0
-        ? `${currentChunk} `
-        : chunk;
-      currentTokenCount += estimatedTokens;
+
+    currentChunk += ` ${chunk}`;
+    currentTokenCount += Math.ceil(chunk.length);
+
+    if (currentTokenCount > maxTokensPerChunk) {
+      resultChunks.push(currentChunk.trim());
+      currentChunk = '';
+      currentTokenCount = 0;
     }
   }
   currentChunk = currentChunk.trim();
   if (currentChunk.length > 0) {
     resultChunks.push(currentChunk);
   }
-  console.log(resultChunks);
 
   return resultChunks;
 }

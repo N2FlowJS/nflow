@@ -1,16 +1,13 @@
-import fs from 'fs';
-import path from 'path';
 import { prisma } from '../prisma';
 // Import parsers for different file types
-import mammoth from 'mammoth';
-import * as XLSX from 'xlsx';
-import { marked } from 'marked';
 // Import new utility and service
-import { chunkText, extractChunkMetadata } from '../utils/textChunker';
 import { generateEmbeddingsInBatches } from '../services/embeddingService';
+import { chunkText, extractChunkMetadata } from '../utils/textChunker';
 // Import local vector service, and Nbase service
-import { storeLocalVectors, deleteLocalVectors } from '../services/localVectorService';
-import { storeVectorsInNbase as storeNbaseChunkVectors, deleteFileVectors as deleteNbaseFileVectors } from '../services/nbaseService';
+import { deleteLocalVectors, storeLocalVectors } from '../services/localVectorService';
+import { deleteFileVectors as deleteNbaseFileVectors, storeVectorsInNbase as storeNbaseChunkVectors } from '../services/nbaseService';
+import { readFileContent } from './parse-file/readFileContent';
+import { ConfigChunk } from '@components/knowledge/ChunkSeparatorSelect';
 // Remove direct import of SSE sender
 // import { sendFileParsingEvent } from '../../pages/api/events/fileParsingEvents';
 
@@ -36,7 +33,9 @@ function createTaskMessage(action: string, details?: Record<string, any>): strin
   };
   return JSON.stringify(messageObj);
 }
-
+type ProcessContentIntoVectorsProps = {
+  content: string, fileId: string, knowledgeId: string, config: ConfigChunk
+}
 /**
  * Helper function to send event data to the API endpoint
  */
@@ -159,7 +158,7 @@ class FileParsingWorker {
 
       try {
         // Parse the file content
-        const fileContent = await this.readFileContent(task.file.path);
+        const fileContent = await readFileContent(task.file.path);
 
         // Update the task and file as completed
         await this.completeTask(task.id, task.file.id, fileContent);
@@ -180,122 +179,15 @@ class FileParsingWorker {
     }
   }
 
-  /**
-   * Read and parse file content based on file type
-   */
-  async readFileContent(filePath: string): Promise<string> {
-    try {
-      // Determine file extension
-      const extension = path.extname(filePath).toLowerCase();
 
-      // Parse different file types
-      switch (extension) {
-        case '.md':
-          return this.parseMarkdownFile(filePath);
-        case '.txt':
-          return this.parseTextFile(filePath);
-        case '.docx':
-          return this.parseWordFile(filePath);
-        case '.xlsx':
-        case '.xls':
-          return this.parseExcelFile(filePath);
-        default:
-          // For unknown file types, try to read as text
-          return this.parseTextFile(filePath);
-      }
-    } catch (error: unknown) {
-      throw new Error(`Failed to read file: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
-  }
-
-  /**
-   * Parse a Markdown file
-   */
-  private async parseMarkdownFile(filePath: string): Promise<string> {
-    try {
-      // Read markdown content
-      const mdContent = fs.readFileSync(filePath, 'utf8');
-
-      // Parse markdown to HTML (optional - depends on your needs)
-      const htmlContent = marked(mdContent);
-
-      // Return both formats
-      return JSON.stringify({
-        markdown: mdContent,
-        html: htmlContent,
-      });
-    } catch (error: any) {
-      throw new Error(`Error parsing markdown: ${error.message}`);
-    }
-  }
-
-  /**
-   * Parse a plain text file
-   */
-  private parseTextFile(filePath: string): string {
-    return fs.readFileSync(filePath, 'utf8');
-  }
-
-  /**
-   * Parse a Word document
-   */
-  private async parseWordFile(filePath: string): Promise<string> {
-    try {
-      // Read Word document and convert to HTML
-      const result = await mammoth.extractRawText({ path: filePath });
-      const text = result.value;
-
-      // Include any warnings
-      const warnings = result.messages;
-
-      return JSON.stringify({
-        text,
-        warnings: warnings.length > 0 ? warnings : undefined,
-      });
-    } catch (error: any) {
-      throw new Error(`Error parsing Word document: ${error.message}`);
-    }
-  }
-
-  /**
-   * Parse an Excel spreadsheet
-   */
-  private parseExcelFile(filePath: string): string {
-    try {
-      // Read the Excel file
-      const workbook = XLSX.readFile(filePath);
-
-      // Convert each sheet to JSON
-      const result: Record<string, any[]> = {};
-
-      workbook.SheetNames.forEach((sheetName: any) => {
-        const worksheet = workbook.Sheets[sheetName];
-        const jsonData = XLSX.utils.sheet_to_json(worksheet);
-        result[sheetName] = jsonData;
-      });
-
-      return JSON.stringify(result);
-    } catch (error: any) {
-      throw new Error(`Error parsing Excel file: ${error.message}`);
-    }
-  }
 
   /**
    * Process text content into chunks and generate vector embeddings
    */
-  async processContentIntoVectors(content: string, fileId: string, knowledgeId: string, config: any): Promise<void> {
+  async processContentIntoVectors({ config: { chunkSeparator, tokenChunk }, content, fileId, knowledgeId }: ProcessContentIntoVectorsProps): Promise<void> {
     try {
-      // Extract configuration for chunking
-      const tokenChunk = config?.tokenChunk || 128;
-      let chunkSeparator = config?.chunkSeparator ?? ['\n',];
 
-      // Đảm bảo chunkSeparator là mảng ký tự
-      if (typeof chunkSeparator === 'string') {
-        chunkSeparator = [chunkSeparator];
-      }
-      if (!Array.isArray(chunkSeparator)) {
-        chunkSeparator = ['\n'];
-      }
+
 
       console.log(`Worker ${this.id}: Processing content into chunks with tokenChunk=${tokenChunk}, separator=${JSON.stringify(chunkSeparator)}`);
 
@@ -411,10 +303,25 @@ class FileParsingWorker {
       select: { config: true, knowledgeId: true, originalName: true },
     });
 
+
     // Process into vectors if possible
     try {
       if (file && file.knowledgeId) {
-        await this.processContentIntoVectors(content, fileId, file.knowledgeId, file.config);
+        console.log(`config chunk`, JSON.stringify(file.config, null, 2));
+        let config: ConfigChunk = {
+          chunkSeparator: [`\n`],
+          tokenChunk: 128
+        }
+        try {
+          config = JSON.parse(`${file.config}`)
+        }
+        catch {
+
+        }
+        await this.processContentIntoVectors({
+          content, fileId, knowledgeId: file.knowledgeId, config: config
+
+        });
 
         // Add vector processing success to message
         messageDetails.vectorProcessing = 'success';

@@ -12,7 +12,8 @@
     "prisma:studio": "prisma studio",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
-    "clean": "node scripts/cleanup.js"
+    "clean": "node scripts/cleanup.js",
+    "test:file": "mocha -r ts-node/register \"**/textChunker.test.ts\""
   },
   "dependencies": {
     "@ant-design/cssinjs": "^1.23.0",
@@ -33,7 +34,9 @@
     "multer": "^1.4.5-lts.2",
     "next": "15.3.0",
     "next-auth": "^4.24.11",
+    "officeparser": "^5.1.1",
     "openai": "^4.96.0",
+    "pdf2json": "^3.1.5",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-markdown": "^10.1.0",
@@ -46,6 +49,7 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/formidable": "^3.4.5",
+    "@types/jest": "^29.5.14",
     "@types/jsonwebtoken": "^9.0.9",
     "@types/marked": "^5.0.2",
     "@types/mime-types": "^2.1.4",
@@ -57,12 +61,16 @@
     "@types/uuid": "^10.0.0",
     "eslint": "9.25.1",
     "eslint-config-next": "15.3.1",
+    "jest": "^29.7.0",
+    "mocha": "11.1.0",
     "prisma": "^6.6.0",
     "react-hooks": "1.0.1",
     "tailwindcss": "^4",
     "ts-node": "10.9.2",
     "typescript": "^5",
     "webpack": "^5.75.0",
+    "chai": "^5.2.0",
+    "@types/chai":"5.2.1",
     "webpack-cli": "^6.0.1"
   }
 }
