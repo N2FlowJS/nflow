@@ -1,54 +1,13 @@
 /**
  * Simplified NBase service using the new server API
  */
-import { startNbaseServer } from '../nbase-init';
 import { log } from '@utils/logger';
 
 // Core configuration with sensible defaults
-const NBASE_HOST = process.env.NBASE_HOST || 'localhost';
-const NBASE_PORT = process.env.NBASE_PORT || '1307';
-const NBASE_URL = process.env.NBASE_URL || `http://${NBASE_HOST}:${NBASE_PORT}`;
+export const NBASE_HOST = process.env.NBASE_HOST || 'localhost';
+export const NBASE_PORT = process.env.NBASE_PORT || '1307';
+export const NBASE_URL = process.env.NBASE_URL || `http://${NBASE_HOST}:${NBASE_PORT}`;
 
-/**
- * Initialize the NBase vector database using the simplified API
- */
-export async function initializeNbase(): Promise<boolean> {
-  log('info', '🚀 Initializing NBase vector database...');
-
-  try {
-    // Start the NBase server with simplified API
-    const serverStarted = await startNbaseServer();
-
-    if (!serverStarted) {
-      log('warn', '⚠️ Failed to start NBase server. Check the server logs for details.');
-      return false;
-    }
-
-    // Test server connection with a healthcheck
-    const serverUrl = `${NBASE_URL}/health`;
-    log('info', `🔍 Testing NBase connection at ${serverUrl}...`);
-
-    const response = await fetch(serverUrl, {
-      method: 'GET',
-      signal: AbortSignal.timeout(5000), // 5 second timeout
-    });
-
-    if (!response.ok) {
-      log('warn', `⚠️ NBase health check failed: ${response.status} ${response.statusText}`);
-      return false;
-    }
-
-    log('info', '✅ NBase connection successful');
-    return true;
-  } catch (error: unknown) {
-    if (error instanceof Error) {
-      log('error', '❌ Error initializing NBase:', error.message);
-    } else {
-      log('error', '❌ Error initializing NBase:', String(error));
-    }
-    return false;
-  }
-}
 
 /**
  * Search for similar content using NBase vector database

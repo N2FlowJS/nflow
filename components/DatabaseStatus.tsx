@@ -70,14 +70,13 @@ export default function DatabaseStatus() {
     // Function to fetch the database status
     async function checkStatus() {
       try {
-        const res = await fetch("/api/db-status");
-        if (!res.ok) {
+        const data = await apiRequest<StatusResponse>("/api/db-status", { method: 'get' });
+        if (!data) {
           setDbStatus("error");
           setErrorMsg("Failed to fetch database status");
           return;
         }
 
-        const data: StatusResponse = await res.json();
         setDbStatus(data.status);
         setErrorMsg(data.error);
         setSetupAttempted(data.setupAttempted);
