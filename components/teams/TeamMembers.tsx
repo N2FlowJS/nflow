@@ -29,14 +29,14 @@ const { Option } = Select;
 interface TeamMembersProps {
   teamId: string;
   members: any[];
-  currentUserRole: string | null;
+  currentUserPermission: string | null;
   onMembersChange: (members: any[]) => void;
 }
 
 export default function TeamMembers({ 
   teamId, 
   members, 
-  currentUserRole,
+  currentUserPermission,
   onMembersChange
 }: TeamMembersProps) {
   const [isAddModalVisible, setIsAddModalVisible] = useState(false);
@@ -48,11 +48,11 @@ export default function TeamMembers({
 
   // Check if user has permission to manage members
   const canManageMembers = 
-    currentUserRole === 'owner' || 
-    currentUserRole === 'admin';
+    currentUserPermission === 'owner' || 
+    currentUserPermission === 'admin';
 
-  const getRoleColor = (role: string) => {
-    switch (role) {
+  const getPermissionColor = (permission: string) => {
+    switch (permission) {
       case 'owner':
         return 'gold';
       case 'admin':
@@ -77,10 +77,10 @@ export default function TeamMembers({
       const values = await addForm.validateFields();
       setLoading(true);
       
-      await addTeamMember(teamId, {
+      await addTeamMember(teamId, [{
         userId: values.userId,
-        role: values.role
-      });
+        permission: values.permission
+      }]);
 
       message.success('Team member added successfully');
       setIsAddModalVisible(false);
@@ -90,7 +90,7 @@ export default function TeamMembers({
       const updatedMembers = [...members, {
         id: Date.now().toString(), // Temporary ID
         userId: values.userId,
-        role: values.role,
+        permission: values.permission,
         joinedAt: new Date().toISOString(),
         user: { id: values.userId, name: 'New Member' } // Placeholder
       }];
@@ -104,7 +104,7 @@ export default function TeamMembers({
     }
   };
 
-  const handleEditRole = async () => {
+  const handleEditPermission = async () => {
     if (!selectedMember) return;
     
     try {
@@ -112,23 +112,23 @@ export default function TeamMembers({
       setLoading(true);
       
       await updateTeamMember(teamId, selectedMember.userId, {
-        role: values.role
+        permission: values.permission
       });
 
-      message.success('Member role updated successfully');
+      message.success('Member permission updated successfully');
       setIsEditModalVisible(false);
       
       // Update local state
       const updatedMembers = members.map(member => 
         member.userId === selectedMember.userId
-          ? { ...member, role: values.role }
+          ? { ...member, permission: values.permission }
           : member
       );
       
       onMembersChange(updatedMembers);
     } catch (error) {
-      console.error('Error updating member role:', error);
-      message.error('Failed to update member role');
+      console.error('Error updating member permission:', error);
+      message.error('Failed to update member permission');
     } finally {
       setLoading(false);
     }
@@ -174,12 +174,12 @@ export default function TeamMembers({
       ),
     },
     {
-      title: 'Role',
-      dataIndex: 'role',
-      key: 'role',
-      render: (role: string) => (
-        <Tag color={getRoleColor(role)}>
-          {role.charAt(0).toUpperCase() + role.slice(1)}
+      title: 'permission',
+      dataIndex: 'permission',
+      key: 'permission',
+      render: (permission: string) => (
+        <Tag color={getPermissionColor(permission)}>
+          {permission.charAt(0).toUpperCase() + permission.slice(1)}
         </Tag>
       ),
     },
@@ -194,18 +194,18 @@ export default function TeamMembers({
       key: 'actions',
       render: (_: any, record: any) => {
         // Don't allow editing/removing the owner if you're not the owner
-        const isOwner = record.role === 'owner';
-        const canEdit = canManageMembers && (!isOwner || currentUserRole === 'owner');
+        const isOwner = record.permission === 'owner';
+        const canEdit = canManageMembers && (!isOwner || currentUserPermission === 'owner');
         
         return (
           <Space>
-            <Tooltip title="Edit Role">
+            <Tooltip title="Edit permission">
               <Button
                 type="text"
                 icon={<EditOutlined />}
                 onClick={() => {
                   setSelectedMember(record);
-                  editForm.setFieldsValue({ role: record.role });
+                  editForm.setFieldsValue({ permission: record.permission });
                   setIsEditModalVisible(true);
                 }}
                 disabled={!canEdit}
@@ -298,16 +298,16 @@ export default function TeamMembers({
           </Form.Item>
           
           <Form.Item
-            name="role"
-            label="Role"
-            rules={[{ required: true, message: 'Please select a role' }]}
+            name="permission"
+            label="Permission"
+            rules={[{ required: true, message: 'Please select a permission' }]}
             initialValue="guest"
           >
             <Select>
-              {currentUserRole === 'owner' && (
+              {currentUserPermission === 'owner' && (
                 <Option value="owner">Owner</Option>
               )}
-              {(currentUserRole === 'owner' || currentUserRole === 'admin') && (
+              {(currentUserPermission === 'owner' || currentUserPermission === 'admin') && (
                 <Option value="admin">Admin</Option>
               )}
               <Option value="maintainer">Maintainer</Option>
@@ -318,9 +318,9 @@ export default function TeamMembers({
         </Form>
       </Modal>
 
-      {/* Edit Member Role Modal */}
+      {/* Edit Member Permission Modal */}
       <Modal
-        title="Edit Member Role"
+        title="Edit Member Permission"
         open={isEditModalVisible}
         onCancel={() => setIsEditModalVisible(false)}
         footer={[
@@ -330,10 +330,10 @@ export default function TeamMembers({
           <Button
             key="submit"
             type="primary"
-            onClick={handleEditRole}
+            onClick={handleEditPermission}
             loading={loading}
           >
-            Update Role
+            Update Permission
           </Button>
         ]}
       >
@@ -342,15 +342,15 @@ export default function TeamMembers({
           layout="vertical"
         >
           <Form.Item
-            name="role"
-            label="Role"
-            rules={[{ required: true, message: 'Please select a role' }]}
+            name="permission"
+            label="Permission"
+            rules={[{ required: true, message: 'Please select a permission' }]}
           >
             <Select>
-              {currentUserRole === 'owner' && (
+              {currentUserPermission === 'owner' && (
                 <Option value="owner">Owner</Option>
               )}
-              {(currentUserRole === 'owner' || currentUserRole === 'admin') && (
+              {(currentUserPermission === 'owner' || currentUserPermission === 'admin') && (
                 <Option value="admin">Admin</Option>
               )}
               <Option value="maintainer">Maintainer</Option>
