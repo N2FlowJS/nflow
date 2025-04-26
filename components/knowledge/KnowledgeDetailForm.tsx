@@ -1,5 +1,6 @@
 import React from "react";
 import { Form, Input } from "antd";
+import { useLocale } from "../../locale";
 
 interface KnowledgeDetailFormProps {
   form: any;
@@ -8,20 +9,22 @@ interface KnowledgeDetailFormProps {
 const KnowledgeDetailForm: React.FC<KnowledgeDetailFormProps> = ({
   form,
 }) => {
+  const { t } = useLocale('knowledgeDetail');
+
   return (
     <Form form={form} layout="vertical" >
       <Form.Item
         name="name"
-        label="Name"
-        rules={[{ required: true, message: "Please enter a name" }]}
+        label={t("name")}
+        rules={[{ required: true, message: t("name") }]}
       >
         <Input />
       </Form.Item>
       <Form.Item
         name="description"
-        label="Description"
+        label={t("description")}
         rules={[
-          { required: true, message: "Please enter a description" },
+          { required: true, message: t("description") },
         ]}
       >
         <Input.TextArea rows={6} />

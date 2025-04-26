@@ -21,6 +21,7 @@ import {
 import MainLayout from '@components/layout/MainLayout';
 import { useAuth } from '@context/AuthContext';
 import { useSystemStats } from '@hooks/useSystemStats';
+import { useLocale } from '../../locale';
 
 const { Title, Text } = Typography;
 
@@ -28,6 +29,7 @@ export default function AdminDashboard() {
   const router = useRouter();
   const { user, isAuthenticated, loading: authLoading } = useAuth();
   const { stats, loading: statsLoading } = useSystemStats();
+  const { messages } = useLocale();
 
   // Check if user has admin access
   const hasAccess = user?.permission === 'owner' || user?.permission === 'maintainer';
@@ -49,46 +51,46 @@ export default function AdminDashboard() {
 
   const adminMenuItems = [
     {
-      title: 'System Monitoring',
-      description: 'Monitor system tasks and performance',
+      title: messages.adminDashboard.systemMonitoring,
+      description: messages.adminDashboard.systemMonitoringDescription,
       icon: <DashboardOutlined style={{ fontSize: '24px', color: '#1890ff' }} />,
       link: '/admin/tasks',
-      statistic: { title: 'Active Tasks', value: stats?.taskStats?.processing || 0 },
+      statistic: { title: messages.adminDashboard.activeTasks, value: stats?.taskStats?.processing || 0 },
     },
     {
-      title: 'LLM Management',
-      description: 'Manage LLM providers and models',
+      title: messages.adminDashboard.llmManagement,
+      description: messages.adminDashboard.llmManagementDescription,
       icon: <RobotOutlined style={{ fontSize: '24px', color: '#722ed1' }} />,
       link: '/admin/llm',
-      statistic: { title: 'Active Models', value: stats?.agentStats?.active || 0 },
+      statistic: { title: messages.adminDashboard.activeModels, value: stats?.agentStats?.active || 0 },
     },
     {
-      title: 'Knowledge Base',
-      description: 'Manage knowledge repositories',
+      title: messages.adminDashboard.knowledgeBase,
+      description: messages.adminDashboard.knowledgeBaseDescription,
       icon: <DatabaseOutlined style={{ fontSize: '24px', color: '#52c41a' }} />,
       link: '/admin/knowledge',
-      statistic: { title: 'Knowledge Bases', value: stats?.knowledgeStats?.total || 0 },
+      statistic: { title: messages.adminDashboard.knowledgeBases, value: stats?.knowledgeStats?.total || 0 },
     },
     {
-      title: 'File Management',
-      description: 'Manage uploaded files and processing',
+      title: messages.adminDashboard.fileManagement,
+      description: messages.adminDashboard.fileManagementDescription,
       icon: <FileOutlined style={{ fontSize: '24px', color: '#fa8c16' }} />,
       link: '/admin/files',
-      statistic: { title: 'Total Files', value: stats?.fileStats?.total || 0 },
+      statistic: { title: messages.adminDashboard.totalFiles, value: stats?.fileStats?.total || 0 },
     },
     {
-      title: 'User Management',
-      description: 'Manage users and permissions',
+      title: messages.adminDashboard.userManagement,
+      description: messages.adminDashboard.userManagementDescription,
       icon: <TeamOutlined style={{ fontSize: '24px', color: '#eb2f96' }} />,
       link: '/admin/users',
-      statistic: { title: 'Active Users', value: stats?.userStats?.total || 0 },
+      statistic: { title: messages.adminDashboard.activeUsers, value: stats?.userStats?.total || 0 },
     },
     {
-      title: 'System Settings',
-      description: 'Configure system-wide settings',
+      title: messages.adminDashboard.systemSettings,
+      description: messages.adminDashboard.systemSettingsDescription,
       icon: <SettingOutlined style={{ fontSize: '24px', color: '#13c2c2' }} />,
       link: '/admin/settings',
-      statistic: { title: 'Services', value: stats?.agentStats?.total || 0 },
+      statistic: { title: messages.adminDashboard.services, value: stats?.agentStats?.total || 0 },
     },
   ];
 
@@ -97,8 +99,8 @@ export default function AdminDashboard() {
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '24px' }}>
         <Space direction="vertical" size="large" style={{ width: '100%' }}>
           <div>
-            <Title level={2}>Admin Dashboard</Title>
-            <Text type="secondary">Welcome back, {user?.name}</Text>
+            <Title level={2}>{messages.adminDashboard.title}</Title>
+            <Text type="secondary">{messages.adminDashboard.welcome} {user?.name}</Text>
           </div>
 
           <Row gutter={[16, 16]}>

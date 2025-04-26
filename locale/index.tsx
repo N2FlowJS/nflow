@@ -1,35 +1,146 @@
 import { createContext, useContext, ReactNode, useState } from "react";
-import enUS from "antd/lib/locale/en_US";
-import viVN from "antd/lib/locale/vi_VN";
-import en from "./en";
-import vi from "./vi";
+import en_US from "antd/lib/locale/en_US";
+import vi_VN from "antd/lib/locale/vi_VN";
+import ar_EG from "antd/lib/locale/ar_EG";
+import az_AZ from "antd/lib/locale/az_AZ";
+import en from "./locale/en";
+import vi from "./locale/vi";
+import fr from "./locale/fr";
+import de from "./locale/de";
+import ja from "./locale/ja";
+import zh from "./locale/zh";
+import es from "./locale/es";
+import ru from "./locale/ru";
+import it from "./locale/it";
+import pt from "./locale/pt";
+import ko from "./locale/ko";
+import th from "./locale/th";
+import id from "./locale/id";
+import tr from "./locale/tr";
+import pl from "./locale/pl";
+import nl from "./locale/nl";
+import sv from "./locale/sv";
+import fi from "./locale/fi";
+import no from "./locale/no";
+import da from "./locale/da";
+import cs from "./locale/cs";
+import hu from "./locale/hu";
+import ro from "./locale/ro";
+import el from "./locale/el";
+import he from "./locale/he";
+import uk from "./locale/uk";
+import ms from "./locale/ms";
+import hi from "./locale/hi";
+import bn from "./locale/bn";
+import ta from "./locale/ta";
+import ur from "./locale/ur";
+import fa from "./locale/fa";
+import ka from "./locale/ka";
+import az from "./locale/az";
+import kk from "./locale/kk";
+import uz from "./locale/uz";
+import ky from "./locale/ky";
+import tg from "./locale/tg";
+import tk from "./locale/tk";
+import mn from "./locale/mn";
+import ps from "./locale/ps";
+import sd from "./locale/sd";
+import si from "./locale/si";
+import ne from "./locale/ne";
+import my from "./locale/my";
+import km from "./locale/km";
+import lo from "./locale/lo";
+import { supportedLocales } from "./supportedLocales";
 
 // Map our locales to Ant Design locales
-export const locales = {
-  en: {
-    name: "English",
-    messages: en,
-    antd: enUS,
-  },
-  vi: {
-    name: "Tiếng Việt",
-    messages: vi,
-    antd: viVN,
-  },
+const antLocales: any = {
+  en_US: en_US,
+  vi_VN: vi_VN,
+  ar_EG: ar_EG,
+  az_AZ: az_AZ,
 };
+
+const messages: any = {
+  en_US: en,
+  vi_VN: vi,
+  fr: fr,
+  de: de,
+  ja: ja,
+  zh: zh,
+  es: es,
+  ru: ru,
+  it: it,
+  pt: pt,
+  ko: ko,
+  th: th,
+  id: id,
+  tr: tr,
+  pl: pl,
+  nl: nl,
+  sv: sv,
+  fi: fi,
+  no: no,
+  da: da,
+  cs: cs,
+  hu: hu,
+  ro: ro,
+  el: el,
+  he: he,
+  uk: uk,
+  ms: ms,
+  hi: hi,
+  bn: bn,
+  ta: ta,
+  ur: ur,
+  fa: fa,
+  ka: ka,
+  az_AZ: az,
+  kk: kk,
+  uz: uz,
+  ky: ky,
+  tg: tg,
+  tk: tk,
+  mn: mn,
+  ps: ps,
+  sd: sd,
+  si: si,
+  ne: ne,
+  my: my,
+  km: km,
+  lo: lo,
+};
+
+type LocaleType = {
+  name: string;
+  messages: any;
+  antd: any;
+};
+
+export const locales: { [key: string]: LocaleType } = supportedLocales.reduce(
+  (acc: any, curr: any) => {
+    const { key } = curr;
+    acc[key] = {
+      name: curr.label,
+      messages: messages[key] || en,
+      antd: antLocales[key] || en_US,
+    };
+    return acc;
+  },
+  {}
+);
 
 type LocaleContextType = {
   locale: string;
-  messages: typeof en;
-  antdLocale: typeof enUS;
+  messages: any;
+  antdLocale: any;
   changeLocale: (locale: string) => void;
 };
 
 const LocaleContext = createContext<LocaleContextType>({
   locale: "en",
   messages: en,
-  antdLocale: enUS,
-  changeLocale: () => {},
+  antdLocale: en_US,
+  changeLocale: () => { },
 });
 
 export const LocaleProvider = ({ children }: { children: ReactNode }) => {
@@ -56,4 +167,25 @@ export const LocaleProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-export const useLocale = () => useContext(LocaleContext);
+export const useLocale = (key: string = '') => {
+  const { locale, messages, antdLocale, changeLocale } = useContext(LocaleContext);
+
+  const t = (keys: string, vars: Record<string, string | number> = {}) => {
+    const pathKeys = `${key}.${keys}`.split('.').filter(p => p.length > 0);
+
+    let translation = pathKeys.reduce((obj, k) => {
+      return obj && typeof obj === 'object' && obj.hasOwnProperty(k) ? obj[k] : undefined;
+    }, messages);
+
+    if (typeof translation === 'string' && Object.keys(vars).length > 0) {
+      Object.keys(vars).forEach(varKey => {
+        const regex = new RegExp(`{${varKey}}`, 'g');
+        translation = translation.replace(regex, String(vars[varKey]));
+      });
+    }
+
+    return translation !== undefined ? translation : pathKeys.join('.');
+  };
+
+  return { locale, messages, antdLocale, changeLocale, t };
+};

@@ -30,6 +30,7 @@
       "@context/*": ["./context/*"],
       "@prisma/*": ["./prisma/*"],
       "@nbase/*": ["./nbase/*"],
+      "@locale/*": ["./locale/*"],
       
     },
     "noImplicitThis": true,

@@ -28,6 +28,7 @@ import { useAuth } from "../context/AuthContext";
 import { getAgentCount } from "../services/agentService";
 import { fetchAllFiles } from "../services/fileService";
 import { fetchAllKnowledge } from "../services/knowledgeService";
+import { useLocale } from "../locale";
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -39,6 +40,7 @@ export default function Home() {
   const [knowledge, setKnowledge] = useState<any[]>([]);
   const [agentCount, setAgentCount] = useState<number>(0);
   const [statsLoading, setStatsLoading] = useState(true);
+  const { messages } = useLocale();
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -68,21 +70,21 @@ export default function Home() {
 
   const features = [
     {
-      title: "Knowledge Base",
+      title: messages.home.knowledgeBase,
       icon: <DatabaseOutlined style={{ fontSize: 24, color: "#1677ff" }} />,
-      description: "Create and manage your knowledge repositories",
+      description: messages.home.knowledgeBaseDescription,
       action: () => router.push("/knowledge"),
     },
     {
-      title: "File Management",
+      title: messages.home.fileManagement,
       icon: <FileOutlined style={{ fontSize: 24, color: "#52c41a" }} />,
-      description: "Upload, organize, and process various file formats",
+      description: messages.home.fileManagementDescription,
       action: () => router.push("/files"),
     },
     {
-      title: "AI Agents",
+      title: messages.home.aiAgents,
       icon: <RobotOutlined style={{ fontSize: 24, color: "#722ed1" }} />,
-      description: "Build and configure custom AI agents for your tasks",
+      description: messages.home.aiAgentsDescription,
       action: () => router.push("/agent"),
     },
   ];
@@ -99,11 +101,10 @@ export default function Home() {
               <Col xs={24} md={14}>
                 <div style={{ padding: "20px 0" }}>
                   <Title level={1} style={{ marginBottom: 16 }}>
-                    Welcome to N-Flow
+                    {messages.home.welcomeToNFlow}
                   </Title>
                   <Paragraph style={{ fontSize: 18, marginBottom: 24 }}>
-                    Your comprehensive platform for knowledge management and AI agents.
-                    Organize files, build smart systems, and leverage AI to boost your productivity.
+                    {messages.home.heroDescription}
                   </Paragraph>
 
                   {!isAuthenticated ? (
@@ -114,14 +115,14 @@ export default function Home() {
                         icon={<LoginOutlined />}
                         onClick={() => router.push("/auth/login")}
                       >
-                        Sign In
+                        {messages.home.signIn}
                       </Button>
                       <Button
                         size="large"
                         icon={<UserAddOutlined />}
                         onClick={() => router.push("/auth/register")}
                       >
-                        Create Account
+                        {messages.home.createAccount}
                       </Button>
                     </Space>
                   ) : (
@@ -131,7 +132,7 @@ export default function Home() {
                       icon={<AppstoreOutlined />}
                       onClick={() => router.push("/dashboard")}
                     >
-                      Go to Dashboard
+                      {messages.home.goToDashboard}
                     </Button>
                   )}
                 </div>
@@ -164,10 +165,9 @@ export default function Home() {
                   ) : (
                     <div style={{ textAlign: "center", padding: "20px 0" }}>
                       <CloudOutlined style={{ fontSize: 64, color: "#1677ff", marginBottom: 16 }} />
-                      <Title level={4}>Cloud-Based Platform</Title>
+                      <Title level={4}>{messages.home.cloudBasedPlatform}</Title>
                       <Paragraph>
-                        Access your data from anywhere, anytime.
-                        Create an account to get started.
+                        {messages.home.cloudBasedDescription}
                       </Paragraph>
                     </div>
                   )}
@@ -181,14 +181,14 @@ export default function Home() {
                 <Col xs={24} sm={8}>
                   <Card hoverable loading={statsLoading}>
                     <Statistic
-                      title="Knowledge Bases"
+                      title={messages.home.knowledgeBases}
                       value={knowledge.length}
                       prefix={<DatabaseOutlined />}
                       valueStyle={{ color: "#1677ff" }}
                     />
                     <div style={{ marginTop: 16 }}>
                       <Button type="link" onClick={() => router.push("/knowledge")}>
-                        View All <ArrowRightOutlined />
+                        {messages.home.viewAll} <ArrowRightOutlined />
                       </Button>
                     </div>
                   </Card>
@@ -196,14 +196,14 @@ export default function Home() {
                 <Col xs={24} sm={8}>
                   <Card hoverable loading={statsLoading}>
                     <Statistic
-                      title="Files"
+                      title={messages.home.files}
                       value={files.length}
                       prefix={<FileOutlined />}
                       valueStyle={{ color: "#52c41a" }}
                     />
                     <div style={{ marginTop: 16 }}>
                       <Button type="link" onClick={() => router.push("/files")}>
-                        View All <ArrowRightOutlined />
+                        {messages.home.viewAll} <ArrowRightOutlined />
                       </Button>
                     </div>
                   </Card>
@@ -211,14 +211,14 @@ export default function Home() {
                 <Col xs={24} sm={8}>
                   <Card hoverable loading={statsLoading}>
                     <Statistic
-                      title="AI Agents"
+                      title={messages.home.aiAgents}
                       value={agentCount}
                       prefix={<RobotOutlined />}
                       valueStyle={{ color: "#722ed1" }}
                     />
                     <div style={{ marginTop: 16 }}>
                       <Button type="link" onClick={() => router.push("/agent")}>
-                        View All <ArrowRightOutlined />
+                        {messages.home.viewAll} <ArrowRightOutlined />
                       </Button>
                     </div>
                   </Card>
@@ -229,7 +229,7 @@ export default function Home() {
             {/* Features Section */}
             <div style={{ marginBottom: 48 }}>
               <Title level={2} style={{ marginBottom: 24, textAlign: "center" }}>
-                Platform Features
+                {messages.home.platformFeatures}
               </Title>
               <Row gutter={[24, 24]}>
                 {features.map((feature, index) => (
@@ -243,7 +243,7 @@ export default function Home() {
                           key="explore"
                           onClick={feature.action}
                         >
-                          Explore <ArrowRightOutlined />
+                          {messages.home.explore} <ArrowRightOutlined />
                         </Button>
                       ]}
                     >
@@ -264,7 +264,7 @@ export default function Home() {
             {isAuthenticated && files.length > 0 ? (
               <div>
                 <Title level={2} style={{ marginBottom: 24 }}>
-                  Recent Files
+                  {messages.home.recentFiles}
                 </Title>
                 <Card>
                   <List
@@ -279,7 +279,7 @@ export default function Home() {
                             key="view"
                             onClick={() => router.push(`/files/${file.id}`)}
                           >
-                            View
+                            {messages.home.view}
                           </Button>
                         ]}
                       >
@@ -300,9 +300,9 @@ export default function Home() {
               </div>
             ) : (
               <Card style={{ textAlign: "center", padding: "24px" }}>
-                <Title level={3}>Get Started with N-Flow</Title>
+                <Title level={3}>{messages.home.getStartedWithNFlow}</Title>
                 <Paragraph style={{ fontSize: 16, marginBottom: 24 }}>
-                  Follow these steps to start managing your knowledge and AI agents
+                  {messages.home.getStartedDescription}
                 </Paragraph>
                 <Steps
                   isAuthenticated={isAuthenticated}
@@ -311,6 +311,7 @@ export default function Home() {
                   onKnowledgeClick={() => router.push("/knowledge")}
                   onFileClick={() => router.push("/files")}
                   onAgentClick={() => router.push("/agent")}
+                  messages={messages}
                 />
               </Card>
             )}
@@ -328,6 +329,7 @@ interface StepsProps {
   onKnowledgeClick: () => void;
   onFileClick: () => void;
   onAgentClick: () => void;
+  messages: any;
 }
 
 function Steps({
@@ -336,43 +338,44 @@ function Steps({
   onRegisterClick,
   onKnowledgeClick,
   onFileClick,
-  onAgentClick
+  onAgentClick,
+  messages
 }: StepsProps) {
   return (
     <List
       bordered
       dataSource={[
         {
-          title: isAuthenticated ? "✅ Login" : "Step 1: Create an Account or Login",
+          title: isAuthenticated ? messages.home.stepsLoggedIn : messages.home.stepsCreateAccount,
           description: isAuthenticated
-            ? "You are logged in"
-            : "Create your account to get started with all features",
+            ? messages.home.stepsLoggedInDescription
+            : messages.home.stepsCreateAccountDescription,
           action: isAuthenticated ? null : (
             <Space>
-              <Button type="primary" onClick={onLoginClick}>Login</Button>
-              <Button onClick={onRegisterClick}>Register</Button>
+              <Button type="primary" onClick={onLoginClick}>{messages.home.login}</Button>
+              <Button onClick={onRegisterClick}>{messages.home.register}</Button>
             </Space>
           )
         },
         {
-          title: "Step 2: Create a Knowledge Base",
-          description: "Create your first knowledge repository to organize your information",
+          title: messages.home.stepsCreateKnowledgeBase,
+          description: messages.home.stepsCreateKnowledgeBaseDescription,
           action: <Button type="primary" onClick={onKnowledgeClick} disabled={!isAuthenticated}>
-            Create Knowledge Base
+            {messages.home.createKnowledgeBase}
           </Button>
         },
         {
-          title: "Step 3: Upload and Process Files",
-          description: "Upload documents, spreadsheets, and text files for processing",
+          title: messages.home.stepsUploadFiles,
+          description: messages.home.stepsUploadFilesDescription,
           action: <Button type="primary" onClick={onFileClick} disabled={!isAuthenticated}>
-            Upload Files
+            {messages.home.uploadFiles}
           </Button>
         },
         {
-          title: "Step 4: Create AI Agents",
-          description: "Build AI agents that leverage your knowledge base",
+          title: messages.home.stepsCreateAiAgents,
+          description: messages.home.stepsCreateAiAgentsDescription,
           action: <Button type="primary" onClick={onAgentClick} disabled={!isAuthenticated}>
-            Create Agent
+            {messages.home.createAgent}
           </Button>
         }
       ]}

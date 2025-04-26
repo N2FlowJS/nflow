@@ -22,6 +22,7 @@ import { useEffect, useState } from "react";
 import MainLayout from "../components/layout/MainLayout";
 import { useAuth } from "../context/AuthContext";
 import { getSystemStats, getWorkerStatus } from "../services/adminService";
+import { useLocale } from "../locale";
 
 const { Title, Text } = Typography;
 const { TabPane } = Tabs;
@@ -45,6 +46,7 @@ export default function Dashboard() {
     recentTasks: []
   });
   const [error, setError] = useState<string | null>(null);
+  const { messages } = useLocale();
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -76,18 +78,18 @@ export default function Dashboard() {
   };
 
   const fileStatusColumns = [
-    { title: 'Status', dataIndex: 'status', key: 'status' },
-    { title: 'Count', dataIndex: 'count', key: 'count' }
+    { title: messages.dashboard.status, dataIndex: 'status', key: 'status' },
+    { title: messages.dashboard.count, dataIndex: 'count', key: 'count' }
   ];
 
   const fileStatusData = stats.fileStats.byStatus.map((item: any) => ({
-    status: item.parsingStatus || 'Not processed',
+    status: item.parsingStatus || messages.dashboard.notProcessed,
     count: item._count._all
   }));
 
   const taskStatusColumns = [
-    { title: 'Status', dataIndex: 'status', key: 'status' },
-    { title: 'Count', dataIndex: 'count', key: 'count' }
+    { title: messages.dashboard.status, dataIndex: 'status', key: 'status' },
+    { title: messages.dashboard.count, dataIndex: 'count', key: 'count' }
   ];
 
   const taskStatusData = stats.taskStats.byStatus.map((item: any) => ({
@@ -96,14 +98,14 @@ export default function Dashboard() {
   }));
 
   const recentTasksColumns = [
-    { title: 'File', dataIndex: 'fileName', key: 'fileName' },
-    { title: 'Status', dataIndex: 'status', key: 'status' },
-    { title: 'Updated', dataIndex: 'updated', key: 'updated' }
+    { title: messages.dashboard.file, dataIndex: 'fileName', key: 'fileName' },
+    { title: messages.dashboard.status, dataIndex: 'status', key: 'status' },
+    { title: messages.dashboard.updated, dataIndex: 'updated', key: 'updated' }
   ];
 
   const recentTasksData = workerStatus.recentTasks.map((task: any) => ({
     key: task.id,
-    fileName: task.file?.originalName || 'Unknown file',
+    fileName: task.file?.originalName || messages.dashboard.unknownFile,
     status: task.status,
     updated: new Date(task.updatedAt).toLocaleString()
   }));
@@ -111,8 +113,8 @@ export default function Dashboard() {
   return (
     <MainLayout title="N-Flow | Dashboard">
       <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "20px" }}>
-        <Title level={2}>System Dashboard</Title>
-        <Text type="secondary">Overview of all data in the system</Text>
+        <Title level={2}>{messages.dashboard.systemDashboard}</Title>
+        <Text type="secondary">{messages.dashboard.overview}</Text>
         
         <Button 
           type="primary" 
@@ -120,12 +122,12 @@ export default function Dashboard() {
           style={{ marginTop: 16, marginBottom: 24 }}
           loading={loading}
         >
-          Refresh Data
+          {messages.dashboard.refreshData}
         </Button>
 
         {error && (
           <Alert 
-            message="Error" 
+            message={messages.dashboard.error} 
             description={error} 
             type="error" 
             showIcon 
@@ -135,12 +137,12 @@ export default function Dashboard() {
 
         <Spin spinning={loading}>
           <Tabs defaultActiveKey="1">
-            <TabPane tab="System Overview" key="1">
+            <TabPane tab={messages.dashboard.systemOverview} key="1">
               <Row gutter={[16, 16]}>
                 <Col xs={24} sm={12} md={6}>
                   <Card>
                     <Statistic 
-                      title="Users" 
+                      title={messages.dashboard.users} 
                       value={stats.userStats.total} 
                       prefix={<UserOutlined />} 
                       valueStyle={{ color: '#1677ff' }}
@@ -150,7 +152,7 @@ export default function Dashboard() {
                 <Col xs={24} sm={12} md={6}>
                   <Card>
                     <Statistic 
-                      title="Teams" 
+                      title={messages.dashboard.teams} 
                       value={stats.teamStats.total} 
                       prefix={<TeamOutlined />}
                       valueStyle={{ color: '#52c41a' }}
@@ -160,7 +162,7 @@ export default function Dashboard() {
                 <Col xs={24} sm={12} md={6}>
                   <Card>
                     <Statistic 
-                      title="Knowledge Bases" 
+                      title={messages.dashboard.knowledgeBases} 
                       value={stats.knowledgeStats.total}
                       prefix={<DatabaseOutlined />}
                       valueStyle={{ color: '#722ed1' }}
@@ -170,7 +172,7 @@ export default function Dashboard() {
                 <Col xs={24} sm={12} md={6}>
                   <Card>
                     <Statistic 
-                      title="Files" 
+                      title={messages.dashboard.files} 
                       value={stats.fileStats.total}
                       prefix={<FileOutlined />}
                       valueStyle={{ color: '#fa8c16' }}
@@ -181,7 +183,7 @@ export default function Dashboard() {
                 <Col xs={24} sm={12} md={8}>
                   <Card>
                     <Statistic 
-                      title="AI Agents" 
+                      title={messages.dashboard.aiAgents} 
                       value={stats.agentStats.total}
                       prefix={<RobotOutlined />}
                       valueStyle={{ color: '#eb2f96' }}
@@ -190,14 +192,14 @@ export default function Dashboard() {
                     <Row>
                       <Col span={12}>
                         <Statistic 
-                          title="Active" 
+                          title={messages.dashboard.active} 
                           value={stats.agentStats.active}
                           valueStyle={{ fontSize: '18px', color: 'green' }}
                         />
                       </Col>
                       <Col span={12}>
                         <Statistic 
-                          title="Inactive" 
+                          title={messages.dashboard.inactive} 
                           value={stats.agentStats.inactive}
                           valueStyle={{ fontSize: '18px', color: 'gray' }}
                         />
@@ -209,7 +211,7 @@ export default function Dashboard() {
                 <Col xs={24} sm={12} md={8}>
                   <Card>
                     <Statistic 
-                      title="Tasks" 
+                      title={messages.dashboard.tasks} 
                       value={stats.taskStats.total}
                       prefix={<SyncOutlined />}
                       valueStyle={{ color: '#13c2c2' }}
@@ -228,7 +230,7 @@ export default function Dashboard() {
                 <Col xs={24} sm={12} md={8}>
                   <Card>
                     <Statistic 
-                      title="Text Chunks" 
+                      title={messages.dashboard.textChunks} 
                       value={stats.chunkStats.total}
                       prefix={<FileTextOutlined />}
                       valueStyle={{ color: '#cf1322' }}
@@ -238,10 +240,10 @@ export default function Dashboard() {
               </Row>
             </TabPane>
 
-            <TabPane tab="File Analysis" key="2">
+            <TabPane tab={messages.dashboard.fileAnalysis} key="2">
               <Row gutter={[16, 16]}>
                 <Col span={24} md={12}>
-                  <Card title="Files by Status">
+                  <Card title={messages.dashboard.filesByStatus}>
                     <Table 
                       dataSource={fileStatusData}
                       columns={fileStatusColumns}
@@ -251,9 +253,9 @@ export default function Dashboard() {
                   </Card>
                 </Col>
                 <Col span={24} md={12}>
-                  <Card title="Processing Progress">
+                  <Card title={messages.dashboard.processingProgress}>
                     <Statistic 
-                      title="File Processing Rate"
+                      title={messages.dashboard.fileProcessingRate}
                       value={fileStatusData.find((i: any) => i.status === 'completed')?.count || 0}
                       suffix={`/ ${stats.fileStats.total}`}
                     />
@@ -270,10 +272,10 @@ export default function Dashboard() {
               </Row>
             </TabPane>
 
-            <TabPane tab="Task Details" key="3">
+            <TabPane tab={messages.dashboard.taskDetails} key="3">
               <Row gutter={[16, 16]}>
                 <Col span={24} md={12}>
-                  <Card title="Tasks by Status">
+                  <Card title={messages.dashboard.tasksByStatus}>
                     <Table 
                       dataSource={taskStatusData}
                       columns={taskStatusColumns}
@@ -283,24 +285,24 @@ export default function Dashboard() {
                   </Card>
                 </Col>
                 <Col span={24} md={12}>
-                  <Card title="Worker Configuration">
+                  <Card title={messages.dashboard.workerConfiguration}>
                     <Row gutter={[16, 16]}>
                       <Col span={12}>
                         <Statistic 
-                          title="Enabled"
-                          value={workerStatus.workerConfig.enabled ? 'Yes' : 'No'}
+                          title={messages.dashboard.enabled}
+                          value={workerStatus.workerConfig.enabled ? messages.dashboard.yes : messages.dashboard.no}
                           valueStyle={{ color: workerStatus.workerConfig.enabled ? 'green' : 'red' }}
                         />
                       </Col>
                       <Col span={12}>
                         <Statistic 
-                          title="Max Workers"
+                          title={messages.dashboard.maxWorkers}
                           value={workerStatus.workerConfig.maxWorkers}
                         />
                       </Col>
                       <Col span={24}>
                         <Statistic 
-                          title="Polling Interval"
+                          title={messages.dashboard.pollingInterval}
                           value={`${workerStatus.workerConfig.pollingInterval / 1000} seconds`}
                         />
                       </Col>
@@ -309,7 +311,7 @@ export default function Dashboard() {
                 </Col>
 
                 <Col span={24}>
-                  <Card title="Recent Tasks">
+                  <Card title={messages.dashboard.recentTasks}>
                     <Table 
                       dataSource={recentTasksData}
                       columns={recentTasksColumns}

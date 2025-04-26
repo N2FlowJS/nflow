@@ -38,6 +38,7 @@ import React, { useEffect, useState } from "react";
 import { Knowledge } from "../../models/knowledge";
 import { deleteFile, fetchFilesByKnowledgeId, parseFile } from "../../services/fileService";
 import { formatFileSize, getTypeFile } from "../../utils/client/formatters";
+import { useLocale } from "../../locale";
 
 const { useBreakpoint } = Grid;
 const { Title, Text } = Typography;
@@ -63,6 +64,7 @@ export default function KnowledgeFileList({
   const [batchActionLoading, setBatchActionLoading] = useState(false);
   const [_eventSource, setEventSource] = useState<EventSource | null>(null);
   const screens = useBreakpoint();
+  const { t } = useLocale('');
 
   const fetchFiles = async () => {
     if (!knowledge?.id) return;
@@ -73,7 +75,7 @@ export default function KnowledgeFileList({
       setFiles(filesData || []);
     } catch (error) {
       console.error("Error fetching files:", error);
-      message.error("Failed to load files");
+      message.error(t('knowledgeDetail.fetchKnowledgeFailed') || "Failed to load files");
     } finally {
       setLoading(false);
     }
@@ -126,9 +128,9 @@ export default function KnowledgeFileList({
 
             // Show notification based on status
             if (data.status === 'completed') {
-              message.success(`File "${data.fileName}" parsed successfully`);
+              message.success(t('tasksMonitor.completed') || `File "${data.fileName}" parsed successfully`);
             } else if (data.status === 'failed') {
-              message.error(`File "${data.fileName}" parsing failed${data.errorMessage ? `: ${data.errorMessage}` : ''}`);
+              message.error((t('tasksMonitor.failed') || `File "${data.fileName}" parsing failed`) + (data.errorMessage ? `: ${data.errorMessage}` : ''));
             }
           } else if (data.type === 'connected') {
             console.log('[SSE] Successfully connected to file parsing events');
@@ -166,7 +168,7 @@ export default function KnowledgeFileList({
 
   const handleParseFile = async (fileId: string) => {
     if (!isAuthenticated) {
-      message.error("You must be logged in to parse files");
+      message.error(t('knowledgeList.loginRequired') || "You must be logged in to parse files");
       return;
     }
 
@@ -176,17 +178,17 @@ export default function KnowledgeFileList({
       const result = await parseFile(fileId);
 
       if (result.success) {
-        message.success("File parsing task created successfully");
+        message.success(t('tasksMonitor.retryParsing') || "File parsing task created successfully");
         // Refresh files after a brief delay
         setTimeout(() => {
           fetchFiles();
         }, 1000);
       } else {
-        message.error(result.message || "Failed to create parsing task");
+        message.error(result.message || t('tasksMonitor.error') || "Failed to create parsing task");
       }
     } catch (error) {
       console.error("Parse file error:", error);
-      message.error("An error occurred while setting up file parsing");
+      message.error(t('tasksMonitor.error') || "An error occurred while setting up file parsing");
     } finally {
       setParsingFiles((prev) => ({ ...prev, [fileId]: false }));
     }
@@ -197,17 +199,17 @@ export default function KnowledgeFileList({
 
     try {
       await deleteFile(knowledge.id, fileId);
-      message.success("File deleted successfully");
+      message.success(t('tasksMonitor.deleteTask') || "File deleted successfully");
       fetchFiles();
     } catch (error) {
       console.error("Delete file error:", error);
-      message.error("Failed to delete file");
+      message.error(t('tasksMonitor.error') || "Failed to delete file");
     }
   };
 
   const handleBatchParseFiles = async () => {
     if (!isAuthenticated) {
-      message.error("You must be logged in to parse files");
+      message.error(t('knowledgeList.loginRequired') || "You must be logged in to parse files");
       return;
     }
 
@@ -227,13 +229,13 @@ export default function KnowledgeFileList({
         completed++;
         // Update progress message
         message.info({
-          content: `Processing file ${completed} of ${selectedFileIds.length}`,
+          content: t('dashboard.processingProgress') ? `${t('dashboard.processingProgress')} ${completed} of ${selectedFileIds.length}` : `Processing file ${completed} of ${selectedFileIds.length}`,
           key: 'batch-progress',
           duration: 1
         });
       }
 
-      message.success(`${selectedFileIds.length} files queued for parsing`);
+      message.success(t('dashboard.fileAnalysis') || `${selectedFileIds.length} files queued for parsing`);
       setSelectedFileIds([]);
 
       // Refresh files after a brief delay
@@ -242,7 +244,7 @@ export default function KnowledgeFileList({
       }, 1000);
     } catch (error) {
       console.error("Batch parse files error:", error);
-      message.error("An error occurred while parsing files");
+      message.error(t('tasksMonitor.error') || "An error occurred while parsing files");
     } finally {
       setBatchActionLoading(false);
       // Clear parsing status
@@ -256,14 +258,14 @@ export default function KnowledgeFileList({
 
   const handleBatchDeleteFiles = () => {
     Modal.confirm({
-      title: "Delete Files",
+      title: t('tasksMonitor.deleteTask') || "Delete Files",
       content: (
         <div>
-          <p>Are you sure you want to delete {selectedFileIds.length} files?</p>
-          <p style={{ color: '#ff4d4f' }}><b>This action cannot be undone.</b></p>
+          <p>{t('knowledgeList.deleteConfirmation') ? `${t('knowledgeList.deleteConfirmation').replace('this item', `${selectedFileIds.length} files`)}` : `Are you sure you want to delete ${selectedFileIds.length} files?`}</p>
+          <p style={{ color: '#ff4d4f' }}><b>{t('tasksMonitor.error') || "This action cannot be undone."}</b></p>
         </div>
       ),
-      okText: "Delete",
+      okText: t('knowledgeList.yes') || "Delete",
       okType: "danger",
       onOk: async () => {
         if (!knowledge?.id) return;
@@ -278,19 +280,19 @@ export default function KnowledgeFileList({
             // Update progress message
             if (selectedFileIds.length > 3) {
               message.info({
-                content: `Deleted ${completed} of ${selectedFileIds.length} files`,
+                content: t('dashboard.processingProgress') ? `${t('dashboard.processingProgress')} ${completed} of ${selectedFileIds.length}` : `Deleted ${completed} of ${selectedFileIds.length} files`,
                 key: 'batch-delete-progress',
                 duration: 1
               });
             }
           }
 
-          message.success(`${selectedFileIds.length} files deleted successfully`);
+          message.success(t('tasksMonitor.deleteTask') || `${selectedFileIds.length} files deleted successfully`);
           setSelectedFileIds([]);
           fetchFiles();
         } catch (error) {
           console.error("Batch delete files error:", error);
-          message.error("Failed to delete some files");
+          message.error(t('tasksMonitor.error') || "Failed to delete some files");
         } finally {
           setBatchActionLoading(false);
         }
@@ -329,8 +331,8 @@ export default function KnowledgeFileList({
       {
         key: 'all-data',
         text: (
-          <Tooltip title="Select All Files">
-            <SelectOutlined /> Select All
+          <Tooltip title={t('dashboard.overview') || "Select All Files"}>
+            <SelectOutlined /> {t('dashboard.overview') || "Select All"}
           </Tooltip>
         ),
         onSelect: () => {
@@ -341,8 +343,8 @@ export default function KnowledgeFileList({
       {
         key: 'not-parsed',
         text: (
-          <Tooltip title="Select Not Parsed Files">
-            <CloseCircleOutlined /> Not Parsed
+          <Tooltip title={t('dashboard.notProcessed') || "Select Not Parsed Files"}>
+            <CloseCircleOutlined /> {t('dashboard.notProcessed') || "Not Parsed"}
           </Tooltip>
         ),
         onSelect: () => {
@@ -355,8 +357,8 @@ export default function KnowledgeFileList({
       {
         key: 'parsed',
         text: (
-          <Tooltip title="Select Parsed Files">
-            <CheckCircleOutlined /> Parsed
+          <Tooltip title={t('tasksMonitor.completed') || "Select Parsed Files"}>
+            <CheckCircleOutlined /> {t('tasksMonitor.completed') || "Parsed"}
           </Tooltip>
         ),
         onSelect: () => {
@@ -369,8 +371,8 @@ export default function KnowledgeFileList({
       {
         key: 'invert',
         text: (
-          <Tooltip title="Invert Current Selection">
-            <SyncOutlined /> Invert
+          <Tooltip title={t('dashboard.refreshData') || "Invert Current Selection"}>
+            <SyncOutlined /> {t('dashboard.refreshData') || "Invert"}
           </Tooltip>
         ),
         onSelect: () => {
@@ -389,7 +391,7 @@ export default function KnowledgeFileList({
 
     const batchActionContent = (
       <Space direction={screens.sm ? "horizontal" : "vertical"} style={{ width: '100%' }}>
-        <Tooltip title="Process all selected files">
+        <Tooltip title={t('tasksMonitor.retryParsing') || "Process all selected files"}>
           <Button
             type="primary"
             icon={<PlayCircleOutlined />}
@@ -398,10 +400,10 @@ export default function KnowledgeFileList({
             disabled={batchActionLoading}
             size={screens.sm ? "middle" : "small"}
           >
-            Parse
+            {t('tasksMonitor.retryParsing') || "Parse"}
           </Button>
         </Tooltip>
-        <Tooltip title="Delete all selected files">
+        <Tooltip title={t('tasksMonitor.deleteTask') || "Delete all selected files"}>
           <Button
             danger
             icon={<DeleteOutlined />}
@@ -410,17 +412,17 @@ export default function KnowledgeFileList({
             disabled={batchActionLoading}
             size={screens.sm ? "middle" : "small"}
           >
-            Delete
+            {t('tasksMonitor.deleteTask') || "Delete"}
           </Button>
         </Tooltip>
-        <Tooltip title="Clear selection">
+        <Tooltip title={t('dashboard.refreshData') || "Clear selection"}>
           <Button
             icon={<ClearOutlined />}
             onClick={() => setSelectedFileIds([])}
             disabled={batchActionLoading}
             size={screens.sm ? "middle" : "small"}
           >
-            Clear
+            {t('dashboard.refreshData') || "Clear"}
           </Button>
         </Tooltip>
       </Space>
@@ -440,7 +442,7 @@ export default function KnowledgeFileList({
           }}>
             <Space>
               <Badge count={selectedFileIds.length} overflowCount={999} style={{ backgroundColor: '#1677ff' }} />
-              <span><b>{selectedFileIds.length}</b> files selected</span>
+              <span><b>{selectedFileIds.length}</b> {t('dashboard.files') || "files"} selected</span>
             </Space>
             {batchActionContent}
           </div>
@@ -452,17 +454,17 @@ export default function KnowledgeFileList({
 
   // Add status filtering options
   const statusFilters = [
-    { text: 'Completed', value: 'completed' },
-    { text: 'Processing', value: 'processing' },
-    { text: 'Pending', value: 'pending' },
-    { text: 'Failed', value: 'failed' },
-    { text: 'Not Parsed', value: 'not_parsed' },
+    { text: t('tasksMonitor.completed') || 'Completed', value: 'completed' },
+    { text: t('tasksMonitor.processing') || 'Processing', value: 'processing' },
+    { text: t('tasksMonitor.pending') || 'Pending', value: 'pending' },
+    { text: t('tasksMonitor.failed') || 'Failed', value: 'failed' },
+    { text: t('dashboard.notProcessed') || 'Not Parsed', value: 'not_parsed' },
   ];
 
   // Enhanced columns with filtering
   const createColumns = () => {
     const fileColumn = {
-      title: "File",
+      title: t('dashboard.file') || "File",
       dataIndex: "originalName",
       key: "originalName",
       render: (text: string, record: any) => (
@@ -499,7 +501,7 @@ export default function KnowledgeFileList({
     };
 
     const statusColumn = {
-      title: "Status",
+      title: t('tasksMonitor.status') || "Status",
       dataIndex: "parsingStatus",
       key: "parsingStatus",
       width: 120,
@@ -524,13 +526,13 @@ export default function KnowledgeFileList({
                   : "default"
           }
         >
-          {status || "Not parsed"}
+          {status || t('dashboard.notProcessed') || "Not parsed"}
         </Tag>
       ),
     };
 
     const parseColumn = {
-      title: "Parse",
+      title: t('tasksMonitor.retryParsing') || "Parse",
       key: "parse",
       width: 100,
       render: (_: any, record: any) => {
@@ -559,7 +561,7 @@ export default function KnowledgeFileList({
     };
 
     const uploadedColumn = {
-      title: "Uploaded",
+      title: t('dashboard.updated') || "Uploaded",
       dataIndex: "createdAt",
       key: "createdAt",
       width: 170,
@@ -570,31 +572,31 @@ export default function KnowledgeFileList({
     };
 
     const actionsColumn = {
-      title: "Actions",
+      title: t('knowledgeList.actions') || "Actions",
       key: "actions",
       width: screens.sm ? 160 : 90,
       render: (_: any, record: any) => {
         const actions = [
           {
             key: 'view',
-            label: 'View Details',
+            label: t('home.view') || 'View Details',
             icon: <EyeOutlined />,
             onClick: () => router.push(`/files/${record.id}`),
           },
           {
             key: 'configure',
-            label: 'Configure Chunking',
+            label: t('knowledgeDetail.config') || 'Configure Chunking',
             icon: <SettingOutlined />,
             onClick: () => openFileConfigModal(record),
           },
           {
             key: 'delete',
-            label: 'Delete File',
+            label: t('tasksMonitor.deleteTask') || 'Delete File',
             icon: <DeleteOutlined style={{ color: '#ff4d4f' }} />,
             onClick: () => Modal.confirm({
-              title: "Delete File",
-              content: "Are you sure you want to delete this file? This action cannot be undone.",
-              okText: "Delete",
+              title: t('tasksMonitor.deleteTask') || "Delete File",
+              content: t('knowledgeList.deleteConfirmation') ? t('knowledgeList.deleteConfirmation').replace('this item', 'this file') : "Are you sure you want to delete this file? This action cannot be undone.",
+              okText: t('knowledgeList.yes') || "Delete",
               okType: "danger",
               onOk: () => handleDeleteFile(record.id),
             }),
@@ -604,30 +606,30 @@ export default function KnowledgeFileList({
         if (screens.sm) {
           return (
             <Space>
-              <Tooltip title={`View details ${record.originalName}`}>
+              <Tooltip title={`${t('home.view') || "View details"} ${record.originalName}`}>
                 <Button
                   type="text"
                   icon={<EyeOutlined />}
                   onClick={() => router.push(`/files/${record.id}`)}
                 />
               </Tooltip>
-              <Tooltip title="Configure Chunking">
+              <Tooltip title={t('knowledgeDetail.config') || "Configure Chunking"}>
                 <Button
                   type="text"
                   icon={<SettingOutlined />}
                   onClick={() => openFileConfigModal(record)}
                 />
               </Tooltip>
-              <Tooltip title="Delete File">
+              <Tooltip title={t('tasksMonitor.deleteTask') || "Delete File"}>
                 <Button
                   type="text"
                   danger
                   icon={<DeleteOutlined />}
                   onClick={() =>
                     Modal.confirm({
-                      title: "Delete File",
-                      content: "Are you sure you want to delete this file? This action cannot be undone.",
-                      okText: "Delete",
+                      title: t('tasksMonitor.deleteTask') || "Delete File",
+                      content: t('knowledgeList.deleteConfirmation') ? t('knowledgeList.deleteConfirmation').replace('this item', 'this file') : "Are you sure you want to delete this file? This action cannot be undone.",
+                      okText: t('knowledgeList.yes') || "Delete",
                       okType: "danger",
                       onOk: () => handleDeleteFile(record.id),
                     })
@@ -667,7 +669,7 @@ export default function KnowledgeFileList({
 
   return (
     <Card
-      title={<Title level={4}>Files</Title>}
+      title={<Title level={4}>{t('dashboard.files') || "Files"}</Title>}
       extra={
         <Button
           type="primary"
@@ -676,7 +678,7 @@ export default function KnowledgeFileList({
           disabled={!isAuthenticated}
           size={screens.sm ? "middle" : "small"}
         >
-          {screens.sm ? "Upload Files" : "Upload"}
+          {screens.sm ? t('home.uploadFiles') || "Upload Files" : t('home.uploadFiles') || "Upload"}
         </Button>
       }
       style={{ marginBottom: 24 }}
@@ -714,7 +716,7 @@ export default function KnowledgeFileList({
         </>
       ) : (
         <Empty
-          description="No files have been uploaded yet"
+          description={t('dashboard.notProcessed') || "No files have been uploaded yet"}
           image={Empty.PRESENTED_IMAGE_SIMPLE}
         >
           <Button
@@ -723,7 +725,7 @@ export default function KnowledgeFileList({
             disabled={!isAuthenticated}
             size={screens.sm ? "middle" : "small"}
           >
-            Upload Now
+            {t('home.uploadFiles') || "Upload Now"}
           </Button>
         </Empty>
       )}

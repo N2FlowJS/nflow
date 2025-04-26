@@ -12,21 +12,21 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const router = useRouter();
-  const {  antdLocale } = useLocale();
+  const { antdLocale, messages } = useLocale();
 
   const onFinish = async (values: { email: string; password: string }) => {
     setLoading(true);
     try {
       const success = await login(values.email, values.password);
       if (success) {
-        message.success('Login successful!');
+        message.success(messages.login.success);
         router.push('/');
       } else {
-        message.error('Invalid email or password');
+        message.error(messages.login.failed);
       }
     } catch (error) {
       console.error('Login error:', error);
-      message.error('An error occurred during login');
+      message.error(messages.login.error);
     } finally {
       setLoading(false);
     }
@@ -34,7 +34,7 @@ export default function Login() {
 
   return (
     <ConfigProvider locale={antdLocale}>
-      <div style={{ 
+      <div style={{
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
@@ -43,10 +43,10 @@ export default function Login() {
       }}>
         <Card style={{ width: 400, boxShadow: '0 4px 8px rgba(0,0,0,0.1)' }}>
           <div style={{ textAlign: 'center', marginBottom: 24 }}>
-            <Title level={2}>Login</Title>
-            <Text type="secondary">Log in to access your account</Text>
+            <Title level={2}>{messages.login.title}</Title>
+            <Text type="secondary">{messages.login.subtitle}</Text>
           </div>
-          
+
           <Form
             name="login"
             initialValues={{ remember: true }}
@@ -56,44 +56,44 @@ export default function Login() {
             <Form.Item
               name="email"
               rules={[
-                { required: true, message: 'Please input your email!' },
-                { type: 'email', message: 'Please enter a valid email!' }
+                { required: true, message: messages.login.emailRequired },
+                { type: 'email', message: messages.login.emailInvalid }
               ]}
             >
-              <Input 
-                prefix={<UserOutlined />} 
-                placeholder="Email" 
+              <Input
+                prefix={<UserOutlined />}
+                placeholder={messages.login.email}
                 size="large"
               />
             </Form.Item>
 
             <Form.Item
               name="password"
-              rules={[{ required: true, message: 'Please input your password!' }]}
+              rules={[{ required: true, message: messages.login.passwordRequired }]}
             >
               <Input.Password
                 prefix={<LockOutlined />}
-                placeholder="Password"
+                placeholder={messages.login.password}
                 size="large"
               />
             </Form.Item>
 
             <Form.Item>
-              <Button 
-                type="primary" 
-                htmlType="submit" 
-                size="large" 
+              <Button
+                type="primary"
+                htmlType="submit"
+                size="large"
                 block
                 loading={loading}
               >
-                Log in
+                {messages.login.submit}
               </Button>
             </Form.Item>
           </Form>
-          
+
           <div style={{ textAlign: 'center' }}>
-            <Text>Don't have an account? </Text>
-            <Link href="/auth/register">Register now</Link>
+            <Text>{messages.login.noAccount} </Text>
+            <Link href="/auth/register">{messages.login.registerNow}</Link>
           </div>
         </Card>
       </div>

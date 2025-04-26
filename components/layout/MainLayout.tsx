@@ -13,13 +13,13 @@ import {
   DashboardOutlined,
   MenuOutlined,
   HomeOutlined,
-  GlobalOutlined,
 } from "@ant-design/icons";
 import { useRouter } from "next/router";
 import { useLocale } from "../../locale";
 import { useTheme } from "../../theme";
 import { useAuth } from "../../context/AuthContext";
 import styles from '../../styles/MainLayout.module.css';
+import LanguageMenu from "./LanguageMenu";
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -29,7 +29,7 @@ interface MainLayoutProps {
 const { Header, Content, Footer } = Layout;
 
 export default function MainLayout({ children }: MainLayoutProps) {
-  const { locale, antdLocale, changeLocale } = useLocale();
+  const { antdLocale, messages } = useLocale();
   const { theme, toggleTheme } = useTheme();
   const { user, isAuthenticated, logout } = useAuth();
   const router = useRouter();
@@ -70,22 +70,22 @@ export default function MainLayout({ children }: MainLayoutProps) {
     {
       key: "home",
       icon: <HomeOutlined />,
-      label: "Home",
+      label: messages.mainLayout.home,
     },
     {
       key: "knowledge",
       icon: <DatabaseOutlined />,
-      label: "Knowledge",
+      label: messages.mainLayout.knowledge,
     },
     {
       key: "files",
       icon: <FileOutlined />,
-      label: "Files",
+      label: messages.mainLayout.files,
     },
     {
       key: "agent",
       icon: <RobotOutlined />,
-      label: "AI Agent",
+      label: messages.mainLayout.aiAgent,
     },
     // Admin section - only visible to users with admin permissions
     ...(hasAdminPermissions
@@ -93,7 +93,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
         {
           key: "admin",
           icon: <DashboardOutlined />,
-          label: "Monitoring",
+          label: messages.mainLayout.monitoring,
           onClick: () => router.push("/admin/tasks"),
         },
       ]
@@ -104,25 +104,13 @@ export default function MainLayout({ children }: MainLayoutProps) {
     {
       key: "theme",
       icon: theme === "light" ? <SunOutlined /> : <MoonOutlined />,
-      label: "Theme",
+      label: messages.mainLayout.theme,
       onClick: toggleTheme,
     },
     {
       key: "locale-menu",
-      icon: <GlobalOutlined />,
-      label: locale === "en" ? "English" : "Tiếng Việt",
-      children: [
-        {
-          key: "en",
-          label: "English",
-          onClick: () => changeLocale("en"),
-        },
-        {
-          key: "vi",
-          label: "Tiếng Việt",
-          onClick: () => changeLocale("vi"),
-        },
-      ],
+      label: <LanguageMenu />,
+      // Remove icon and children, handled inside LanguageMenu
     },
     // Auth menu items are conditionally displayed
     ...(isAuthenticated
@@ -130,24 +118,24 @@ export default function MainLayout({ children }: MainLayoutProps) {
         {
           key: "profile",
           icon: <UserOutlined />,
-          label: user?.name || "Profile",
+          label: user?.name || messages.mainLayout.profile,
         },
         {
           key: "logout",
           icon: <LogoutOutlined />,
-          label: "Logout",
+          label: messages.mainLayout.logout,
         },
       ]
       : [
         {
           key: "login",
           icon: <LoginOutlined />,
-          label: "Login",
+          label: messages.mainLayout.login,
         },
         {
           key: "register",
           icon: <UserAddOutlined />,
-          label: "Register",
+          label: messages.mainLayout.register,
         },
       ]),
   ];
@@ -225,7 +213,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
 
         {/* Footer */}
         <Footer className={`${styles.footer} ${theme === "dark" ? styles.footerDark : styles.footerLight}`}>
-          N-Flow © {new Date().getFullYear()} - Knowledge Management Platform
+          {messages.mainLayout.footer} © {new Date().getFullYear()} - Knowledge Management Platform
         </Footer>
       </Layout>
     </ConfigProvider>

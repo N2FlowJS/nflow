@@ -14,6 +14,7 @@ import MainLayout from '../../components/layout/MainLayout';
 import { useAuth } from '../../context/AuthContext';
 import { IKnowledge } from "../../models/IKnowledge";
 import { createKnowledge, deleteKnowledge, fetchAllKnowledge, updateKnowledge } from '../../services/knowledgeService';
+import { useLocale } from '../../locale';
 
 const { Title, Text } = Typography;
 
@@ -25,6 +26,7 @@ export default function KnowledgeList() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const router = useRouter();
   const { isAuthenticated, user } = useAuth();
+  const { messages } = useLocale();
 
   // Load knowledge items on component mount
   useEffect(() => {
@@ -105,7 +107,7 @@ export default function KnowledgeList() {
   const columns = [
 
     {
-      title: 'Name',
+      title: messages.knowledgeList.name,
       dataIndex: 'name',
       key: 'name',
       width: '20%',
@@ -114,18 +116,18 @@ export default function KnowledgeList() {
       ),
     },
     {
-      title: 'Description',
+      title: messages.knowledgeList.description,
       dataIndex: 'description',
       key: 'description',
     },
     {
-      title: 'Created By',
+      title: messages.knowledgeList.createdBy,
       dataIndex: 'createdBy',
       key: 'createdBy',
       render: (createdBy: { name: string }) => createdBy?.name || 'Unknown',
     },
     {
-      title: 'Actions',
+      title: messages.knowledgeList.actions,
       key: 'actions',
       width: '15%',
       render: (_: any, record: IKnowledge) => (
@@ -141,10 +143,10 @@ export default function KnowledgeList() {
             onClick={() => router.push(`/knowledge/${record.id}/files`)}
           />
           <Popconfirm
-            title="Are you sure you want to delete this item?"
+            title={messages.knowledgeList.deleteConfirmation}
             onConfirm={() => handleDelete(record.id)}
-            okText="Yes"
-            cancelText="No"
+            okText={messages.knowledgeList.yes}
+            cancelText={messages.knowledgeList.no}
           >
             <Button type="text" danger icon={<DeleteOutlined />} />
           </Popconfirm>
@@ -154,25 +156,25 @@ export default function KnowledgeList() {
   ];
 
   return (
-    <MainLayout title="Knowledge Management">
+    <MainLayout title={messages.knowledgeList.knowledgeManagement}>
       <div style={{ padding: '24px' }}>
         <Space direction="vertical" size="large" style={{ width: '100%' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Title level={2}>Knowledge Management</Title>
+            <Title level={2}>{messages.knowledgeList.knowledgeManagement}</Title>
             <Button
               type="primary"
               icon={<PlusOutlined />}
               onClick={() => showModal()}
               disabled={!isAuthenticated}
             >
-              Add Knowledge
+              {messages.knowledgeList.addKnowledge}
             </Button>
           </div>
 
           {!isAuthenticated && (
             <div style={{ marginBottom: 16 }}>
               <Text type="warning">
-                Please log in to create new knowledge items.
+                {messages.knowledgeList.loginRequired}
               </Text>
             </div>
           )}

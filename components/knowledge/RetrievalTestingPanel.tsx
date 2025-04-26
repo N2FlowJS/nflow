@@ -6,8 +6,9 @@ import {
 import { SearchOutlined, ExperimentOutlined } from '@ant-design/icons';
 import { testKnowledgeRetrieval } from '../../services/knowledgeService';
 import { SearchSimilarResult } from '@lib/services/vectorSearchService';
+import { useLocale } from '../../locale'; // Add this import
 
-const {  Text, Paragraph } = Typography;
+const { Text, Paragraph } = Typography;
 const { TextArea } = Input;
 const { Panel } = Collapse;
 const { useBreakpoint } = Grid;
@@ -17,6 +18,7 @@ interface RetrievalTestingPanelProps {
 }
 
 const RetrievalTestingPanel: React.FC<RetrievalTestingPanelProps> = ({ knowledgeId }) => {
+    const { t } = useLocale(); // Get the t function
     const [query, setQuery] = useState('');
     const [limit, setLimit] = useState(5);
     const [threshold, setThreshold] = useState(0.7);
@@ -31,7 +33,7 @@ const RetrievalTestingPanel: React.FC<RetrievalTestingPanelProps> = ({ knowledge
 
     const handleRunTest = async () => {
         if (!query.trim()) {
-            setError('Please enter a query to test');
+            setError(t('knowledgeDetail.testing.queryError'));
             return;
         }
 
@@ -48,7 +50,7 @@ const RetrievalTestingPanel: React.FC<RetrievalTestingPanelProps> = ({ knowledge
             setTestResult(result);
         } catch (err) {
             console.error('Error running retrieval test:', err);
-            setError('Failed to run retrieval test. Please try again.');
+            setError(t('knowledgeDetail.testing.runFailedError'));
         } finally {
             setLoading(false);
         }
@@ -63,7 +65,7 @@ const RetrievalTestingPanel: React.FC<RetrievalTestingPanelProps> = ({ knowledge
 
         return (
             <Tag color={color}>
-                {(similarity * 100).toFixed(1)}% match
+                { t('knowledgeDetail.testing.similarityMatch', { percent: (similarity * 100).toFixed(1) })}
             </Tag>
         );
     };
@@ -76,7 +78,7 @@ const RetrievalTestingPanel: React.FC<RetrievalTestingPanelProps> = ({ knowledge
             title={
                 <Space>
                     <ExperimentOutlined />
-                    <span>Retrieval Testing</span>
+                    <span>{t('knowledgeDetail.testing.title')}</span>
                 </Space>
             }
             className="retrieval-testing-panel"
@@ -88,9 +90,9 @@ const RetrievalTestingPanel: React.FC<RetrievalTestingPanelProps> = ({ knowledge
                 )}
 
                 <div>
-                    <Text strong>Test Query</Text>
+                    <Text strong>{t('knowledgeDetail.testing.testQueryLabel')}</Text>
                     <TextArea
-                        placeholder="Enter your test query here..."
+                        placeholder={t('knowledgeDetail.testing.testQueryPlaceholder')}
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
                         rows={isMobile ? 2 : 3}
@@ -107,7 +109,7 @@ const RetrievalTestingPanel: React.FC<RetrievalTestingPanelProps> = ({ knowledge
                         flex: 1,
                         minWidth: isMobile ? '100%' : '200px'
                     }}>
-                        <Text strong>Results Limit</Text>
+                        <Text strong>{t('knowledgeDetail.testing.resultsLimitLabel')}</Text>
                         <div style={{
                             display: 'flex',
                             alignItems: 'center',
@@ -136,7 +138,7 @@ const RetrievalTestingPanel: React.FC<RetrievalTestingPanelProps> = ({ knowledge
                         flex: 1,
                         minWidth: isMobile ? '100%' : '200px'
                     }}>
-                        <Text strong>Similarity Threshold</Text>
+                        <Text strong>{t('knowledgeDetail.testing.similarityThresholdLabel')}</Text>
                         <div style={{
                             display: 'flex',
                             alignItems: 'center',
@@ -174,35 +176,35 @@ const RetrievalTestingPanel: React.FC<RetrievalTestingPanelProps> = ({ knowledge
                     block
                     size={isMobile ? 'middle' : 'large'}
                 >
-                    Run Test
+                    {t('knowledgeDetail.testing.runTestButton')}
                 </Button>
 
                 {loading && (
                     <div style={{ textAlign: 'center', padding: isMobile ? '12px 0' : '20px 0' }}>
-                        <Spin tip="Running retrieval test..." />
+                        <Spin tip={t('knowledgeDetail.testing.runningTestTip')} />
                     </div>
                 )}
 
                 {testResult && !loading && (
                     <>
                         <Divider orientation={isMobile ? "left" : "center"} style={{ margin: isMobile ? '12px 0' : '24px 0' }}>
-                            Test Results
+                            {t('knowledgeDetail.testing.resultsTitle')}
                         </Divider>
                         <div className="test-results">
                             <Space direction="vertical" style={{ width: '100%' }} size={isMobile ? 'small' : 'middle'}>
                                 <div>
-                                    <Text type="secondary">Time:</Text> {new Date(testResult.timestamp).toLocaleString()}
+                                    <Text type="secondary">{t('knowledgeDetail.testing.timeLabel')}</Text> {new Date(testResult.timestamp).toLocaleString()}
                                 </div>
 
                                 <Alert
-                                    message={`Found ${testResult.results.length} results for your query`}
+                                    message={t('knowledgeDetail.testing.resultsFoundMessage', { count: testResult.results.length })}
                                     type={testResult.results.length > 0 ? "success" : "info"}
                                     showIcon
                                 />
 
                                 {testResult.results.length === 0 ? (
                                     <Empty
-                                        description="No results found. Try adjusting your query or lowering the similarity threshold."
+                                        description={t('knowledgeDetail.testing.noResultsFound')}
                                         image={Empty.PRESENTED_IMAGE_SIMPLE}
                                     />
                                 ) : (
@@ -223,7 +225,7 @@ const RetrievalTestingPanel: React.FC<RetrievalTestingPanelProps> = ({ knowledge
                                                             flexWrap: 'wrap',
                                                             gap: '8px'
                                                         }}>
-                                                            <Text strong>{index + 1}. From: {item.fileName}</Text>
+                                                            <Text strong>{t('knowledgeDetail.testing.resultItemTitle', { index: index + 1, fileName: item.fileName })}</Text>
                                                             {isMobile && renderSimilarityBadge(item.similarity)}
                                                         </div>
                                                     }
@@ -241,7 +243,7 @@ const RetrievalTestingPanel: React.FC<RetrievalTestingPanelProps> = ({ knowledge
                                                         ellipsis={{
                                                             rows: isMobile ? 3 : 4,
                                                             expandable: true,
-                                                            symbol: 'more'
+                                                            symbol: t('knowledgeDetail.testing.expandLabel')
                                                         }}
                                                     >
                                                         {item.content}
@@ -250,7 +252,7 @@ const RetrievalTestingPanel: React.FC<RetrievalTestingPanelProps> = ({ knowledge
 
                                                 {item.metadata && Object.keys(item.metadata).length > 0 && (
                                                     <Collapse ghost style={{ marginTop: '8px' }}>
-                                                        <Panel header="Metadata" key="1">
+                                                        <Panel header={t('knowledgeDetail.testing.metadataHeader')} key="1">
                                                             <div style={{
                                                                 maxWidth: '100%',
                                                                 overflowX: 'auto'

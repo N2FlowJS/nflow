@@ -46,6 +46,7 @@ import { format } from "date-fns";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
+import { useLocale } from "@locale/index";
 
 const { Title, Text } = Typography;
 const { TabPane } = Tabs;
@@ -64,6 +65,7 @@ export default function KnowledgeDetail() {
   const [savingFileConfig, setSavingFileConfig] = useState(false);
   const screens = useBreakpoint();
   const isMobile = !screens.md;
+  const { messages } = useLocale();
 
   const fetchKnowledgeDetail = async () => {
     if (!id || typeof id !== "string") return;
@@ -101,7 +103,7 @@ export default function KnowledgeDetail() {
           config: config,
         });
       } else {
-        message.error("Failed to fetch knowledge details");
+        message.error(messages.knowledgeDetail.fetchKnowledgeFailed);
       }
     } catch (error) {
       console.error(error);
@@ -173,12 +175,12 @@ export default function KnowledgeDetail() {
         selectedFileForConfig.id,
         config ? JSON.stringify(config) : null
       );
-      message.success("File configuration updated successfully");
+      message.success(messages.knowledgeDetail.fileConfigUpdated);
       setFileConfigModalVisible(false);
       fetchKnowledgeDetail();
     } catch (error) {
       console.error("Error saving file config:", error);
-      message.error("Failed to update file configuration");
+      message.error(messages.knowledgeDetail.fileConfigUpdateFailed);
     } finally {
       setSavingFileConfig(false);
     }
@@ -191,7 +193,7 @@ export default function KnowledgeDetail() {
 
   if (loading) {
     return (
-      <MainLayout title="Loading Knowledge">
+      <MainLayout title={messages.knowledgeDetail.loadingKnowledge}>
         <div style={{ padding: "24px", textAlign: "center" }}>
           <Spin size="large" />
         </div>
@@ -201,11 +203,11 @@ export default function KnowledgeDetail() {
 
   if (!knowledge && !loading) {
     return (
-      <MainLayout title="Knowledge Not Found">
+      <MainLayout title={messages.knowledgeDetail.knowledgeNotFound}>
         <div style={{ padding: "24px" }}>
-          <Title level={4}>Knowledge not found</Title>
+          <Title level={4}>{messages.knowledgeDetail.knowledgeNotFound}</Title>
           <Button type="primary" onClick={() => router.push("/knowledge")}>
-            Back to Knowledge List
+            {messages.knowledgeDetail.backToKnowledgeList}
           </Button>
         </div>
       </MainLayout>
@@ -218,7 +220,7 @@ export default function KnowledgeDetail() {
       <Space direction="vertical" style={{ width: '100%' }} size={isMobile ? 'small' : 'middle'}>
         {/* Creator Information Card */}
         <Card
-          title="Creator Information"
+          title={messages.knowledgeDetail.creatorInformation}
           size={isMobile ? "small" : "default"}
           style={{ marginBottom: isMobile ? 12 : 24 }}
         >
@@ -254,20 +256,20 @@ export default function KnowledgeDetail() {
               </div>
             </div>
           ) : (
-            <Text type="secondary">Creator information not available</Text>
+            <Text type="secondary">{messages.knowledgeDetail.creatorInfoNotAvailable}</Text>
           )}
         </Card>
 
         {/* Stats Card */}
         <Card
-          title="Statistics"
+          title={messages.knowledgeDetail.statistics}
           size={isMobile ? "small" : "default"}
           style={{ marginBottom: isMobile ? 12 : 24 }}
         >
           <Row gutter={[16, 16]}>
             <Col span={8}>
               <Statistic
-                title="Files"
+                title={messages.knowledgeDetail.files}
                 value={knowledge?.files?.length || 0}
                 prefix={<FileOutlined />}
                 valueStyle={{ fontSize: isMobile ? 20 : 24 }}
@@ -275,7 +277,7 @@ export default function KnowledgeDetail() {
             </Col>
             <Col span={8}>
               <Statistic
-                title="Users"
+                title={messages.knowledgeDetail.users}
                 value={knowledge?.users?.length || 0}
                 prefix={<UserOutlined />}
                 valueStyle={{ fontSize: isMobile ? 20 : 24 }}
@@ -283,7 +285,7 @@ export default function KnowledgeDetail() {
             </Col>
             <Col span={8}>
               <Statistic
-                title="Teams"
+                title={messages.knowledgeDetail.teams}
                 value={knowledge?.teams?.length || 0}
                 prefix={<TeamOutlined />}
                 valueStyle={{ fontSize: isMobile ? 20 : 24 }}
@@ -294,20 +296,20 @@ export default function KnowledgeDetail() {
 
         {/* Dates Card */}
         <Card
-          title="Dates"
+          title={messages.knowledgeDetail.dates}
           size={isMobile ? "small" : "default"}
           style={{ marginBottom: isMobile ? 12 : 24 }}
         >
           <Space direction="vertical" style={{ width: "100%" }}>
             <div>
-              <Text type="secondary">Created:</Text>
+              <Text type="secondary">{messages.knowledgeDetail.created}:</Text>
               <div>
                 <CalendarOutlined /> {formatDate(knowledge?.createdAt)}
               </div>
             </div>
             <Divider style={{ margin: "8px 0" }} />
             <div>
-              <Text type="secondary">Last Updated:</Text>
+              <Text type="secondary">{messages.knowledgeDetail.lastUpdated}:</Text>
               <div>
                 <CalendarOutlined /> {formatDate(knowledge?.updatedAt)}
               </div>
@@ -317,7 +319,7 @@ export default function KnowledgeDetail() {
 
         {/* Associated Users Card */}
         <Card
-          title="Associated Users"
+          title={messages.knowledgeDetail.associatedUsers}
           size={isMobile ? "small" : "default"}
           style={{ marginBottom: isMobile ? 12 : 24 }}
         >
@@ -336,7 +338,7 @@ export default function KnowledgeDetail() {
             />
           ) : (
             <Empty
-              description="No users associated"
+              description={messages.knowledgeDetail.noUsersAssociated}
               image={Empty.PRESENTED_IMAGE_SIMPLE}
             />
           )}
@@ -344,7 +346,7 @@ export default function KnowledgeDetail() {
 
         {/* Associated Teams Card */}
         <Card
-          title="Associated Teams"
+          title={messages.knowledgeDetail.associatedTeams}
           size={isMobile ? "small" : "default"}
         >
           {knowledge?.teams && knowledge.teams.length > 0 ? (
@@ -368,7 +370,7 @@ export default function KnowledgeDetail() {
             />
           ) : (
             <Empty
-              description="No teams associated"
+              description={messages.knowledgeDetail.noTeamsAssociated}
               image={Empty.PRESENTED_IMAGE_SIMPLE}
             />
           )}
@@ -378,15 +380,15 @@ export default function KnowledgeDetail() {
   };
 
   return (
-    <MainLayout title={knowledge?.name || "Knowledge Detail"}>
+    <MainLayout title={knowledge?.name || messages.knowledgeDetail.knowledgeDetail}>
       {/* Breadcrumb and Header - more compact on mobile */}
       <Row gutter={[isMobile ? 8 : 16, isMobile ? 12 : 24]} style={{ marginBottom: isMobile ? 12 : 24 }}>
         <Col span={24}>
           <Breadcrumb style={{ marginBottom: isMobile ? 8 : 16 }}>
             <Breadcrumb.Item>
-              <Link href="/knowledge">Knowledge</Link>
+              <Link href="/knowledge">{messages.knowledgeDetail.knowledge}</Link>
             </Breadcrumb.Item>
-            <Breadcrumb.Item>{knowledge?.name || "Detail"}</Breadcrumb.Item>
+            <Breadcrumb.Item>{knowledge?.name || messages.knowledgeDetail.detail}</Breadcrumb.Item>
           </Breadcrumb>
         </Col>
       </Row>
@@ -407,7 +409,7 @@ export default function KnowledgeDetail() {
               tab={
                 <span>
                   <FileOutlined />
-                  <span style={{ marginLeft: 8 }}>Data set</span>
+                  <span style={{ marginLeft: 8 }}>{messages.knowledgeDetail.dataSet}</span>
                 </span>
               }
               key="files"
@@ -424,7 +426,7 @@ export default function KnowledgeDetail() {
               tab={
                 <span>
                   <SettingOutlined />
-                  <span style={{ marginLeft: 8 }}>Config</span>
+                  <span style={{ marginLeft: 8 }}>{messages.knowledgeDetail.config}</span>
                 </span>
               }
               key="content"
@@ -432,7 +434,7 @@ export default function KnowledgeDetail() {
               <Form form={form} layout="vertical">
                 {/* Description Card */}
                 <Card
-                  title="Description"
+                  title={messages.knowledgeDetail.description}
                   style={{ marginBottom: isMobile ? 12 : 24 }}
                   size={isMobile ? "small" : "default"}
                 >
@@ -456,7 +458,7 @@ export default function KnowledgeDetail() {
                   disabled={!isAuthenticated}
                   size={isMobile ? "middle" : "large"}
                 >
-                  Save Changes
+                  {messages.knowledgeDetail.saveChanges}
                 </Button>
               </Form>
             </TabPane>
@@ -465,7 +467,7 @@ export default function KnowledgeDetail() {
               tab={
                 <span>
                   <SearchOutlined />
-                  <span style={{ marginLeft: 8 }}>Testing</span>
+                  <span style={{ marginLeft: 8 }}>{messages.knowledgeDetail.testing.testing}</span>
                 </span>
               }
               key="testing"
@@ -479,7 +481,7 @@ export default function KnowledgeDetail() {
               tab={
                 <span>
                   <InfoCircleOutlined />
-                  <span style={{ marginLeft: 8 }}>Info</span>
+                  <span style={{ marginLeft: 8 }}>{messages.knowledgeDetail.info}</span>
                 </span>
               }
               key="info"

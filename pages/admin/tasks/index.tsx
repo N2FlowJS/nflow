@@ -35,6 +35,8 @@ import { format, formatDistance } from 'date-fns';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
+import { useLocale } from '@locale/index';
+
 const { useBreakpoint } = Grid;
 const { Title, Text } = Typography;
 
@@ -48,6 +50,7 @@ export default function TasksMonitorPage() {
   const [taskModalVisible, setTaskModalVisible] = useState(false);
   const [refreshInterval, setRefreshInterval] = useState<NodeJS.Timeout | null>(null);
   const screens = useBreakpoint();
+  const { messages } = useLocale();
 
   // Fetch data initially and set up polling
   useEffect(() => {
@@ -131,13 +134,13 @@ export default function TasksMonitorPage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'pending':
-        return <Badge status="warning" text="Pending" />;
+        return <Badge status="warning" text={messages.tasksMonitor.pending} />;
       case 'processing':
-        return <Badge status="processing" text="Processing" />;
+        return <Badge status="processing" text={messages.tasksMonitor.processing} />;
       case 'completed':
-        return <Badge status="success" text="Completed" />;
+        return <Badge status="success" text={messages.tasksMonitor.completed} />;
       case 'failed':
-        return <Badge status="error" text="Failed" />;
+        return <Badge status="error" text={messages.tasksMonitor.failed} />;
       default:
         return <Badge status="default" text={status} />;
     }
@@ -225,12 +228,12 @@ export default function TasksMonitorPage() {
   const isMobile = !screens.sm;
 
   return (
-    <MainLayout title="System Monitoring">
+    <MainLayout title={messages.tasksMonitor.systemMonitoring}>
       <Row gutter={[isMobile ? 8 : 16, isMobile ? 12 : 24]} style={{ marginBottom: isMobile ? 12 : 24 }}>
         <Col span={24}>
           <Breadcrumb style={{ marginBottom: isMobile ? 8 : 16 }}>
             <Breadcrumb.Item>
-              <Link href="/admin">Admin Monitoring</Link>
+              <Link href="/admin">{messages.tasksMonitor.adminMonitoring}</Link>
             </Breadcrumb.Item>
           </Breadcrumb>
         </Col>
@@ -240,7 +243,7 @@ export default function TasksMonitorPage() {
           <Card>
             <Row gutter={[16, 16]} align="middle">
               <Col>
-                <Title level={3}>System Status Monitor</Title>
+                <Title level={3}>{messages.tasksMonitor.systemStatusMonitor}</Title>
               </Col>
               <Col flex="auto" />
               <Col>
@@ -250,7 +253,7 @@ export default function TasksMonitorPage() {
                   onClick={handleRefresh}
                   loading={loadingData}
                 >
-                  Refresh
+                  {messages.tasksMonitor.refresh}
                 </Button>
               </Col>
             </Row>
@@ -258,7 +261,7 @@ export default function TasksMonitorPage() {
 
           {error && (
             <Alert
-              message="Error Loading Data"
+              message={messages.tasksMonitor.errorLoadingData}
               description={error}
               type="error"
               showIcon
@@ -271,7 +274,7 @@ export default function TasksMonitorPage() {
               <Col xs={24} sm={12} md={6}>
                 <Card>
                   <Statistic
-                    title="Database Status"
+                    title={messages.tasksMonitor.databaseStatus}
                     value="Connected"
                     valueStyle={{ color: '#3f8600' }}
                     prefix={<DatabaseOutlined />}
@@ -281,18 +284,18 @@ export default function TasksMonitorPage() {
               <Col xs={24} sm={12} md={6}>
                 <Card>
                   <Statistic
-                    title="Worker Status"
-                    value={data.workerConfig.enabled ? 'Enabled' : 'Disabled'}
+                    title={messages.tasksMonitor.workerStatus}
+                    value={data.workerConfig.enabled ? messages.tasksMonitor.enabled : messages.tasksMonitor.disabled}
                     valueStyle={{ color: data.workerConfig.enabled ? '#3f8600' : '#cf1322' }}
                     prefix={<RobotOutlined />}
                   />
-                  <Text type="secondary">Workers: {data.workerConfig.maxWorkers}</Text>
+                  <Text type="secondary">{messages.tasksMonitor.workers}: {data.workerConfig.maxWorkers}</Text>
                 </Card>
               </Col>
               <Col xs={24} sm={12} md={6}>
                 <Card>
                   <Statistic
-                    title="Active Tasks"
+                    title={messages.tasksMonitor.activeTasks}
                     value={data.taskStats.processing}
                     valueStyle={{ color: '#1890ff' }}
                     prefix={<SyncOutlined spin={data.taskStats.processing > 0} />}
@@ -302,7 +305,7 @@ export default function TasksMonitorPage() {
               <Col xs={24} sm={12} md={6}>
                 <Card>
                   <Statistic
-                    title="Pending Tasks"
+                    title={messages.tasksMonitor.pendingTasks}
                     value={data.taskStats.pending}
                     valueStyle={{ color: data.taskStats.pending > 0 ? '#faad14' : '#8c8c8c' }}
                     prefix={<ClockCircleOutlined />}
@@ -313,7 +316,7 @@ export default function TasksMonitorPage() {
           )}
 
           {data && (
-            <Card title="Processing Summary">
+            <Card title={messages.tasksMonitor.processingSummary}>
               <Row gutter={[16, 16]}>
                 <Col span={24}>
                   <Progress
@@ -332,7 +335,7 @@ export default function TasksMonitorPage() {
                 </Col>
                 <Col xs={12} sm={6}>
                   <Statistic
-                    title="Completed"
+                    title={messages.tasksMonitor.completedTasks}
                     value={data.taskStats.completed}
                     prefix={<CheckCircleOutlined />}
                     valueStyle={{ color: '#52c41a' }}
@@ -340,7 +343,7 @@ export default function TasksMonitorPage() {
                 </Col>
                 <Col xs={12} sm={6}>
                   <Statistic
-                    title="Failed"
+                    title={messages.tasksMonitor.failedTasks}
                     value={data.taskStats.failed}
                     prefix={<CloseCircleOutlined />}
                     valueStyle={{ color: '#f5222d' }}
@@ -348,7 +351,7 @@ export default function TasksMonitorPage() {
                 </Col>
                 <Col xs={12} sm={6}>
                   <Statistic
-                    title="Processing"
+                    title={messages.tasksMonitor.processingTasks}
                     value={data.taskStats.processing}
                     prefix={<SyncOutlined spin={data.taskStats.processing > 0} />}
                     valueStyle={{ color: '#1890ff' }}
@@ -356,7 +359,7 @@ export default function TasksMonitorPage() {
                 </Col>
                 <Col xs={12} sm={6}>
                   <Statistic
-                    title="Pending"
+                    title={messages.tasksMonitor.pendingTasks}
                     value={data.taskStats.pending}
                     prefix={<ClockCircleOutlined />}
                     valueStyle={{ color: '#faad14' }}
@@ -367,7 +370,7 @@ export default function TasksMonitorPage() {
           )}
 
           {data && (
-            <Card title="Recent Tasks">
+            <Card title={messages.tasksMonitor.recentTasks}>
               <Table
                 dataSource={data.recentTasks}
                 columns={columns}
@@ -381,7 +384,7 @@ export default function TasksMonitorPage() {
 
         {/* Task Detail Modal */}
         <Modal
-          title="Task Details"
+          title={messages.tasksMonitor.taskDetails}
           open={taskModalVisible}
           onCancel={() => setTaskModalVisible(false)}
           footer={[
@@ -394,45 +397,45 @@ export default function TasksMonitorPage() {
                   router.push(`/admin/tasks/${taskDetail.id}`);
                 }}
               >
-                View Complete Details
+                {messages.tasksMonitor.viewCompleteDetails}
               </Button>
             ),
             <Button key="close" onClick={() => setTaskModalVisible(false)}>
-              Close
+              {messages.tasksMonitor.close}
             </Button>
           ]}
           width={700}
         >
           {taskDetail ? (
             <Descriptions bordered column={1}>
-              <Descriptions.Item label="Task ID">{taskDetail.id}</Descriptions.Item>
-              <Descriptions.Item label="Status">{getStatusBadge(taskDetail.status)}</Descriptions.Item>
+              <Descriptions.Item label={messages.tasksMonitor.taskId}>{taskDetail.id}</Descriptions.Item>
+              <Descriptions.Item label={messages.tasksMonitor.status}>{getStatusBadge(taskDetail.status)}</Descriptions.Item>
 
               {/* Add null checking for nested objects */}
               {taskDetail.file && (
                 <>
-                  <Descriptions.Item label="File Name">{taskDetail.file.originalName}</Descriptions.Item>
-                  <Descriptions.Item label="File ID">{taskDetail.file.id}</Descriptions.Item>
+                  <Descriptions.Item label={messages.tasksMonitor.fileName}>{taskDetail.file.originalName}</Descriptions.Item>
+                  <Descriptions.Item label={messages.tasksMonitor.fileId}>{taskDetail.file.id}</Descriptions.Item>
                 </>
               )}
 
-              <Descriptions.Item label="Created At">{formatDate(taskDetail.createdAt)}</Descriptions.Item>
-              <Descriptions.Item label="Updated At">{formatDate(taskDetail.updatedAt)}</Descriptions.Item>
+              <Descriptions.Item label={messages.tasksMonitor.createdAt}>{formatDate(taskDetail.createdAt)}</Descriptions.Item>
+              <Descriptions.Item label={messages.tasksMonitor.updatedAt}>{formatDate(taskDetail.updatedAt)}</Descriptions.Item>
 
               {taskDetail.completedAt && (
-                <Descriptions.Item label="Completed At">{formatDate(taskDetail.completedAt)}</Descriptions.Item>
+                <Descriptions.Item label={messages.tasksMonitor.completedAt}>{formatDate(taskDetail.completedAt)}</Descriptions.Item>
               )}
 
               {taskDetail.errorMessage && (
-                <Descriptions.Item label="Error Message">
+                <Descriptions.Item label={messages.tasksMonitor.errorMessage}>
                   <Alert message={taskDetail.errorMessage} type="error" />
                 </Descriptions.Item>
               )}
 
               {taskDetail.message && (
-                <Descriptions.Item label="Task Message">
+                <Descriptions.Item label={messages.tasksMonitor.taskMessage}>
                   <Alert
-                    message={taskDetail.status === 'failed' ? "Error" : "Information"}
+                    message={taskDetail.status === 'failed' ? messages.tasksMonitor.error : messages.tasksMonitor.information}
                     description={taskDetail.message}
                     type={taskDetail.status === 'failed' ? "error" : "info"}
                   />
@@ -440,14 +443,14 @@ export default function TasksMonitorPage() {
               )}
 
               {taskDetail.file && taskDetail.file.knowledge && (
-                <Descriptions.Item label="Knowledge">
+                <Descriptions.Item label={messages.tasksMonitor.knowledge}>
                   <a href={`/knowledge/${taskDetail.file.knowledge.id}`}>
                     {taskDetail.file.knowledge.name}
                   </a>
                 </Descriptions.Item>
               )}
 
-              <Descriptions.Item label="Actions">
+              <Descriptions.Item label={messages.tasksMonitor.actions}>
                 <Space>
                   {taskDetail.status === 'failed' && taskDetail.file && (
                     <Button
@@ -457,7 +460,7 @@ export default function TasksMonitorPage() {
                         setTaskModalVisible(false);
                       }}
                     >
-                      Retry Parsing
+                      {messages.tasksMonitor.retryParsing}
                     </Button>
                   )}
                   <Button
@@ -467,7 +470,7 @@ export default function TasksMonitorPage() {
                       setTaskModalVisible(false);
                     }}
                   >
-                    Delete Task
+                    {messages.tasksMonitor.deleteTask}
                   </Button>
                 </Space>
               </Descriptions.Item>
@@ -475,7 +478,7 @@ export default function TasksMonitorPage() {
           ) : (
             <div style={{ textAlign: 'center', padding: '20px' }}>
               <Spin />
-              <div style={{ marginTop: 8 }}>Loading task details...</div>
+              <div style={{ marginTop: 8 }}>{messages.tasksMonitor.loadingTaskDetails}</div>
             </div>
           )}
         </Modal>

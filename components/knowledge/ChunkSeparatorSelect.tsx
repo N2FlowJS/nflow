@@ -1,10 +1,12 @@
 import React from "react";
 import { Select, Form } from "antd";
-export type ConfigChunk ={
+import { useLocale } from "../../locale";
+
+export type ConfigChunk = {
     tokenChunk: number;
     chunkSeparator: string[];
-  }
-  
+}
+
 export const separatorOptions = [
     { label: 'Newline (\\n)', value: '\n' },
     { label: 'Carriage Return (\\r)', value: '\r' },
@@ -48,28 +50,23 @@ export const renderSeparatorTokens = (separators: string[]) => {
 
 interface ChunkSeparatorSelectProps {
     name: any;
-    label?: string;
-    tooltip?: string;
-    rules?: any[];
     form?: any;
 }
 
 const ChunkSeparatorSelect: React.FC<ChunkSeparatorSelectProps> = ({
     name,
-    label = "Chunk Separator",
-    tooltip = "Characters used to divide text into chunks (e.g., ['\\n','\\r'] for paragraphs)",
-    rules = [{ required: true, message: "Please enter chunk separator" }],
     form,
 }) => {
     const chunkSeparator = form ? Form.useWatch(name, form) : undefined;
+    const { t } = useLocale('knowledgeDetail');
 
     return (
         <>
             <Form.Item
                 name={name}
-                label={label}
-                tooltip={tooltip}
-                rules={rules}
+                label={t('chunkSeparator.label')}
+                tooltip={t('chunkSeparator.tooltip')}
+                rules={[{ required: true, message: t('chunkSeparator.description') }]}
                 getValueProps={(value) => ({
                     value: Array.isArray(value) ? value : typeof value === 'string' ? [value] : [],
                 })}
@@ -82,7 +79,7 @@ const ChunkSeparatorSelect: React.FC<ChunkSeparatorSelectProps> = ({
                 <Select
                     mode="tags"
                     style={{ width: '100%' }}
-                    placeholder="Enter or select chunk separators"
+                    placeholder={t('chunkSeparator.placeholder')}
                     tokenSeparators={[]}
                     options={separatorOptions}
                 />
