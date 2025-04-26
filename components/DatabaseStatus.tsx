@@ -8,6 +8,7 @@ import {
   DatabaseFilled,
 } from "@ant-design/icons";
 import { useRouter } from "next/router";
+import { useAuth } from "@context/AuthContext";
 
 const { Text } = Typography;
 
@@ -26,6 +27,13 @@ type WorkerStatus = {
   maxWorkers: number;
 };
 
+type CleanupWorkerStatus = {
+  enabled: boolean;
+  status: "running" | "stopped" | "error";
+  lastRun?: string;
+  lastDeleted?: number;
+};
+
 // This component only runs on client-side
 export default function DatabaseStatus() {
   const [dbStatus, setDbStatus] = useState<"connected" | "error" | "pending">(
@@ -33,6 +41,8 @@ export default function DatabaseStatus() {
   );
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [setupAttempted, setSetupAttempted] = useState(false);
+  const { user } = useAuth();
+
   const [workerStatus, setWorkerStatus] = useState<WorkerStatus>({
     enabled: false,
     status: "stopped",
@@ -44,6 +54,12 @@ export default function DatabaseStatus() {
     "disabled" | "checking" | "running" | "error"
   >("checking");
   const [nbaseTooltip, setNbaseTooltip] = useState("Checking Nbase status...");
+  const [cleanupWorkerStatus, setCleanupWorkerStatus] = useState<CleanupWorkerStatus>({
+    enabled: false,
+    status: "stopped",
+    lastRun: undefined,
+    lastDeleted: undefined,
+  });
   const router = useRouter();
 
   useEffect(() => {
@@ -116,20 +132,43 @@ export default function DatabaseStatus() {
       }
     }
 
+    // Check cleanup worker status
+    async function checkCleanupWorkerStatus() {
+      try {
+        const res = await fetch("/api/admin/cleanup-worker");
+        if (!res.ok) {
+          setCleanupWorkerStatus((prev) => ({ ...prev, status: "error" }));
+          return;
+        }
+        const data = await res.json();
+        setCleanupWorkerStatus({
+          enabled: data.enabled,
+          status: data.status,
+          lastRun: data.lastRun,
+          lastDeleted: data.lastDeleted,
+        });
+      } catch (error) {
+        setCleanupWorkerStatus((prev) => ({ ...prev, status: "error" }));
+      }
+    }
+
     // Check immediately
     checkStatus();
     checkWorkerStatus();
     checkNbaseStatus();
+    checkCleanupWorkerStatus();
 
     // Then poll every 5 seconds
     const dbInterval = setInterval(checkStatus, 5000);
     const workerInterval = setInterval(checkWorkerStatus, 5000);
     const nbaseInterval = setInterval(checkNbaseStatus, 5000);
+    const cleanupInterval = setInterval(checkCleanupWorkerStatus, 5000);
 
     return () => {
       clearInterval(dbInterval);
       clearInterval(workerInterval);
       clearInterval(nbaseInterval);
+      clearInterval(cleanupInterval);
     };
   }, []);
 
@@ -143,15 +182,15 @@ export default function DatabaseStatus() {
             dbStatus === "connected"
               ? "success"
               : dbStatus === "pending"
-              ? "processing"
-              : "error"
+                ? "processing"
+                : "error"
           }
           text={
             dbStatus === "connected"
               ? "Connected"
               : dbStatus === "pending"
-              ? "Connecting..."
-              : "Error"
+                ? "Connecting..."
+                : "Error"
           }
         />
         {errorMsg && (
@@ -159,11 +198,12 @@ export default function DatabaseStatus() {
             <Text type="danger">{errorMsg}</Text>
           </div>
         )}
-        <div>
+        {setupAttempted && <div>
           <Text type="secondary">
             Setup {setupAttempted ? "has been" : "has not been"} attempted
           </Text>
-        </div>
+        </div>}
+
       </div>
 
       <div style={{ marginTop: "8px" }}>
@@ -173,19 +213,19 @@ export default function DatabaseStatus() {
             !workerStatus.enabled
               ? "default"
               : workerStatus.status === "running"
-              ? "success"
-              : workerStatus.status === "stopped"
-              ? "warning"
-              : "error"
+                ? "success"
+                : workerStatus.status === "stopped"
+                  ? "warning"
+                  : "error"
           }
           text={
             !workerStatus.enabled
               ? "Disabled"
               : workerStatus.status === "running"
-              ? "Active"
-              : workerStatus.status === "stopped"
-              ? "Idle"
-              : "Error"
+                ? "Active"
+                : workerStatus.status === "stopped"
+                  ? "Idle"
+                  : "Error"
           }
         />
         {workerStatus.enabled && (
@@ -208,15 +248,57 @@ export default function DatabaseStatus() {
               nbaseStatus === "running"
                 ? "success"
                 : nbaseStatus === "checking"
-                ? "processing"
-                : "error"
+                  ? "processing"
+                  : "error"
             }
             text={<DatabaseFilled />}
           />
         </Tooltip>
       </div>
 
-      <div style={{ marginTop: "12px" }}>
+      <div style={{ marginTop: "8px" }}>
+        <Typography.Text strong>Conversation Cleanup Worker: </Typography.Text>
+        <Badge
+          status={
+            !cleanupWorkerStatus.enabled
+              ? "default"
+              : cleanupWorkerStatus.status === "running"
+                ? "success"
+                : cleanupWorkerStatus.status === "stopped"
+                  ? "warning"
+                  : "error"
+          }
+          text={
+            !cleanupWorkerStatus.enabled
+              ? "Disabled"
+              : cleanupWorkerStatus.status === "running"
+                ? "Active"
+                : cleanupWorkerStatus.status === "stopped"
+                  ? "Idle"
+                  : "Error"
+          }
+        />
+        {cleanupWorkerStatus.enabled && (
+          <div>
+            {cleanupWorkerStatus.lastRun && (
+              <div>
+                <Typography.Text type="secondary">
+                  Last run: {cleanupWorkerStatus.lastRun}
+                </Typography.Text>
+              </div>
+            )}
+            {typeof cleanupWorkerStatus.lastDeleted === "number" && (
+              <div>
+                <Typography.Text>
+                  Last deleted: {cleanupWorkerStatus.lastDeleted} conversations
+                </Typography.Text>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {["admin", "owner"].includes(user?.permission || "") && <div style={{ marginTop: "12px" }}>
         <Button
           type="primary"
           size="small"
@@ -224,7 +306,9 @@ export default function DatabaseStatus() {
         >
           View Task Monitor
         </Button>
-      </div>
+      </div>}
+
+
     </div>
   );
 

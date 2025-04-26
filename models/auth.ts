@@ -8,7 +8,7 @@ export interface User {
   createdAgents?: any[];
   createdAt?: string;
   updatedAt?: string;
-  permission: "owner" | "maintainer" | "developer" | "guest";
+  permission: "owner" | "maintainer" | "developer" | "guest" | 'admin';
 }
 
 export interface RegisterData {

@@ -1,10 +1,10 @@
-import { Button, Spin, message } from "antd";
+import { Spin, message } from "antd";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import MainLayout from "@components/layout/MainLayout";
 import { useAuth } from "@context/AuthContext";
 import FlowEditorHeader from "./header";
-import { fetchAgent, fetchUserAgents } from "@services/agentService"; // Use services
+import { fetchAgent } from "@services/agentService"; // Use services
 import { ReactFlowProvider } from "@xyflow/react";
 import FlowEditor from "@components/agent/flow-editor";
 
@@ -14,7 +14,6 @@ export default function FlowEditorPage() {
   const { user } = useAuth();
 
   const [loading, setLoading] = useState<boolean>(false);
-  const [saving, setSaving] = useState<boolean>(false);
   const [agent, setAgent] = useState<any | null>(null);
 
   useEffect(() => {
@@ -37,9 +36,7 @@ export default function FlowEditorPage() {
     loadAgentData();
   }, [agentId, user]);
 
-  const handleAgentChange = (id: string) => {
-    router.push(`/agent/flow-editor?agentId=${id}`);
-  };
+
 
   if (loading) {
     return (

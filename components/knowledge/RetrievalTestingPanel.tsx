@@ -7,7 +7,7 @@ import { SearchOutlined, ExperimentOutlined } from '@ant-design/icons';
 import { testKnowledgeRetrieval } from '../../services/knowledgeService';
 import { SearchSimilarResult } from '@lib/services/vectorSearchService';
 
-const { Title, Text, Paragraph } = Typography;
+const {  Text, Paragraph } = Typography;
 const { TextArea } = Input;
 const { Panel } = Collapse;
 const { useBreakpoint } = Grid;
@@ -70,7 +70,6 @@ const RetrievalTestingPanel: React.FC<RetrievalTestingPanelProps> = ({ knowledge
 
     // Calculate responsive sizes
     const isMobile = !screens.sm;
-    const sliderWidth = isMobile ? '100%' : 'flex: 1; margin-right: 16px';
 
     return (
         <Card

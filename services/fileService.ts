@@ -3,7 +3,6 @@ import { KnowledgeFile } from '../models/knowledge';
 import { logApiRequest, logApiResponse, logApiError } from '../utils/logger';
 import { IFile } from '../models/IFile';
 import { getFileChunks as getNbaseFileChunks } from '../lib/services/nbaseService';
-import { fetchTextChunksByFileId } from '../lib/services/localVectorService';
 import { IChunk } from '../models/IChunk';
 // Upload a single file to knowledge
 export const uploadFile = async (knowledgeId: string, file: File, onProgress?: (percent: number) => void): Promise<KnowledgeFile | null> => {

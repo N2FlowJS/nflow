@@ -64,7 +64,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
   const hasAdminPermissions =
     isAuthenticated &&
     user?.permission &&
-    (user.permission === "owner" || user.permission === "maintainer");
+    (user.permission === "owner" || user.permission === "maintainer" || user.permission === "admin");
 
   const menuItems = [
     {

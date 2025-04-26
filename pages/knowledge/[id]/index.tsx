@@ -389,25 +389,6 @@ export default function KnowledgeDetail() {
             </Breadcrumb.Item>
             <Breadcrumb.Item>{knowledge?.name || "Detail"}</Breadcrumb.Item>
           </Breadcrumb>
-
-          <Card size={isMobile ? "small" : "default"} >
-            <Row justify="space-between" align="middle">
-              <Col>
-                <Title level={isMobile ? 3 : 2} style={{ margin: 0 }}>
-                  {knowledge?.name}
-                </Title>
-              </Col>
-              <Col>
-                <Button
-                  icon={<ArrowLeftOutlined />}
-                  onClick={() => router.push("/knowledge")}
-                  size={isMobile ? "small" : "middle"}
-                >
-                  {isMobile ? "" : "Back to List"}
-                </Button>
-              </Col>
-            </Row>
-          </Card>
         </Col>
       </Row>
 
@@ -453,11 +434,10 @@ export default function KnowledgeDetail() {
                 {/* Description Card */}
                 <Card
                   title="Description"
-                  extra={<Text type="secondary" style={{ fontSize: isMobile ? 12 : 14 }}>Editing mode</Text>}
                   style={{ marginBottom: isMobile ? 12 : 24 }}
                   size={isMobile ? "small" : "default"}
                 >
-                  <KnowledgeDetailForm form={form}/>
+                  <KnowledgeDetailForm form={form} />
                 </Card>
 
                 {/* Chunking Configuration */}

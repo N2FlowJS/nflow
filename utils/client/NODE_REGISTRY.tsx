@@ -1,9 +1,11 @@
 import { NodeTypeString, NodeConfig, BeginNodeData, InterfaceNodeData, GenerateNodeData, CategorizeNodeData, RetrievalNodeData, InputOutputInfo, DecisionNodeData } from '../../models/flowTypes';
+import { BranchesOutlined, DatabaseOutlined, PlayCircleOutlined, QuestionOutlined, RobotOutlined, SendOutlined } from '@ant-design/icons';
 
 // Central registry of all node types
 export const NODE_REGISTRY: Record<NodeTypeString, NodeConfig> = {
   begin: {
     type: 'begin',
+    icon: <PlayCircleOutlined style={{ color: '#1677ff' }} />,
     color: {
       background: '#91caff',
       border: '#69b1ff',
@@ -26,6 +28,7 @@ export const NODE_REGISTRY: Record<NodeTypeString, NodeConfig> = {
 
   interface: {
     type: 'interface',
+    icon: <SendOutlined style={{ color: '#1677ff' }} />,
     color: {
       background: '#d4e6f9',
       border: '#91caff',
@@ -48,6 +51,7 @@ export const NODE_REGISTRY: Record<NodeTypeString, NodeConfig> = {
 
   generate: {
     type: 'generate',
+    icon: <RobotOutlined style={{ color: '#52c41a' }} />,
     color: {
       background: '#d9f7be',
       border: '#95de64',
@@ -59,8 +63,10 @@ export const NODE_REGISTRY: Record<NodeTypeString, NodeConfig> = {
       type: 'generate',
       form: {
         name: 'Generate',
+        role: 'assistant',
         description: 'Generate content using AI',
-        prompt: '',
+        prompt: `Role: Be a helpful assistant.
+- Additional knowledge: @`,
         model: '',
         outputVariable: 'generatedText',
         output: '', // Required by BaseForm
@@ -71,6 +77,7 @@ export const NODE_REGISTRY: Record<NodeTypeString, NodeConfig> = {
 
   categorize: {
     type: 'categorize',
+    icon: <BranchesOutlined style={{ color: "#eb2f96" }} />,
     color: {
       background: '#ffd6e7',
       border: '#ffadd2',
@@ -84,6 +91,7 @@ export const NODE_REGISTRY: Record<NodeTypeString, NodeConfig> = {
       form: {
         role: 'developer',
         name: 'Categorize',
+
         model: '',
 
         description: 'Categorize input into different paths',
@@ -108,6 +116,7 @@ export const NODE_REGISTRY: Record<NodeTypeString, NodeConfig> = {
 
   retrieval: {
     type: 'retrieval',
+    icon: <DatabaseOutlined style={{ color: '#595959' }} />,
     color: {
       background: '#d9d9d9',
       border: '#bfbfbf',
@@ -119,6 +128,7 @@ export const NODE_REGISTRY: Record<NodeTypeString, NodeConfig> = {
       type: 'retrieval',
       form: {
         name: 'Retrieval',
+        role: 'developer',
         description: 'Retrieve information from knowledge base',
         knowledgeIds: [],
         maxResults: 3,
@@ -129,6 +139,7 @@ export const NODE_REGISTRY: Record<NodeTypeString, NodeConfig> = {
   },
   decision: {
     type: 'decision',
+    icon: <QuestionOutlined style={{ color: '#fa8c16' }} />,
     color: {
       background: '#fff7e6',
       border: '#ffe58f',

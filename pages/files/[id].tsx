@@ -479,7 +479,6 @@ export default function FileDetailPage() {
                         label: (
                           <span>
                             <PartitionOutlined /> File Chunks
-                            <Badge count={file?.id ? "..." : 0} style={{ marginLeft: 8 }} />
                           </span>
                         ),
                         children: file?.id ? (

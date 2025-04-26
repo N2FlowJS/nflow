@@ -16,10 +16,12 @@ import { deleteParsingTask, parseFile } from '@services/fileService';
 import {
   Alert,
   Badge,
+  Breadcrumb,
   Button,
   Card,
   Col,
   Descriptions,
+  Grid,
   Modal,
   Progress,
   Row,
@@ -30,9 +32,10 @@ import {
   Typography
 } from 'antd';
 import { format, formatDistance } from 'date-fns';
+import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
-
+const { useBreakpoint } = Grid;
 const { Title, Text } = Typography;
 
 export default function TasksMonitorPage() {
@@ -44,6 +47,7 @@ export default function TasksMonitorPage() {
   const [taskDetail, setTaskDetail] = useState<any>(null);
   const [taskModalVisible, setTaskModalVisible] = useState(false);
   const [refreshInterval, setRefreshInterval] = useState<NodeJS.Timeout | null>(null);
+  const screens = useBreakpoint();
 
   // Fetch data initially and set up polling
   useEffect(() => {
@@ -218,9 +222,19 @@ export default function TasksMonitorPage() {
   if (!isAuthenticated) {
     return null; // Will redirect in useEffect
   }
+  const isMobile = !screens.sm;
 
   return (
     <MainLayout title="System Monitoring">
+      <Row gutter={[isMobile ? 8 : 16, isMobile ? 12 : 24]} style={{ marginBottom: isMobile ? 12 : 24 }}>
+        <Col span={24}>
+          <Breadcrumb style={{ marginBottom: isMobile ? 8 : 16 }}>
+            <Breadcrumb.Item>
+              <Link href="/admin">Admin Monitoring</Link>
+            </Breadcrumb.Item>
+          </Breadcrumb>
+        </Col>
+      </Row>
       <div style={{ maxWidth: 1200, margin: '0 auto' }}>
         <Space direction="vertical" style={{ width: '100%' }} size="large">
           <Card>

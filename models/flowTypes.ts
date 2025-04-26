@@ -1,4 +1,5 @@
 import { Edge, Node } from '@xyflow/react';
+import React from 'react';
 
 
 // Node types mapping
@@ -150,6 +151,7 @@ export interface InputOutputInfo {
 // Node configuration
 export interface NodeConfig {
   type: NodeTypeString;
+  icon?: React.ReactNode;
   color: {
     background: string;
     border: string;

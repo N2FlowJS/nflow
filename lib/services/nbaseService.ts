@@ -40,8 +40,12 @@ export async function initializeNbase(): Promise<boolean> {
 
     log('info', '✅ NBase connection successful');
     return true;
-  } catch (error) {
-    log('error', '❌ Error initializing NBase:', error);
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      log('error', '❌ Error initializing NBase:', error.message);
+    } else {
+      log('error', '❌ Error initializing NBase:', String(error));
+    }
     return false;
   }
 }

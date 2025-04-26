@@ -32,19 +32,10 @@ const FlowEditorHeader: React.FC<FlowEditorHeaderProps> = ({
   });
 
   return (
-    <div
-      style={{
-        padding: "16px",
-        background: "#f0f2f5",
-        borderBottom: "1px solid #d9d9d9",
-      }}
-    >
-      <Space style={{ width: "100%", justifyContent: "space-between" }}>
-        <Breadcrumb items={breadcrumbItems} />
 
-
-      </Space>
-    </div>
+    <Space style={{ width: "100%", justifyContent: "space-between" }}>
+      <Breadcrumb items={breadcrumbItems} />
+    </Space>
   );
 };
 

@@ -1,4 +1,4 @@
-import { SaveOutlined } from "@ant-design/icons";
+import { SaveOutlined, MenuOutlined } from "@ant-design/icons";
 import {
   addEdge,
   Background,
@@ -67,9 +67,7 @@ const FlowEditor: React.FC<FlowEditorProps> = ({
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [nodeForm] = Form.useForm();
   const { screenToFlowPosition } = useReactFlow();
-
-
-
+  const [isPaletteOpen, setIsPaletteOpen] = useState(false);
 
   React.useEffect(() => {
     // This effect removes any edges connected to nodes that have been deleted
@@ -211,7 +209,6 @@ const FlowEditor: React.FC<FlowEditorProps> = ({
       let newName = baseName;
       let counter = 1;
 
-
       while (nodes.some((node) => node.data.form?.name === newName)) {
         newName = `${baseName}_${counter}`;
         counter++;
@@ -231,6 +228,8 @@ const FlowEditor: React.FC<FlowEditorProps> = ({
       };
 
       setNodes((nds) => [...nds, newNode]);
+      // Đóng Drawer NodePalette sau khi kéo thả thành công
+      setIsPaletteOpen(false);
     },
     [screenToFlowPosition, setNodes, nodes] // Add nodes to dependency array
   );
@@ -260,7 +259,37 @@ const FlowEditor: React.FC<FlowEditorProps> = ({
 
   return (
     <div style={{ height: "80vh", width: "100%", position: "relative" }}>
-      <NodePalette nodes={nodes} />
+      {/* Nút mở Drawer NodePalette */}
+      <Button
+        icon={<MenuOutlined />}
+        style={{ position: "absolute", top: 10, left: 10, zIndex: 10 }}
+        onClick={() => setIsPaletteOpen(true)}
+      >
+        Nodes
+      </Button>
+
+      {/* Drawer NodePalette */}
+      <Drawer
+        title="Node Palette"
+        placement="left"
+        onClose={() => setIsPaletteOpen(false)}
+        open={isPaletteOpen}
+        width={window.innerWidth > 768 ? '22%' : "60%"}
+        styles={{
+          body: {
+            paddingTop: 12,
+            paddingBottom: 12,
+          },
+        }}
+        mask={false}
+        maskClosable={false}
+        closable={true}
+        keyboard={true}
+        push={true} // Nếu muốn Drawer dạng push, bỏ comment dòng này (nếu AntD hỗ trợ)
+      >
+        <NodePalette nodes={nodes} />
+      </Drawer>
+
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -276,12 +305,11 @@ const FlowEditor: React.FC<FlowEditorProps> = ({
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         defaultEdgeOptions={{
-          type: "smoothstep",
+          type: "default",
           data: {
             onDelete: onEdgeDelete,
           },
         }}
-        style={{ background: "#f0f2f5" }}
       >
         <Controls />
         <MiniMap />

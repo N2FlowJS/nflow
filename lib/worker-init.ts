@@ -3,6 +3,7 @@ import { isLocalVectorDBAvailable } from './services/localVectorService';
 import { initializeNbase } from './services/nbaseService';
 import { stopNbaseServer } from './nbase-init';
 import { VectorDBType } from '../models/vectorDBType';
+import { startConversationCleanupWorker, stopConversationCleanupWorker } from './workers/conversationCleanupWorker';
 
 // Worker state
 let workerStarted = false;
@@ -89,6 +90,9 @@ export async function initializeWorker() {
       await startFileParsingWorker();
       console.log(`> Workers started in ${Date.now() - workerStartTime}ms`);
 
+      // Start conversation cleanup worker
+      await startConversationCleanupWorker();
+
       workerStarted = true;
 
       // Register cleanup handler
@@ -123,6 +127,9 @@ async function cleanup() {
   if (process.env.VECTOR_DB_TYPE === 'nbase') {
     await stopNbaseServer();
   }
+
+  // Stop cleanup worker
+  stopConversationCleanupWorker();
 
   console.log('Workers and services shutdown complete');
 }
