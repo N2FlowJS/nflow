@@ -79,7 +79,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // For modification operations, check if user has admin rights
   if (req.method === 'PUT' || req.method === 'DELETE') {
-    const hasAdminRights = membership?.role === 'owner' || membership?.role === 'admin' || isSystemAdmin;
+    const hasAdminRights = membership?.permission === 'owner' || membership?.permission === 'admin' || isSystemAdmin;
 
     if (!hasAdminRights) {
       return res.status(403).json({ error: 'You need admin rights to modify or delete models' });

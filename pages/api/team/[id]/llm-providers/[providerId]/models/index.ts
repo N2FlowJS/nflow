@@ -65,8 +65,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // For modification operations, check if user has admin rights
   if (req.method === 'POST') {
-    const hasAdminRights = membership?.role === 'owner' || 
-                          membership?.role === 'admin' || 
+    const hasAdminRights = membership?.permission === 'owner' || 
+                          membership?.permission === 'admin' || 
                           isSystemAdmin;
                           
     if (!hasAdminRights) {
