@@ -1,6 +1,6 @@
 // Import necessary modules
 import { log } from '../utils/logger';
-
+import ServerNbase from '@nbase/dist/server'
 // Type definitions
 type ChildProcess = any;
 

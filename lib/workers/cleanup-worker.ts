@@ -7,8 +7,7 @@ let cleanupInterval: NodeJS.Timeout | null = null;
 let lastRun: Date | null = null;
 let lastDeleted: number | null = null;
 
-const STATUS_FILE = path.resolve(process.cwd(), "logs", 'WorkerCleanupStatus.json');
-console.log(STATUS_FILE, '22222222222222222222222222222');
+const STATUS_FILE = path.resolve(process.cwd(), "logs", 'cleanup-worker.json');
 
 function writeStatusToFile() {
   const status = {

@@ -23,7 +23,7 @@ let isShuttingDown = false;
 const activeWorkers = new Map<number, boolean>();
 let workerIdCounter = 0;
 
-const STATUS_FILE = path.resolve(process.cwd(), "logs", 'FileParsingWorkerStatus.json');
+const STATUS_FILE = path.resolve(process.cwd(), "logs", 'file-worker.json');
 
 function writeStatusToFile() {
   const status = {

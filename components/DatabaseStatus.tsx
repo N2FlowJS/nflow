@@ -6,9 +6,13 @@ import {
   CheckCircleOutlined,
   WarningOutlined,
   DatabaseFilled,
+  DatabaseOutlined,
+  RobotOutlined,
+  DeleteOutlined,
 } from "@ant-design/icons";
 import { useRouter } from "next/router";
 import { useAuth } from "@context/AuthContext";
+import { apiRequest } from "@services/apiUtils";
 
 const { Text } = Typography;
 
@@ -135,12 +139,11 @@ export default function DatabaseStatus() {
     // Check cleanup worker status
     async function checkCleanupWorkerStatus() {
       try {
-        const res = await fetch("/api/admin/cleanup-worker");
-        if (!res.ok) {
+        const data = await apiRequest<any>("/api/admin/cleanup-worker", { method: 'GET' });
+        if (!data) {
           setCleanupWorkerStatus((prev) => ({ ...prev, status: "error" }));
           return;
         }
-        const data = await res.json();
         setCleanupWorkerStatus({
           enabled: data.enabled,
           status: data.status,
@@ -176,7 +179,7 @@ export default function DatabaseStatus() {
   const statusContent = (
     <div style={{ maxWidth: "300px" }}>
       <div>
-        <Text strong>Database: </Text>
+        <Text strong><DatabaseOutlined style={{ marginRight: 8 }} />Database: </Text>
         <Badge
           status={
             dbStatus === "connected"
@@ -192,6 +195,7 @@ export default function DatabaseStatus() {
                 ? "Connecting..."
                 : "Error"
           }
+
         />
         {errorMsg && (
           <div>
@@ -200,6 +204,7 @@ export default function DatabaseStatus() {
         )}
         {setupAttempted && <div>
           <Text type="secondary">
+            <SyncOutlined style={{ marginRight: 4 }} />
             Setup {setupAttempted ? "has been" : "has not been"} attempted
           </Text>
         </div>}
@@ -207,7 +212,29 @@ export default function DatabaseStatus() {
       </div>
 
       <div style={{ marginTop: "8px" }}>
-        <Text strong>File Workers: </Text>
+        <Text strong><DatabaseFilled style={{ marginRight: 8 }} />Nbase: </Text>
+        <Tooltip title={nbaseTooltip}>
+          <Badge
+            status={
+              nbaseStatus === "running"
+                ? "success"
+                : nbaseStatus === "checking"
+                  ? "processing"
+                  : "error"
+            }
+            text={
+              nbaseStatus === "running"
+                ? "Connected"
+                : nbaseStatus === "checking"
+                  ? "Connecting..."
+                  : "Error"
+            }
+          />
+        </Tooltip>
+      </div>
+
+      <div style={{ marginTop: "8px" }}>
+        <Text strong><RobotOutlined style={{ marginRight: 8 }} />File Workers: </Text>
         <Badge
           status={
             !workerStatus.enabled
@@ -241,23 +268,7 @@ export default function DatabaseStatus() {
       </div>
 
       <div style={{ marginTop: "8px" }}>
-        <Text strong>Nbase: </Text>
-        <Tooltip title={nbaseTooltip}>
-          <Badge
-            status={
-              nbaseStatus === "running"
-                ? "success"
-                : nbaseStatus === "checking"
-                  ? "processing"
-                  : "error"
-            }
-            text={<DatabaseFilled />}
-          />
-        </Tooltip>
-      </div>
-
-      <div style={{ marginTop: "8px" }}>
-        <Typography.Text strong>Cleanup Worker: </Typography.Text>
+        <Typography.Text strong><DeleteOutlined style={{ marginRight: 8 }} />Cleanup Worker: </Typography.Text>
         <Badge
           status={
             !cleanupWorkerStatus.enabled

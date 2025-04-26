@@ -1,9 +1,9 @@
-import { startFileParsingWorker, stopFileParsingWorker } from './workers/fileParsingWorker';
+import { startFileParsingWorker, stopFileParsingWorker } from './workers/file-worker';
 import { isLocalVectorDBAvailable } from './services/localVectorService';
 import { initializeNbase } from './services/nbaseService';
 import { stopNbaseServer } from './nbase-init';
 import { VectorDBType } from '../models/vectorDBType';
-import { startConversationCleanupWorker, stopConversationCleanupWorker } from './workers/conversationCleanupWorker';
+import { startConversationCleanupWorker, stopConversationCleanupWorker } from './workers/cleanup-worker';
 
 // Worker state
 let workerStarted = false;

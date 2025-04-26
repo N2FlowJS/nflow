@@ -28,7 +28,9 @@
       "@database/*": ["./database/*"],
       "@models/*": ["./models/*"],
       "@context/*": ["./context/*"],
-      "@prisma/*": ["./prisma/*"]
+      "@prisma/*": ["./prisma/*"],
+      "@nbase/*": ["./nbase/*"],
+      
     },
     "noImplicitThis": true,
     "noUnusedLocals": true,

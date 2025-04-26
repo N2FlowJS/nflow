@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { prisma } from "@lib/prisma";
 import { parseAuthHeader, verifyToken } from "@lib/auth";
-import { getFileParsingWorkerStatus } from "@lib/workers/fileParsingWorker";
+import { getFileParsingWorkerStatus } from "@lib/workers/file-worker";
 
 export default async function handler(
   req: NextApiRequest,
