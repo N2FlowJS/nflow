@@ -47,6 +47,7 @@ export default function DatabaseStatus() {
   const [setupAttempted, setSetupAttempted] = useState(false);
   const { user } = useAuth();
 
+
   const [workerStatus, setWorkerStatus] = useState<WorkerStatus>({
     enabled: false,
     status: "stopped",
@@ -67,6 +68,9 @@ export default function DatabaseStatus() {
   const router = useRouter();
 
   useEffect(() => {
+
+
+
     // Function to fetch the database status
     async function checkStatus() {
       try {
@@ -153,27 +157,34 @@ export default function DatabaseStatus() {
         setCleanupWorkerStatus((prev) => ({ ...prev, status: "error" }));
       }
     }
+    let dbInterval: NodeJS.Timeout, workerInterval: NodeJS.Timeout, nbaseInterval: NodeJS.Timeout, cleanupInterval: NodeJS.Timeout
+    if (user) {
+      // Check immediately
+      checkStatus();
+      checkWorkerStatus();
+      checkNbaseStatus();
+      checkCleanupWorkerStatus();
+      // Then poll every 5 seconds
+      dbInterval = setInterval(checkStatus, 5000);
+      workerInterval = setInterval(checkWorkerStatus, 5000);
+      nbaseInterval = setInterval(checkNbaseStatus, 5000);
+      cleanupInterval = setInterval(checkCleanupWorkerStatus, 5000);
 
-    // Check immediately
-    checkStatus();
-    checkWorkerStatus();
-    checkNbaseStatus();
-    checkCleanupWorkerStatus();
-
-    // Then poll every 5 seconds
-    const dbInterval = setInterval(checkStatus, 5000);
-    const workerInterval = setInterval(checkWorkerStatus, 5000);
-    const nbaseInterval = setInterval(checkNbaseStatus, 5000);
-    const cleanupInterval = setInterval(checkCleanupWorkerStatus, 5000);
-
+    }
     return () => {
       clearInterval(dbInterval);
       clearInterval(workerInterval);
       clearInterval(nbaseInterval);
       clearInterval(cleanupInterval);
     };
-  }, []);
 
+
+
+
+
+
+  }, [user]);
+  if (!user) return
   // Generate detailed status content for popover
   const statusContent = (
     <div style={{ maxWidth: "300px" }}>
@@ -324,6 +335,7 @@ export default function DatabaseStatus() {
 
   // If everything is connected, show only an indicator in the corner
   if (
+    user &&
     dbStatus === "connected" &&
     workerStatus.status !== "error" &&
     nbaseStatus !== "error"

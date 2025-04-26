@@ -128,7 +128,6 @@ export async function startNbaseServer(): Promise<boolean> {
       log('info', '🔄 Starting NBase server in-process...');
 
       // Set up environment
-      process.env.NODE_PATH = `${nbasePath}:${path.join(nbasePath, 'src')}:${process.env.NODE_PATH || ''}`;
       require('module').Module._initPaths();
 
       // Try different possible entry points for NBase
@@ -213,12 +212,6 @@ async function startExternalProcess(
   // Check possible server script locations - prioritize the one that worked in logs
   const possibleScriptPaths = [
     path.join(nbasePath, 'dist', 'server', 'index.js'), // Prioritize this path based on logs
-    path.join(nbasePath, 'server', 'index.js'),
-    path.join(nbasePath, 'src', 'server', 'index.js'),
-    path.join(nbasePath, 'dist', 'server.js'),
-    path.join(nbasePath, 'src', 'server.js'),
-    path.join(nbasePath, 'server.js'),
-    path.join(nbasePath, 'index.js')
   ];
 
   // Find the first script that exists
@@ -235,8 +228,6 @@ async function startExternalProcess(
     ...process.env,
     PORT: process.env.NBASE_PORT || '1307',
     HOST: process.env.NBASE_HOST || 'localhost',
-    NODE_PATH: `${nbasePath}:${path.join(nbasePath, 'src')}:${process.env.NODE_PATH || ''}`,
-    // Add database path to environment
     DB_PATH: process.env.NBASE_DB_PATH || path.join(nbasePath, 'database'),
   };
 
