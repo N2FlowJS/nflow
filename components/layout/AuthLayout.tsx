@@ -29,7 +29,7 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, subtitle }) =>
                 className={styles.controlButton}
               />
               <div className={styles.divider} />
-              <LanguageMenu className={styles.controlButton} />
+              <LanguageMenu  />
             </div>
           </div>
 

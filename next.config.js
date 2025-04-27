@@ -34,6 +34,7 @@
     OPENAI_API_KEY: process.env.OPENAI_API_KEY,
     EMBEDDING_MODEL: process.env.EMBEDDING_MODEL || 'text-embedding-ada-002',
     NBASE_DB_PATH: process.env.NBASE_DB_PATH,
+    PORT: process.env.PORT || 1407,
   },
 
   // Configure external modules that need to be transpiled
