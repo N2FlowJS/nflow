@@ -1,3 +1,9 @@
+---
+layout: default
+title: Integration Guide
+nav_order: 8
+---
+
 # NFlow Integration Guide
 
 ## Overview

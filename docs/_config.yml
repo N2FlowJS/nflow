@@ -9,10 +9,21 @@ nav_order:
   - index.md
   - getting-started.md
   - architecture.md
+  - technical-architecture.md
   - deployment.md
   - vector-database.md
   - embedding-models.md
-  - integration.md
+  - integration-guide.md
+  - nbase-integration.md
+  - research.md
+  - plugin-development.md
+  - performance-tuning.md
+  - faq.md
+  - release-notes.md
+  - agent-guide.md
+  - knowledge-guide.md
+  - user-team-guide.md
+  - llm-models-guide.md
 
 # Footer
 footer_content: "Copyright © 2024 NFlow Team"

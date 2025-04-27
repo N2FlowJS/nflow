@@ -1,3 +1,9 @@
+---
+layout: default
+title: NBase Integration
+nav_order: 9
+---
+
 # Nbase Integration Guide
 
 This guide explains how to set up and use Nbase as a vector database with nFlow.

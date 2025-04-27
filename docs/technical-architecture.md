@@ -1,3 +1,9 @@
+---
+layout: default
+title: Technical Architecture
+nav_order: 4
+---
+
 # NFlow Technical Architecture
 
 ## Overview

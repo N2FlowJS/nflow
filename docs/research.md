@@ -1,6 +1,7 @@
 ---
 layout: default
-title: NFlow Architecture
+title: Research & Overall Architecture
+nav_order: 10
 ---
 
 # Overall Architecture of the NFlow System
