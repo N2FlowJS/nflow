@@ -11,7 +11,7 @@ describe("chunkText", () => {
         const text = parsed.text || "";
 
         const chunks = chunkText(text, [`\n`], 128);
-        console.log(chunks.flatMap(p=>p.length));
+        console.log(chunks.flatMap(p => p.length));
 
         expect(chunks).to.be.an("array");
         expect(chunks.length).to.be.greaterThan(0);

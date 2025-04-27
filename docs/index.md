@@ -10,9 +10,9 @@ NFlow is a modern intelligent document processing and knowledge management syste
 
 ## Quick Start
 
-1. [Installation Guide](getting-started.md)
-2. [System Architecture](architecture.md)
-3. [Deployment Guide](deployment.md)
+1. [Installation Guide](docs/getting-started.md)
+2. [System Architecture](docs/architecture.md)
+3. [Deployment Guide](docs/deployment.md)
 
 ## Core Features
 
@@ -25,8 +25,8 @@ NFlow is a modern intelligent document processing and knowledge management syste
 
 | Section | Description |
 |---------|-------------|
-| [Architecture](architecture.md) | System design and components |
-| [Vector Database](vector-database.md) | Vector storage and search |
+| [Architecture](docs/architecture.md) | System design and components |
+| [Vector Database](docs/vector-database.md) | Vector storage and search |
 | [Deployment](deployment.md) | Installation and configuration |
-| [Integration](integration.md) | APIs and extensions |
-| [Embedding](embedding-models.md) | Text embedding system |
+| [Integration](docs/integration.md) | APIs and extensions |
+| [Embedding](docs/embedding-models.md) | Text embedding system |

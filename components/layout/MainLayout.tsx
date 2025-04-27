@@ -21,6 +21,7 @@ import { useTheme } from "../../theme";
 import { useAuth } from "../../context/AuthContext";
 import styles from '../../styles/MainLayout.module.css';
 import LanguageMenu from "./LanguageMenu";
+import { useGitHubStats } from '../../hooks/useGitHubStats';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -35,8 +36,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
   const { user, isAuthenticated, logout } = useAuth();
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-
+  const { stars, loading } = useGitHubStats();
 
   const handleMenuClick = (e: any) => {
     if (e.key === "knowledge") {
@@ -236,7 +236,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
               rel="noopener noreferrer"
               className={styles.githubStats}
             >
-              <GithubOutlined /> Stars <img alt="GitHub stars" src="https://img.shields.io/github/stars/N2FlowJS/nflow?style=social" />
+              <GithubOutlined /> Stars {loading ? '...' : stars || 0}
             </a>
           </div>
         </Footer>

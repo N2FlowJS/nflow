@@ -30,8 +30,7 @@
       "@context/*": ["./context/*"],
       "@prisma/*": ["./prisma/*"],
       "@nbase/*": ["./nbase/*"],
-      "@locale/*": ["./locale/*"],
-      
+      "@locale/*": ["./locale/*"]
     },
     "noImplicitThis": true,
     "noUnusedLocals": true,
@@ -40,5 +39,11 @@
     "noFallthroughCasesInSwitch": true
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "nbase/index.js"],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.spec.ts",
+    "**/*.spec.tsx"
+  ]
 }

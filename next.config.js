@@ -44,7 +44,20 @@ const path = require('path');
   // Use the new app directory
   serverExternalPackages: ['child_process', 'fs', 'path', 'os', 'events', 'util'],
 
+
   webpack: (config, { isServer, dev, buildId, webpack, totalPages, nextRuntime }) => {
+    // Ignore test files
+    config.module = {
+      ...config.module,
+      rules: [
+        ...config.module.rules,
+        {
+          test: /\.(test|spec)\.(js|ts|tsx)$/,
+          loader: 'ignore-loader'
+        }
+      ]
+    }
+
     // Server-specific configuration
     if (isServer) {
       // No need to modify server config, Node.js modules are available server-side

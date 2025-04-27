@@ -41,3 +41,4 @@ next-env.d.ts
 uploads/knowledge
 dist
 nbase/node_modules
+nbase-data
