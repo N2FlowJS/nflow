@@ -65,7 +65,7 @@ const TeamLLMProviderDetail: React.FC<TeamLLMProviderDetailProps> = ({
     setLoading(true);
     try {
       const data = await fetchTeamProviderModels(teamId, provider.id);
-      data && setModels(data);
+      if (data) setModels(data);
     } catch (error) {
       console.error('Error fetching models:', error);
       message.error('Failed to load models');
@@ -74,7 +74,7 @@ const TeamLLMProviderDetail: React.FC<TeamLLMProviderDetailProps> = ({
     }
   }, [teamId, provider?.id]);
   useEffect(() => {
-    fetchModels && fetchModels();
+    fetchModels();
 
   }, [fetchModels]);
 

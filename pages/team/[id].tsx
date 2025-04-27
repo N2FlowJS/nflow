@@ -148,7 +148,7 @@ export default function TeamDetail() {
       }
 
       if (id && typeof id === 'string') {
-        fetchTeamDetail && fetchTeamDetail();
+        fetchTeamDetail();
         fetchAvailableUsers();
       }
     };

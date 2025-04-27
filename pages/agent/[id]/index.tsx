@@ -68,7 +68,7 @@ export default function AgentDetail() {
     setLoading(true);
     try {
       const data = await fetchAgent(id as string); // Use the service
-      data && setAgent(data);
+      if (data) setAgent(data);
 
       // Initialize form with agent data
       form.setFieldsValue({
@@ -101,13 +101,13 @@ export default function AgentDetail() {
   }, [id]);
 
   useEffect(() => {
-    fetchAgentData && fetchAgentData();
+  fetchAgentData();
 
   }, [fetchAgentData]);
 
   // Load flow config only when the chat tab is active and config isn't loaded yet
   useEffect(() => {
-    loadFlowConfig && loadFlowConfig();
+ loadFlowConfig();
 
   }, [loadFlowConfig]); // Added flowLoading dependency
 

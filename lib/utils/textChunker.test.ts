@@ -35,7 +35,8 @@ describe("chunkText", () => {
 
     it("handles empty text", () => {
         const chunks = chunkText("");
-        expect(chunks).to.be.an("array").that.is.empty;
+        expect(chunks).to.be.an("array");
+        expect(chunks.length).to.be.equal(0);
     });
 
     it("handles no separator provided", () => {

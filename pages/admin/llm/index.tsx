@@ -63,7 +63,7 @@ export default function LLMAdministration() {
   };
 
   useEffect(() => {
-    validateAuthentication && validateAuthentication();
+  validateAuthentication();
   }, [validateAuthentication]);
 
   useEffect(() => {

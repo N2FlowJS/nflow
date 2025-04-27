@@ -67,7 +67,7 @@ const UserLLMProviderDetail: React.FC<UserLLMProviderDetailProps> = ({
     }, [provider?.id, userId]);
 
     useEffect(() => {
-        fetchModels && fetchModels();
+      fetchModels();
 
     }, [fetchModels]);
 

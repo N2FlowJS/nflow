@@ -113,7 +113,7 @@ export default function KnowledgeDetail() {
   }, [id, form, messages]);
 
   useEffect(() => {
-    fetchKnowledgeDetail && fetchKnowledgeDetail();
+ fetchKnowledgeDetail();
 
   }, [fetchKnowledgeDetail]);
 

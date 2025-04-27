@@ -125,7 +125,7 @@ const LLMProviderPreferences: React.FC<LLMProviderPreferencesProps> = ({
     return null;
   };
   useEffect(() => {
-    fetchPreferences && fetchPreferences();
+    fetchPreferences();
 
   }, [fetchPreferences]);
 

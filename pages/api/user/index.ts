@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from "@lib/prisma";
+import { parseAuthHeader, verifyToken } from '@lib/auth';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   switch (req.method) {
@@ -15,6 +16,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 // Get all users
 async function getUsers(req: NextApiRequest, res: NextApiResponse) {
   try {
+      // Get the token from the request headers
+        const token = parseAuthHeader(req.headers.authorization);
+    
+        // Verify the token
+        if (!token) {
+          return res.status(401).json({ error: 'Authentication required' });
+        }
+    
+        const payload = verifyToken(token);
+        if (!payload) {
+          return res.status(401).json({ error: 'Invalid token' });
+        }
     const users = await prisma.user.findMany({
       include: {
         teams: true
@@ -36,7 +49,18 @@ async function createUser(req: NextApiRequest, res: NextApiResponse) {
     if (!name || !description) {
       return res.status(400).json({ message: 'Name and description are required' });
     }
-    
+      // Get the token from the request headers
+      const token = parseAuthHeader(req.headers.authorization);
+
+      // Verify the token
+      if (!token) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+  
+      const payload = verifyToken(token);
+      if (!payload) {
+        return res.status(401).json({ error: 'Invalid token' });
+      }
     const userData = {
       name,
       description,

@@ -24,7 +24,7 @@ export default function AuthGuard({ children }: AuthGuardProps) {
   }, [router, isAuthenticated, loading])
   useEffect(() => {
     // Auth check on route change
-    authCheck && authCheck();
+ authCheck();
   }, [authCheck]);
 
 

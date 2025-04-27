@@ -48,7 +48,7 @@ export default function NewLLMProvider() {
   }, [router]);
 
   useEffect(() => {
-    validateAuthentication && validateAuthentication();
+  validateAuthentication();
   }, [validateAuthentication]);
 
   // Redirect if not authenticated

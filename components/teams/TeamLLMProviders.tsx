@@ -50,7 +50,7 @@ const TeamLLMProviders: React.FC<TeamLLMProvidersProps> = ({
     setLoading(true);
     try {
       const data = await fetchTeamLLMProviders(teamId);
-      data && setProviders(data);
+      if (data) setProviders(data);
     } catch (error) {
       console.error('Error fetching team LLM providers:', error);
       message.error('Failed to load team LLM providers');
@@ -58,8 +58,9 @@ const TeamLLMProviders: React.FC<TeamLLMProvidersProps> = ({
       setLoading(false);
     }
   }, [teamId]);
+
   useEffect(() => {
-    fetchProviders && fetchProviders();
+    fetchProviders();
   }, [fetchProviders]);
 
 
