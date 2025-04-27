@@ -199,6 +199,7 @@ export const updateFileConfig = async (fileId: string, config: string | null): P
 
 export async function fetchFilesByKnowledgeId(knowledgeId: string) {
   try {
+    
     return apiRequest<IFile[]>(`/api/knowledge/${knowledgeId}/files`, {
       method: 'GET',
       headers: {

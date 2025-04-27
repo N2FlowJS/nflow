@@ -101,7 +101,7 @@ export async function startNbaseServer(): Promise<boolean> {
     const { existsSync } = await import('fs');
 
     // Find the NBase directory
-    const nbasePath = path.join(process.cwd(), 'nbase');
+    const nbasePath = path.join(process.cwd(), 'node_modules', '@n2flowjs', 'nbase');
     log('debug', `📁 NBase path: ${process.cwd()} - ${nbasePath}`);
 
     // Check if NBase exists

@@ -13,6 +13,7 @@ import {
 import MainLayout from '../../components/layout/MainLayout';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import { apiRequest } from '@services/apiUtils';
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -59,13 +60,12 @@ export default function AgentsList() {
       if (filterActive !== null) params.append('isActive', String(filterActive));
 
       const queryString = params.toString() ? `?${params.toString()}` : '';
-      const res = await fetch(`/api/agent${queryString}`);
+      const data = await apiRequest<Agent[]>(`/api/agent${queryString}`);
 
-      if (!res.ok) {
+      if (!data) {
         throw new Error('Failed to fetch agents');
       }
 
-      const data = await res.json();
       setAgents(data);
     } catch (error) {
       console.error('Error fetching agents:', error);

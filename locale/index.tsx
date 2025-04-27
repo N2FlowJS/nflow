@@ -1,4 +1,4 @@
-import { createContext, useContext, ReactNode, useState } from "react";
+import React, { createContext, useContext, ReactNode, useState } from "react";
 import en_US from "antd/lib/locale/en_US";
 import vi_VN from "antd/lib/locale/vi_VN";
 import ar_EG from "antd/lib/locale/ar_EG";
@@ -170,7 +170,7 @@ export const LocaleProvider = ({ children }: { children: ReactNode }) => {
 export const useLocale = (key: string = '') => {
   const { locale, messages, antdLocale, changeLocale } = useContext(LocaleContext);
 
-  const t = (keys: string, vars: Record<string, string | number> = {}) => {
+  const t = React.useCallback((keys: string, vars: Record<string, string | number> = {}) => {
     const pathKeys = `${key}.${keys}`.split('.').filter(p => p.length > 0);
 
     let translation = pathKeys.reduce((obj, k) => {
@@ -185,7 +185,7 @@ export const useLocale = (key: string = '') => {
     }
 
     return translation !== undefined ? translation : pathKeys.join('.');
-  };
+  }, [key, messages]);
 
   return { locale, messages, antdLocale, changeLocale, t };
 };

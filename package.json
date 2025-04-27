@@ -1,11 +1,11 @@
 {
-  "name": "nflow",
+  "name": "@n2flowjs/nflow",
+  "package-name": "n2flowjs/nbase",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
-    "build:nbase": "node scripts/build-nbase.js",
     "start": "next start",
     "lint": "next lint",
     "prisma:reset": "prisma migrate reset --preview-feature",
@@ -15,10 +15,21 @@
     "clean": "node scripts/cleanup.js",
     "test:file": "mocha -r ts-node/register \"**/textChunker.test.ts\""
   },
+  "keywords": [
+    "n2flowjs",
+    "nbase",
+    "n2flow",
+    "nbasejs",
+    "n2flowjs/nbase",
+    "openai",
+    "knowledge",
+    "rag-ui"
+  ],
   "dependencies": {
     "@ant-design/cssinjs": "^1.23.0",
     "@ant-design/nextjs-registry": "^1.0.2",
     "@ant-design/v5-patch-for-react-19": "^1.0.3",
+    "@n2flowjs/nbase": "^0.1.8",
     "@prisma/client": "^6.6.0",
     "@xyflow/react": "^12.4.4",
     "antd": "^5.24.5",
@@ -48,6 +59,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/chai": "5.2.1",
     "@types/formidable": "^3.4.5",
     "@types/jest": "^29.5.14",
     "@types/jsonwebtoken": "^9.0.9",
@@ -59,19 +71,18 @@
     "@types/react-dom": "^19",
     "@types/react-mentions": "^4.4.1",
     "@types/uuid": "^10.0.0",
+    "chai": "^5.2.0",
     "eslint": "9.25.1",
     "eslint-config-next": "15.3.1",
     "jest": "^29.7.0",
     "mocha": "11.1.0",
+    "nodemon": "3.1.10",
     "prisma": "^6.6.0",
     "react-hooks": "1.0.1",
     "tailwindcss": "^4",
     "ts-node": "10.9.2",
     "typescript": "^5",
     "webpack": "^5.75.0",
-    "chai": "^5.2.0",
-    "@types/chai":"5.2.1",
-    "webpack-cli": "^6.0.1",
-    "nodemon":"3.1.10"
+    "webpack-cli": "^6.0.1"
   }
 }

@@ -36,9 +36,11 @@ import { format } from "date-fns";
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 import { Knowledge } from "../../models/knowledge";
-import { deleteFile, fetchFilesByKnowledgeId, parseFile } from "../../services/fileService";
+import { deleteFile, parseFile } from "../../services/fileService";
 import { formatFileSize, getTypeFile } from "../../utils/client/formatters";
 import { useLocale } from "../../locale";
+import { IFile } from "@models/IFile";
+import { useFetchFiles } from "../../hooks/useFetchFiles";
 
 const { useBreakpoint } = Grid;
 const { Title, Text } = Typography;
@@ -58,7 +60,7 @@ export default function KnowledgeFileList({
 }: KnowledgeFileListProps) {
   const router = useRouter();
   const [parsingFiles, setParsingFiles] = useState<Record<string, boolean>>({});
-  const [files, setFiles] = useState<any[]>([]);
+  const [files, setFiles] = useState<IFile[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedFileIds, setSelectedFileIds] = useState<string[]>([]);
   const [batchActionLoading, setBatchActionLoading] = useState(false);
@@ -66,24 +68,20 @@ export default function KnowledgeFileList({
   const screens = useBreakpoint();
   const { t } = useLocale('');
 
-  const fetchFiles = React.useCallback(async () => {
-    if (!knowledge?.id) return;
+  const { fetchFiles, loading: fetchFilesLoading, files: fetchedFiles } = useFetchFiles(knowledge?.id, t);
 
-    setLoading(true);
-    try {
-      const filesData = await fetchFilesByKnowledgeId(knowledge.id);
-      setFiles(filesData || []);
-    } catch (error) {
-      console.error("Error fetching files:", error);
-      message.error(t('knowledgeDetail.fetchKnowledgeFailed') || "Failed to load files");
-    } finally {
-      setLoading(false);
+  useEffect(() => {
+    if (fetchedFiles) {
+      setFiles(fetchedFiles);
     }
-  }, [knowledge.id, t]);
+  }, [fetchedFiles]);
+
+  useEffect(() => {
+    setLoading(fetchFilesLoading);
+  }, [fetchFilesLoading]);
 
   useEffect(() => {
     if (knowledge?.id) {
-      fetchFiles();
 
       console.log(`[SSE] Setting up SSE connection for knowledge ID ${knowledge.id}`);
 
@@ -164,7 +162,12 @@ export default function KnowledgeFileList({
       };
     }
     return undefined; // Ensure all code paths return a value
-  }, [knowledge?.id, fetchFiles, t]);
+  }, [knowledge?.id, t]);
+
+
+  React.useEffect(() => {
+    fetchFiles();
+  }, [fetchFiles]);
 
   const handleParseFile = async (fileId: string) => {
     if (!isAuthenticated) {
