@@ -10,6 +10,7 @@ const path = require('path');
     },
     resolveExtensions: ['.mdx', '.tsx', '.ts', '.jsx', '.js', '.json'],
   },
+  devIndicators: false,
   output: 'standalone',
   experimental: {
     // Remove or set turbopackMinify to false as it's causing the webpack error

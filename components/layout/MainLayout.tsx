@@ -13,6 +13,7 @@ import {
   DashboardOutlined,
   MenuOutlined,
   HomeOutlined,
+  GithubOutlined,
 } from "@ant-design/icons";
 import { useRouter } from "next/router";
 import { useLocale } from "../../locale";
@@ -54,6 +55,10 @@ export default function MainLayout({ children }: MainLayoutProps) {
       router.push("/");
     } else if (e.key === "files") {
       router.push("/files");
+    } else if (e.key === "github") {
+      window.open("https://github.com/N2FlowJS/nflow", "_blank");
+    } else if (e.key === "docs") {
+      window.open("https://n2flowjs.github.io/nflow", "_blank");
     }
 
     // Close mobile menu if it's open
@@ -86,6 +91,16 @@ export default function MainLayout({ children }: MainLayoutProps) {
       key: "agent",
       icon: <RobotOutlined />,
       label: messages.mainLayout.aiAgent,
+    },
+    {
+      key: "github",
+      icon: <GithubOutlined />,
+      label: "GitHub",
+    },
+    {
+      key: "docs",
+      icon: <FileOutlined />,
+      label: "Docs",
     },
     // Admin section - only visible to users with admin permissions
     ...(hasAdminPermissions
@@ -213,7 +228,17 @@ export default function MainLayout({ children }: MainLayoutProps) {
 
         {/* Footer */}
         <Footer className={`${styles.footer} ${theme === "dark" ? styles.footerDark : styles.footerLight}`}>
-          {messages.mainLayout.footer} © {new Date().getFullYear()} - Knowledge Management Platform
+          <div className={styles.footerContent}>
+            <span>{messages.mainLayout.footer} © {new Date().getFullYear()} - Knowledge Management Platform</span>
+            <a 
+              href="https://github.com/N2FlowJS/nflow" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className={styles.githubStats}
+            >
+              <GithubOutlined /> Stars <img alt="GitHub stars" src="https://img.shields.io/github/stars/N2FlowJS/nflow?style=social" />
+            </a>
+          </div>
         </Footer>
       </Layout>
     </ConfigProvider>

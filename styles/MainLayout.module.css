@@ -107,6 +107,24 @@
   background: #141414;
 }
 
+.footerContent {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.githubStats {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: inherit;
+}
+
+.githubStats:hover {
+  opacity: 0.8;
+}
+
 /* Media queries for responsive design */
 @media (max-width: 768px) {
   .desktopMenu {

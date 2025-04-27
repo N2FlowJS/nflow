@@ -1,7 +1,7 @@
 {
-  "enabled": false,
-  "status": "stopped",
-  "pid": null,
-  "serverType": null,
-  "lastUpdated": "2025-04-27T03:34:53.617Z"
+  "enabled": true,
+  "status": "running",
+  "pid": 49452,
+  "serverType": "external",
+  "lastUpdated": "2025-04-27T04:13:52.357Z"
 }

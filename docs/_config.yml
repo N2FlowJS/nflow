@@ -1,0 +1,21 @@
+title: NFlow Documentation
+description: Documentation for the NFlow intelligent document processing system
+theme: jekyll-theme-minimal
+baseurl: /N2FlowJS
+markdown: kramdown
+
+# Navigation
+nav_order:
+  - index.md
+  - getting-started.md
+  - architecture.md
+  - deployment.md
+  - vector-database.md
+  - embedding-models.md
+  - integration.md
+
+# Footer
+footer_content: "Copyright © 2024 NFlow Team"
+
+# Search
+search_enabled: true

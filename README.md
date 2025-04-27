@@ -12,6 +12,15 @@
 ```
 
 > **The Next-Generation Native Flow for Document Processing and RAG in Node.js**
+
+[![GitHub stars](https://img.shields.io/github/stars/N2FlowJS/nflow)](https://github.com/N2FlowJS/nflow/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/N2FlowJS/nflow)](https://github.com/N2FlowJS/nflow/network/members)
+[![GitHub issues](https://img.shields.io/github/issues/N2FlowJS/nflow)](https://github.com/N2FlowJS/nflow/issues)
+[![GitHub license](https://img.shields.io/github/license/N2FlowJS/nflow)](https://github.com/N2FlowJS/nflow/blob/main/LICENSE)
+
+📚 [Documentation](https://n2flowjs.github.io/nflow)  
+💻 [GitHub Repository](https://github.com/N2FlowJS/nflow)
+
 ---
 
 ## ✨ Features

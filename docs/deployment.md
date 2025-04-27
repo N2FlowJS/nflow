@@ -1,3 +1,8 @@
+---
+layout: default
+title: NFlow Deployment Guide
+---
+
 # NFlow Deployment Guide
 
 This guide provides detailed instructions for deploying NFlow in various environments, from development to production. It covers different deployment options, configuration best practices, and optimization techniques.

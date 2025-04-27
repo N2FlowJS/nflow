@@ -1,3 +1,8 @@
+---
+layout: default
+title: NFlow Vector Database Guide
+---
+
 # NFlow Vector Database Guide
 
 ## Overview

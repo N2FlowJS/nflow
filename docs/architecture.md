@@ -1,9 +1,10 @@
 ---
 layout: default
-title: NFlow Architecture
+title: System Architecture
+nav_order: 3
 ---
 
-# Overall Architecture of the NFlow System
+# NFlow System Architecture
 
 NFlow is a modern web-based intelligent document processing and knowledge management system. It uses AI techniques like vector embeddings and natural language processing (NLP) to extract, organize, and query information from various document formats (PDF, DOCX, XLSX, TXT, MD). The application has a Next.js and React front-end with a modular back-end.
 
