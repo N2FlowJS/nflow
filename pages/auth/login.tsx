@@ -5,6 +5,7 @@ import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useLocale } from '../../locale';
+import LanguageMenu from '../../components/layout/LanguageMenu';
 
 const { Title, Text } = Typography;
 
@@ -46,6 +47,7 @@ export default function Login() {
             <Title level={2}>{messages.login.title}</Title>
             <Text type="secondary">{messages.login.subtitle}</Text>
           </div>
+          <LanguageMenu />
 
           <Form
             name="login"

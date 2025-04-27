@@ -18,6 +18,7 @@ export default function LanguageMenu() {
 
     const menu = (
         <Menu
+        style={ {maxHeight: 300}}
             selectedKeys={[locale]}
             onClick={({ key }) => changeLocale(key)}
         >

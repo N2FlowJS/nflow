@@ -5,6 +5,7 @@ import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useLocale } from '../../locale';
+import LanguageMenu from '../../components/layout/LanguageMenu';
 
 const { Title, Text } = Typography;
 
@@ -12,7 +13,7 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
   const { register } = useAuth();
   const router = useRouter();
-  const { antdLocale } = useLocale();
+  const { antdLocale, t } = useLocale('register');
 
   const onFinish = async (values: any) => {
     setLoading(true);
@@ -26,14 +27,14 @@ export default function Register() {
       });
 
       if (success) {
-        message.success('Registration successful!');
+        message.success(t('success'));
         router.push('/');
       } else {
-        message.error('Registration failed');
+        message.error(t('failed'));
       }
     } catch (error) {
       console.error('Registration error:', error);
-      message.error('An error occurred during registration');
+      message.error(t('error'));
     } finally {
       setLoading(false);
     }
@@ -51,9 +52,10 @@ export default function Register() {
       }}>
         <Card style={{ width: 450, boxShadow: '0 4px 8px rgba(0,0,0,0.1)' }}>
           <div style={{ textAlign: 'center', marginBottom: 24 }}>
-            <Title level={2}>Create an Account</Title>
-            <Text type="secondary">Fill in the form to create your account</Text>
+            <Title level={2}>{t('title')}</Title>
+            <Text type="secondary">{t('subtitle')}</Text>
           </div>
+          <LanguageMenu />
 
           <Form
             name="register"
@@ -63,11 +65,11 @@ export default function Register() {
           >
             <Form.Item
               name="name"
-              rules={[{ required: true, message: 'Please enter your name!' }]}
+              rules={[{ required: true, message: t('nameRequired') }]}
             >
               <Input
                 prefix={<UserOutlined />}
-                placeholder="Full Name"
+                placeholder={t('name')}
                 size="large"
               />
             </Form.Item>
@@ -75,24 +77,24 @@ export default function Register() {
             <Form.Item
               name="email"
               rules={[
-                { required: true, message: 'Please enter your email!' },
-                { type: 'email', message: 'Please enter a valid email!' }
+                { required: true, message: t('emailRequired') },
+                { type: 'email', message: t('emailInvalid') }
               ]}
             >
               <Input
                 prefix={<MailOutlined />}
-                placeholder="Email"
+                placeholder={t('email')}
                 size="large"
               />
             </Form.Item>
 
             <Form.Item
               name="code"
-              rules={[{ required: true, message: 'Please enter a user code!' }]}
+              rules={[{ required: true, message: t('codeRequired') }]}
             >
               <Input
                 prefix={<IdcardOutlined />}
-                placeholder="User Code"
+                placeholder={t('code')}
                 size="large"
               />
             </Form.Item>
@@ -100,13 +102,13 @@ export default function Register() {
             <Form.Item
               name="password"
               rules={[
-                { required: true, message: 'Please enter your password!' },
-                { min: 6, message: 'Password must be at least 6 characters!' }
+                { required: true, message: t('passwordRequired') },
+                { min: 6, message: t('passwordMin') }
               ]}
             >
               <Input.Password
                 prefix={<LockOutlined />}
-                placeholder="Password"
+                placeholder={t('password')}
                 size="large"
               />
             </Form.Item>
@@ -115,27 +117,27 @@ export default function Register() {
               name="confirmPassword"
               dependencies={['password']}
               rules={[
-                { required: true, message: 'Please confirm your password!' },
+                { required: true, message: t('confirmPasswordRequired') },
                 ({ getFieldValue }) => ({
                   validator(_, value) {
                     if (!value || getFieldValue('password') === value) {
                       return Promise.resolve();
                     }
-                    return Promise.reject(new Error('Passwords do not match!'));
+                    return Promise.reject(new Error(t('passwordsDoNotMatch')));
                   },
                 }),
               ]}
             >
               <Input.Password
                 prefix={<LockOutlined />}
-                placeholder="Confirm Password"
+                placeholder={t('confirmPassword')}
                 size="large"
               />
             </Form.Item>
 
             <Form.Item name="description">
               <Input.TextArea
-                placeholder="Description (optional)"
+                placeholder={t('description')}
                 rows={3}
               />
             </Form.Item>
@@ -148,14 +150,14 @@ export default function Register() {
                 block
                 loading={loading}
               >
-                Register
+                {t('submit')}
               </Button>
             </Form.Item>
           </Form>
 
           <div style={{ textAlign: 'center' }}>
-            <Text>Already have an account? </Text>
-            <Link href="/auth/login">Login</Link>
+            <Text>{t('alreadyHaveAccount')} </Text>
+            <Link href="/auth/login">{t('login')}</Link>
           </div>
         </Card>
       </div>
