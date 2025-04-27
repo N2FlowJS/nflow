@@ -23,7 +23,6 @@ export default function FlowEditorPage() {
         if (agentId && typeof agentId === "string") {
           const agentData = await fetchAgent(agentId);
           setAgent(agentData);
-        } else if (user) {
         }
       } catch (error) {
         console.error("Error loading data:", error);

@@ -1,5 +1,5 @@
 import { prisma } from '@lib/prisma';
-import { FlowState } from '../models/flowExecutionTypes';
+import { FlowState } from '@models/flowExecutionTypes';
 
 
 export async function getConversationFlowState(conversationId: string): Promise<FlowState | undefined> {

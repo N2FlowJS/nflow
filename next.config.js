@@ -1,5 +1,3 @@
-const path = require('path');
-
 /**
  * @type {import('next').NextConfig}
  */ const nextConfig = {
@@ -13,7 +11,6 @@ const path = require('path');
   devIndicators: false,
   output: 'standalone',
   experimental: {
-    // Remove or set turbopackMinify to false as it's causing the webpack error
     turbopackMinify: false,
     webpackBuildWorker: true,
     serverActions: {
@@ -36,14 +33,12 @@ const path = require('path');
     OPENAI_API_KEY: process.env.OPENAI_API_KEY,
     EMBEDDING_MODEL: process.env.EMBEDDING_MODEL || 'text-embedding-ada-002',
     NBASE_DB_PATH: process.env.NBASE_DB_PATH,
-
   },
 
   // Configure external modules that need to be transpiled
   transpilePackages: [],
   // Use the new app directory
   serverExternalPackages: ['child_process', 'fs', 'path', 'os', 'events', 'util'],
-
 
   webpack: (config, { isServer, dev, buildId, webpack, totalPages, nextRuntime }) => {
     // Ignore test files
@@ -53,10 +48,10 @@ const path = require('path');
         ...config.module.rules,
         {
           test: /\.(test|spec)\.(js|ts|tsx)$/,
-          loader: 'ignore-loader'
-        }
-      ]
-    }
+          loader: 'ignore-loader',
+        },
+      ],
+    };
 
     // Server-specific configuration
     if (isServer) {

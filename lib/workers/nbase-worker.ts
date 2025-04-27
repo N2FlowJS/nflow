@@ -1,7 +1,8 @@
+'use server'
 /**
  * Streamlined vector database initialization for Next.js
  */
-import { NBASE_URL } from '../services/nbaseService';
+import * as nbaseService from '../services/nbaseService';
 // Import necessary modules
 import { log } from '@utils/logger';
 import fs from 'fs'; // Added import
@@ -101,7 +102,8 @@ export async function startNbaseServer(): Promise<boolean> {
     const { existsSync } = await import('fs');
 
     // Find the NBase directory
-    const nbasePath = path.join(process.cwd(), 'node_modules', '@n2flowjs', 'nbase');
+    const basePath = process.cwd()
+    const nbasePath = path.join(basePath, 'node_modules', '@n2flowjs', 'nbase');
     log('debug', `📁 NBase path: ${process.cwd()} - ${nbasePath}`);
 
     // Check if NBase exists
@@ -128,7 +130,7 @@ export async function startNbaseServer(): Promise<boolean> {
       log('info', '🔄 Starting NBase server in-process...');
 
       // Set up environment
-      require('module').Module._initPaths();
+      // require('module').Module._initPaths();
 
       // Try different possible entry points for NBase
       let nbase;
@@ -146,7 +148,7 @@ export async function startNbaseServer(): Promise<boolean> {
 
       log('debug', `📄 Using NBase entry point: ${entryPoint}`);
       try {
-        nbase = require(entryPoint);
+        nbase = await import(entryPoint);
       } catch (requireError) {
         log('error', `❌ Error requiring NBase (${nbasePath}) module:`, requireError);
         throw requireError;
@@ -299,7 +301,7 @@ async function waitForServerReady(url: string): Promise<boolean> {
         log('info', '✅ NBase server is ready!');
         return true;
       }
-    } catch  {
+    } catch {
       // Continue trying
       log('debug', `🔄 NBase not ready yet, retrying in ${RETRY_DELAY}ms...`);
     }
@@ -416,7 +418,7 @@ export async function initializeNbase(): Promise<boolean> {
     }
 
     // Test server connection with a healthcheck
-    const serverUrl = `${NBASE_URL}/health`;
+    const serverUrl = `${nbaseService.NBASE_URL}/health`;
     log('info', `🔍 Testing NBase connection at ${serverUrl}...`);
 
     const response = await fetch(serverUrl, {

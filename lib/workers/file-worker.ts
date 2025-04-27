@@ -353,7 +353,8 @@ class FileParsingWorker {
           config = JSON.parse(`${file.config}`)
         }
         catch {
-
+            console.log('JSON parsing with error');
+            
         }
         await this.processContentIntoVectors({
           content, fileId, knowledgeId: file.knowledgeId, config: config
