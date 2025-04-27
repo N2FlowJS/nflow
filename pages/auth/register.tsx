@@ -47,9 +47,12 @@ export default function Register() {
         onFinish={onFinish}
         layout="vertical"
         requiredMark={false}
+        size="large"
+        style={{ width: '100%', maxWidth: '360px', margin: '0 auto' }}
       >
         <Form.Item
           name="name"
+          style={{ marginBottom: 24 }}
           rules={[{ required: true, message: t('nameRequired') }]}
         >
           <Input
@@ -61,6 +64,7 @@ export default function Register() {
 
         <Form.Item
           name="email"
+          style={{ marginBottom: 24 }}
           rules={[
             { required: true, message: t('emailRequired') },
             { type: 'email', message: t('emailInvalid') }
@@ -75,6 +79,7 @@ export default function Register() {
 
         <Form.Item
           name="code"
+          style={{ marginBottom: 24 }}
           rules={[{ required: true, message: t('codeRequired') }]}
         >
           <Input
@@ -86,6 +91,7 @@ export default function Register() {
 
         <Form.Item
           name="password"
+          style={{ marginBottom: 24 }}
           rules={[
             { required: true, message: t('passwordRequired') },
             { min: 6, message: t('passwordMin') }
@@ -100,6 +106,7 @@ export default function Register() {
 
         <Form.Item
           name="confirmPassword"
+          style={{ marginBottom: 24 }}
           dependencies={['password']}
           rules={[
             { required: true, message: t('confirmPasswordRequired') },
@@ -120,14 +127,17 @@ export default function Register() {
           />
         </Form.Item>
 
-        <Form.Item name="description">
+        <Form.Item
+          name="description"
+          style={{ marginBottom: 32 }}
+        >
           <Input.TextArea
             placeholder={t('description')}
             rows={3}
           />
         </Form.Item>
 
-        <Form.Item>
+        <Form.Item style={{ marginBottom: 24 }}>
           <Button
             type="primary"
             htmlType="submit"

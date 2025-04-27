@@ -1,4 +1,4 @@
-import { LockOutlined, UserOutlined } from '@ant-design/icons';
+import { LockOutlined, UserOutlined, GoogleOutlined, GithubOutlined } from '@ant-design/icons';
 import { Button, Form, Input, Typography, message } from 'antd';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -13,7 +13,8 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const router = useRouter();
-  const {  messages } = useLocale();
+  const { messages } = useLocale();
+
 
   const onFinish = async (values: { email: string; password: string }) => {
     setLoading(true);
@@ -40,6 +41,8 @@ export default function Login() {
         initialValues={{ remember: true }}
         onFinish={onFinish}
         layout="vertical"
+        size="large"
+        style={{ width: '100%', maxWidth: '360px', margin: '0 auto' }}
       >
         <Form.Item
           name="email"
@@ -47,6 +50,7 @@ export default function Login() {
             { required: true, message: messages.login.emailRequired },
             { type: 'email', message: messages.login.emailInvalid }
           ]}
+          style={{ marginBottom: 24 }}
         >
           <Input
             prefix={<UserOutlined />}
@@ -58,6 +62,7 @@ export default function Login() {
         <Form.Item
           name="password"
           rules={[{ required: true, message: messages.login.passwordRequired }]}
+          style={{ marginBottom: 32 }}
         >
           <Input.Password
             prefix={<LockOutlined />}
@@ -66,7 +71,7 @@ export default function Login() {
           />
         </Form.Item>
 
-        <Form.Item>
+        <Form.Item style={{ marginBottom: 16 }}>
           <Button
             type="primary"
             htmlType="submit"
@@ -77,6 +82,45 @@ export default function Login() {
             {messages.login.submit}
           </Button>
         </Form.Item>
+
+        <div style={{ 
+          display: 'flex', 
+          gap: '12px',
+          marginBottom: '24px'
+        }}>
+          <Button
+            icon={<GoogleOutlined />}
+            size="large"
+            block
+            style={{
+              background: '#fff',
+              color: '#444',
+              border: '1px solid #e5e7eb',
+              borderRadius: '12px',
+              height: '48px',
+              transition: 'all 0.3s'
+            }}
+            onClick={() => window.location.href = '/api/auth/oauth/google'}
+          >
+            Google
+          </Button>
+          <Button
+            icon={<GithubOutlined />}
+            size="large"
+            block
+            style={{
+              background: '#24292f',
+              color: '#fff',
+              border: 'none',
+              borderRadius: '12px',
+              height: '48px',
+              transition: 'all 0.3s'
+            }}
+            onClick={() => window.location.href = '/api/auth/oauth/github'}
+          >
+            GitHub
+          </Button>
+        </div>
       </Form>
 
       <div style={{ textAlign: 'center' }}>

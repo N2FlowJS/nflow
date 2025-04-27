@@ -7,6 +7,7 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<boolean>;
+  loginWithToken: (token: string) => Promise<boolean>;
   register: (userData: RegisterData) => Promise<boolean>;
   logout: () => void;
   isAuthenticated: boolean;
@@ -16,6 +17,7 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
   login: async () => false,
+  loginWithToken: async () => false,
   register: async () => false,
   logout: () => {},
   isAuthenticated: false,
@@ -72,6 +74,26 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
     }
   };
 
+  // Login with token (for OAuth)
+  const loginWithToken = async (token: string): Promise<boolean> => {
+    try {
+      const userData = await fetchCurrentUser(token);
+      if (userData) {
+        setUser(userData);
+        localStorage.setItem('token', token);
+        return true;
+      }
+      localStorage.removeItem('token');
+      setUser(null);
+      return false;
+    } catch (error) {
+      console.error('Login with token error:', error);
+      localStorage.removeItem('token');
+      setUser(null);
+      return false;
+    }
+  };
+
   // Register function
   const register = async (userData: RegisterData): Promise<boolean> => {
     try {
@@ -101,6 +123,7 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
         user,
         loading,
         login,
+        loginWithToken,
         register,
         logout,
         isAuthenticated: !!user,

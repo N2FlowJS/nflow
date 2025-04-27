@@ -18,7 +18,7 @@ export default function LanguageMenu() {
 
     const menu = (
         <Menu
-        style={ {maxHeight: 300}}
+        style={ {maxHeight:300}}
             selectedKeys={[locale]}
             onClick={({ key }) => changeLocale(key)}
         >
@@ -29,7 +29,6 @@ export default function LanguageMenu() {
                     size="small"
                     value={search}
                     onChange={e => setSearch(e.target.value)}
-                    style={{ width: 180 }}
                 />
             </Menu.Item>
             {filteredLocales.map(l => (

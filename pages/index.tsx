@@ -36,12 +36,24 @@ export default function Home() {
 
   const { user, isAuthenticated, loading } = useAuth();
   const router = useRouter();
+  const { login, loginWithToken } = useAuth();
+
   const [files, setFiles] = useState<any[]>([]);
   const [knowledge, setKnowledge] = useState<any[]>([]);
   const [agentCount, setAgentCount] = useState<number>(0);
   const [statsLoading, setStatsLoading] = useState(true);
   const { messages } = useLocale();
-
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    const token = url.searchParams.get('token');
+    if (token) {
+      localStorage.setItem('token', token);
+      if (typeof login === 'function' && login.length === 1) {
+        loginWithToken(token);
+      }
+      router.replace('/');
+    }
+  }, []);
   useEffect(() => {
     if (isAuthenticated) {
       loadData();
@@ -148,9 +160,9 @@ export default function Home() {
                       />
                       <div style={{ marginLeft: 16 }}>
                         <Title level={3} style={{ marginBottom: 4 }}>
-                          <Button 
-                            type="link" 
-                            style={{ padding: 0 }} 
+                          <Button
+                            type="link"
+                            style={{ padding: 0 }}
                             onClick={() => router.push(`/user/${user?.id}`)}
                           >
                             {user?.name}
