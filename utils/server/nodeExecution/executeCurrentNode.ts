@@ -1,6 +1,7 @@
-import { Flow, FlowState, ExecutionResult } from '@models';
+import {  FlowState, ExecutionResult } from '@models/flowExecutionTypes';
 import { MessagePart } from '@models/MessagePart';
 import { executeNode } from './node/executeNode';
+import { Flow } from '@models/flowTypes';
 
 export async function executeCurrentNode(
   flow: Flow,

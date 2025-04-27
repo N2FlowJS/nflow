@@ -17,7 +17,7 @@ export const CONNECTION_RULES: Record<NodeTypeString, NodeTypeString[]> = {
 
   // Retrieval nodes can connect to generate and interface nodes
   retrieval: ['generate', 'interface'],
-  
+
   decision: ['interface', 'generate', 'categorize', 'retrieval'],
 };
 
