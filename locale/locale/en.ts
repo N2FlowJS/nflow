@@ -266,6 +266,68 @@ export default {
     createNewAgent: 'Create New Agent',
     llmProviders: 'LLM Providers'
   },
+  agentList: {
+    title: 'Agents',
+    createAgentButton: 'Create Agent',
+    searchPlaceholder: 'Search agents',
+    ownerTypePlaceholder: 'Owner Type',
+    statusPlaceholder: 'Status',
+    user: 'User',
+    team: 'Team',
+    active: 'Active',
+    inactive: 'Inactive',
+    breadcrumb: {
+      agents: 'Agents'
+    },
+    table: {
+      name: 'Name',
+      description: 'Description',
+      owner: 'Owner',
+      status: 'Status',
+      createdBy: 'Created By',
+      lastUpdated: 'Last Updated',
+      actions: 'Actions'
+    },
+    deleteConfirmation: {
+      title: 'Are you sure you want to delete this agent?',
+      content: 'This action cannot be undone.',
+      okText: 'Yes, delete it',
+      cancelText: 'Cancel'
+    }
+  },
+  agentDetail: {
+    loadingAgent: 'Loading Agent',
+    agentNotFound: 'Agent Not Found',
+    backToAgentsList: 'Back to Agents List',
+    agent: 'Agent',
+    detail: 'Detail',
+    agents: 'Agents',
+    active: 'Active',
+    inactive: 'Inactive',
+    form: {
+      name: 'Name',
+      description: 'Description',
+      status: 'Status'
+    },
+    createdBy: 'Created By',
+    createdAt: 'Created At',
+    lastUpdated: 'Last Updated',
+    save: 'Save',
+    deleteConfirmation: {
+      title: 'Are you sure you want to delete this agent?',
+      content: 'This action cannot be undone.',
+      okText: 'Yes, delete it',
+      cancelText: 'Cancel'
+    },
+    deleteSuccess: 'Agent deleted successfully',
+    deleteFailed: 'Failed to delete agent',
+    flowEditor: 'Flow Editor',
+    chatWithAgent: 'Chat with Agent',
+    loadingAgentFlow: 'Loading agent flow...',
+    noFlowConfigFound: 'No Flow Configuration Found',
+    flowConfigNeeded: 'This agent needs a flow defined before you can chat with it.',
+    goToFlowEditor: 'Go to Flow Editor'
+  },
   greetingSection: {
     greetingLabel: 'Greeting'
   }

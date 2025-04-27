@@ -14,6 +14,7 @@ import MainLayout from '../../components/layout/MainLayout';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { apiRequest } from '@services/apiUtils';
+import { useLocale } from '@locale/index';
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -47,6 +48,7 @@ export default function AgentsList() {
   const [searchText, setSearchText] = useState('');
   const [filterOwnerType, setFilterOwnerType] = useState<string | null>(null);
   const [filterActive, setFilterActive] = useState<boolean | null>(null);
+  const { t } = useLocale('agentList');
 
   // Fetch agents
   const fetchAgents = React.useCallback(async () => {
@@ -87,11 +89,11 @@ export default function AgentsList() {
   // Handle agent deletion
   const confirmDelete = (id: string) => {
     Modal.confirm({
-      title: 'Are you sure you want to delete this agent?',
-      content: 'This action cannot be undone.',
-      okText: 'Yes, delete it',
+      title: t('deleteConfirmation.title'),
+      content: t('deleteConfirmation.content'),
+      okText: t('deleteConfirmation.okText'),
       okType: 'danger',
-      cancelText: 'Cancel',
+      cancelText: t('deleteConfirmation.cancelText'),
       onOk: () => deleteAgent(id)
     });
   };
@@ -123,7 +125,7 @@ export default function AgentsList() {
   // Table columns
   const columns = [
     {
-      title: 'Name',
+      title: t('table.name'),
       dataIndex: 'name',
       key: 'name',
       render: (text: string, record: Agent) => (
@@ -131,13 +133,13 @@ export default function AgentsList() {
       )
     },
     {
-      title: 'Description',
+      title: t('table.description'),
       dataIndex: 'description',
       key: 'description',
       ellipsis: true
     },
     {
-      title: 'Owner',
+      title: t('table.owner'),
       key: 'owner',
       render: (_: any, record: Agent) => (
         <Space>
@@ -156,30 +158,30 @@ export default function AgentsList() {
       )
     },
     {
-      title: 'Status',
+      title: t('table.status'),
       dataIndex: 'isActive',
       key: 'isActive',
       render: (active: boolean) => (
         <Tag color={active ? 'green' : 'red'}>
-          {active ? 'Active' : 'Inactive'}
+          {active ? t(active ? 'active' : 'inactive') : ''}
         </Tag>
       )
     },
     {
-      title: 'Created By',
+      title: t('table.createdBy'),
       key: 'createdBy',
       render: (_: any, record: Agent) => (
         <Link href={`/user/${record.createdBy.id}`}>{record.createdBy.name}</Link>
       )
     },
     {
-      title: 'Last Updated',
+      title: t('table.lastUpdated'),
       dataIndex: 'updatedAt',
       key: 'updatedAt',
       render: (date: string) => new Date(date).toLocaleString()
     },
     {
-      title: 'Actions',
+      title: t('table.actions'),
       key: 'actions',
       render: (_: any, record: Agent) => (
         <Space>
@@ -200,7 +202,7 @@ export default function AgentsList() {
   ];
 
   return (
-    <MainLayout title="Agents">
+    <MainLayout title={t('title')}>
       <div style={{ padding: '24px' }}>
         <Breadcrumb
           style={{ marginBottom: '16px' }}
@@ -209,19 +211,19 @@ export default function AgentsList() {
               title: <Link href="/">Home</Link>,
             },
             {
-              title: 'Agents',
+              title: t('breadcrumb.agents'),
             },
           ]}
         />
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-          <Title level={2}>Agents</Title>
+          <Title level={2}>{t('title')}</Title>
           <Button
             type="primary"
             icon={<PlusOutlined />}
             onClick={() => router.push('/agent/new')}
           >
-            Create Agent
+            {t('createAgentButton')}
           </Button>
         </div>
 
@@ -229,7 +231,7 @@ export default function AgentsList() {
           <Space style={{ marginBottom: '16px', width: '100%', justifyContent: 'space-between' }}>
             <Space>
               <Input
-                placeholder="Search agents"
+                placeholder={t('searchPlaceholder')}
                 value={searchText}
                 onChange={(e) => setSearchText(e.target.value)}
                 style={{ width: 200 }}
@@ -243,23 +245,23 @@ export default function AgentsList() {
               />
 
               <Select
-                placeholder="Owner Type"
+                placeholder={t('ownerTypePlaceholder')}
                 allowClear
                 style={{ width: 150 }}
                 onChange={(value) => setFilterOwnerType(value)}
               >
-                <Option value="user">User</Option>
-                <Option value="team">Team</Option>
+                <Option value="user">{t('user')}</Option>
+                <Option value="team">{t('team')}</Option>
               </Select>
 
               <Select
-                placeholder="Status"
+                placeholder={t('statusPlaceholder')}
                 allowClear
                 style={{ width: 150 }}
                 onChange={(value) => setFilterActive(value === null ? null : value === true)}
               >
-                <Option value={true}>Active</Option>
-                <Option value={false}>Inactive</Option>
+                <Option value={true}>{t('active')}</Option>
+                <Option value={false}>{t('inactive')}</Option>
               </Select>
             </Space>
           </Space>

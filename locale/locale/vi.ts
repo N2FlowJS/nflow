@@ -265,7 +265,69 @@ export default {
     createNewAgent: 'Tạo Agent mới',
     llmProviders: 'Nhà cung cấp LLM'
   },
+  agentDetail: {
+    loadingAgent: 'Đang tải Agent',
+    agentNotFound: 'Không tìm thấy Agent',
+    backToAgentsList: 'Quay lại danh sách Agents',
+    agent: 'Agent',
+    detail: 'Chi tiết',
+    agents: 'Agents',
+    active: 'Hoạt động',
+    inactive: 'Không hoạt động',
+    form: {
+      name: 'Tên',
+      description: 'Mô tả',
+      status: 'Trạng thái'
+    },
+    createdBy: 'Được tạo bởi',
+    createdAt: 'Được tạo lúc',
+    lastUpdated: 'Cập nhật lần cuối',
+    save: 'Lưu',
+    deleteConfirmation: {
+      title: 'Bạn có chắc chắn muốn xóa agent này?',
+      content: 'Hành động này không thể được hoàn tác.',
+      okText: 'Có, xóa nó',
+      cancelText: 'Hủy'
+    },
+    deleteSuccess: 'Đã xóa Agent thành công',
+    deleteFailed: 'Không thể xóa Agent',
+    flowEditor: 'Trình chỉnh sửa Flow',
+    chatWithAgent: 'Chat với Agent',
+    loadingAgentFlow: 'Đang tải flow của agent...',
+    noFlowConfigFound: 'Không tìm thấy cấu hình Flow',
+    flowConfigNeeded: 'Agent này cần một flow được xác định trước khi bạn có thể chat với nó.',
+    goToFlowEditor: 'Đi tới Trình chỉnh sửa Flow'
+  },
   greetingSection: {
     greetingLabel: 'Lời chào'
+  },
+  agentList: {
+    title: 'Agents',
+    createAgentButton: 'Tạo Agent',
+    searchPlaceholder: 'Tìm kiếm agent',
+    ownerTypePlaceholder: 'Loại chủ sở hữu',
+    statusPlaceholder: 'Trạng thái',
+    user: 'Người dùng',
+    team: 'Đội',
+    active: 'Hoạt động',
+    inactive: 'Không hoạt động',
+    breadcrumb: {
+      agents: 'Agents'
+    },
+    table: {
+      name: 'Tên',
+      description: 'Mô tả',
+      owner: 'Chủ sở hữu',
+      status: 'Trạng thái',
+      createdBy: 'Được tạo bởi',
+      lastUpdated: 'Cập nhật lần cuối',
+      actions: 'Hành động'
+    },
+    deleteConfirmation: {
+      title: 'Bạn có chắc chắn muốn xóa agent này?',
+      content: 'Hành động này không thể được hoàn tác.',
+      okText: 'Có, xóa nó',
+      cancelText: 'Hủy'
+    }
   }
 };

@@ -11,7 +11,6 @@ import {
 } from '@ant-design/icons';
 import MainLayout from '@components/layout/MainLayout';
 import { useAuth } from '@context/AuthContext';
-import { getWorkerStatus } from '@services/adminService';
 import { deleteParsingTask, parseFile } from '@services/fileService';
 import {
   Alert,
@@ -36,56 +35,29 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { useLocale } from '@locale/index';
+import useWorkerStatus from '@hooks/useWorkerStatus';
 
 const { useBreakpoint } = Grid;
 const { Title, Text } = Typography;
 
 export default function TasksMonitorPage() {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading: authLoading } = useAuth();
   const router = useRouter();
-  const [data, setData] = useState<any>(null);
-  const [loadingData, setLoadingData] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [taskDetail, setTaskDetail] = useState<any>(null);
   const [taskModalVisible, setTaskModalVisible] = useState(false);
-  const [refreshInterval, setRefreshInterval] = useState<NodeJS.Timeout | null>(null);
   const screens = useBreakpoint();
   const { messages } = useLocale();
+
+  const { data, loading: dataLoading, error, fetchData } = useWorkerStatus();
 
   // Fetch data initially and set up polling
   useEffect(() => {
     // Redirect if not authenticated
-    if (!loading && !isAuthenticated) {
+    if (!authLoading && !isAuthenticated) {
       router.push('/auth/login');
       return;
     }
-
-    fetchData();
-
-    // Set up polling every 5 seconds
-    const interval = setInterval(fetchData, 5000);
-    setRefreshInterval(interval);
-
-    return () => {
-      if (refreshInterval) {
-        clearInterval(refreshInterval);
-      }
-    };
-  }, [isAuthenticated, loading, router,refreshInterval]);
-
-  // Function to fetch worker status data
-  const fetchData = async () => {
-    try {
-      setLoadingData(true);
-      const result = await getWorkerStatus();
-      setData(result);
-      setError(null);
-    } catch (err: any) {
-      setError(err.message || 'Failed to fetch worker status');
-    } finally {
-      setLoadingData(false);
-    }
-  };
+  }, [isAuthenticated, authLoading, router]);
 
   // View task details
   const handleViewTask = (task: any) => {
@@ -218,7 +190,7 @@ export default function TasksMonitorPage() {
     },
   ];
 
-  if (loading) {
+  if (authLoading) {
     return <MainLayout title="Loading...">Loading authentication info...</MainLayout>;
   }
 
@@ -251,7 +223,7 @@ export default function TasksMonitorPage() {
                   type="primary"
                   icon={<ReloadOutlined />}
                   onClick={handleRefresh}
-                  loading={loadingData}
+                  loading={dataLoading}
                 >
                   {messages.tasksMonitor.refresh}
                 </Button>
@@ -376,7 +348,7 @@ export default function TasksMonitorPage() {
                 columns={columns}
                 rowKey="id"
                 pagination={{ pageSize: 10 }}
-                loading={loadingData}
+                loading={dataLoading}
               />
             </Card>
           )}

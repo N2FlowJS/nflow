@@ -39,6 +39,7 @@ import {
   updateAgent,
 } from "@services/agentService"; // Use the new service
 import { useAuth } from "../../../context/AuthContext";
+import { useLocale } from '@locale/index';
 
 const { Title, Text } = Typography;
 
@@ -51,6 +52,7 @@ export default function AgentDetail() {
   const [flowLoading, setFlowLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form] = Form.useForm();
+  const { t } = useLocale('agentDetail');
 
   // Add streaming state
   const [enableStreaming, setEnableStreaming] = useState(true);
@@ -131,19 +133,19 @@ export default function AgentDetail() {
   // Handle agent deletion
   const confirmDelete = () => {
     Modal.confirm({
-      title: "Are you sure you want to delete this agent?",
-      content: "This action cannot be undone.",
-      okText: "Yes, delete it",
-      okType: "danger",
-      cancelText: "Cancel",
+      title: t('deleteConfirmation.title'),
+      content: t('deleteConfirmation.content'),
+      okText: t('deleteConfirmation.okText'),
+      okType: 'danger',
+      cancelText: t('deleteConfirmation.cancelText'),
       onOk: async () => {
         try {
           await deleteAgent(id as string); // Use the service
-          message.success("Agent deleted successfully");
+          message.success(t('deleteSuccess'));
           router.push("/agent");
         } catch (error) {
           console.error("Error deleting agent:", error);
-          message.error("Failed to delete agent");
+          message.error(t('deleteFailed'));
         }
       },
     });
@@ -169,7 +171,7 @@ export default function AgentDetail() {
 
   if (loading) {
     return (
-      <MainLayout title="Loading Agent">
+      <MainLayout title={t('loadingAgent')}>
         <div style={{ padding: "24px", textAlign: "center" }}>
           <Spin size="large" />
         </div>
@@ -179,11 +181,11 @@ export default function AgentDetail() {
 
   if (!agent && !loading) {
     return (
-      <MainLayout title="Agent Not Found">
+      <MainLayout title={t('agentNotFound')}>
         <div style={{ padding: "24px" }}>
-          <Title level={4}>Agent not found</Title>
+          <Title level={4}>{t('agentNotFound')}</Title>
           <Button type="primary" onClick={() => router.push("/agent")}>
-            Back to Agents List
+            {t('backToAgentsList')}
           </Button>
         </div>
       </MainLayout>
@@ -191,7 +193,7 @@ export default function AgentDetail() {
   }
 
   return (
-    <MainLayout title={`Agent: ${agent?.name || "Detail"}`}>
+    <MainLayout title={`${t('agent')}: ${agent?.name || t('detail')}`}>
       <div style={{ padding: '24px' }}>
         <Breadcrumb
           items={[
@@ -199,10 +201,10 @@ export default function AgentDetail() {
               title: <Link href="/">Home</Link>,
             },
             {
-              title: <Link href="/agent">Agents</Link>,
+              title: <Link href="/agent">{t('agents')}</Link>,
             },
             {
-              title: agent?.name || "Detail",
+              title: agent?.name || t('detail'),
             },
           ]}
         />
@@ -228,7 +230,7 @@ export default function AgentDetail() {
                   </Typography.Text>
                   <div style={{ marginTop: 12 }}>
                     <Tag color={agent?.isActive ? "green" : "red"}>
-                      {agent?.isActive ? "Active" : "Inactive"}
+                      {agent?.isActive ? t('active') : t('inactive')}
                     </Tag>
                     {agent?.ownerType === "user" ? (
                       <Tag icon={<UserOutlined />} color="blue" style={{ marginLeft: 8 }}>
@@ -248,33 +250,33 @@ export default function AgentDetail() {
                 <Form form={form} layout="vertical" disabled={false /* Always editable */}>
                   <Form.Item
                     name="name"
-                    label={<b>Name</b>}
+                    label={<b>{t('form.name')}</b>}
                     rules={[{ required: true }]}
                   >
                     <Input size="large" />
                   </Form.Item>
                   <Form.Item
                     name="description"
-                    label={<b>Description</b>}
+                    label={<b>{t('form.description')}</b>}
                     rules={[{ required: true }]}
                   >
                     <Input.TextArea rows={4} />
                   </Form.Item>
-                  <Form.Item name="isActive" label={<b>Status</b>} valuePropName="checked">
-                    <Switch checkedChildren="Active" unCheckedChildren="Inactive" />
+                  <Form.Item name="isActive" label={<b>{t('form.status')}</b>} valuePropName="checked">
+                    <Switch checkedChildren={t('active')} unCheckedChildren={t('inactive')} />
                   </Form.Item>
                   <Divider />
                   <Row gutter={24}>
                     <Col span={12}>
-                      <Text type="secondary">Created By</Text>
+                      <Text type="secondary">{t('createdBy')}</Text>
                       <div><b>{agent?.createdBy?.name}</b></div>
                     </Col>
                     <Col span={12}>
-                      <Text type="secondary">Created At</Text>
+                      <Text type="secondary">{t('createdAt')}</Text>
                       <div><b>{new Date(agent?.createdAt || "").toLocaleString()}</b></div>
                     </Col>
                     <Col span={12} style={{ marginTop: 16 }}>
-                      <Text type="secondary">Last Updated</Text>
+                      <Text type="secondary">{t('lastUpdated')}</Text>
                       <div><b>{new Date(agent?.updatedAt || "").toLocaleString()}</b></div>
                     </Col>
                   </Row>
@@ -284,7 +286,7 @@ export default function AgentDetail() {
                     <Button type="primary" danger icon={<DeleteOutlined />} onClick={confirmDelete}>
                     </Button>
                     <Button type="primary" icon={<SaveOutlined />} onClick={handleSave} loading={saving}>
-                      Save
+                      {t('save')}
                     </Button>
                   </Row>
                 </Form>
@@ -299,9 +301,9 @@ export default function AgentDetail() {
                     icon={<EditOutlined />}
                     onClick={() => router.push(`/agent/flow-editor?agentId=${id}`)}
                   >
-                    Flow Editor
+                    {t('flowEditor')}
                   </Button>
-                  <Typography.Text strong>Chat with Agent</Typography.Text>
+                  <Typography.Text strong>{t('chatWithAgent')}</Typography.Text>
                   <Switch
                     checkedChildren={<ThunderboltOutlined />}
                     unCheckedChildren={<ThunderboltOutlined />}
@@ -315,21 +317,21 @@ export default function AgentDetail() {
               {flowLoading ? (
                 <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
                   <Spin size="large" />
-                  <Typography.Text style={{ marginTop: 16 }}>Loading agent flow...</Typography.Text>
+                  <Typography.Text style={{ marginTop: 16 }}>{t('loadingAgentFlow')}</Typography.Text>
                 </div>
               ) : !flowConfig ? (
                 <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '20px' }}>
                   <InfoCircleOutlined style={{ fontSize: '48px', color: '#faad14', marginBottom: '16px' }} />
-                  <Typography.Title level={4}>No Flow Configuration Found</Typography.Title>
+                  <Typography.Title level={4}>{t('noFlowConfigFound')}</Typography.Title>
                   <Typography.Text type="secondary" style={{ marginBottom: '16px' }}>
-                    This agent needs a flow defined before you can chat with it.
+                    {t('flowConfigNeeded')}
                   </Typography.Text>
                   <Button
                     type="primary"
                     icon={<EditOutlined />}
                     onClick={() => router.push(`/agent/flow-editor?agentId=${id}`)}
                   >
-                    Go to Flow Editor
+                    {t('goToFlowEditor')}
                   </Button>
                 </div>
               ) : (

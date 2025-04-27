@@ -60,7 +60,7 @@ const TeamLLMProviderDetail: React.FC<TeamLLMProviderDetailProps> = ({
   const [actionLoading, setActionLoading] = useState(false);
   const fetchModels = React.useCallback(async () => {
     if (!provider?.id) return;
-    if (teamId) return;
+    if (!teamId) return;
 
     setLoading(true);
     try {

@@ -54,15 +54,15 @@ import { supportedLocales } from "./supportedLocales";
 
 // Map our locales to Ant Design locales
 const antLocales: any = {
-  en_US: en_US,
-  vi_VN: vi_VN,
-  ar_EG: ar_EG,
-  az_AZ: az_AZ,
+  en: en_US,
+  vi: vi_VN,
+  ar: ar_EG,
+  az: az_AZ,
 };
 
 const messages: any = {
-  en_US: en,
-  vi_VN: vi,
+  en: en,
+  vi: vi,
   fr: fr,
   de: de,
   ja: ja,
@@ -94,7 +94,7 @@ const messages: any = {
   ur: ur,
   fa: fa,
   ka: ka,
-  az_AZ: az,
+  az: az,
   kk: kk,
   uz: uz,
   ky: ky,
