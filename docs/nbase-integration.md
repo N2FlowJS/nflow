@@ -4,74 +4,113 @@ title: NBase Integration
 nav_order: 9
 ---
 
-# Nbase Integration Guide
+# NBase Integration Guide
 
-This guide explains how to set up and use Nbase as a vector database with nFlow.
+## Overview
 
-## What is Nbase?
+NBase is a high-performance vector database designed for fast similarity search and large-scale embedding storage. It integrates seamlessly with NFlow to power semantic search and knowledge management for AI applications.
 
-Nbase is a vector database designed for efficient similarity search. It provides:
+## Key Features
 
-- High-performance vector indexing and retrieval
-- Multiple search algorithms (KNN, HNSW, Hybrid)
-- Metadata filtering
-- Bulk operations
+- High-speed vector search (KNN, HNSW, Hybrid)
+- Metadata filtering support
+- Bulk vector import/export operations
+- Configurable search algorithms and parameters
+- Simple RESTful API
 
-## Configuration
+## Configuring NBase with NFlow
 
-To use Nbase with nFlow, add the following to your environment variables:
+Add the following environment variables to your `.env` file:
 
 ```env
-# Vector database configuration
+# Vector database type
 VECTOR_DB_TYPE=nbase
 
-# Nbase Configuration
+# NBase server URL
 NBASE_URL=http://localhost:1307
 ```
 
-## Setup Instructions
+Optional advanced settings:
 
-1. Install and start the Nbase server:
+```env
+NBASE_BATCH_SIZE=100                # Batch size for vector operations
+NBASE_CONNECTION_TIMEOUT=5000       # Connection timeout in ms
+NBASE_DISTANCE_METRIC=cosine        # Options: cosine, euclidean, dot_product
+NBASE_HYBRID_SEARCH_WEIGHT=0.7      # Hybrid search weight (0-1)
+NBASE_CONNECTION_POOL_SIZE=10       # Connection pool size
+NBASE_MAX_CONCURRENT_SEARCHES=20    # Max concurrent searches
+```
+
+## Installing and Running NBase
+
+### 1. Manual Installation
 
 ```bash
-# Clone the Nbase repository
 git clone https://github.com/n-flow/nbase.git
-
-# Navigate to the directory
 cd nbase
-
-# Install dependencies
 npm install
-
-# Start the server
+npm run build
 npm start
 ```
 
-2. Update your nFlow environment variables to use Nbase (see above)
+### 2. Docker Deployment
 
-3. Restart your nFlow application
+```bash
+docker run -p 1307:1307 -v /path/to/data:/data nflow/nbase
+```
 
-## Testing the Integration
+### 3. Server Configuration (optional)
 
-You can test if Nbase is properly connected by:
+```env
+PORT=1307
+CLUSTER_SIZE=1000
+VECTOR_SIZE=1536
+STORAGE_PATH=/data
+```
 
-1. Uploading a document to your knowledge base
-2. Monitoring the logs to see if vectors are stored in Nbase
-3. Performing a search against the document
+## Connecting NFlow to NBase
+
+- Ensure the NBase server is running and accessible at `NBASE_URL`
+- Update your NFlow environment variables as shown above
+- Restart your NFlow application
+
+## Verifying Integration
+
+1. Upload a document to your knowledge base
+2. Check the logs to confirm vectors are stored in NBase
+3. Perform a search to verify vector queries
+
+You can also check NBase server status:
+
+```bash
+curl http://localhost:1307/stats
+```
 
 ## Troubleshooting
 
-If you encounter issues with the Nbase integration:
-
-- Check if the Nbase server is running (`curl http://localhost:1307/stats`)
-- Verify your environment variables are correctly set
-- Check the nFlow logs for any errors related to Nbase
-- Ensure your Nbase server has enough memory for vector operations
+- Ensure the NBase server is running and not blocked by firewalls
+- Double-check your environment variable configuration
+- Review NFlow logs for NBase connection errors
+- Make sure the NBase server has enough memory for large vector operations
 
 ## Advanced Configuration
 
-For production deployments, you may want to configure:
+- Enable persistence in NBase for durable storage
+- Set up API authentication for NBase if needed
+- Use load balancing for high-traffic applications
 
-- Persistence settings for Nbase
-- Authentication for the Nbase API
-- Load balancing for high-volume applications
+## Migrating Vector Data
+
+To migrate vectors from SQLite to NBase:
+
+```bash
+npm run export-vectors --output=vectors.json
+npm run import-vectors --source=vectors.json --target=nbase
+```
+
+## References
+
+- [NBase API Documentation](../nbase/docs/api-docs.md)
+- [NBase Core Database Documentation](../nbase/docs/core_database.md)
+- [Embedding Models Guide](./embedding-models.md)
+- [Performance Tuning Guide](./performance-tuning.md)

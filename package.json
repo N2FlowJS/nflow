@@ -13,7 +13,8 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "clean": "node scripts/cleanup.js",
-    "test:file": "mocha -r ts-node/register \"**/textChunker.test.ts\""
+    "test:file": "mocha -r ts-node/register \"**/textChunker.test.ts\"",
+    "run:docs": "docsify serve docs"
   },
   "keywords": [
     "n2flowjs",
@@ -73,6 +74,7 @@
     "@types/react-mentions": "^4.4.1",
     "@types/uuid": "^10.0.0",
     "chai": "^5.2.0",
+    "docsify-cli": "^4.4.4",
     "eslint": "9.25.1",
     "eslint-config-next": "^15.3.1",
     "ignore-loader": "^0.1.2",
