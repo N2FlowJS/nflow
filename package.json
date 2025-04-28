@@ -1,6 +1,6 @@
 {
   "name": "@n2flowjs/nflow",
-  "package-name": "n2flowjs/nbase",
+  "package-name": "n2flowjs/nflow",
   "version": "0.1.0",
   "private": true,
   "scripts": {
