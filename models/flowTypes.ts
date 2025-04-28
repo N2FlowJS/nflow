@@ -75,7 +75,10 @@ export interface CategorizeForm extends BaseForm {
   defaultCategory: string;
   model: string;
 }
-export interface DecisionForm extends BaseForm { }
+export interface DecisionForm extends BaseForm {
+  branches: DecisionBranch[];
+  defaultTarget: string;
+}
 
 export interface RetrievalForm extends BaseForm {
   knowledgeIds: string[];
@@ -107,6 +110,24 @@ export type DecisionNodeData = BaseNodeData<DecisionForm> & {
 export type RetrievalNodeData = BaseNodeData<RetrievalForm> & {
   type: 'retrieval';
 };
+
+export interface DecisionCondition {
+  input: string;
+  operator: string;
+  value: string;
+}
+
+export interface ConditionGroup {
+  conditions: DecisionCondition[];
+  logicalOperator: 'AND' | 'OR';
+}
+
+export interface DecisionBranch {
+  name: string;
+  groups: ConditionGroup[];
+  groupOperator: 'AND' | 'OR';
+  targetNode?: string;
+}
 
 // Union type for all node data
 export type NodeData = BeginNodeData | InterfaceNodeData | GenerateNodeData | CategorizeNodeData | RetrievalNodeData | DecisionNodeData;

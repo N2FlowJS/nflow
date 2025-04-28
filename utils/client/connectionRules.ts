@@ -6,19 +6,19 @@ export const CONNECTION_RULES: Record<NodeTypeString, NodeTypeString[]> = {
   begin: ['interface', 'generate', 'categorize', 'retrieval'],
 
   // Interface nodes can connect to generate, categorize, and retrieval nodes
-  interface: ['generate', 'categorize', 'retrieval'],
+  interface: ['generate', 'categorize', 'retrieval' ,'decision'],
 
   // Generate nodes can connect to interface, categorize, and retrieval nodes
-  generate: ['interface', 'categorize', 'retrieval'],
+  generate: ['interface', 'categorize', 'retrieval', 'decision'],
 
   // Categorize nodes have special handling via their categories
   // The actual connections are handled in CategorizeNodeForm
-  categorize: ['interface', 'generate', 'retrieval'],
+  categorize: ['interface', 'generate', 'retrieval' ,'decision'],
 
   // Retrieval nodes can connect to generate and interface nodes
-  retrieval: ['generate', 'interface'],
+  retrieval: ['generate', 'interface','decision'],
 
-  decision: ['interface', 'generate', 'categorize', 'retrieval'],
+  decision: ['interface', 'generate', 'categorize', 'retrieval','decision'],
 };
 
 /**

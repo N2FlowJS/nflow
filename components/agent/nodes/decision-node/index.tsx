@@ -1,56 +1,77 @@
 import React from "react";
 import { Handle, Position, NodeProps, Node } from "@xyflow/react";
-import { Card, Typography } from "antd";
 import { QuestionOutlined } from "@ant-design/icons";
-
-import { NodeData } from "@/models/flowTypes";
-
+import { DecisionNodeData } from "@/models/flowTypes";
+import BaseNode from "../base-node";
+import DecisionBranches from "./DecisionBranches";
+import DefaultBranch from "./DefaultBranch";
+import { NODE_REGISTRY } from "@/utils/client";
+import { sourceColor } from "../base-node/handle-icon";
 
 const DecisionNode = ({
   data,
-  isConnectable,
+  id,
   selected,
-}: NodeProps<Node<NodeData>>) => {
+}: NodeProps<Node<DecisionNodeData>>) => {
+  const form = data.form || {};
+  const branches = form.branches || [];
+  const hasBranches = branches.length > 0;
+  const nodeConfig = NODE_REGISTRY.decision;
+
   return (
-    <Card
-      title={
-        <div style={{ display: "flex", alignItems: "center" }}>
-          <QuestionOutlined style={{ marginRight: 8 }} />
-          <span>Decision: {data.label}</span>
-        </div>
-      }
-      size="small"
-      style={{
-        width: 200,
-        border: selected ? "2px solid #1890ff" : "1px solid #d9d9d9",
+    <BaseNode
+      data={data}
+      id={id}
+      selected={selected}
+      handlePositions={{
+        input: [Position.Left],
+        output: [],
       }}
+      icon={<QuestionOutlined style={{ color: "#faad14" }} />}
     >
-      <Handle
-        type="target"
-        position={Position.Top}
-        isConnectable={isConnectable}
-      />
-      <div style={{ padding: "10px 0" }}>
-        <Typography.Paragraph ellipsis={{ rows: 2 }}>
-          {JSON.stringify(data.condition) || "Conditional logic"}{" "}
-          {/* Add default fallback */}
-        </Typography.Paragraph>
+      <div>
+        {hasBranches && (
+          <DecisionBranches branches={branches} />
+        )}
+
+        {form.defaultTarget && (
+          <DefaultBranch target={form.defaultTarget} />
+        )}
       </div>
-      <Handle
-        type="source"
-        position={Position.Bottom}
-        id="true"
-        style={{ left: "25%", background: "#52c41a" }}
-        isConnectable={isConnectable}
-      />
-      <Handle
-        type="source"
-        position={Position.Bottom}
-        id="false"
-        style={{ left: "75%", background: "#f5222d" }}
-        isConnectable={isConnectable}
-      />
-    </Card>
+
+      {branches.map((branch, index) => (
+        <Handle
+          key={`branch-${index}`}
+          type="source"
+          position={Position.Right}
+          id={`out-${branch.name}`} 
+          style={{
+            top: `${(index + 1) * (100 / (branches.length + 1))}%`,
+            background:nodeConfig.color.handle,
+            border: "2px solid "+ nodeConfig.color.border,
+            width: "10px",
+            height: "10px",
+
+          }}
+        />
+      ))}
+
+      {/* Default branch handle */}
+      {form.defaultTarget && (
+        <Handle
+          type="source"
+          position={Position.Right}
+          id={`out-default`} // Dynamic ID based on target
+          style={{
+            top: "90%", // Adjust position if needed, maybe based on branch count?
+            background:sourceColor,
+            border: "2px solid white",
+            width: "10px",
+            height: "10px",
+          }}
+        />
+      )}
+    </BaseNode>
   );
 };
 

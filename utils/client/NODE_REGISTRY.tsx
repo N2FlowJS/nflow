@@ -145,13 +145,25 @@ export const NODE_REGISTRY: Record<NodeTypeString, NodeConfig> = {
       border: '#ffe58f',
       handle: '#fa8c16',
     },
-    input: 'Decision criteria or condition',
-    output: 'Path based on decision outcome',
+    input: 'Variables from previous nodes',
+    output: 'Path based on condition groups',
     data: {
       type: 'decision',
       form: {
         name: 'Decision',
-        description: 'Make a decision based on input',
+        description: 'Route flow based on conditional logic',
+        role: 'developer',
+        branches: [{
+          name: 'Branch 1',
+          groups: [{
+            conditions: [{ input: '', operator: 'equals', value: '' }],
+            logicalOperator: 'AND'
+          }],
+          groupOperator: 'OR',
+          targetNode: ''
+        }],
+        targetNode: '',
+        inputRefs: []
       },
     } as Partial<DecisionNodeData>,
   }

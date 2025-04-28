@@ -11,8 +11,8 @@ const baseStyle: Omit<CSSProperties, 'left' | 'right' | 'top' | 'bottom' | 'tran
 // add a small offset to separate dual handles
 const crossSpacing = '8px';
 
-const targetColor = '#1677ff';
-const sourceColor = '#52c41a';
+export const targetColor = '#1677ff'; 
+export const sourceColor = '#52c41a';
 
 export const getHandleStyle = (position: Position, type: 'target' | 'source'): CSSProperties => {
   const fill = type === 'target' ? targetColor : sourceColor;

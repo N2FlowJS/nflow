@@ -23,7 +23,7 @@ import { saveFlowConfig } from "@/services/agentService";
 import NodeForm from "../forms/node-form";
 import NodePalette from "./node-palette";
 
-import { CategorizeForm, FlowNode, NodeTypeString } from "@/models/flowTypes";
+import { CategorizeForm, DecisionForm, FlowNode, NodeTypeString } from "@/models/flowTypes";
 import { isConnectionAllowed, NODE_REGISTRY, parseFlowConfig } from "@/utils/client";
 import CustomEdge from "../edges/CustomEdge";
 import BeginNode from "../nodes/begin-node";
@@ -107,17 +107,49 @@ const FlowEditor: React.FC<FlowEditorProps> = ({
 
   const onConnect = useCallback(
     (params: Connection) => {
-      // Find source and target nodes to check their types
       const sourceNode = nodes.find((node) => node.id === params.source);
       const targetNode = nodes.find((node) => node.id === params.target);
-      console.log(params);
 
       if (sourceNode && targetNode) {
         const sourceType = sourceNode.type as NodeTypeString;
         const targetType = targetNode.type as NodeTypeString;
 
-        // Check if connection is allowed based on node types
         if (isConnectionAllowed(sourceType, targetType)) {
+          // Handle decision node connections
+          if (sourceType === "decision") {
+            // We'll let the form's syncEdgesWithBranches handle the edge creation
+            // Just update the node data
+            const branchName = params.sourceHandle?.startsWith("out-")
+              ? params.sourceHandle.substring(4)
+              : "";
+
+            setNodes((nds: FlowNode[]) =>
+              nds.map((n) => {
+                if (n.id === params.source) {
+                  const form :DecisionForm = { ...n.data.form } as DecisionForm;
+                  
+                  if (params.sourceHandle === "out-default") {
+                    form.defaultTarget = params.target;
+                  } else {
+                    form.branches = form.branches.map((branch: any) =>
+                      branch.name === branchName
+                        ? { ...branch, targetNode: params.target }
+                        : branch
+                    );
+                  }
+
+                  return {
+                    ...n,
+                    data: {
+                      ...n.data,
+                      form
+                    }
+                  } as FlowNode;
+                }
+                return n;
+              })
+            );
+          }
           // Update the targetNode for categorize nodes
           if (sourceType === "categorize" && params.sourceHandle) {
             // Extract category name from the sourceHandle (assuming format "out-categoryName")
@@ -164,14 +196,13 @@ const FlowEditor: React.FC<FlowEditorProps> = ({
             )
           );
         } else {
-          // Show error message for invalid connection
           message.error(
             `Cannot connect ${sourceType} node to ${targetType} node`
           );
         }
       }
     },
-    [nodes, setEdges, setNodes]  // Added setNodes to dependencies
+    [nodes, setEdges, setNodes]
   );
 
   // Update to match the expected IsValidConnection type
