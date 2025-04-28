@@ -11,7 +11,7 @@ import {
   Tag
 } from "antd";
 import React from "react";
-import { CategorizeNodeData, FlowNode, ICategory } from "@models/flowTypes";
+import { CategorizeNodeData, FlowNode, ICategory } from "@/models/flowTypes";
 import BaseNodeForm from "../base-node-form";
 import InputReferences from "../shared/InputReferences";
 import RoleSelector from "../shared/RoleSelector";

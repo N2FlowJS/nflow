@@ -12,7 +12,7 @@ import {
   message
 } from "antd";
 import { useEffect, useState } from "react";
-import { getFileChunks } from "../../services/fileService";
+import { getFileChunks } from "@/services/fileService";
 
 const { Paragraph, } = Typography;
 

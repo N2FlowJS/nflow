@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { prisma } from "@lib/prisma";
+import { prisma } from "@/lib/prisma";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { id } = req.query;
@@ -45,7 +45,7 @@ async function getUserById(res: NextApiResponse, id: string) {
     }
 
     // Create teamsWithRoles by combining direct teams and memberships
-    const teamsWithRoles = user.teamMemberships.map(membership => ({
+    const teamsWithRoles = user.teamMemberships.map((membership: any) => ({
       id: membership.team.id,
       name: membership.team.name,
       description: membership.team.description,

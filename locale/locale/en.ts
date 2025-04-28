@@ -218,6 +218,7 @@ export default {
     loginRequired: 'Please log in to create new knowledge items.'
   },
   knowledgeDetail: {
+    name:"Name knowledge",
     loadingKnowledge: 'Loading Knowledge',
     knowledgeNotFound: 'Knowledge Not Found',
     backToKnowledgeList: 'Back to Knowledge List',

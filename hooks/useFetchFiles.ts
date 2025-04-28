@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { fetchFilesByKnowledgeId } from '../services/fileService';
-import { IFile } from '@models/IFile';
+import { fetchFilesByKnowledgeId } from '@/services/fileService';
+import { IFile } from '@/models/IFile';
 
 interface UseFetchFilesResult {
   files: IFile[] | null;

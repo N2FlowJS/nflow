@@ -30,7 +30,8 @@ import {
   Tag,
   Tooltip,
   Typography,
-  message
+  message,
+  Popconfirm
 } from "antd";
 import { format } from "date-fns";
 import { useRouter } from "next/router";
@@ -39,7 +40,7 @@ import { Knowledge } from "../../models/knowledge";
 import { deleteFile, parseFile } from "../../services/fileService";
 import { formatFileSize, getTypeFile } from "../../utils/client/formatters";
 import { useLocale } from "../../locale";
-import { IFile } from "@models/IFile";
+import { IFile } from "../../models/IFile";
 import { useFetchFiles } from "../../hooks/useFetchFiles";
 
 const { useBreakpoint } = Grid;
@@ -670,6 +671,82 @@ export default function KnowledgeFileList({
     ];
   };
 
+  const renderMobileCard = (file: any) => (
+    <Card
+      key={file.id}
+      size="small"
+      style={{ marginBottom: 16 }}
+      actions={[
+        <Tooltip key="parse" title={file.parsingStatus === "completed" ? t('tasksMonitor.retryParsing') : t('tasksMonitor.processing')}>
+          <Button
+            type="text"
+            icon={file.parsingStatus === "completed" ? <SyncOutlined /> : <PlayCircleOutlined />}
+            loading={parsingFiles[file.id]}
+            onClick={() => handleParseFile(file.id)}
+            disabled={file.parsingStatus === "processing" && !parsingFiles[file.id]}
+          />
+        </Tooltip>,
+        <Tooltip key="view" title={t('home.view')}>
+          <Button
+            type="text"
+            icon={<EyeOutlined />}
+            onClick={() => router.push(`/files/${file.id}`)}
+          />
+        </Tooltip>,
+        <Tooltip key="configure" title={t('knowledgeDetail.config')}>
+          <Button
+            type="text"
+            icon={<SettingOutlined />}
+            onClick={() => openFileConfigModal(file)}
+          />
+        </Tooltip>,
+        <Popconfirm
+          key="delete"
+          title={t('knowledgeList.deleteConfirmation')}
+          onConfirm={() => handleDeleteFile(file.id)}
+          okText={t('knowledgeList.yes')}
+          cancelText={t('knowledgeList.no')}
+        >
+          <Button type="text" danger icon={<DeleteOutlined />} />
+        </Popconfirm>,
+      ]}
+    >
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+        <Avatar
+          icon={getStatusIcon(file.parsingStatus)}
+          style={{
+            backgroundColor: file.parsingStatus === "completed" ? "#f6ffed" :
+              file.parsingStatus === "failed" ? "#fff2f0" : "#f0f5ff",
+            color: file.parsingStatus === "completed" ? "#52c41a" :
+              file.parsingStatus === "failed" ? "#f5222d" : "#1890ff",
+          }}
+        />
+        <div style={{ flex: 1 }}>
+          <Text strong style={{ display: 'block', wordBreak: 'break-word' }}>
+            {file.originalName}
+          </Text>
+          <Space direction="vertical" size={4} style={{ width: '100%', marginTop: 4 }}>
+            <Text type="secondary" style={{ fontSize: 12 }}>
+              {formatFileSize(file.size)} • {getTypeFile(file.mimetype)}
+            </Text>
+            <Tag
+              color={
+                file.parsingStatus === "completed" ? "success" :
+                  file.parsingStatus === "processing" ? "processing" :
+                    file.parsingStatus === "failed" ? "error" : "default"
+              }
+            >
+              {file.parsingStatus || t('dashboard.notProcessed')}
+            </Tag>
+            <Text type="secondary" style={{ fontSize: 12 }}>
+              {formatDate(file.createdAt)}
+            </Text>
+          </Space>
+        </div>
+      </div>
+    </Card>
+  );
+
   return (
     <Card
       title={<Title level={4}>{t('dashboard.files') || "Files"}</Title>}
@@ -700,22 +777,28 @@ export default function KnowledgeFileList({
               style={{ marginBottom: 16 }}
             />
           )}
-          <div style={{ overflowX: 'auto' }}>
-            <Table
-              rowSelection={rowSelection}
-              dataSource={files}
-              columns={createColumns()}
-              rowKey="id"
-              pagination={{
-                pageSize: 10,
-                showSizeChanger: screens.md,
-                pageSizeOptions: ["10", "20", "50"],
-                size: screens.sm ? "default" : "small",
-              }}
-              size={screens.sm ? "middle" : "small"}
-              scroll={{ x: 'max-content' }}
-            />
-          </div>
+          {screens.sm ? (
+            <div style={{ overflowX: 'auto' }}>
+              <Table
+                rowSelection={rowSelection}
+                dataSource={files}
+                columns={createColumns()}
+                rowKey="id"
+                pagination={{
+                  pageSize: 10,
+                  showSizeChanger: screens.md,
+                  pageSizeOptions: ["10", "20", "50"],
+                  size: screens.sm ? "default" : "small",
+                }}
+                size={screens.sm ? "middle" : "small"}
+                scroll={{ x: 'max-content' }}
+              />
+            </div>
+          ) : (
+            <div style={{ padding: '0 8px' }}>
+              {files.map(file => renderMobileCard(file))}
+            </div>
+          )}
         </>
       ) : (
         <Empty

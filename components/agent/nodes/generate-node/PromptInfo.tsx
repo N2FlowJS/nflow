@@ -8,17 +8,16 @@ interface PromptInfoProps {
 
 const PromptInfo: React.FC<PromptInfoProps> = ({ prompt }) => {
   const hasPrompt = !!prompt && prompt.trim().length > 0;
-  
+
   return (
     <Card
       size="small"
       style={{
-        backgroundColor: hasPrompt ? 'rgba(246, 255, 237, 0.6)' : 'rgba(255, 245, 245, 0.6)',
         borderColor: hasPrompt ? '#b7eb8f' : '#ffccc7',
       }}
     >
       <Tooltip title={hasPrompt ? prompt : "No prompt template defined"}>
-        <Typography.Text 
+        <Typography.Text
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -26,7 +25,7 @@ const PromptInfo: React.FC<PromptInfoProps> = ({ prompt }) => {
           }}
         >
           <FileTextOutlined style={{ marginRight: 6 }} />
-          
+
           {hasPrompt ? (
             <>
               <CheckCircleOutlined style={{ color: '#52c41a', marginRight: 4 }} />

@@ -5,7 +5,7 @@ import {
 } from 'antd';
 import { SearchOutlined, ExperimentOutlined } from '@ant-design/icons';
 import { testKnowledgeRetrieval } from '../../services/knowledgeService';
-import { SearchSimilarResult } from '@lib/services/vectorSearchService';
+import { SearchSimilarResult } from '../../lib/services/vectorSearchService';
 import { useLocale } from '../../locale'; // Add this import
 
 const { Text, Paragraph } = Typography;

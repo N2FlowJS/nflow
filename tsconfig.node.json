@@ -1,10 +1,27 @@
 {
-    "compilerOptions": {
-      "strictNullChecks": true,
-      "module": "NodeNext",
-      "jsx": "react",
-      "esModuleInterop": true,
-
+  "compilerOptions": {
+    "strictNullChecks": true,
+    "module": "NodeNext",
+    "jsx": "react",
+    "esModuleInterop": true,
+    "paths": {
+      "@/pages/*": ["./pages/*"],
+      "@/lib/*": ["./lib/*"],
+      "@/services/*": ["./services/*"],
+      "@/utils/*": ["./utils/*"],
+      "@/components/*": ["./components/*"],
+      "@/hooks/*": ["./hooks/*"],
+      "@/database/*": ["./database/*"],
+      "@/models/*": ["./models/*"],
+      "@/context/*": ["./context/*"],
+      "@/prisma/*": ["./prisma/*"],
+      "@/locale/*": ["./locale/*"]
     },
-    "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"]
-  }
+    "noImplicitThis": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"]
+}

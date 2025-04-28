@@ -11,7 +11,7 @@ import {
   Alert
 } from 'antd';
 import { LockOutlined, SaveOutlined, SecurityScanOutlined } from '@ant-design/icons';
-import { updateUserProfile } from '../../services/userService';
+import { updateUserProfile } from '@/services/userService';
 
 const { Title, Paragraph } = Typography;
 

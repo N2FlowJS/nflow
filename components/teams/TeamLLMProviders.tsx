@@ -22,7 +22,7 @@ import {
   StopOutlined
 } from '@ant-design/icons';
 import LLMProviderForm from '../llm/LLMProviderForm';
-import { fetchTeamLLMProviders, deleteTeamLLMProvider, createTeamLLMProvider, updateTeamLLMProvider } from '../../services/teamService';
+import { fetchTeamLLMProviders, deleteTeamLLMProvider, createTeamLLMProvider, updateTeamLLMProvider } from '@/services/teamService';
 import { LLMProvider } from '../../models/llm';
 import TeamLLMProviderDetail from '../llm/TeamLLMProviderDetail';
 

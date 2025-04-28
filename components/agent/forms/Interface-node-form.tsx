@@ -1,5 +1,5 @@
 import { ArrowUpOutlined, CommentOutlined, InfoCircleOutlined } from "@ant-design/icons";
-import { FlowNode } from "@models/flowTypes";
+import { FlowNode } from "@/models/flowTypes";
 import { Alert, Card, Space, Typography } from "antd";
 import React from "react";
 import BaseNodeForm from "./base-node-form";

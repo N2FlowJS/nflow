@@ -26,15 +26,15 @@ import {
 import { format } from "date-fns";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import FileContentViewer from "@components/files/FileContentViewer";
-import MainLayout from "@components/layout/MainLayout";
-import { useAuth } from "@context/AuthContext";
+import FileContentViewer from "@/components/files/FileContentViewer";
+import MainLayout from "@/components/layout/MainLayout";
+import { useAuth } from "@/context/AuthContext";
 import {
   deleteParsingTask,
   fetchFileById,
   getParsingTaskStatus,
   parseFile,
-} from "@services/fileService";
+} from "@/services/fileService";
 
 const { Title, Text } = Typography;
 

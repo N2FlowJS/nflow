@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack -p 1407",
+    "dev": "next dev --turbopack -p 1407 ",
     "build": "next build --turbopack",
     "start": "next start",
     "lint": "next lint",
@@ -27,8 +27,6 @@
     "rag-ui"
   ],
   "dependencies": {
-    "@ant-design/cssinjs": "^1.23.0",
-    "@ant-design/nextjs-registry": "^1.0.2",
     "@ant-design/v5-patch-for-react-19": "^1.0.3",
     "@n2flowjs/nbase": "^0.1.8",
     "@prisma/client": "^6.6.0",
@@ -44,8 +42,8 @@
     "marked": "^4.3.0",
     "mime-types": "^3.0.1",
     "multer": "^1.4.5-lts.2",
-    "next": "15.3.1",
-    "next-auth": "^4.24.11",
+    "next": "^15.4.0-canary.12",
+    "next-auth": "^5.0.0-beta.27",
     "officeparser": "^5.1.1",
     "openai": "^4.96.0",
     "pdf2json": "^3.1.5",

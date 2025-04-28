@@ -1,14 +1,14 @@
-import { SaveOutlined, MenuOutlined } from "@ant-design/icons";
+import { SaveOutlined, MenuOutlined, SendOutlined, CommentOutlined, ToolOutlined } from "@ant-design/icons";
 import {
   addEdge,
   Background,
   Connection,
   ConnectionLineType,
+  ControlButton,
   Controls,
   EdgeTypes,
   IsValidConnection,
   MarkerType,
-  MiniMap,
   ReactFlow,
   NodeTypes as ReactFlowNodeTypes,
   useEdgesState,
@@ -19,12 +19,12 @@ import "@xyflow/react/dist/style.css";
 import { Button, Drawer, Form, message } from "antd";
 import React, { useCallback, useState } from "react";
 
-import { saveFlowConfig } from "@services/agentService";
+import { saveFlowConfig } from "@/services/agentService";
 import NodeForm from "../forms/node-form";
 import NodePalette from "./node-palette";
 
-import { CategorizeForm, FlowNode, NodeTypeString } from "@models/flowTypes";
-import { isConnectionAllowed, NODE_REGISTRY, parseFlowConfig } from "@utils/client";
+import { CategorizeForm, FlowNode, NodeTypeString } from "@/models/flowTypes";
+import { isConnectionAllowed, NODE_REGISTRY, parseFlowConfig } from "@/utils/client";
 import CustomEdge from "../edges/CustomEdge";
 import BeginNode from "../nodes/begin-node";
 import CategorizeNode from "../nodes/categorize-node";
@@ -32,6 +32,7 @@ import DecisionNode from "../nodes/decision-node";
 import GenerateNode from "../nodes/generate-node";
 import InterfaceNode from "../nodes/interface-node";
 import RetrievalNode from "../nodes/retrieval-node";
+import { useTheme } from "../../../theme";
 
 const nodeTypes: ReactFlowNodeTypes = {
   begin: BeginNode,
@@ -50,15 +51,16 @@ const edgeTypes: EdgeTypes = {
 
 interface FlowEditorProps {
   flowConfig: string;
-  readOnly?: boolean;
+  onStartConversation?: () => void;
   agentId?: string;
 }
 
 const FlowEditor: React.FC<FlowEditorProps> = ({
   flowConfig,
-  readOnly = false,
+  onStartConversation,
   agentId,
 }) => {
+  const { theme } = useTheme();
   const initialFlow = parseFlowConfig(flowConfig);
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialFlow.nodes);
@@ -259,16 +261,8 @@ const FlowEditor: React.FC<FlowEditorProps> = ({
 
   return (
     <div style={{ height: "80vh", width: "100%", position: "relative" }}>
-      {/* Nút mở Drawer NodePalette */}
-      <Button
-        icon={<MenuOutlined />}
-        style={{ position: "absolute", top: 10, left: 10, zIndex: 10 }}
-        onClick={() => setIsPaletteOpen(true)}
-      >
-        Nodes
-      </Button>
 
-      {/* Drawer NodePalette */}
+
       <Drawer
         title="Node Palette"
         placement="left"
@@ -291,7 +285,10 @@ const FlowEditor: React.FC<FlowEditorProps> = ({
       </Drawer>
 
       <ReactFlow
+
+        colorMode={theme}
         nodes={nodes}
+        title=""
         edges={edges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
@@ -311,9 +308,26 @@ const FlowEditor: React.FC<FlowEditorProps> = ({
           },
         }}
       >
-        <Controls />
-        <MiniMap />
-        <Background color="#aaa" gap={4} />
+        <Controls
+          orientation="horizontal"
+          position="top-left"
+          showZoom={true}
+          showFitView={true}
+          showInteractive={true}
+        >
+          <ControlButton onClick={saveFlow}>
+            <SaveOutlined
+            />
+          </ControlButton>
+          <ControlButton onClick={onStartConversation}>
+            <CommentOutlined />
+          </ControlButton>
+          <ControlButton onClick={() => setIsPaletteOpen(true)}>
+            <ToolOutlined />
+          </ControlButton>
+        </Controls>
+        <Background  />
+
       </ReactFlow>
 
       <Drawer
@@ -336,16 +350,7 @@ const FlowEditor: React.FC<FlowEditorProps> = ({
         />
       </Drawer>
 
-      <div style={{ position: "absolute", top: 10, right: 10 }}>
-        <Button
-          type="primary"
-          icon={<SaveOutlined />}
-          onClick={saveFlow}
-          disabled={readOnly}
-        >
-          Save Flow
-        </Button>
-      </div>
+
     </div>
   );
 };

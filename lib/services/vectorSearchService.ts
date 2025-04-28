@@ -123,7 +123,7 @@ async function fallbackToKeywordSearch(
         where: { knowledgeId: options.knowledgeId },
         select: { id: true },
       });
-      fileIds = files.map((f) => f.id);
+      fileIds = files.map((f:any) => f.id);
 
       if (fileIds.length > 0) {
         where.fileId = { in: fileIds };
@@ -160,7 +160,7 @@ async function fallbackToKeywordSearch(
     // Format results similar to vector search
     return {
       timestamp: new Date().getTime(),
-      results: chunks.map((chunk) => ({
+      results: chunks.map((chunk: any) => ({
         content: chunk.content,
         fileId: chunk.fileId,
         fileName: chunk.file.originalName,

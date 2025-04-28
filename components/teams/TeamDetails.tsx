@@ -16,7 +16,7 @@ import {
   CalendarOutlined 
 } from '@ant-design/icons';
 import { format } from 'date-fns';
-import { updateTeam } from '../../services/teamService';
+import { updateTeam } from '@/services/teamService';
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;

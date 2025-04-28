@@ -1,7 +1,7 @@
-import { FlowNode, CategorizeNodeData, ICategory } from '@models/flowTypes';
-import { ExecutionResult, FlowExecutionContext } from '@models/flowExecutionTypes';
-import { getQueryFromSource, getInputs } from '@hooks/useInputReferences';
-import { prisma } from '@lib/prisma';
+import { FlowNode, CategorizeNodeData, ICategory } from '@/models/flowTypes';
+import { ExecutionResult, FlowExecutionContext } from '@/models/flowExecutionTypes';
+import { getQueryFromSource, getInputs } from '@/hooks/useInputReferences';
+import { prisma } from '@/lib/prisma';
 import { isNodeReady } from '../../isNodeReady';
 
 /**

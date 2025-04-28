@@ -13,8 +13,8 @@ import {
 import MainLayout from '../../components/layout/MainLayout';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
-import { apiRequest } from '@services/apiUtils';
-import { useLocale } from '@locale/index';
+import { apiRequest } from '@/services/apiUtils';
+import { useLocale } from '@/locale/index';
 
 const { Title } = Typography;
 const { Option } = Select;

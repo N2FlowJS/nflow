@@ -1,13 +1,15 @@
 import { ReloadOutlined, RobotOutlined, SendOutlined, SmileOutlined, StopOutlined } from '@ant-design/icons';
-import { Alert, Avatar, Button, Card, Divider, Empty, Input, Layout, Space, Spin, theme, Tooltip, Typography } from 'antd';
+import { Alert, Avatar, Button, Card, Divider, Empty, Input, Layout, Space, Spin, theme, Tooltip, Typography, Grid } from 'antd';
 import { AnimatePresence, motion } from 'framer-motion';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { OpenAIExecutionResult } from '../../models/flow';
 import { FlowState } from '../../models/flowExecutionTypes';
-import { flowExecutionService } from '../../services/flowExecutionService';
+import { flowExecutionService } from '@/services/flowExecutionService';
 import ChatMessage from './ChatMessage';
 import { ISender, MessageType } from './types';
+
+const { useBreakpoint } = Grid;
 
 interface ChatInterfaceProps {
     agentId: string;
@@ -25,6 +27,9 @@ interface ChatInterfaceProps {
 
 const ChatInterface: React.FC<ChatInterfaceProps> = ({ agentId, model, temperature, maxTokens, enableStreaming = false, id: initialId, onConversationCreated, onConversationUpdated, onNewChatStarted, variables = {} }) => {
     const { token } = theme.useToken();
+    const screens = useBreakpoint();
+    const isMobile = !screens.md;
+
     // State for chat messages and input
     const [messages, setMessages] = useState<MessageType[]>([]);
     const [inputValue, setInputValue] = useState('');
@@ -40,6 +45,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agentId, model, temperatu
 
     // Reference for auto-scrolling to bottom
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const inputRef = useRef<HTMLTextAreaElement>(null);
 
     // memoize disable check
     const isSendDisabled = useMemo(() => loading || !inputValue.trim(), [loading, inputValue]);
@@ -474,30 +480,18 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agentId, model, temperatu
 
     // Render the chat interface
     return (
-        <Card
-            bordered={false}
-            style={{
-                height: '100%',
-                display: 'flex',
-                flexDirection: 'column',
-                borderRadius: token.borderRadiusLG,
-            }}
-            bodyStyle={{
-                padding: 0,
-                display: 'flex',
-                flexDirection: 'column',
-                height: '100%',
-                minHeight: 600,
-            }}>
+        <Layout style={{ height: 'calc(100vh - 300px)' }}>
             <Layout.Header
                 style={{
                     background: 'transparent',
-                    padding: `${token.paddingMD}px ${token.paddingLG}px`,
+                    padding: isMobile ? `${token.paddingXS}px ${token.paddingSM}px` : `${token.paddingMD}px ${token.paddingLG}px`,
                     height: 'auto',
                     lineHeight: 'normal',
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center',
+                    flexWrap: isMobile ? 'wrap' : 'nowrap',
+                    gap: token.padding,
                 }}>
                 <Space>
                     <Avatar
@@ -505,25 +499,50 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agentId, model, temperatu
                         style={{
                             backgroundColor: token.colorPrimary,
                         }}
-                        size={40}
+                        size={isMobile ? 32 : 40}
                     />
-                    <Typography.Title level={5} style={{ margin: 0 }}>
+                    <Typography.Title level={isMobile ? 5 : 4} style={{ margin: 0 }}>
                         Chat with Agent
                     </Typography.Title>
                 </Space>
-                <Space>
-                    {flowState && <Typography.Text type="secondary">Node: {flowState.currentNode.data.form.name || flowState.currentNode.id}</Typography.Text>}
-                    {streamingMessage && (
-                        <Button icon={isStreamingPaused ? <SendOutlined /> : <StopOutlined />} onClick={toggleStreamingPause} type={isStreamingPaused ? 'default' : 'primary'}>
-                            {isStreamingPaused ? 'Resume' : 'Pause'}
-                        </Button>
-                    )}
-                    <Tooltip title="Start a new conversation">
-                        <Button icon={<ReloadOutlined />} onClick={startNewChat}>
-                            New Chat
-                        </Button>
-                    </Tooltip>
-                </Space>
+
+                {isMobile ? (
+                    <Space.Compact>
+                        {streamingMessage && (
+                            <Button
+                                icon={isStreamingPaused ? <SendOutlined /> : <StopOutlined />}
+                                onClick={toggleStreamingPause}
+                                size="small"
+                            />
+                        )}
+                        <Button
+                            icon={<ReloadOutlined />}
+                            onClick={startNewChat}
+                            size="small"
+                        />
+                    </Space.Compact>
+                ) : (
+                    <Space>
+                        {flowState && (
+                            <Typography.Text type="secondary">
+                                Node: {flowState.currentNode.data.form.name || flowState.currentNode.id}
+                            </Typography.Text>
+                        )}
+                        {streamingMessage && (
+                            <Button
+                                icon={isStreamingPaused ? <SendOutlined /> : <StopOutlined />}
+                                onClick={toggleStreamingPause}
+                            >
+                                {isStreamingPaused ? 'Resume' : 'Pause'}
+                            </Button>
+                        )}
+                        <Tooltip title="Start a new conversation">
+                            <Button icon={<ReloadOutlined />} onClick={startNewChat}>
+                                New Chat
+                            </Button>
+                        </Tooltip>
+                    </Space>
+                )}
             </Layout.Header>
 
             <Divider style={{ margin: 0 }} />
@@ -532,9 +551,10 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agentId, model, temperatu
                 style={{
                     flex: 1,
                     overflowY: 'auto',
-                    padding: token.paddingLG,
+                    padding: isMobile ? token.paddingMD : token.paddingLG,
                     minHeight: 320,
-                    maxHeight: 480,
+
+                    WebkitOverflowScrolling: 'touch', // For smooth scrolling on iOS
                 }}>
                 {messages.length === 0 && !streamingMessage ? (
                     <Empty image={<RobotOutlined style={{ fontSize: 64, color: token.colorPrimary }} />} description="Start a conversation with this agent" />
@@ -580,30 +600,74 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agentId, model, temperatu
                 <div ref={messagesEndRef} />
             </div>
 
-            <Card>
-                <Space.Compact block>
-                    <Button icon={<SmileOutlined />} type="text" />
+            <Card >
+                <Space.Compact block style={{ position: 'relative' }}>
+                    {!isMobile && <Button icon={<SmileOutlined />} type="text" />}
                     <Input.TextArea
+                        ref={inputRef}
                         value={inputValue}
                         onChange={(e) => setInputValue(e.target.value)}
                         placeholder={inputPlaceholder}
-                        autoSize={{ minRows: 1, maxRows: 4 }}
+                        autoSize={{ minRows: 1, maxRows: isMobile ? 3 : 4 }}
                         disabled={loading}
                         onKeyDown={(e) => {
-                            if (e.key === 'Enter' && !e.shiftKey) {
+                            if (e.key === 'Enter' && !e.shiftKey && !isMobile && !e.altKey) {
                                 e.preventDefault();
                                 handleSendMessage();
+                            } else if (e.key === 'Enter' && e.altKey) {
+                                e.preventDefault();
+                                const cursorPosition = e.currentTarget.selectionStart || 0;
+                                const newValue = inputValue.slice(0, cursorPosition) + '\n' + inputValue.slice(cursorPosition);
+                                setInputValue(newValue);
+
+                                // Use requestAnimationFrame to ensure the DOM has updated
+                                requestAnimationFrame(() => {
+                                    if (inputRef.current) {
+                                        inputRef.current.selectionStart = cursorPosition + 1;
+                                        inputRef.current.selectionEnd = cursorPosition + 1;
+                                        inputRef.current.focus();
+                                    }
+                                });
                             }
                         }}
-                        style={{ resize: 'none' }}
+                        style={{
+                            height: undefined,
+                            resize: 'none',
+                            fontSize: isMobile ? 14 : 14,
+                            padding: isMobile ? '8px 40px 8px 12px' : undefined
+                        }}
                     />
-                    <Button type="primary" icon={streamingMessage ? <StopOutlined /> : <SendOutlined />} onClick={streamingMessage ? stopStreaming : handleSendMessage} disabled={isSendDisabled} />
+                    <Button
+                        type="primary"
+                        icon={streamingMessage ? <StopOutlined /> : <SendOutlined />}
+                        onClick={streamingMessage ? stopStreaming : handleSendMessage}
+                        disabled={isSendDisabled}
+                        style={{
+                            position: isMobile ? 'absolute' : 'relative',
+                            right: isMobile ? 0 : undefined,
+                            top: isMobile ? 0 : undefined,
+                            bottom: isMobile ? 0 : undefined,
+                            borderRadius: isMobile ? '0 4px 4px 0' : undefined
+                        }}
+                    />
                 </Space.Compact>
-                <Typography.Text type="secondary" style={{ fontSize: token.fontSizeSM, textAlign: 'center', display: 'block', marginTop: token.marginXS }}>
-                    Press <Typography.Text keyboard>Enter</Typography.Text> to send, <Typography.Text keyboard>Shift + Enter</Typography.Text> for new line
-                </Typography.Text>
+                {!isMobile && (
+                    <Typography.Text
+                        type="secondary"
+                        style={{
+                            fontSize: token.fontSizeSM,
+                            textAlign: 'center',
+                            display: 'block',
+                            marginTop: token.marginXS
+                        }}
+                    >
+                        Press <Typography.Text keyboard>Enter</Typography.Text> to send,{' '}
+                        <Typography.Text keyboard>Shift + Enter</Typography.Text> or{' '}
+                        <Typography.Text keyboard>Alt + Enter</Typography.Text> for new line
+                    </Typography.Text>
+                )}
             </Card>
-        </Card>
+        </Layout>
     );
 };
 

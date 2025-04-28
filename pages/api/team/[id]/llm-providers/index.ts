@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { prisma } from "@lib/prisma";
-import { parseAuthHeader, verifyToken } from '@lib/auth';
+import { prisma } from "@/lib/prisma";
+import { parseAuthHeader, verifyToken } from '@/lib/auth';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   // Get token from Authorization header
@@ -84,7 +84,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
       
       // Mask API keys
-      const sanitizedProviders = providers.map(provider => ({
+      const sanitizedProviders = providers.map((provider: any) => ({
         ...provider,
         apiKey: provider.apiKey ? '********' : null
       }));

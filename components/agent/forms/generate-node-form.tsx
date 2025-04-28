@@ -1,6 +1,6 @@
 import { FileTextOutlined } from "@ant-design/icons";
-import { FlowNode, } from "@models/flowTypes"; // Import Edge type
-import { fetchAllLLMProviders } from "@services/llmService";
+import { FlowNode, } from "@/models/flowTypes"; // Import Edge type
+import { fetchAllLLMProviders } from "@/services/llmService";
 import { Collapse, Form, Select, Space, Spin, Typography } from "antd";
 import React, { useEffect, useMemo, useState } from "react"; // Import useMemo
 import { Mention, MentionsInput, SuggestionDataItem } from 'react-mentions';

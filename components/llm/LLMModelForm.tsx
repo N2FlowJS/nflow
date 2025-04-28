@@ -19,8 +19,8 @@ import {
   LLMModel,
   LLMProvider 
 } from '../../models/llm';
-import { fetchAllLLMProviders } from '../../services/llmService';
-import { fetchTeamLLMProviders } from '@services/teamService';
+import { fetchAllLLMProviders } from '@/services/llmService';
+import { fetchTeamLLMProviders } from '@/services/teamService';
 
 const { Title, Text } = Typography;
 const { Option } = Select;

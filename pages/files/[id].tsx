@@ -44,7 +44,7 @@ import {
   fetchFileById,
   getFileContent,
   getFileDownloadUrl,
-} from "../../services/fileService";
+} from "@/services/fileService";
 import { getTypeFile } from "../../utils/client/formatters";
 
 const { Title, Text } = Typography;

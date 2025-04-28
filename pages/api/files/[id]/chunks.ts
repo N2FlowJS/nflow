@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { fetchTextChunksByFileId } from "@lib/services/localVectorService";
-import { parseAuthHeader, verifyToken } from "@lib/auth";
-import { prisma } from "@lib/prisma";
+import { fetchTextChunksByFileId } from "@/lib/services/localVectorService";
+import { parseAuthHeader, verifyToken } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 
 export default async function handler(
   req: NextApiRequest,

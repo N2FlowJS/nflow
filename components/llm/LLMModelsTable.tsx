@@ -20,7 +20,7 @@ import {
 } from 'antd';
 import React, { useState } from 'react';
 import { LLMModel, LLMProvider } from '../../models/llm';
-import { deleteLLMModel, setDefaultLLMModel, updateLLMModel } from '../../services/llmService';
+import { deleteLLMModel, setDefaultLLMModel, updateLLMModel } from '@/services/llmService';
 import LLMModelForm from './LLMModelForm';
 
 const { Title } = Typography;

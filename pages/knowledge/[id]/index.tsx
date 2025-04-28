@@ -8,20 +8,20 @@ import {
   TeamOutlined,
   UserOutlined
 } from "@ant-design/icons";
-import FileConfigModal from "@components/knowledge/FileConfigModal";
-import KnowledgeConfigForm from "@components/knowledge/KnowledgeConfigForm";
-import KnowledgeDetailForm from "@components/knowledge/KnowledgeDetailForm";
-import KnowledgeFileList from "@components/knowledge/KnowledgeFileList";
-import RetrievalTestingPanel from "@components/knowledge/RetrievalTestingPanel";
-import MainLayout from "@components/layout/MainLayout";
-import UploadFileModal from "@components/upload/UploadFileModal";
-import { useAuth } from "@context/AuthContext";
-import { Knowledge } from "@models/knowledge";
-import { updateFileConfig } from "@services/fileService";
+import FileConfigModal from "@/components/knowledge/FileConfigModal";
+import KnowledgeConfigForm from "@/components/knowledge/KnowledgeConfigForm";
+import KnowledgeDetailForm from "@/components/knowledge/KnowledgeDetailForm";
+import KnowledgeFileList from "@/components/knowledge/KnowledgeFileList";
+import RetrievalTestingPanel from "@/components/knowledge/RetrievalTestingPanel";
+import MainLayout from "@/components/layout/MainLayout";
+import UploadFileModal from "@/components/upload/UploadFileModal";
+import { useAuth } from "@/context/AuthContext";
+import { Knowledge } from "@/models/knowledge";
+import { updateFileConfig } from "@/services/fileService";
 import {
   fetchKnowledgeById,
   updateKnowledge,
-} from "@services/knowledgeService";
+} from "@/services/knowledgeService";
 import {
   Avatar,
   Breadcrumb,
@@ -45,8 +45,8 @@ import {
 import { format } from "date-fns";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import React, { useEffect, useState } from "react";
-import { useLocale } from "@locale/index";
+import React, { useEffect, useState, CSSProperties } from "react";
+import { useLocale } from "@/locale/index";
 
 const { Title, Text } = Typography;
 const { TabPane } = Tabs;
@@ -66,6 +66,7 @@ export default function KnowledgeDetail() {
   const screens = useBreakpoint();
   const isMobile = !screens.md;
   const { messages } = useLocale();
+  const [activeTab, setActiveTab] = useState('files');
 
   const fetchKnowledgeDetail = React.useCallback(async () => {
     if (!id || typeof id !== "string") return;
@@ -113,7 +114,7 @@ export default function KnowledgeDetail() {
   }, [id, form, messages]);
 
   useEffect(() => {
- fetchKnowledgeDetail();
+    fetchKnowledgeDetail();
 
   }, [fetchKnowledgeDetail]);
 
@@ -188,6 +189,106 @@ export default function KnowledgeDetail() {
   const formatDate = (dateString?: string) => {
     if (!dateString) return "N/A";
     return format(new Date(dateString), "MMM dd, yyyy HH:mm:ss");
+  };
+
+  // Mobile tab styles
+  const mobileTabStyle: CSSProperties = {
+    padding: '8px',
+    textAlign: 'center',
+    borderBottom: '2px solid transparent',
+    cursor: 'pointer',
+    transition: 'all 0.3s',
+  };
+
+  const mobileActiveTabStyle: CSSProperties = {
+    ...mobileTabStyle,
+    borderBottom: '2px solid #1890ff',
+    color: '#1890ff',
+  };
+
+  // Custom render for mobile tabs
+  const renderMobileTabs = () => {
+    const tabs = [
+      { key: 'files', icon: <FileOutlined />, label: messages.knowledgeDetail.dataSet },
+      { key: 'content', icon: <SettingOutlined />, label: messages.knowledgeDetail.config },
+      { key: 'testing', icon: <SearchOutlined />, label: messages.knowledgeDetail.testing.testing },
+      { key: 'info', icon: <InfoCircleOutlined />, label: messages.knowledgeDetail.info },
+    ];
+
+    return (
+      <>
+        <div style={{
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          background: '#fff',
+          boxShadow: '0 -2px 8px rgba(0,0,0,0.06)',
+          zIndex: 1000
+        }}>
+          <Row>
+            {tabs.map(tab => (
+              <Col span={6} key={tab.key}>
+                <div
+                  style={activeTab === tab.key ? mobileActiveTabStyle : mobileTabStyle}
+                  onClick={() => setActiveTab(tab.key)}
+                >
+                  <div style={{ fontSize: '18px' }}>{tab.icon}</div>
+                  <div style={{ fontSize: '12px', marginTop: '4px' }}>{tab.label}</div>
+                </div>
+              </Col>
+            ))}
+          </Row>
+        </div>
+        <div style={{ paddingBottom: '80px' }}>
+          {tabs.map(tab => (
+            <div key={tab.key} style={{ display: activeTab === tab.key ? 'block' : 'none' }}>
+              {tab.key === 'files' && (
+                <KnowledgeFileList
+                  knowledge={knowledge!}
+                  isAuthenticated={isAuthenticated}
+                  handleOpenUploadModal={handleOpenUploadModal}
+                  openFileConfigModal={openFileConfigModal}
+                />
+              )}
+              {tab.key === 'content' && (
+                <Form form={form} layout="vertical">
+                  <Card
+                    title={messages.knowledgeDetail.description}
+                    style={{ marginBottom: isMobile ? 12 : 24 }}
+                    size={isMobile ? "small" : "default"}
+                  >
+                    <KnowledgeDetailForm form={form} />
+                  </Card>
+
+                  <Card
+                    style={{ marginBottom: isMobile ? 12 : 24 }}
+                    size={isMobile ? "small" : "default"}
+                  >
+                    <KnowledgeConfigForm form={form} />
+                  </Card>
+
+                  <Button
+                    type="primary"
+                    icon={<SaveOutlined />}
+                    onClick={handleSubmit}
+                    block
+                    disabled={!isAuthenticated}
+                    size={isMobile ? "middle" : "large"}
+                  >
+                    {messages.knowledgeDetail.saveChanges}
+                  </Button>
+                </Form>
+              )}
+              {tab.key === 'testing' && id && typeof id === 'string' && (
+                <RetrievalTestingPanel knowledgeId={id} />
+              )}
+              {tab.key === 'info' && renderInfoContent()}
+            </div>
+          ))}
+        </div>
+      </>
+    );
   };
 
   if (loading) {
@@ -395,99 +496,100 @@ export default function KnowledgeDetail() {
       {/* Main Content - Unified layout for both mobile and desktop */}
       <Row>
         <Col span={24}>
-          <Tabs
-            defaultActiveKey="files"
-            centered={isMobile}
-            size={isMobile ? "small" : "large"}
-            style={{ marginBottom: 12 }}
-            tabPosition={isMobile ? "top" : "top"}
-            tabBarGutter={isMobile ? 0 : 16}
-          >
-
-            <TabPane
-              tab={
-                <span>
-                  <FileOutlined />
-                  <span style={{ marginLeft: 8 }}>{messages.knowledgeDetail.dataSet}</span>
-                </span>
-              }
-              key="files"
+          {isMobile ? renderMobileTabs() : (
+            <Tabs
+              activeKey={activeTab}
+              onChange={setActiveTab}
+              size="large"
+              style={{ marginBottom: 24 }}
             >
-              <KnowledgeFileList
-                knowledge={knowledge!}
-                isAuthenticated={isAuthenticated}
-                handleOpenUploadModal={handleOpenUploadModal}
-                openFileConfigModal={openFileConfigModal}
-              />
-            </TabPane>
+              <TabPane
+                tab={
+                  <span>
+                    <FileOutlined />
+                    <span style={{ marginLeft: 8 }}>{messages.knowledgeDetail.dataSet}</span>
+                  </span>
+                }
+                key="files"
+              >
+                <KnowledgeFileList
+                  knowledge={knowledge!}
+                  isAuthenticated={isAuthenticated}
+                  handleOpenUploadModal={handleOpenUploadModal}
+                  openFileConfigModal={openFileConfigModal}
+                />
+              </TabPane>
 
-            <TabPane
-              tab={
-                <span>
-                  <SettingOutlined />
-                  <span style={{ marginLeft: 8 }}>{messages.knowledgeDetail.config}</span>
-                </span>
-              }
-              key="content"
-            >
-              <Form form={form} layout="vertical">
-                {/* Description Card */}
-                <Card
-                  title={messages.knowledgeDetail.description}
-                  style={{ marginBottom: isMobile ? 12 : 24 }}
-                  size={isMobile ? "small" : "default"}
-                >
-                  <KnowledgeDetailForm form={form} />
-                </Card>
+              <TabPane
+                tab={
+                  <span>
+                    <SettingOutlined />
+                    <span style={{ marginLeft: 8 }}>{messages.knowledgeDetail.config}</span>
+                  </span>
+                }
+                key="content"
+              >
+                <Form form={form} layout="vertical">
+                  <Card
+                    title={messages.knowledgeDetail.description}
+                    style={{ marginBottom: isMobile ? 12 : 24 }}
+                    size={isMobile ? "small" : "default"}
+                  >
+                    <KnowledgeDetailForm form={form} />
+                  </Card>
 
-                {/* Chunking Configuration */}
-                <Card
-                  style={{ marginBottom: isMobile ? 12 : 24 }}
-                  size={isMobile ? "small" : "default"}
-                >
-                  <KnowledgeConfigForm form={form} />
-                </Card>
+                  <Card
+                    title={
+                      <div>
+                        <SettingOutlined /> Chunking Configuration
+                      </div>
+                    }
+                    style={{ marginBottom: isMobile ? 12 : 24 }}
+                    size={isMobile ? "small" : "default"}
+                  >
+                    <KnowledgeConfigForm form={form} />
+                  </Card>
 
-                {/* Save Button at bottom of form */}
-                <Button
-                  type="primary"
-                  icon={<SaveOutlined />}
-                  onClick={handleSubmit}
-                  block
-                  disabled={!isAuthenticated}
-                  size={isMobile ? "middle" : "large"}
-                >
-                  {messages.knowledgeDetail.saveChanges}
-                </Button>
-              </Form>
-            </TabPane>
+                  <Button
+                    type="primary"
+                    icon={<SaveOutlined />}
+                    onClick={handleSubmit}
+                    block
+                    disabled={!isAuthenticated}
+                    size={isMobile ? "middle" : "large"}
+                  >
+                    {messages.knowledgeDetail.saveChanges}
+                  </Button>
+                </Form>
+              </TabPane>
 
-            <TabPane
-              tab={
-                <span>
-                  <SearchOutlined />
-                  <span style={{ marginLeft: 8 }}>{messages.knowledgeDetail.testing.testing}</span>
-                </span>
-              }
-              key="testing"
-            >
-              {id && typeof id === "string" && (
-                <RetrievalTestingPanel knowledgeId={id} />
-              )}
-            </TabPane>
+              <TabPane
+                tab={
+                  <span>
+                    <SearchOutlined />
+                    <span style={{ marginLeft: 8 }}>{messages.knowledgeDetail.testing.testing}</span>
+                  </span>
+                }
+                key="testing"
+              >
+                {id && typeof id === "string" && (
+                  <RetrievalTestingPanel knowledgeId={id} />
+                )}
+              </TabPane>
 
-            <TabPane
-              tab={
-                <span>
-                  <InfoCircleOutlined />
-                  <span style={{ marginLeft: 8 }}>{messages.knowledgeDetail.info}</span>
-                </span>
-              }
-              key="info"
-            >
-              {renderInfoContent()}
-            </TabPane>
-          </Tabs>
+              <TabPane
+                tab={
+                  <span>
+                    <InfoCircleOutlined />
+                    <span style={{ marginLeft: 8 }}>{messages.knowledgeDetail.info}</span>
+                  </span>
+                }
+                key="info"
+              >
+                {renderInfoContent()}
+              </TabPane>
+            </Tabs>
+          )}
         </Col>
       </Row>
 

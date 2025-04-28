@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import { JsonValue } from "@/prisma/client/runtime/library";
 
 export type IFile = {
     path: string;
@@ -8,7 +8,7 @@ export type IFile = {
     originalName: string;
     mimetype: string;
     knowledgeId: string;
-    config: Prisma.JsonValue | null;
+    config:  JsonValue | null;
     createdAt: Date;
     parsingStatus: string | null;
     filename: string;

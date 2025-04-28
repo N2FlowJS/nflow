@@ -1,5 +1,5 @@
 import { DeleteOutlined, LinkOutlined } from '@ant-design/icons';
-import { usePredecessorNodes } from '@components/agent/hooks/usePredecessorNodes';
+import { usePredecessorNodes } from '@/components/agent/hooks/usePredecessorNodes';
 import { Button, Collapse, Form, Select, Space, Tag } from 'antd';
 import React from 'react';
 

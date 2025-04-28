@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { prisma } from "@lib/prisma";
-import { parseAuthHeader, verifyToken } from '@lib/auth';
+import { prisma } from "@/lib/prisma";
+import { parseAuthHeader, verifyToken } from '@/lib/auth';
 
 /**
  * API handler for managing LLM providers.
@@ -67,7 +67,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
       });
       
-      const teamIds = userTeams.map(t => t.teamId);
+      const teamIds = userTeams.map((t:any) => t.teamId);
       
       // Build the query to get all providers the user has access to
       const providers = await prisma.lLMProvider.findMany({
@@ -113,7 +113,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
       
       // Mask API keys for security
-      const sanitizedProviders = providers.map(provider => ({
+      const sanitizedProviders = providers.map((provider: any )=> ({
         ...provider,
         apiKey: provider.apiKey ? '********' : null,
       }));

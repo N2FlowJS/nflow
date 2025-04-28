@@ -1,7 +1,7 @@
 import { executeNode } from './node/executeNode';
 import { EXECUTION_STATUS } from '../EXECUTION_STATUS';
-import { Flow } from '@models/flowTypes';
-import { ExecutionResult } from '@models/flowExecutionTypes';
+import { Flow } from '@/models/flowTypes';
+import { ExecutionResult } from '@/models/flowExecutionTypes';
 
 export async function processNode(
   flow: Flow,

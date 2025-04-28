@@ -1,9 +1,9 @@
 import React, { memo } from "react";
 import { Handle, Position } from "@xyflow/react";
-import { NodeData } from "@models/flowTypes";
+import { NodeData } from "@/models/flowTypes";
 import NodeHeader from "./node-header";
 import { getHandleStyle } from "./handle-icon";
-import { NODE_REGISTRY } from "@utils/client";
+import { NODE_REGISTRY } from "@/utils/client";
 import { Card } from "antd";
 
 interface BaseNodeProps {
@@ -33,12 +33,8 @@ const BaseNode: React.FC<BaseNodeProps> = ({
   return (
     <Card
       style={{
-        borderStyle: "solid",
-        borderColor: selected ? (nodeConfig?.color.border || '#888888') : "#e0e0e0",
-        borderWidth: "1px",
-        borderRadius: "6px",
-        backgroundColor: nodeConfig?.color.background || "#888888",
-        boxShadow: "none",
+        borderColor: selected ? 'red' : (nodeConfig?.color.border || '#888888'),
+        borderWidth: "3px",
       }}
     >
       <NodeHeader

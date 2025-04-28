@@ -6,6 +6,17 @@
   turbopack: {
     resolveAlias: {
       underscore: 'lodash',
+      "@/pages/*": ["./pages/*"],
+      "@/lib/*": ["./lib/*"],
+      "@/services/*": ["./services/*"],
+      "@/utils/*": ["./utils/*"],
+      "@/components/*": ["./components/*"],
+      "@/hooks/*": ["./hooks/*"],
+      "@/database/*": ["./database/*"],
+      "@/models/*": ["./models/*"],
+      "@/context/*": ["./context/*"],
+      "@/prisma/*": ["./prisma/*"],
+      "@/locale/*": ["./locale/*"],
     },
     resolveExtensions: ['.mdx', '.tsx', '.ts', '.jsx', '.js', '.json'],
   },

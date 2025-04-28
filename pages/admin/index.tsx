@@ -18,9 +18,9 @@ import {
   FileOutlined,
   TeamOutlined,
 } from '@ant-design/icons';
-import MainLayout from '@components/layout/MainLayout';
-import { useAuth } from '@context/AuthContext';
-import { useSystemStats } from '@hooks/useSystemStats';
+import MainLayout from '@/components/layout/MainLayout';
+import { useAuth } from '@/context/AuthContext';
+import { useSystemStats } from '../../hooks/useSystemStats';
 import { useLocale } from '../../locale';
 
 const { Title, Text } = Typography;

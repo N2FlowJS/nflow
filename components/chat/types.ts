@@ -1,4 +1,4 @@
-import type { EXECUTION_STATUS } from '@utils/server/EXECUTION_STATUS';
+import type { EXECUTION_STATUS } from '@/utils/server/EXECUTION_STATUS';
 import { ExecutionStatusType } from '../../models/flowExecutionTypes';
 import { NodeTypeString } from '../../models/flowTypes';
 

@@ -152,8 +152,8 @@ export async function searchLocalVectors(
           return null;
         }
       })
-      .filter(result => result !== null && result.similarity >= threshold)
-      .sort((a, b) => b!.similarity - a!.similarity) // Sort by similarity descending
+      .filter((result: any) => result !== null && result.similarity >= threshold)
+      .sort((a: any, b: any) => b!.similarity - a!.similarity) // Sort by similarity descending
       .slice(0, limit);
 
     console.log(`Local vector search found ${results.length} results above threshold ${threshold}`);
@@ -256,7 +256,7 @@ export async function fetchTextChunksByFileId(fileId: string): Promise<IChunk[]>
 
     console.log(`Successfully fetched ${chunks.length} chunks for file ID: ${fileId}`);
 
-    return chunks.map(chunk => ({
+    return chunks.map((chunk:any )=> ({
       id: chunk.id,
       content: chunk.content,
       chunkIndex: chunk.chunkIndex,

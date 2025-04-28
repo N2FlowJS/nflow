@@ -18,7 +18,6 @@ const KnowledgeBaseInfo: React.FC<KnowledgeBaseInfoProps> = ({ knowledgeIds }) =
       }
       style={{
         width: '100%',
-        backgroundColor: knowledgeIds.length > 0 ? 'rgba(230, 244, 255, 0.6)' : 'rgba(255, 245, 245, 0.6)',
         borderColor: knowledgeIds.length > 0 ? '#91caff' : '#ffccc7',
       }}
     >

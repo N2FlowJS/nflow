@@ -29,7 +29,7 @@ import {
     createUserProviderModel,
     updateUserProviderModel,
     deleteUserProviderModel
-} from '../../services/llmService';
+} from '@/services/llmService';
 
 const { Title } = Typography;
 

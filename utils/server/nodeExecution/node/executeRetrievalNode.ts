@@ -1,8 +1,8 @@
-import { getInputs, getQueryFromSource } from '@hooks/useInputReferences';
-import { ExecutionResult, FlowExecutionContext } from '@models/flowExecutionTypes';
-import { FlowNode, RetrievalNodeData } from '@models/flowTypes';
-import { retrieveFromKnowledgeBase } from '@services/knowledgeService';
-import { findNextNodes } from '@utils/server/findNextNode';
+import { getInputs, getQueryFromSource } from '@/hooks/useInputReferences';
+import { ExecutionResult, FlowExecutionContext } from '@/models/flowExecutionTypes';
+import { FlowNode, RetrievalNodeData } from '@/models/flowTypes';
+import { retrieveFromKnowledgeBase } from '@/services/knowledgeService';
+import { findNextNodes } from '@/utils/server/findNextNode';
 import { isNodeReady } from '../../isNodeReady';
 
 /**

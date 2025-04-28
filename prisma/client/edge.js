@@ -285,7 +285,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "E:\\git\\nflow\\prisma\\client",
+      "value": "E:\\git\\N2FlowJS\\nflow\\prisma\\client",
       "fromEnvVar": null
     },
     "config": {
@@ -299,7 +299,7 @@ const config = {
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "E:\\git\\nflow\\prisma\\schema.prisma",
+    "sourceFilePath": "E:\\git\\N2FlowJS\\nflow\\prisma\\schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {

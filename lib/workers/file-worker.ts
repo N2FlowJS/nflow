@@ -1,17 +1,13 @@
 import { prisma } from '../prisma';
-// Import parsers for different file types
-// Import new utility and service
-import { generateEmbeddingsInBatches } from '../services/embeddingService';
+
 import { chunkText, extractChunkMetadata } from '../utils/textChunker';
-// Import local vector service, and Nbase service
-import { deleteLocalVectors, storeLocalVectors } from '../services/localVectorService';
+import { ConfigChunk } from '@/components/knowledge/ChunkSeparatorSelect';
 import { deleteFileVectors as deleteNbaseFileVectors, storeVectorsInNbase as storeNbaseChunkVectors } from '../services/nbaseService';
 import { readFileContent } from './parse-file/readFileContent';
-import { ConfigChunk } from '@components/knowledge/ChunkSeparatorSelect';
-// Remove direct import of SSE sender
-// import { sendFileParsingEvent } from '../../pages/api/events/fileParsingEvents';
 import fs from 'fs';
 import path from 'path';
+import { generateEmbeddingsInBatches } from '../services/embeddingService';
+import { deleteLocalVectors, storeLocalVectors } from '../services/localVectorService';
 
 // Configuration
 const POLLING_INTERVAL = parseInt(process.env.PARSING_POLLING_INTERVAL || '5000'); // Default: 5 seconds
@@ -151,7 +147,7 @@ class FileParsingWorker {
 
     try {
       // Attempt to claim a task using a transaction to avoid race conditions
-      const task = await prisma.$transaction(async (tx) => {
+      const task = await prisma.$transaction(async (tx: any) => {
         // Find the oldest pending task
         const pendingTask = await tx.fileParsingTask.findFirst({
           where: { status: 'pending' },

@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { prisma } from "@lib/prisma";
-import { searchSimilarContent } from "@lib/services/vectorSearchService";
+import { prisma } from "@/lib/prisma";
+import { searchSimilarContent } from "@/lib/services/vectorSearchService";
 
 export default async function handler(
   req: NextApiRequest,

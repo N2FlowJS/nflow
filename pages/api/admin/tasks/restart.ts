@@ -1,7 +1,7 @@
 
 import { NextApiRequest, NextApiResponse } from 'next';
-import { prisma } from '@lib/prisma';
-import { parseAuthHeader, verifyToken } from '@lib/auth';
+import { prisma } from '@/lib/prisma';
+import { parseAuthHeader, verifyToken } from '@/lib/auth';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   // For GET requests, allow without authentication

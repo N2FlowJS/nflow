@@ -1,7 +1,7 @@
 import { DatabaseOutlined, LoadingOutlined } from "@ant-design/icons";
-import { FlowNode } from "@models/flowTypes";
-import { IKnowledge } from "@models/IKnowledge";
-import { fetchAllKnowledge, } from "@services/knowledgeService";
+import { FlowNode } from "@/models/flowTypes";
+import { IKnowledge } from "@/models/IKnowledge";
+import { fetchAllKnowledge, } from "@/services/knowledgeService";
 import { Form, InputNumber, Select, Slider, Spin, Typography } from "antd";
 import React, { useEffect, useState } from "react";
 import BaseNodeForm from "./base-node-form";

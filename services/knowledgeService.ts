@@ -1,6 +1,6 @@
 import { apiRequest } from './apiUtils';
 import { IKnowledge } from '../models/IKnowledge';
-import { searchSimilarContent, SearchSimilarResult } from '@lib/services/vectorSearchService';
+import { searchSimilarContent, SearchSimilarResult } from '@/lib/services/vectorSearchService';
 
 export const fetchAllKnowledge = async () => {
   return apiRequest<IKnowledge[]>('/api/knowledge');

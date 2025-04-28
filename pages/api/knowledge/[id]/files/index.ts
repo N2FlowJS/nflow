@@ -1,10 +1,10 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { prisma } from '@lib/prisma';
+import { prisma } from '@/lib/prisma';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 import { v4 as uuidv4 } from 'uuid';
-import { InputJsonValue } from '@prisma/client/runtime/library';
+import { InputJsonValue } from '@/prisma/client/runtime/library';
 
 // Configure multer for file uploads with knowledge-specific folders
 const upload = (knowledgeId: string) => multer({

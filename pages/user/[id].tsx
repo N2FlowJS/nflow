@@ -1,11 +1,11 @@
 import { ApiOutlined, ArrowLeftOutlined, DashboardOutlined, LockOutlined, RobotOutlined, TeamOutlined, UserOutlined } from '@ant-design/icons';
-import MainLayout from '@components/layout/MainLayout';
-import PasswordChangeForm from '@components/profile/PasswordChangeForm';
-import { createAgent } from "@services/agentService";
-import { checkAuthentication, redirectToLogin } from '@services/authUtils';
-import { createUserLLMProvider, deleteUserLLMProvider, fetchUserLLMProviders, updateUserLLMProvider } from '@services/llmService';
-import { createTeam } from "@services/teamService";
-import { fetchUserById, updateUser } from "@services/userService";
+import MainLayout from '@/components/layout/MainLayout';
+import PasswordChangeForm from '@/components/profile/PasswordChangeForm';
+import { createAgent } from "@/services/agentService";
+import { checkAuthentication, redirectToLogin } from '@/services/authUtils';
+import { createUserLLMProvider, deleteUserLLMProvider, fetchUserLLMProviders, updateUserLLMProvider } from '@/services/llmService';
+import { createTeam } from "@/services/teamService";
+import { fetchUserById, updateUser } from "@/services/userService";
 import { Alert, Breadcrumb, Button, Form, Skeleton, Space, Tabs, message } from 'antd';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -14,14 +14,14 @@ import { IUser } from '../../models/IUser';
 import { LLMProvider } from '../../models/llm';
 import { useTheme } from '../../theme';
 
-import UserAgentsTab from '@components/user/UserAgentsTab';
-import UserLLMTab from '@components/user/UserLLMTab';
-import UserProfileHeader from '@components/user/UserProfileHeader';
-import UserProfileTab from '@components/user/UserProfileTab';
-import UserTeamsTab from '@components/user/UserTeamsTab';
-import AgentCreationModal from '@components/user/modals/AgentCreationModal';
-import LLMProviderModal from '@components/user/modals/LLMProviderModal';
-import TeamCreationModal from '@components/user/modals/TeamCreationModal';
+import UserAgentsTab from '@/components/user/UserAgentsTab';
+import UserLLMTab from '@/components/user/UserLLMTab';
+import UserProfileHeader from '@/components/user/UserProfileHeader';
+import UserProfileTab from '@/components/user/UserProfileTab';
+import UserTeamsTab from '@/components/user/UserTeamsTab';
+import AgentCreationModal from '@/components/user/modals/AgentCreationModal';
+import LLMProviderModal from '@/components/user/modals/LLMProviderModal';
+import TeamCreationModal from '@/components/user/modals/TeamCreationModal';
 
 const { TabPane } = Tabs;
 

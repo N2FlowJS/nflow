@@ -4,7 +4,7 @@
  */
 import * as nbaseService from '../services/nbaseService';
 // Import necessary modules
-import { log } from '@utils/logger';
+import { log } from '@/utils/logger';
 import fs from 'fs'; // Added import
 import path from 'path'; // Added import
 type ChildProcess = any;

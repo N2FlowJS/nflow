@@ -1,5 +1,5 @@
-import { prisma } from '@lib/prisma';
-import { Flow } from '@models/flowTypes';
+import { prisma } from '@/lib/prisma';
+import { Flow } from '@/models/flowTypes';
 
 // Default empty flow configuration
 const DEFAULT_FLOW: Flow = {

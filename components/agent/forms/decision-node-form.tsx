@@ -1,6 +1,6 @@
 import React from "react";
 import { Form, Input } from "antd";
-import { FlowNode } from "@models/flowTypes";
+import { FlowNode } from "@/models/flowTypes";
 import BaseNodeForm from "./base-node-form";
 
 interface DecisionNodeFormProps {

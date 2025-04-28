@@ -24,24 +24,26 @@ import {
   Switch,
   Tag,
   Typography,
-  message
+  message,
+  Grid
 } from "antd";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { useCallback, useEffect, useState } from "react";
-import ChatInterface from "@components/chat/ChatInterface";
-import MainLayout from "@components/layout/MainLayout";
-import { IAgent } from "@models/IAgent";
+import ChatInterface from "@/components/chat/ChatInterface";
+import MainLayout from "@/components/layout/MainLayout";
+import { IAgent } from "@/models/IAgent";
 import {
   deleteAgent,
   fetchAgent,
   fetchFlowConfig,
   updateAgent,
-} from "@services/agentService"; // Use the new service
+} from "@/services/agentService"; // Use the new service
 import { useAuth } from "../../../context/AuthContext";
-import { useLocale } from '@locale/index';
+import { useLocale } from '@/locale/index';
 
 const { Title, Text } = Typography;
+const { useBreakpoint } = Grid;
 
 export default function AgentDetail() {
   const router = useRouter();
@@ -103,13 +105,13 @@ export default function AgentDetail() {
   }, [id]);
 
   useEffect(() => {
-  fetchAgentData();
+    fetchAgentData();
 
   }, [fetchAgentData]);
 
   // Load flow config only when the chat tab is active and config isn't loaded yet
   useEffect(() => {
- loadFlowConfig();
+    loadFlowConfig();
 
   }, [loadFlowConfig]); // Added flowLoading dependency
 
@@ -169,6 +171,9 @@ export default function AgentDetail() {
     // Optionally reset other related states if necessary
   }, []);
 
+  const screens = useBreakpoint();
+  const isMobile = !screens.md;
+
   if (loading) {
     return (
       <MainLayout title={t('loadingAgent')}>
@@ -194,8 +199,9 @@ export default function AgentDetail() {
 
   return (
     <MainLayout title={`${t('agent')}: ${agent?.name || t('detail')}`}>
-      <div style={{ padding: '24px' }}>
+      <div style={{ padding: isMobile ? '12px' : '24px' }}>
         <Breadcrumb
+          style={{ marginBottom: isMobile ? '12px' : '24px' }}
           items={[
             {
               title: <Link href="/">Home</Link>,
@@ -209,23 +215,25 @@ export default function AgentDetail() {
           ]}
         />
 
-        <Row gutter={32} align="stretch">
-
-          <Col xs={24} md={6}>
-            <Card
-
-            >
-              <Row align="middle" style={{ padding: 32 }}>
-                <Col flex="none">
+        <Row gutter={[16, 16]} align="stretch">
+          {/* Agent Info Card */}
+          <Col xs={24} md={8}>
+            <Card>
+              <Row align="middle" >
+                <Col flex="none" >
                   <Avatar
-                    size={72}
+                    size={isMobile ? 56 : 72}
                     icon={<RobotOutlined />}
-                    style={{ background: "#1677ff", marginRight: 32 }}
+                    style={{
+                      background: "#1677ff",
+                      marginRight: isMobile ? 16 : 32,
+                      marginBottom: isMobile ? 16 : 0
+                    }}
                   />
                 </Col>
                 <Col flex="auto">
-                  <Title level={2} style={{ margin: 0 }}>{agent?.name}</Title>
-                  <Typography.Text type="secondary" style={{ fontSize: 16 }}>
+                  <Title level={isMobile ? 3 : 2} style={{ margin: 0 }}>{agent?.name}</Title>
+                  <Typography.Text type="secondary" style={{ fontSize: isMobile ? 14 : 16 }}>
                     {agent?.description}
                   </Typography.Text>
                   <div style={{ marginTop: 12 }}>
@@ -233,84 +241,106 @@ export default function AgentDetail() {
                       {agent?.isActive ? t('active') : t('inactive')}
                     </Tag>
                     {agent?.ownerType === "user" ? (
-                      <Tag icon={<UserOutlined />} color="blue" style={{ marginLeft: 8 }}>
+                      <Tag icon={<UserOutlined />} color="blue">
                         {agent?.user?.name}
                       </Tag>
                     ) : (
-                      <Tag icon={<TeamOutlined />} color="gold" style={{ marginLeft: 8 }}>
+                      <Tag icon={<TeamOutlined />} color="gold">
                         {agent?.team?.name}
                       </Tag>
                     )}
                   </div>
                 </Col>
-
               </Row>
-              <Divider style={{ margin: 0 }} />
-              <div style={{ padding: 32 }}>
-                <Form form={form} layout="vertical" disabled={false /* Always editable */}>
-                  <Form.Item
-                    name="name"
-                    label={<b>{t('form.name')}</b>}
-                    rules={[{ required: true }]}
-                  >
-                    <Input size="large" />
-                  </Form.Item>
-                  <Form.Item
-                    name="description"
-                    label={<b>{t('form.description')}</b>}
-                    rules={[{ required: true }]}
-                  >
-                    <Input.TextArea rows={4} />
-                  </Form.Item>
-                  <Form.Item name="isActive" label={<b>{t('form.status')}</b>} valuePropName="checked">
-                    <Switch checkedChildren={t('active')} unCheckedChildren={t('inactive')} />
-                  </Form.Item>
-                  <Divider />
-                  <Row gutter={24}>
-                    <Col span={12}>
-                      <Text type="secondary">{t('createdBy')}</Text>
-                      <div><b>{agent?.createdBy?.name}</b></div>
-                    </Col>
-                    <Col span={12}>
-                      <Text type="secondary">{t('createdAt')}</Text>
-                      <div><b>{new Date(agent?.createdAt || "").toLocaleString()}</b></div>
-                    </Col>
-                    <Col span={12} style={{ marginTop: 16 }}>
-                      <Text type="secondary">{t('lastUpdated')}</Text>
-                      <div><b>{new Date(agent?.updatedAt || "").toLocaleString()}</b></div>
-                    </Col>
-                  </Row>
-                  {/* Add Save button at the bottom */}
-                  <Row justify="space-between" style={{ marginTop: 24 }}>
 
-                    <Button type="primary" danger icon={<DeleteOutlined />} onClick={confirmDelete}>
-                    </Button>
-                    <Button type="primary" icon={<SaveOutlined />} onClick={handleSave} loading={saving}>
-                      {t('save')}
-                    </Button>
-                  </Row>
-                </Form>
-              </div>
+              <Divider style={{ margin: 0 }} />
+
+              <Form
+                form={form}
+                layout="vertical"
+                size={isMobile ? "middle" : "large"}
+              >
+                <Form.Item
+                  name="name"
+                  label={<b>{t('form.name')}</b>}
+                  rules={[{ required: true }]}
+                >
+                  <Input size="large" />
+                </Form.Item>
+                <Form.Item
+                  name="description"
+                  label={<b>{t('form.description')}</b>}
+                  rules={[{ required: true }]}
+                >
+                  <Input.TextArea rows={4} />
+                </Form.Item>
+                <Form.Item name="isActive" label={<b>{t('form.status')}</b>} valuePropName="checked">
+                  <Switch checkedChildren={t('active')} unCheckedChildren={t('inactive')} />
+                </Form.Item>
+                <Divider />
+                <Row gutter={24}>
+                  <Col span={12}>
+                    <Text type="secondary">{t('createdBy')}</Text>
+                    <div><b>{agent?.createdBy?.name}</b></div>
+                  </Col>
+                  <Col span={12}>
+                    <Text type="secondary">{t('createdAt')}</Text>
+                    <div><b>{new Date(agent?.createdAt || "").toLocaleString()}</b></div>
+                  </Col>
+                  <Col span={12} style={{ marginTop: 16 }}>
+                    <Text type="secondary">{t('lastUpdated')}</Text>
+                    <div><b>{new Date(agent?.updatedAt || "").toLocaleString()}</b></div>
+                  </Col>
+                </Row>
+                {/* Add Save button at the bottom */}
+                <Row justify="space-between" style={{ marginTop: 24 }}>
+                  <Button
+                    type="primary"
+                    danger
+                    icon={<DeleteOutlined />}
+                    onClick={confirmDelete}
+                    size={isMobile ? "middle" : "large"}
+                  />
+                  <Button
+                    type="primary"
+                    icon={<SaveOutlined />}
+                    onClick={handleSave}
+                    loading={saving}
+                    size={isMobile ? "middle" : "large"}
+                  >
+                    {t('save')}
+                  </Button>
+                </Row>
+              </Form>
             </Card>
           </Col>
-          <Col xs={24} md={14} style={{ minHeight: 600 }}>
+
+          {/* Chat Interface Card */}
+          <Col xs={24} md={16}>
             <Card
               title={
-                <Space style={{ width: "100%", justifyContent: "space-between" }}>
+                <Space
+                  style={{
+                    width: "100%",
+                    justifyContent: "space-between",
+                    flexWrap: isMobile ? 'wrap' : 'nowrap',
+                    rowGap: isMobile ? '8px' : 0
+                  }}
+                >
                   <Button
                     icon={<EditOutlined />}
                     onClick={() => router.push(`/agent/flow-editor?agentId=${id}`)}
+                    size={isMobile ? "middle" : "large"}
                   >
-                    {t('flowEditor')}
+                    {!isMobile && t('flowEditor')}
                   </Button>
-                  <Typography.Text strong>{t('chatWithAgent')}</Typography.Text>
+                  {!isMobile && <Typography.Text strong>{t('chatWithAgent')}</Typography.Text>}
                   <Switch
                     checkedChildren={<ThunderboltOutlined />}
                     unCheckedChildren={<ThunderboltOutlined />}
                     checked={enableStreaming}
                     onChange={setEnableStreaming}
                   />
-
                 </Space>
               }
             >

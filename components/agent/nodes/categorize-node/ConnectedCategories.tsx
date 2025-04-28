@@ -1,7 +1,7 @@
 import React from "react";
 import { Flex, Typography, Tag, Tooltip, Card, Space } from "antd";
 import { ArrowRightOutlined, StarOutlined } from "@ant-design/icons";
-import { ICategory } from "@models/flowTypes";
+import { ICategory } from "@/models/flowTypes";
 import { useReactFlow } from "@xyflow/react";
 
 interface ConnectedCategoriesProps {

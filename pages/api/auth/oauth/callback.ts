@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { prisma } from '@lib/prisma';
-import { generateToken } from '@lib/auth';
+import { prisma } from '@/lib/prisma';
+import { generateToken } from '@/lib/auth';
 
 async function getAccessToken(provider: string, code: string) {
   if (provider === 'google') {

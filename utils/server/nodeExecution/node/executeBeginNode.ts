@@ -1,7 +1,7 @@
-import { FlowNode, BeginNodeData } from '@models/flowTypes';
-import { ExecutionResult, FlowExecutionContext } from '@models/flowExecutionTypes';
+import { FlowNode, BeginNodeData } from '@/models/flowTypes';
+import { ExecutionResult, FlowExecutionContext } from '@/models/flowExecutionTypes';
 import { processTemplate } from '../../templateProcessor';
-import { findNextNodes } from '@utils/server/findNextNode';
+import { findNextNodes } from '@/utils/server/findNextNode';
 
 /**
  * Handler for executing Begin nodes

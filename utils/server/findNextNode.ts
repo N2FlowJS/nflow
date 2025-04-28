@@ -1,4 +1,4 @@
-import { Flow } from '@models/flowTypes';
+import { Flow } from '@/models/flowTypes';
 
 
 

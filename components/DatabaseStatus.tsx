@@ -11,8 +11,8 @@ import {
   DeleteOutlined,
 } from "@ant-design/icons";
 import { useRouter } from "next/router";
-import { useAuth } from "@context/AuthContext";
-import { apiRequest } from "@services/apiUtils";
+import { useAuth } from "../context/AuthContext";
+import { apiRequest } from "../services/apiUtils";
 
 const { Text } = Typography;
 

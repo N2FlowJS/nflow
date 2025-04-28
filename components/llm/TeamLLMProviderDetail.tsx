@@ -32,7 +32,7 @@ import {
   updateTeamProviderModel,
   deleteTeamProviderModel,
   updateTeamLLMProvider
-} from '../../services/teamService';
+} from '@/services/teamService';
 
 const { Title, Text } = Typography;
 

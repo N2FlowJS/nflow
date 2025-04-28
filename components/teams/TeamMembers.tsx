@@ -21,7 +21,7 @@ import {
   UserOutlined
 } from '@ant-design/icons';
 import { format } from 'date-fns';
-import { addTeamMember, updateTeamMember, removeTeamMember } from '../../services/teamService';
+import { addTeamMember, updateTeamMember, removeTeamMember } from '@/services/teamService';
 
 const { Title, Text } = Typography;
 const { Option } = Select;

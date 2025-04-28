@@ -5,7 +5,10 @@ import {
   message, Popconfirm,
   Space,
   Table,
-  Typography
+  Typography,
+  Card,
+  Row,
+  Col
 } from 'antd';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
@@ -13,10 +16,11 @@ import KnowledgeForm from '../../components/knowledge/KnowledgeForm';
 import MainLayout from '../../components/layout/MainLayout';
 import { useAuth } from '../../context/AuthContext';
 import { IKnowledge } from "../../models/IKnowledge";
-import { createKnowledge, deleteKnowledge, fetchAllKnowledge, updateKnowledge } from '../../services/knowledgeService';
+import { createKnowledge, deleteKnowledge, fetchAllKnowledge, updateKnowledge } from '@/services/knowledgeService';
 import { useLocale } from '../../locale';
+import { useScreenSize } from '../../hooks/useScreenSize';
 
-const { Title, Text } = Typography;
+const { Title, Text, Paragraph } = Typography;
 
 export default function KnowledgeList() {
   const [knowledgeItems, setKnowledgeItems] = useState<IKnowledge[]>([]);
@@ -27,6 +31,7 @@ export default function KnowledgeList() {
   const router = useRouter();
   const { isAuthenticated, user } = useAuth();
   const { messages } = useLocale();
+  const { isMobile } = useScreenSize();
 
   // Load knowledge items on component mount
   useEffect(() => {
@@ -155,11 +160,55 @@ export default function KnowledgeList() {
     },
   ];
 
+  const renderMobileView = () => (
+    <Row gutter={[16, 16]}>
+      {knowledgeItems.map(item => (
+        <Col xs={24} sm={12} key={item.id}>
+          <Card
+            actions={[
+              <Button
+                type="text"
+                icon={<EditOutlined />}
+                onClick={() => showModal(item)}
+                key="edit"
+              />,
+              <Button
+                type="text"
+                icon={<FileOutlined />}
+                onClick={() => router.push(`/knowledge/${item.id}/files`)}
+                key="files"
+              />,
+              <Popconfirm
+                title={messages.knowledgeList.deleteConfirmation}
+                onConfirm={() => handleDelete(item.id)}
+                okText={messages.knowledgeList.yes}
+                cancelText={messages.knowledgeList.no}
+                key="delete"
+              >
+                <Button type="text" danger icon={<DeleteOutlined />} />
+              </Popconfirm>,
+            ]}
+          >
+            <Card.Meta
+              title={<a onClick={() => router.push(`/knowledge/${item.id}`)}>{item.name}</a>}
+              description={
+                <>
+                  <Paragraph ellipsis={{ rows: 2 }}>{item.description}</Paragraph>
+                  <Text type="secondary">{messages.knowledgeList.createdBy}: {item.createdBy?.name || 'Unknown'}</Text>
+                </>
+              }
+            />
+          </Card>
+        </Col>
+      ))}
+    </Row>
+  );
+
   return (
     <MainLayout title={messages.knowledgeList.knowledgeManagement}>
       <div style={{ padding: '24px' }}>
         <Space direction="vertical" size="large" style={{ width: '100%' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap:'wrap' }}>
             <Title level={2}>{messages.knowledgeList.knowledgeManagement}</Title>
             <Button
               type="primary"
@@ -179,13 +228,15 @@ export default function KnowledgeList() {
             </div>
           )}
 
-          <Table
-            columns={columns}
-            dataSource={knowledgeItems}
-            rowKey="id"
-            loading={loading}
-            pagination={{ pageSize: 10 }}
-          />
+          {isMobile ? renderMobileView() : (
+            <Table
+              columns={columns}
+              dataSource={knowledgeItems}
+              rowKey="id"
+              loading={loading}
+              pagination={{ pageSize: 10 }}
+            />
+          )}
 
           <KnowledgeForm
             form={form}

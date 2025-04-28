@@ -25,7 +25,7 @@ import {
 import { useRouter } from 'next/router';
 import { LLMProvider } from '../../models/llm';
 import LLMProviderForm from './LLMProviderForm';
-import { deleteLLMProvider, setDefaultLLMProvider, updateLLMProvider } from '../../services/llmService';
+import { deleteLLMProvider, setDefaultLLMProvider, updateLLMProvider } from '@/services/llmService';
 
 const { Title } = Typography;
 

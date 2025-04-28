@@ -14,7 +14,7 @@ import {
 import { PlusOutlined, EditOutlined, DeleteOutlined, UserOutlined } from "@ant-design/icons";
 import { useRouter } from "next/router";
 import MainLayout from "../../components/layout/MainLayout";
-import { fetchTeams, createTeam, updateTeam, deleteTeam, Team } from "../../services/teamService";
+import { fetchTeams, createTeam, updateTeam, deleteTeam, Team } from "@/services/teamService";
 
 const { Title } = Typography;
 

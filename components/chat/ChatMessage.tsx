@@ -110,7 +110,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
           >
             {sender === 'developer' ? (
               <Typography.Text type="secondary">
-                {`[${formattedTime}] ${text}`}
+                {`[${formattedTime}] ${text.slice(-50)}`}
               </Typography.Text>
             ) : (
               <ReactMarkdown>{text}</ReactMarkdown>

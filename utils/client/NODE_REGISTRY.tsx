@@ -7,7 +7,7 @@ export const NODE_REGISTRY: Record<NodeTypeString, NodeConfig> = {
     type: 'begin',
     icon: <PlayCircleOutlined style={{ color: '#1677ff' }} />,
     color: {
-      background: 'rgba(145, 202, 255, 0.25)',
+      background: 'rgba(145, 202, 255, .45)',
       border: '#69b1ff',
       handle: '#1677ff',
     },
@@ -30,7 +30,7 @@ export const NODE_REGISTRY: Record<NodeTypeString, NodeConfig> = {
     type: 'interface',
     icon: <SendOutlined style={{ color: '#1677ff' }} />,
     color: {
-      background: 'rgba(212, 230, 249, .25)',
+      background: 'rgba(212, 230, 249, .45)',
       border: '#91caff',
       handle: '#1677ff',
     },
@@ -53,7 +53,7 @@ export const NODE_REGISTRY: Record<NodeTypeString, NodeConfig> = {
     type: 'generate',
     icon: <RobotOutlined style={{ color: '#52c41a' }} />,
     color: {
-      background: 'rgba(217, 247, 190, .25)',
+      background: 'rgba(217, 247, 190, .45)',
       border: '#95de64',
       handle: '#52c41a',
     },
@@ -79,7 +79,7 @@ export const NODE_REGISTRY: Record<NodeTypeString, NodeConfig> = {
     type: 'categorize',
     icon: <BranchesOutlined style={{ color: "#eb2f96" }} />,
     color: {
-      background: 'rgba(255, 214, 231,.25)',
+      background: 'rgba(255, 214, 231,.45)',
       border: '#ffadd2',
       handle: '#eb2f96',
     },
@@ -118,7 +118,7 @@ export const NODE_REGISTRY: Record<NodeTypeString, NodeConfig> = {
     type: 'retrieval',
     icon: <DatabaseOutlined style={{ color: '#595959' }} />,
     color: {
-      background: 'rgba(217, 217, 217,.25)',
+      background: 'rgba(217, 217, 217,.45)',
       border: '#bfbfbf',
       handle: '#595959',
     },
@@ -141,7 +141,7 @@ export const NODE_REGISTRY: Record<NodeTypeString, NodeConfig> = {
     type: 'decision',
     icon: <QuestionOutlined style={{ color: '#fa8c16' }} />,
     color: {
-      background: 'rgba(255, 247, 230,0.25)',
+      background: 'rgba(255, 247, 230,0.45)',
       border: '#ffe58f',
       handle: '#fa8c16',
     },

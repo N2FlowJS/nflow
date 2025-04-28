@@ -9,7 +9,7 @@ import { useRouter } from 'next/router';
 import Link from 'next/link';
 import MainLayout from '../../components/layout/MainLayout';
 import { useAuth } from '../../context/AuthContext';
-import { fetchTeams } from '../../services/teamService';
+import { fetchTeams } from '@/services/teamService';
 
 const { Title } = Typography;
 const { Option } = Select;

@@ -11,7 +11,7 @@ import {
   Space
 } from 'antd';
 import { UserOutlined, SaveOutlined, MailOutlined } from '@ant-design/icons';
-import { updateUserProfile } from '../../services/userService';
+import { updateUserProfile } from '@/services/userService';
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;

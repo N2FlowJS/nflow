@@ -1,7 +1,7 @@
 import React from "react";
 import { Flex, Tag, Tooltip } from "antd";
 import { StarOutlined } from "@ant-design/icons";
-import { ICategory } from "@models/flowTypes";
+import { ICategory } from "@/models/flowTypes";
 
 interface UnconnectedCategoriesProps {
   categories: ICategory[];

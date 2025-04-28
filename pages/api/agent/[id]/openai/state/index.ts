@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { getConversationFlowState } from '@database/getConversationFlowState';
-import { prisma } from '@lib/prisma';
+import { getConversationFlowState } from '@/database/getConversationFlowState';
+import { prisma } from '@/lib/prisma';
 
 // This endpoint fetches detailed flow state information when needed
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {

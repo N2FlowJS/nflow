@@ -18,7 +18,7 @@ import {
   StarFilled,
   CheckCircleOutlined,
 } from '@ant-design/icons';
-import { updateUserPreferences, fetchUserPreferences } from '../../services/userService';
+import { updateUserPreferences, fetchUserPreferences } from '@/services/userService';
 import { LLMProvider } from '../../models/llm';
 
 const { Title, Text } = Typography;

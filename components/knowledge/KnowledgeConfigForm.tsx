@@ -1,5 +1,4 @@
-import { SettingOutlined } from '@ant-design/icons';
-import { Card, Divider, Form, InputNumber, Typography } from 'antd';
+import { Divider, Form, InputNumber, Typography } from 'antd';
 import React from 'react';
 import ChunkSeparatorSelect from "./ChunkSeparatorSelect";
 
@@ -13,13 +12,7 @@ const KnowledgeConfigForm: React.FC<KnowledgeConfigFormProps> = ({
   form,
 }) => {
   return (
-    <Card
-      title={
-        <div>
-          <SettingOutlined /> Chunking Configuration
-        </div>
-      }
-    >
+    <>
       <Form.Item
         name={['config', 'tokenChunk']}
         label="Tokens each chunk"
@@ -44,7 +37,7 @@ const KnowledgeConfigForm: React.FC<KnowledgeConfigFormProps> = ({
         These settings determine how files are processed. Each file can override these settings
         individually, otherwise they inherit from the Knowledge Base.
       </Text>
-    </Card>
+    </>
   );
 };
 

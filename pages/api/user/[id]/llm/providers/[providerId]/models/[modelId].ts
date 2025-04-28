@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { prisma } from "@lib/prisma";
-import { parseAuthHeader, verifyToken } from '@lib/auth';
+import { prisma } from "@/lib/prisma";
+import { parseAuthHeader, verifyToken } from '@/lib/auth';
 
 /**
  * API handler for managing a specific model of a user's LLM provider.

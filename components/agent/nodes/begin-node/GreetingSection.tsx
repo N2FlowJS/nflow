@@ -1,7 +1,7 @@
 import React from 'react';
 import { Flex, Typography } from 'antd';
 import { MessageOutlined } from '@ant-design/icons';
-import { useLocale } from '@locale/index'; // Import the useLocale hook
+import { useLocale } from '@/locale/index'; // Import the useLocale hook
 
 interface GreetingSectionProps {
   greeting: string;
