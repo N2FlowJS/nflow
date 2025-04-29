@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { prisma } from "@/lib/prisma";
-import { parseAuthHeader, verifyToken } from '@/lib/auth';
+import { prisma } from "../../../../../lib/prisma";
+import { parseAuthHeader, verifyToken } from '../../../../../lib/auth';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { id, userId } = req.query;
@@ -115,7 +115,7 @@ async function removeTeamMember(req: NextApiRequest, res: NextApiResponse, teamI
     });
 
     return res.status(200).json(updatedMembership);
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Request error", error);
     return res.status(500).json({ error: "Error removing team member" });
   }
@@ -207,7 +207,7 @@ async function updateMemberRole(req: NextApiRequest, res: NextApiResponse, teamI
     });
 
     return res.status(200).json(updatedMembership);
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Request error", error);
     return res.status(500).json({ error: "Error updating member role" });
   }

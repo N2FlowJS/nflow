@@ -173,7 +173,7 @@ export async function getLLMResponse(modelId: string, prompt: string): Promise<s
         prompt,
       }),
     });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error calling LLM API:', error);
     throw error;
   }
@@ -196,7 +196,7 @@ export async function categorizeLLMResponse(text: string, categories: { name: st
         categories,
       }),
     });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error calling categorization API:', error);
     throw error;
   }

@@ -1,18 +1,18 @@
 // This file is part of the Flow Execution API for handling flow execution requests in a Next.js application.
 
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { BeginForm, BeginNode, Flow, NODE_TYPES } from '@/models/flowTypes';
-import { MessagePart } from '@/models/MessagePart';
-import { OpenAIError, OpenAIExecutionResult } from '@/models/flow';
-import type { ExecutionResult, } from '@/models/flowExecutionTypes';
-import { executeFlow } from '@/utils/server/nodeExecution/executeFlow';
-import { createInitialFlowState } from '@/utils/server/createInitialFlowState';
-import { extractUserInputFromMessages } from '@/utils/server/extractUserInputFromMessages';
-import { getConversationFlowState } from '@/database/getConversationFlowState';
-import { getFlowConfig } from '@/database/getFlowConfig';
-import { AddMessageToDatabase, saveConversationToDatabase } from '@/database/persistConversationState';
-import { transformToOpenAIFormat } from '@/utils/server/transformToOpenAIFormat';
-import { FlowNode } from '@/models/flowTypes';
+import { BeginForm, BeginNode, Flow, NODE_TYPES } from '../../../../../../../models/flowTypes';
+import { MessagePart } from '../../../../../../../models/MessagePart';
+import { OpenAIError, OpenAIExecutionResult } from '../../../../../../../models/flow';
+import type { ExecutionResult, } from '../../../../../../../models/flowExecutionTypes';
+import { executeFlow } from '../../../../../../../utils/server/nodeExecution/executeFlow';
+import { createInitialFlowState } from '../../../../../../../utils/server/createInitialFlowState';
+import { extractUserInputFromMessages } from '../../../../../../../utils/server/extractUserInputFromMessages';
+import { getConversationFlowState } from '../../../../../../../database/getConversationFlowState';
+import { getFlowConfig } from '../../../../../../../database/getFlowConfig';
+import { AddMessageToDatabase, saveConversationToDatabase } from '../../../../../../../database/persistConversationState';
+import { transformToOpenAIFormat } from '../../../../../../../utils/server/transformToOpenAIFormat';
+import { FlowNode } from '../../../../../../../models/flowTypes';
 
 
 // Main handler for OpenAI-compatible flow execution
@@ -91,7 +91,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       }
     });
 
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error processing flow:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return sendErrorResponse(res, 500, `Error processing flow: ${errorMessage}`, 'server_error', 'internal_error');

@@ -84,7 +84,7 @@ export async function apiRequest<T>(
 
     // Process the response
     return handleApiResponse<T>(response);
-  } catch (error) {
+  } catch (error: unknown) {
     // Log the API error
     const endTime = performance.now();
     const duration = Math.round(endTime - startTime);

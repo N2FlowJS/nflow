@@ -21,7 +21,7 @@ import {
   UserOutlined
 } from '@ant-design/icons';
 import { format } from 'date-fns';
-import { addTeamMember, updateTeamMember, removeTeamMember } from '@/services/teamService';
+import { addTeamMember, updateTeamMember, removeTeamMember } from '../../services/teamService';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -96,7 +96,7 @@ export default function TeamMembers({
       }];
       
       onMembersChange(updatedMembers);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error adding team member:', error);
       message.error('Failed to add team member');
     } finally {
@@ -126,7 +126,7 @@ export default function TeamMembers({
       );
       
       onMembersChange(updatedMembers);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error updating member permission:', error);
       message.error('Failed to update member permission');
     } finally {
@@ -144,7 +144,7 @@ export default function TeamMembers({
       // Update local state
       const updatedMembers = members.filter(member => member.userId !== userId);
       onMembersChange(updatedMembers);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error removing team member:', error);
       message.error('Failed to remove team member');
     } finally {

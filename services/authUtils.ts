@@ -20,7 +20,7 @@ export async function checkAuthentication() {
     }
     
     return null;
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Authentication error:', error);
     return null;
   }

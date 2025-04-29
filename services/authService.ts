@@ -26,7 +26,7 @@ export async function login(email: string, password: string): Promise<AuthRespon
     
     if (!res.ok) return null;
     return data;
-  } catch (error) {
+  } catch (error: unknown) {
     const endTime = performance.now();
     const duration = Math.round(endTime - startTime);
     
@@ -60,7 +60,7 @@ export async function register(userData: RegisterData): Promise<AuthResponse | n
     
     if (!res.ok) return null;
     return data;
-  } catch (error) {
+  } catch (error: unknown) {
     const endTime = performance.now();
     const duration = Math.round(endTime - startTime);
     
@@ -93,7 +93,7 @@ export async function fetchCurrentUser(token: string): Promise<User | null> {
     
     if (!res.ok) return null;
     return data;
-  } catch (error) {
+  } catch (error: unknown) {
     const endTime = performance.now();
     const duration = Math.round(endTime - startTime);
     

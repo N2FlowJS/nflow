@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { fetchFilesByKnowledgeId } from '@/services/fileService';
-import { IFile } from '@/models/IFile';
+import { fetchFilesByKnowledgeId } from '../services/fileService';
+import { IFile } from '../models/IFile';
 
 interface UseFetchFilesResult {
   files: IFile[] | null;
@@ -20,7 +20,7 @@ export const useFetchFiles = (knowledgeId: string | undefined, t: any): UseFetch
     try {
       const filesData = await fetchFilesByKnowledgeId(knowledgeId);
       setFiles(filesData || []);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error fetching files:", error);
       // message.error(t('knowledgeDetail.fetchKnowledgeFailed') || "Failed to load files");
     } finally {

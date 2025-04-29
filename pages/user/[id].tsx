@@ -1,11 +1,11 @@
 import { ApiOutlined, ArrowLeftOutlined, DashboardOutlined, LockOutlined, RobotOutlined, TeamOutlined, UserOutlined } from '@ant-design/icons';
-import MainLayout from '@/components/layout/MainLayout';
-import PasswordChangeForm from '@/components/profile/PasswordChangeForm';
-import { createAgent } from "@/services/agentService";
-import { checkAuthentication, redirectToLogin } from '@/services/authUtils';
-import { createUserLLMProvider, deleteUserLLMProvider, fetchUserLLMProviders, updateUserLLMProvider } from '@/services/llmService';
-import { createTeam } from "@/services/teamService";
-import { fetchUserById, updateUser } from "@/services/userService";
+import MainLayout from '../../components/layout/MainLayout';
+import PasswordChangeForm from '../../components/profile/PasswordChangeForm';
+import { createAgent } from "../../services/agentService";
+import { checkAuthentication, redirectToLogin } from '../../services/authUtils';
+import { createUserLLMProvider, deleteUserLLMProvider, fetchUserLLMProviders, updateUserLLMProvider } from '../../services/llmService';
+import { createTeam } from "../../services/teamService";
+import { fetchUserById, updateUser } from "../../services/userService";
 import { Alert, Breadcrumb, Button, Form, Skeleton, Space, Tabs, message } from 'antd';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -14,14 +14,14 @@ import { IUser } from '../../models/IUser';
 import { LLMProvider } from '../../models/llm';
 import { useTheme } from '../../theme';
 
-import UserAgentsTab from '@/components/user/UserAgentsTab';
-import UserLLMTab from '@/components/user/UserLLMTab';
-import UserProfileHeader from '@/components/user/UserProfileHeader';
-import UserProfileTab from '@/components/user/UserProfileTab';
-import UserTeamsTab from '@/components/user/UserTeamsTab';
-import AgentCreationModal from '@/components/user/modals/AgentCreationModal';
-import LLMProviderModal from '@/components/user/modals/LLMProviderModal';
-import TeamCreationModal from '@/components/user/modals/TeamCreationModal';
+import UserAgentsTab from '../../components/user/UserAgentsTab';
+import UserLLMTab from '../../components/user/UserLLMTab';
+import UserProfileHeader from '../../components/user/UserProfileHeader';
+import UserProfileTab from '../../components/user/UserProfileTab';
+import UserTeamsTab from '../../components/user/UserTeamsTab';
+import AgentCreationModal from '../../components/user/modals/AgentCreationModal';
+import LLMProviderModal from '../../components/user/modals/LLMProviderModal';
+import TeamCreationModal from '../../components/user/modals/TeamCreationModal';
 
 const { TabPane } = Tabs;
 
@@ -69,7 +69,7 @@ export default function UserDetail() {
       }
 
       return authData;
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Authentication error:', error);
       setAuthError('Authentication failed');
       redirectToLogin(window.location.pathname);
@@ -90,7 +90,7 @@ export default function UserDetail() {
         name: data.name,
         description: data.description,
       });
-    } catch (error) {
+    } catch (error: unknown) {
       message.error('Failed to fetch user details');
       console.error(error);
     } finally {
@@ -106,7 +106,7 @@ export default function UserDetail() {
     try {
       const data = await fetchUserLLMProviders(id as string);
       setLLMProviders(data || []);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error fetching user LLM providers:', error);
       message.error('Failed to load LLM providers');
     } finally {
@@ -150,7 +150,7 @@ export default function UserDetail() {
       } else {
         message.error('Failed to update user');
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Form validation error:', error);
       message.error('Failed to update user');
     }
@@ -169,13 +169,13 @@ export default function UserDetail() {
           teamForm.resetFields();
           fetchUserDetail();
         }
-      } catch (error) {
+      } catch (error: unknown) {
         console.error('Error creating team:', error);
         message.error('Failed to create team');
       } finally {
         setCreatingTeam(false);
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Form validation error:', error);
     }
   };
@@ -206,7 +206,7 @@ export default function UserDetail() {
       } finally {
         setCreatingAgent(false);
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Form validation error:', error);
     }
   };
@@ -219,7 +219,7 @@ export default function UserDetail() {
       message.success('Provider added successfully');
       setIsLLMProviderModalVisible(false);
       fetchUserProviders();
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error adding provider:', error);
       message.error('Failed to add provider');
     } finally {
@@ -237,7 +237,7 @@ export default function UserDetail() {
       message.success('Provider updated successfully');
       setIsEditLLMProviderModalVisible(false);
       fetchUserProviders();
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error updating provider:', error);
       message.error('Failed to update provider');
     } finally {
@@ -252,7 +252,7 @@ export default function UserDetail() {
       await deleteUserLLMProvider(providerId);
       message.success('Provider deleted successfully');
       fetchUserProviders();
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error deleting provider:', error);
       message.error('Failed to delete provider');
     } finally {

@@ -8,20 +8,20 @@ import {
   TeamOutlined,
   UserOutlined
 } from "@ant-design/icons";
-import FileConfigModal from "@/components/knowledge/FileConfigModal";
-import KnowledgeConfigForm from "@/components/knowledge/KnowledgeConfigForm";
-import KnowledgeDetailForm from "@/components/knowledge/KnowledgeDetailForm";
-import KnowledgeFileList from "@/components/knowledge/KnowledgeFileList";
-import RetrievalTestingPanel from "@/components/knowledge/RetrievalTestingPanel";
-import MainLayout from "@/components/layout/MainLayout";
-import UploadFileModal from "@/components/upload/UploadFileModal";
-import { useAuth } from "@/context/AuthContext";
-import { Knowledge } from "@/models/knowledge";
-import { updateFileConfig } from "@/services/fileService";
+import FileConfigModal from "../../../components/knowledge/FileConfigModal";
+import KnowledgeConfigForm from "../../../components/knowledge/KnowledgeConfigForm";
+import KnowledgeDetailForm from "../../../components/knowledge/KnowledgeDetailForm";
+import KnowledgeFileList from "../../../components/knowledge/KnowledgeFileList";
+import RetrievalTestingPanel from "../../../components/knowledge/RetrievalTestingPanel";
+import MainLayout from "../../../components/layout/MainLayout";
+import UploadFileModal from "../../../components/upload/UploadFileModal";
+import { useAuth } from "../../../context/AuthContext";
+import { Knowledge } from "../../../models/knowledge";
+import { updateFileConfig } from "../../../services/fileService";
 import {
   fetchKnowledgeById,
   updateKnowledge,
-} from "@/services/knowledgeService";
+} from "../../../services/knowledgeService";
 import {
   Avatar,
   Breadcrumb,
@@ -46,7 +46,7 @@ import { format } from "date-fns";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { useEffect, useState, CSSProperties } from "react";
-import { useLocale } from "@/locale/index";
+import { useLocale } from "../../../locale/index";
 
 const { Title, Text } = Typography;
 const { TabPane } = Tabs;
@@ -106,7 +106,7 @@ export default function KnowledgeDetail() {
       } else {
         message.error(messages.knowledgeDetail.fetchKnowledgeFailed);
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error(error);
     } finally {
       setLoading(false);
@@ -148,7 +148,7 @@ export default function KnowledgeDetail() {
       } else {
         message.error("Failed to update knowledge");
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Form validation error:", error);
     }
   };
@@ -178,7 +178,7 @@ export default function KnowledgeDetail() {
       message.success(messages.knowledgeDetail.fileConfigUpdated);
       setFileConfigModalVisible(false);
       fetchKnowledgeDetail();
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error saving file config:", error);
       message.error(messages.knowledgeDetail.fileConfigUpdateFailed);
     } finally {

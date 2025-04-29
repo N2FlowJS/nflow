@@ -10,7 +10,7 @@ export const useGitHubStats = () => {
         const response = await fetch('https://api.github.com/repos/N2FlowJS/nflow');
         const data = await response.json();
         setStars(data.stargazers_count);
-      } catch (error) {
+      } catch (error: unknown) {
         console.error('Error fetching GitHub stats:', error);
       } finally {
         setLoading(false);

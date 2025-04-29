@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { prisma } from "@/lib/prisma";
-import { parseAuthHeader, verifyToken } from '@/lib/auth';
+import { prisma } from "../../../lib/prisma";
+import { parseAuthHeader, verifyToken } from '../../../lib/auth';
 
 /**
  * API handler for generating text using an LLM model.
@@ -94,7 +94,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       provider: model.provider.name,
       timestamp: new Date().toISOString()
     });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Error generating text with LLM:", error);
     return res.status(500).json({ 
       error: "Failed to generate text",

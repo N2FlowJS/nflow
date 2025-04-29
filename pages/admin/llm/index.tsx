@@ -8,10 +8,10 @@ import {
   Alert,
 } from 'antd';
 import { useRouter } from 'next/router';
-import LLMProvidersTable from '@/components/llm/LLMProvidersTable';
-import { fetchAllLLMProviders } from '@/services/llmService';
-import { LLMProvider } from '@/models/llm';
-import { checkAuthentication, hasAdminAccess, redirectToLogin } from '@/services/authUtils';
+import LLMProvidersTable from '../../../components/llm/LLMProvidersTable';
+import { fetchAllLLMProviders } from '../../../services/llmService';
+import { LLMProvider } from '../../../models/llm';
+import { checkAuthentication, hasAdminAccess, redirectToLogin } from '../../../services/authUtils';
 
 const { Content } = Layout;
 const { Title } = Typography;
@@ -42,7 +42,7 @@ export default function LLMAdministration() {
       if (!hasAdminAccess(authData)) {
         router.push('/dashboard');
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Authentication error:', error);
       setAuthenticated(false);
     }

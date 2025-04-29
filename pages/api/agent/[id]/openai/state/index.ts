@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { getConversationFlowState } from '@/database/getConversationFlowState';
-import { prisma } from '@/lib/prisma';
+import { getConversationFlowState } from '../../../../../../database/getConversationFlowState';
+import { prisma } from '../../../../../../lib/prisma';
 
 // This endpoint fetches detailed flow state information when needed
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -80,7 +80,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         fetchedAt: new Date().toISOString(),
       },
     });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error fetching flow state:', error);
     return res.status(500).json({
       error: {

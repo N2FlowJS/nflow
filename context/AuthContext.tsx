@@ -1,6 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import { login as loginApi, register as registerApi, fetchCurrentUser } from '@/services/authService';
+import { login as loginApi, register as registerApi, fetchCurrentUser } from '../services/authService';
 import { User, RegisterData } from '../models/auth';
 
 interface AuthContextType {
@@ -47,7 +47,7 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
           // Token is invalid, remove it
           localStorage.removeItem('token');
         }
-      } catch (error) {
+      } catch (error: unknown) {
         console.error('Error loading user data:', error);
         localStorage.removeItem('token');
       } finally {
@@ -68,7 +68,7 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
         return true;
       }
       return false;
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Login error:', error);
       return false;
     }
@@ -86,7 +86,7 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
       localStorage.removeItem('token');
       setUser(null);
       return false;
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Login with token error:', error);
       localStorage.removeItem('token');
       setUser(null);
@@ -104,7 +104,7 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
         return true;
       }
       return false;
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Registration error:', error);
       return false;
     }

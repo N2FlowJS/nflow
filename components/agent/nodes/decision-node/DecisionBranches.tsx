@@ -2,7 +2,7 @@ import React from "react";
 import { Card, Space, Tag, Typography, Divider } from "antd";
 import { ArrowRightOutlined } from "@ant-design/icons";
 import { useReactFlow } from "@xyflow/react";
-import { DecisionBranch,  DecisionCondition, FlowNode } from "@/models/flowTypes";
+import { DecisionBranch,  DecisionCondition, FlowNode } from "../../../../models/flowTypes";
 
 const OPERATOR_SYMBOLS: Record<string, string> = {
   equals: '=',

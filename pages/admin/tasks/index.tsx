@@ -9,9 +9,9 @@ import {
   RobotOutlined,
   SyncOutlined,
 } from '@ant-design/icons';
-import MainLayout from '@/components/layout/MainLayout';
-import { useAuth } from '@/context/AuthContext';
-import { deleteParsingTask, parseFile } from '@/services/fileService';
+import MainLayout from '../../../components/layout/MainLayout';
+import { useAuth } from '../../../context/AuthContext';
+import { deleteParsingTask, parseFile } from '../../../services/fileService';
 import {
   Alert,
   Badge,
@@ -34,8 +34,8 @@ import { format, formatDistance } from 'date-fns';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
-import { useLocale } from '@/locale/index';
-import useWorkerStatus from '@/hooks/useWorkerStatus';
+import { useLocale } from '../../../locale/index';
+import useWorkerStatus from '../../../hooks/useWorkerStatus';
 
 const { useBreakpoint } = Grid;
 const { Title, Text } = Typography;

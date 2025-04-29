@@ -4,7 +4,7 @@
  */
 import * as nbaseService from '../services/nbaseService';
 // Import necessary modules
-import { log } from '@/utils/logger';
+import { log } from '../../utils/logger';
 import fs from 'fs'; // Added import
 import path from 'path'; // Added import
 type ChildProcess = any;
@@ -193,7 +193,7 @@ export async function startNbaseServer(): Promise<boolean> {
       if (success) writeStatusToFile(); // Update status on success
       return success;
     }
-  } catch (error) {
+  } catch (error: unknown) {
     log('error', '❌ Error starting NBase:', error instanceof Error ? error.message : String(error));
     writeStatusToFile(); // Update status even on failure (to show stopped)
     return false;

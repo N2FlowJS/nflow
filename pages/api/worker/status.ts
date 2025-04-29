@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { getWorkerStatus } from '@/lib/worker-init';
-import { parseAuthHeader, verifyToken } from '@/lib/auth';
+import { getWorkerStatus } from '../../../lib/worker-init';
+import { parseAuthHeader, verifyToken } from '../../../lib/auth';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   // GET - Retrieve worker status - no auth required

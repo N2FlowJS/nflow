@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { prisma } from '@/lib/prisma';
-import { getConversationFlowState } from '@/database/getConversationFlowState';
+import { prisma } from '../../../lib/prisma';
+import { getConversationFlowState } from '../../../database/getConversationFlowState';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { method } = req;
@@ -72,7 +72,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(405).json({ error: `Method ${method} Not Allowed` });
       }
     }
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Conversation API error:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return res.status(500).json({ error: errorMessage });

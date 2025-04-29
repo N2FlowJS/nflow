@@ -84,7 +84,7 @@ export default function DatabaseStatus() {
         setDbStatus(data.status);
         setErrorMsg(data.error);
         setSetupAttempted(data.setupAttempted);
-      } catch (error) {
+      } catch (error: unknown) {
         console.error("Error fetching DB status:", error);
         setDbStatus("error");
         setErrorMsg("Network error checking database status");
@@ -108,7 +108,7 @@ export default function DatabaseStatus() {
           activeTasks: data.taskStats.processing,
           maxWorkers: data.workerConfig.maxWorkers,
         });
-      } catch (error) {
+      } catch (error: unknown) {
         console.error("Error fetching worker status:", error);
         setWorkerStatus((prev) => ({ ...prev, status: "error" }));
       }

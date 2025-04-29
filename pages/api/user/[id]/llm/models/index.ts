@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { prisma } from "@/lib/prisma";
-import { parseAuthHeader, verifyToken } from '@/lib/auth';
+import { prisma } from "../../../../../../lib/prisma";
+import { parseAuthHeader, verifyToken } from '../../../../../../lib/auth';
 
 /**
  * API handler for managing LLM models.
@@ -72,7 +72,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
       
       return res.status(200).json(models);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error fetching LLM models:", error);
       return res.status(500).json({ error: "Failed to fetch LLM models" });
     }
@@ -139,7 +139,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
       
       return res.status(201).json(newModel);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error creating LLM model:", error);
       return res.status(500).json({ error: "Failed to create LLM model" });
     }

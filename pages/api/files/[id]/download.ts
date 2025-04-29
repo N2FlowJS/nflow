@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { prisma } from '@/lib/prisma';
+import { prisma } from '../../../../lib/prisma';
 import fs from 'fs';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -32,7 +32,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // Stream the file to the response
       const fileStream = fs.createReadStream(file.path);
       fileStream.pipe(res);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Request error', error);
       return res.status(500).json({ error: 'Error downloading file' });
     }

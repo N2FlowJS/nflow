@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "../../../../lib/prisma";
 
 export default async function handler(
   req: NextApiRequest,
@@ -45,7 +45,7 @@ export default async function handler(
         originalName: file.originalName,
         content: file.content || "File content not available",
       });
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error fetching file content:", error);
       return res.status(500).json({ error: "Failed to fetch file content" });
     }

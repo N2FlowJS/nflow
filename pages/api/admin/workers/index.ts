@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { prisma } from "@/lib/prisma";
-import { parseAuthHeader, verifyToken } from "@/lib/auth";
-import { getFileParsingWorkerStatus } from "@/lib/workers/file-worker";
+import { prisma } from "../../../../lib/prisma";
+import { parseAuthHeader, verifyToken } from "../../../../lib/auth";
+import { getFileParsingWorkerStatus } from "../../../../lib/workers/file-worker";
 
 export default async function handler(
   req: NextApiRequest,
@@ -78,7 +78,7 @@ export default async function handler(
         },
         recentTasks,
       });
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error getting worker status:", error);
       return res.status(500).json({ error: "Failed to get worker status" });
     }

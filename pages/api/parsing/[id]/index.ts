@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { prisma } from '@/lib/prisma';
-import { parseAuthHeader, verifyToken } from '@/lib/auth';
+import { prisma } from '../../../../lib/prisma';
+import { parseAuthHeader, verifyToken } from '../../../../lib/auth';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { id } = req.query;
@@ -44,7 +44,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
       
       return res.status(200).json(task);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error fetching parsing task:", error);
       return res.status(500).json({ error: "Failed to fetch parsing task" });
     }
@@ -133,7 +133,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         message: 'Parsing task updated successfully',
         task: updatedTask
       });
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error updating parsing task:', error);
       return res.status(500).json({ 
         success: false,
@@ -189,7 +189,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
       
       return res.status(204).end();
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error deleting parsing task:', error);
       return res.status(500).json({ error: 'Failed to delete parsing task' });
     }

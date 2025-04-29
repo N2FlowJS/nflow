@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { prisma } from "@/lib/prisma";
-import { parseAuthHeader, verifyToken } from "@/lib/auth";
+import { prisma } from "../../../../../lib/prisma";
+import { parseAuthHeader, verifyToken } from "../../../../../lib/auth";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { id } = req.query;
@@ -42,7 +42,7 @@ async function getTeamMembers(res: NextApiResponse, teamId: string) {
     }
 
     return res.status(200).json(team.members);
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Request error", error);
     return res.status(500).json({ error: "Error fetching team members" });
   }
@@ -153,7 +153,7 @@ async function addTeamMembers(req: NextApiRequest, res: NextApiResponse, teamId:
     });
 
     return res.status(200).json(results);
-  } catch (error) {
+  } catch (error: unknown) {
     console.log("Request error", error);
     return res.status(500).json({ error: "Error adding team members" });
   }

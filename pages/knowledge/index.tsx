@@ -16,7 +16,7 @@ import KnowledgeForm from '../../components/knowledge/KnowledgeForm';
 import MainLayout from '../../components/layout/MainLayout';
 import { useAuth } from '../../context/AuthContext';
 import { IKnowledge } from "../../models/IKnowledge";
-import { createKnowledge, deleteKnowledge, fetchAllKnowledge, updateKnowledge } from '@/services/knowledgeService';
+import { createKnowledge, deleteKnowledge, fetchAllKnowledge, updateKnowledge } from '../../services/knowledgeService';
 import { useLocale } from '../../locale';
 import { useScreenSize } from '../../hooks/useScreenSize';
 
@@ -94,7 +94,7 @@ export default function KnowledgeList() {
       } else {
         message.error(`Failed to ${editingId ? 'update' : 'create'} knowledge`);
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Form validation error:', error);
     }
   };

@@ -29,7 +29,7 @@ import {
     createUserProviderModel,
     updateUserProviderModel,
     deleteUserProviderModel
-} from '@/services/llmService';
+} from '../../services/llmService';
 
 const { Title } = Typography;
 
@@ -58,7 +58,7 @@ const UserLLMProviderDetail: React.FC<UserLLMProviderDetailProps> = ({
         try {
             const data = await fetchUserProviderModels(userId, provider.id);
             setModels(data || []);
-        } catch (error) {
+        } catch (error: unknown) {
             console.error('Error fetching models:', error);
             message.error('Failed to load models');
         } finally {
@@ -79,7 +79,7 @@ const UserLLMProviderDetail: React.FC<UserLLMProviderDetailProps> = ({
             message.success('Model added successfully');
             setIsAddModelModalVisible(false);
             fetchModels();
-        } catch (error) {
+        } catch (error: unknown) {
             console.error('Error adding model:', error);
             message.error('Failed to add model');
         } finally {
@@ -96,7 +96,7 @@ const UserLLMProviderDetail: React.FC<UserLLMProviderDetailProps> = ({
             message.success('Model updated successfully');
             setIsEditModelModalVisible(false);
             fetchModels();
-        } catch (error) {
+        } catch (error: unknown) {
             console.error('Error updating model:', error);
             message.error('Failed to update model');
         } finally {
@@ -110,7 +110,7 @@ const UserLLMProviderDetail: React.FC<UserLLMProviderDetailProps> = ({
             await deleteUserProviderModel(userId, provider.id, modelId);
             message.success('Model deleted successfully');
             fetchModels();
-        } catch (error) {
+        } catch (error: unknown) {
             console.error('Error deleting model:', error);
             message.error('Failed to delete model');
         } finally {
@@ -240,7 +240,7 @@ const UserLLMProviderDetail: React.FC<UserLLMProviderDetailProps> = ({
             });
             message.success('Default model updated');
             fetchModels();
-        } catch (error) {
+        } catch (error: unknown) {
             console.error('Error setting default model:', error);
             message.error('Failed to update default model');
         } finally {

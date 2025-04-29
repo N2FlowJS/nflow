@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Modal, Button, Upload, message, Progress, List } from "antd";
 import { InboxOutlined, FileOutlined, UploadOutlined } from "@ant-design/icons";
-import { uploadFiles } from "@/services/fileService";
+import { uploadFiles } from "../../services/fileService";
 import type { RcFile, UploadFile, UploadProps } from "antd/es/upload/interface";
 import { formatFileSize } from "../../utils/client/formatters";
 
@@ -88,7 +88,7 @@ const UploadFileModal: React.FC<UploadFileModalProps> = ({
       } else {
         message.error("All uploads failed");
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Upload error:", error);
       message.error("An error occurred during upload");
     } finally {

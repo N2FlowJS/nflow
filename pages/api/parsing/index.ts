@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { prisma } from "@/lib/prisma";
-import { parseAuthHeader, verifyToken } from '@/lib/auth';
+import { prisma } from "../../../lib/prisma";
+import { parseAuthHeader, verifyToken } from '../../../lib/auth';
 
 /**
  * API handler for managing file parsing tasks.
@@ -94,7 +94,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
       
       return res.status(200).json(tasks);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error fetching parsing tasks:", error);
       return res.status(500).json({ error: "Failed to fetch parsing tasks" });
     }
@@ -163,7 +163,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         message: 'File parsing task created successfully',
         task
       });
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error creating parsing task:', error);
       return res.status(500).json({ 
         success: false,

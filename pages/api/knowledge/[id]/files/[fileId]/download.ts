@@ -1,6 +1,6 @@
 // filepath: e:\git\nflow\pages\api\knowledge\[id]\files\[fileId]\download.ts
 import { NextApiRequest, NextApiResponse } from 'next';
-import { prisma } from '@/lib/prisma';
+import { prisma } from '../../../../../../lib/prisma';
 import fs from 'fs';
 import path from 'path';
 import mime from 'mime-types'; // You might need to install this: npm install mime-types @types/mime-types
@@ -64,7 +64,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             }
         });
 
-    } catch (error) {
+    } catch (error: unknown) {
         console.error('Error fetching file details:', error);
         if (!res.headersSent) {
             res.status(500).json({ error: 'Internal server error' });

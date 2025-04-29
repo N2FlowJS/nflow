@@ -97,7 +97,7 @@ export async function uploadFiles(knowledgeId: string, files: File[], onOverallP
       });
 
       results.push(result);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error(`Error uploading file ${file ? file.name : 'unknown'}:`, error);
       results.push(null);
     }
@@ -206,7 +206,7 @@ export async function fetchFilesByKnowledgeId(knowledgeId: string) {
         'Content-Type': 'application/json',
       },
     });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error fetching files:', error);
     throw error;
   }
@@ -226,7 +226,7 @@ export const getFileChunks = async (fileId: string): Promise<any[]> => {
         });
         return response.chunks || [];
     }
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error getting file chunks:', error);
     return [];
   }

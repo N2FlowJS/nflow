@@ -1,13 +1,13 @@
-import { Spin, message, Button, Drawer } from "antd";
+import FlowEditor from "../../../components/agent/flow-editor";
+import ChatInterface from "../../../components/chat/ChatInterface";
+import MainLayout from "../../../components/layout/MainLayout";
+import { useAuth } from "../../../context/AuthContext";
+import { fetchAgent } from "../../../services/agentService";
+import { ReactFlowProvider } from "@xyflow/react";
+import { Drawer, Spin, message } from "antd";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import MainLayout from "@/components/layout/MainLayout";
-import { useAuth } from "@/context/AuthContext";
 import FlowEditorHeader from "./header";
-import { fetchAgent } from "@/services/agentService";
-import { ReactFlowProvider } from "@xyflow/react";
-import FlowEditor from "@/components/agent/flow-editor";
-import ChatInterface from "@/components/chat/ChatInterface";
 
 export default function FlowEditorPage() {
   const router = useRouter();
@@ -27,7 +27,7 @@ export default function FlowEditorPage() {
           const agentData = await fetchAgent(agentId);
           setAgent(agentData);
         }
-      } catch (error) {
+      } catch (error: unknown) {
         console.error("Error loading data:", error);
         message.error("Failed to load data");
       } finally {
@@ -44,6 +44,8 @@ export default function FlowEditorPage() {
   };
 
   const handleConversationUpdated = (conversationId: string) => {
+    setCurrentConversationId(conversationId);
+
     // Optional: Handle conversation updates
   };
 
@@ -73,7 +75,7 @@ export default function FlowEditorPage() {
                 agentId={agent.id}
                 onStartConversation={() => setIsChatOpen(true)}
               />
-           
+
               <Drawer
                 title="Test Chat"
                 placement="right"

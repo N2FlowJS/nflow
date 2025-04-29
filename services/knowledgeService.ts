@@ -1,6 +1,6 @@
 import { apiRequest } from './apiUtils';
 import { IKnowledge } from '../models/IKnowledge';
-import { searchSimilarContent, SearchSimilarResult } from '@/lib/services/vectorSearchService';
+import { searchSimilarContent, SearchSimilarResult } from '../lib/services/vectorSearchService';
 
 export const fetchAllKnowledge = async () => {
   return apiRequest<IKnowledge[]>('/api/knowledge');
@@ -89,7 +89,7 @@ export async function retrieveFromKnowledgeBase(
       source: item.knowledgeId ||"Unknown source",
       relevance: item.similarity || 0
     }));
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error retrieving from knowledge base:', error);
     throw error;
   }

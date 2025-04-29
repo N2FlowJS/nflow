@@ -13,8 +13,8 @@ import {
 import MainLayout from '../../components/layout/MainLayout';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
-import { apiRequest } from '@/services/apiUtils';
-import { useLocale } from '@/locale/index';
+import { apiRequest } from '../../services/apiUtils';
+import { useLocale } from '../../locale/index';
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -69,7 +69,7 @@ export default function AgentsList() {
       }
 
       setAgents(data);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error fetching agents:', error);
       message.error('Failed to load agents');
     } finally {
@@ -116,7 +116,7 @@ export default function AgentsList() {
       } else {
         message.error('Failed to delete agent');
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error deleting agent:', error);
       message.error('An error occurred while deleting the agent');
     }

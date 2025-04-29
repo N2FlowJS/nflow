@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useReactFlow } from '@xyflow/react';
-import { FlowNode } from '@/models/flowTypes';
+import { FlowNode } from '../../../models/flowTypes';
 
 export interface PredecessorVariable {
     id: string;

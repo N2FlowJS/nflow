@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { prisma } from '@/lib/prisma';
-import { parseAuthHeader, verifyToken } from '@/lib/auth';
+import { prisma } from '../../../lib/prisma';
+import { parseAuthHeader, verifyToken } from '../../../lib/auth';
 
 /**
  * API handler for categorizing text using an LLM model.
@@ -137,14 +137,14 @@ Analyze the text and determine which category it belongs to. Respond with ONLY t
         model: model.name,
         timestamp: new Date().toISOString(),
       });
-    } catch (error) {
+    } catch (error: unknown) {
       return res.status(500).json({
         error: 'Failed to parse LLM response',
         details: error instanceof Error ? error.message : 'Unknown error',
         rawResponse: responseText,
       });
     }
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error categorizing text with LLM:', error);
     return res.status(500).json({
       error: 'Failed to categorize text',

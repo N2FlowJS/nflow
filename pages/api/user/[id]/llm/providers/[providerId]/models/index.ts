@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { prisma } from "@/lib/prisma";
-import { parseAuthHeader, verifyToken } from '@/lib/auth';
+import { prisma } from "../../../../../../../../lib/prisma";
+import { parseAuthHeader, verifyToken } from '../../../../../../../../lib/auth';
 
 /**
  * API handler for managing models for a specific user's LLM provider.
@@ -58,7 +58,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
       
       return res.status(200).json(models);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error fetching provider models:", error);
       return res.status(500).json({ error: "Failed to fetch provider models" });
     }
@@ -110,7 +110,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
       
       return res.status(201).json(newModel);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error creating model:", error);
       return res.status(500).json({ error: "Failed to create model" });
     }

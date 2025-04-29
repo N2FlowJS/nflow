@@ -1,7 +1,7 @@
-import { FlowNode, BeginNodeData } from '@/models/flowTypes';
-import { ExecutionResult, FlowExecutionContext } from '@/models/flowExecutionTypes';
+import { FlowNode, BeginNodeData } from '../../../../models/flowTypes';
+import { ExecutionResult, FlowExecutionContext } from '../../../../models/flowExecutionTypes';
 import { processTemplate } from '../../templateProcessor';
-import { findNextNodes } from '@/utils/server/findNextNode';
+import { findNextNodes } from '../../../../utils/server/findNextNode';
 
 /**
  * Handler for executing Begin nodes
@@ -15,7 +15,11 @@ export async function executeBeginNode(node: FlowNode, { flow, flowState }: Flow
 
   // Add any defined variables to the flow state
   if (Array.isArray(form.variables)) {
-    form.variables.forEach((variable) => {
+    form.variables.forEach((variable: {
+      title: string;
+      dataIndex: number;
+      key: string;
+    }) => {
       if (variable.title && !flowState.variables[variable.title]) {
         flowState.variables[variable.title] = variable.title || '';
       }

@@ -25,7 +25,7 @@ import {
 import { useRouter } from 'next/router';
 import { LLMProvider } from '../../models/llm';
 import LLMProviderForm from './LLMProviderForm';
-import { deleteLLMProvider, setDefaultLLMProvider, updateLLMProvider } from '@/services/llmService';
+import { deleteLLMProvider, setDefaultLLMProvider, updateLLMProvider } from '../../services/llmService';
 
 const { Title } = Typography;
 
@@ -56,7 +56,7 @@ const LLMProvidersTable: React.FC<LLMProvidersTableProps> = ({
       await deleteLLMProvider(id);
       message.success('Provider deleted successfully');
       onRefresh();
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Delete provider error:', error);
       message.error('Failed to delete provider');
     } finally {
@@ -70,7 +70,7 @@ const LLMProvidersTable: React.FC<LLMProvidersTableProps> = ({
       await setDefaultLLMProvider(id);
       message.success('Default provider updated');
       onRefresh();
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Set default provider error:', error);
       message.error('Failed to update default provider');
     } finally {
@@ -86,7 +86,7 @@ const LLMProvidersTable: React.FC<LLMProvidersTableProps> = ({
       setIsEditModalVisible(false);
       message.success('Provider updated successfully');
       onRefresh();
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Update provider error:', error);
       message.error('Failed to update provider');
     }

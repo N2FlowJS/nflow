@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { prisma } from "@/lib/prisma";
-import { parseAuthHeader, verifyToken } from '@/lib/auth';
+import { prisma } from "../../../../lib/prisma";
+import { parseAuthHeader, verifyToken } from '../../../../lib/auth';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { id } = req.query;
@@ -64,7 +64,7 @@ async function getAgentById(req: NextApiRequest, res: NextApiResponse, id: strin
     }
 
     return res.status(200).json(agent);
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Request error", error);
     return res.status(500).json({ error: "Error fetching agent" });
   }
@@ -131,7 +131,7 @@ async function updateAgent(req: NextApiRequest, res: NextApiResponse, id: string
     });
 
     return res.status(200).json(updatedAgent);
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error updating agent:', error);
     return res.status(500).json({ message: 'Internal server error' });
   }
@@ -178,7 +178,7 @@ async function deleteAgent(req: NextApiRequest, res: NextApiResponse, id: string
     });
 
     return res.status(204).end();
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Request error", error);
     return res.status(500).json({ error: "Error deleting agent" });
   }

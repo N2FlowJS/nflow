@@ -41,7 +41,7 @@ export default async function handler(
         message: `Nbase server returned status: ${response.status} ${response.statusText}`
       });
     }
-  } catch (error) {
+  } catch (error: unknown) {
     return res.status(200).json({
       status: 'error',
       message: `Failed to connect to Nbase server: ${error instanceof Error ? error.message : String(error)}`

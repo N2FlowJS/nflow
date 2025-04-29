@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { prisma } from "@/lib/prisma";
-import { parseAuthHeader, verifyToken } from "@/lib/auth";
+import { prisma } from "../../../lib/prisma";
+import { parseAuthHeader, verifyToken } from "../../../lib/auth";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   switch (req.method) {
@@ -53,7 +53,7 @@ async function getTeams(req: NextApiRequest, res: NextApiResponse) {
     });
 
     return res.status(200).json(teams);
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Request error", error);
     return res.status(500).json({ error: "Error fetching teams" });
   }
@@ -113,7 +113,7 @@ async function createTeam(req: NextApiRequest, res: NextApiResponse) {
     });
 
     return res.status(201).json(team);
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error creating team:', error);
     return res.status(500).json({ message: 'Internal server error' });
   }

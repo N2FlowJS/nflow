@@ -20,7 +20,7 @@ import {
 } from 'antd';
 import React, { useState } from 'react';
 import { LLMModel, LLMProvider } from '../../models/llm';
-import { deleteLLMModel, setDefaultLLMModel, updateLLMModel } from '@/services/llmService';
+import { deleteLLMModel, setDefaultLLMModel, updateLLMModel } from '../../services/llmService';
 import LLMModelForm from './LLMModelForm';
 
 const { Title } = Typography;
@@ -54,7 +54,7 @@ const LLMModelsTable: React.FC<LLMModelsTableProps> = ({
       await deleteLLMModel(id);
       message.success('Model deleted successfully');
       onRefresh();
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Delete model error:', error);
       message.error('Failed to delete model');
     } finally {
@@ -68,7 +68,7 @@ const LLMModelsTable: React.FC<LLMModelsTableProps> = ({
       await setDefaultLLMModel(id);
       message.success('Default model updated');
       onRefresh();
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Set default model error:', error);
       message.error('Failed to update default model');
     } finally {
@@ -84,7 +84,7 @@ const LLMModelsTable: React.FC<LLMModelsTableProps> = ({
       setIsEditModalVisible(false);
       message.success('Model updated successfully');
       onRefresh();
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Update model error:', error);
       message.error('Failed to update model');
     }

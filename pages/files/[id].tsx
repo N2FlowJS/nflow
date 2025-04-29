@@ -44,7 +44,7 @@ import {
   fetchFileById,
   getFileContent,
   getFileDownloadUrl,
-} from "@/services/fileService";
+} from "../../services/fileService";
 import { getTypeFile } from "../../utils/client/formatters";
 
 const { Title, Text } = Typography;
@@ -109,7 +109,7 @@ export default function FileDetailPage() {
     try {
       const data = await fetchFileById(fileId);
       setFile(data);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error loading file:", error);
       message.error("Failed to load file details");
     } finally {
@@ -122,7 +122,7 @@ export default function FileDetailPage() {
     try {
       const data = await getFileContent(fileId);
       setFileContent(data.content);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error loading file content:", error);
       setFileContent(null);
     } finally {
@@ -141,7 +141,7 @@ export default function FileDetailPage() {
       } else {
         message.error("Failed to delete file");
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Delete error:", error);
       message.error("An error occurred while deleting the file");
     }

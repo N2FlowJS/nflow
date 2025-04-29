@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "../../../../lib/prisma";
 
 export default async function handler(
   req: NextApiRequest,
@@ -48,7 +48,7 @@ export default async function handler(
       }
 
       return res.status(200).json(knowledge);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Request error", error);
       return res.status(500).json({ error: "Error fetching knowledge item" });
     }
@@ -90,7 +90,7 @@ export default async function handler(
       });
 
       return res.status(200).json(knowledge);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Request error", error);
       return res.status(500).json({ error: "Error updating knowledge item" });
     }
@@ -103,7 +103,7 @@ export default async function handler(
       });
 
       return res.status(204).end();
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Request error", error);
       return res.status(500).json({ error: "Error deleting knowledge item" });
     }

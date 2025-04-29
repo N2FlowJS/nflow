@@ -149,6 +149,7 @@ export const NODE_REGISTRY: Record<NodeTypeString, NodeConfig> = {
     output: 'Path based on condition groups',
     data: {
       type: 'decision',
+
       form: {
         name: 'Decision',
         description: 'Route flow based on conditional logic',
@@ -162,7 +163,7 @@ export const NODE_REGISTRY: Record<NodeTypeString, NodeConfig> = {
           groupOperator: 'OR',
           targetNode: ''
         }],
-        targetNode: '',
+        defaultTarget: '',
         inputRefs: []
       },
     } as Partial<DecisionNodeData>,

@@ -18,7 +18,7 @@ import {
   StarFilled,
   CheckCircleOutlined,
 } from '@ant-design/icons';
-import { updateUserPreferences, fetchUserPreferences } from '@/services/userService';
+import { updateUserPreferences, fetchUserPreferences } from '../../services/userService';
 import { LLMProvider } from '../../models/llm';
 
 const { Title, Text } = Typography;
@@ -51,7 +51,7 @@ const LLMProviderPreferences: React.FC<LLMProviderPreferencesProps> = ({
       const data = await fetchUserPreferences(userId);
       setPreferences(data);
       setSelectedProvider(data.defaultLLMProviderId);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error fetching LLM preferences:', error);
       message.error('Failed to load LLM preferences');
     } finally {
@@ -73,7 +73,7 @@ const LLMProviderPreferences: React.FC<LLMProviderPreferencesProps> = ({
       });
       message.success('Default LLM provider updated successfully');
       fetchPreferences(); // Refresh data
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error updating preferences:', error);
       message.error('Failed to update preferences');
     } finally {

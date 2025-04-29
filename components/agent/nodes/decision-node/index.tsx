@@ -1,11 +1,11 @@
 import React from "react";
 import { Handle, Position, NodeProps, Node } from "@xyflow/react";
 import { QuestionOutlined } from "@ant-design/icons";
-import { DecisionNodeData } from "@/models/flowTypes";
+import { DecisionNodeData } from "../../../../models/flowTypes";
 import BaseNode from "../base-node";
 import DecisionBranches from "./DecisionBranches";
 import DefaultBranch from "./DefaultBranch";
-import { NODE_REGISTRY } from "@/utils/client";
+import { NODE_REGISTRY } from "../../../../utils/client";
 import { sourceColor } from "../base-node/handle-icon";
 
 const DecisionNode = ({

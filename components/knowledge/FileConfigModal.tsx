@@ -54,7 +54,7 @@ const FileConfigModal: React.FC<FileConfigModalProps> = ({
             : ["\n"],
       };
       await onSave(configToSave);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Validation failed:", error);
     }
   };

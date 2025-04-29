@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { prisma } from '@/lib/prisma';
-import { generateToken } from '@/lib/auth';
+import { prisma } from '../../../../lib/prisma';
+import { generateToken } from '../../../../lib/auth';
 
 async function getAccessToken(provider: string, code: string) {
   if (provider === 'google') {
@@ -98,7 +98,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Redirect to frontend with token (or set cookie)
     res.redirect(`/?token=${jwt}`);
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('OAuth callback error:', error);
     res.status(500).json({ error: 'OAuth login failed' });
   }

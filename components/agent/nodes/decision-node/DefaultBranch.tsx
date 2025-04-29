@@ -2,7 +2,7 @@ import React from "react";
 import { Flex, Typography, Tag } from "antd";
 import { ArrowRightOutlined } from "@ant-design/icons";
 import { useReactFlow } from "@xyflow/react";
-import { FlowNode } from "@/models/flowTypes";
+import { FlowNode } from "../../../../models/flowTypes";
 
 interface DefaultBranchProps {
   target: string;

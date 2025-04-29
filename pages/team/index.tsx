@@ -14,7 +14,7 @@ import {
 import { PlusOutlined, EditOutlined, DeleteOutlined, UserOutlined } from "@ant-design/icons";
 import { useRouter } from "next/router";
 import MainLayout from "../../components/layout/MainLayout";
-import { fetchTeams, createTeam, updateTeam, deleteTeam, Team } from "@/services/teamService";
+import { fetchTeams, createTeam, updateTeam, deleteTeam, Team } from "../../services/teamService";
 
 const { Title } = Typography;
 
@@ -31,9 +31,8 @@ export default function TeamList() {
     try {
       const data = await fetchTeams();
       setTeams(data);
-    } catch (error) {
+    } catch {
       message.error("Failed to fetch teams");
-      console.error(error);
     } finally {
       setLoading(false);
     }
@@ -79,9 +78,8 @@ export default function TeamList() {
       setIsModalVisible(false);
       form.resetFields();
       loadTeams();
-    } catch (error) {
+    } catch  {
       message.error("Failed to save team");
-      console.error(error);
     }
   };
 
@@ -90,9 +88,8 @@ export default function TeamList() {
       await deleteTeam(id);
       message.success("Team deleted successfully");
       loadTeams();
-    } catch (error) {
+    } catch  {
       message.error("Failed to delete team");
-      console.error(error);
     }
   };
 

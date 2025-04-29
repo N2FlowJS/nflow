@@ -37,7 +37,7 @@ export default function UserList() {
       const res = await fetch('/api/user');
       const data = await res.json();
       setUsers(data);
-    } catch (error) {
+    } catch (error: unknown) {
       message.error('Failed to fetch users');
       console.error(error);
     } finally {
@@ -104,7 +104,7 @@ export default function UserList() {
       
       setIsModalVisible(false);
       form.resetFields();
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Form validation error:', error);
     }
   };
@@ -121,7 +121,7 @@ export default function UserList() {
       } else {
         message.error('Failed to delete user');
       }
-    } catch (error) {
+    } catch (error: unknown) {
       message.error('An error occurred');
       console.error(error);
     }

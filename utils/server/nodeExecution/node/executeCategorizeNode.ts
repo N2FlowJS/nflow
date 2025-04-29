@@ -1,7 +1,7 @@
-import { FlowNode, CategorizeNodeData, ICategory } from '@/models/flowTypes';
-import { ExecutionResult, FlowExecutionContext } from '@/models/flowExecutionTypes';
-import { getQueryFromSource, getInputs } from '@/hooks/useInputReferences';
-import { prisma } from '@/lib/prisma';
+import { FlowNode, CategorizeNodeData, ICategory } from '../../../../models/flowTypes';
+import { ExecutionResult, FlowExecutionContext } from '../../../../models/flowExecutionTypes';
+import { getQueryFromSource, getInputs } from '../../../../hooks/useInputReferences';
+import { prisma } from '../../../../lib/prisma';
 import { isNodeReady } from '../../isNodeReady';
 
 /**
@@ -150,7 +150,7 @@ Analyze the text and determine which category it belongs to. Respond with ONLY t
 
         }
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Failed to parse LLM response for categorization:', error);
       // Falls back to default category
     }
@@ -198,7 +198,7 @@ Analyze the text and determine which category it belongs to. Respond with ONLY t
         startTime: new Date().toISOString(),
       },
     };
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error in categorize node:', error);
     throw new Error(`Error categorizing input: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }

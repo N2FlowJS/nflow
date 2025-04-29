@@ -18,19 +18,7 @@
         "name": "next"
       }
     ],
-    "paths": {
-      "@/pages/*": ["./pages/*"],
-      "@/lib/*": ["./lib/*"],
-      "@/services/*": ["./services/*"],
-      "@/utils/*": ["./utils/*"],
-      "@/components/*": ["./components/*"],
-      "@/hooks/*": ["./hooks/*"],
-      "@/database/*": ["./database/*"],
-      "@/models/*": ["./models/*"],
-      "@/context/*": ["./context/*"],
-      "@/prisma/*": ["./prisma/*"],
-      "@/locale/*": ["./locale/*"]
-    },
+  
     "noImplicitThis": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,

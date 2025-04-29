@@ -19,8 +19,8 @@ import {
   LLMModel,
   LLMProvider 
 } from '../../models/llm';
-import { fetchAllLLMProviders } from '@/services/llmService';
-import { fetchTeamLLMProviders } from '@/services/teamService';
+import { fetchAllLLMProviders } from '../../services/llmService';
+import { fetchTeamLLMProviders } from '../../services/teamService';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -61,7 +61,7 @@ const LLMModelForm: React.FC<LLMModelFormProps> = ({
           providersData = await fetchAllLLMProviders();
         }
         setProviders(providersData || []);
-      } catch (error) {
+      } catch (error: unknown) {
         console.error('Failed to fetch providers:', error);
         message.error('Failed to load LLM providers');
       } finally {
@@ -88,7 +88,7 @@ const LLMModelForm: React.FC<LLMModelFormProps> = ({
       
       await onSubmit(values);
       message.success(`Model ${isEdit ? 'updated' : 'created'} successfully!`);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Model form error:', error);
       message.error(`Failed to ${isEdit ? 'update' : 'create'} model`);
     }

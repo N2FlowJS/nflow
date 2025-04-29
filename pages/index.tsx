@@ -4,9 +4,9 @@ import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import MainLayout from '../components/layout/MainLayout';
 import { useAuth } from '../context/AuthContext';
-import { getAgentCount } from '@/services/agentService';
-import { fetchAllFiles } from '@/services/fileService';
-import { fetchAllKnowledge } from '@/services/knowledgeService';
+import { getAgentCount } from '../services/agentService';
+import { fetchAllFiles } from '../services/fileService';
+import { fetchAllKnowledge } from '../services/knowledgeService';
 import { useLocale } from '../locale';
 
 const { Title, Text, Paragraph } = Typography;
@@ -47,7 +47,7 @@ export default function Home() {
       setFiles(filesData);
       setKnowledge(knowledgeData);
       setAgentCount(agentsCount);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error loading data:', error);
     } finally {
       setStatsLoading(false);

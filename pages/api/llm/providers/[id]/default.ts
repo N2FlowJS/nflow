@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { prisma } from "@/lib/prisma";
-import { parseAuthHeader, verifyToken } from '@/lib/auth';
+import { prisma } from "../../../../../lib/prisma";
+import { parseAuthHeader, verifyToken } from '../../../../../lib/auth';
 
 /**
  * API handler for setting an LLM provider as the default.
@@ -75,7 +75,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       };
       
       return res.status(200).json(sanitizedProvider);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error setting default LLM provider:", error);
       return res.status(500).json({ error: "Failed to set default LLM provider" });
     }

@@ -9,10 +9,10 @@ import {
 } from 'antd';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
-import LLMProviderForm from '@/components/llm/LLMProviderForm';
-import { createLLMProvider } from '@/services/llmService';
-import { CreateLLMProviderRequest } from '@/models/llm';
-import { checkAuthentication, hasAdminAccess, redirectToLogin } from '@/services/authUtils';
+import LLMProviderForm from '../../../../components/llm/LLMProviderForm';
+import { createLLMProvider } from '../../../../services/llmService';
+import { CreateLLMProviderRequest } from '../../../../models/llm';
+import { checkAuthentication, hasAdminAccess, redirectToLogin } from '../../../../services/authUtils';
 
 const { Content } = Layout;
 const { Title } = Typography;
@@ -41,7 +41,7 @@ export default function NewLLMProvider() {
         message.error('You do not have permission to access this page');
         router.push('/dashboard');
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Authentication error:', error);
       setAuthenticated(false);
     }
@@ -64,7 +64,7 @@ export default function NewLLMProvider() {
       await createLLMProvider(data);
       message.success('LLM provider created successfully');
       router.push('/admin/llm');
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Create provider error:', error);
       message.error('Failed to create LLM provider');
     } finally {

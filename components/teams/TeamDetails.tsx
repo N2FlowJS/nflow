@@ -16,7 +16,7 @@ import {
   CalendarOutlined 
 } from '@ant-design/icons';
 import { format } from 'date-fns';
-import { updateTeam } from '@/services/teamService';
+import { updateTeam } from '../../services/teamService';
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
@@ -68,7 +68,7 @@ export default function TeamDetails({ team }: TeamDetailsProps) {
       
       // Refresh page to show updated data
       window.location.reload();
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error updating team:', error);
       message.error('Failed to update team details');
     } finally {

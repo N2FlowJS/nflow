@@ -47,7 +47,7 @@ export function processEventStream(stream: ReadableStream<Uint8Array>): Readable
             }
           }
         }
-      } catch (error) {
+      } catch (error: unknown) {
         console.error('Error processing event stream:', error);
         controller.error(error);
       }
@@ -84,7 +84,7 @@ function processChunk(chunk: string): any | null {
   
   try {
     return JSON.parse(data);
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error parsing JSON from event stream:', error, data);
     return { error: 'Invalid JSON', data };
   }

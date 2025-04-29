@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import fs from 'fs';
-import { prisma } from '@/lib/prisma';
+import { prisma } from '../../../../../../lib/prisma';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { id, fileId } = req.query;
@@ -34,7 +34,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         if (fs.existsSync(file.path)) {
           fs.unlinkSync(file.path);
         }
-      } catch (error) {
+      } catch (error: unknown) {
         console.error('Error deleting file from disk:', error);
         // Continue with database deletion even if file deletion fails
       }
@@ -49,7 +49,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     res.setHeader('Allow', ['GET', 'DELETE']);
     return res.status(405).end(`Method ${req.method} Not Allowed`);
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error processing file request:', error);
     return res.status(500).json({ error: 'Failed to process file request' });
   }

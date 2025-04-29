@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '../../lib/prisma';
-import { getFileParsingWorkerStatus } from '@/lib/workers/file-worker';
-import { parseAuthHeader, verifyToken } from '@/lib/auth';
+import { getFileParsingWorkerStatus } from '../../lib/workers/file-worker';
+import { parseAuthHeader, verifyToken } from '../../lib/auth';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
@@ -43,7 +43,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     });
 
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Database connection check failed:', error);
 
     return res.status(200).json({

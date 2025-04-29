@@ -11,7 +11,7 @@ export function parseFlowConfig(flowConfig: string): Flow {
 
 
 
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Error parsing flow config:", error);
     return { nodes: [], edges: [] };
   }

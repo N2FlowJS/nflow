@@ -1,7 +1,7 @@
 /**
  * Simplified NBase service using the new server API
  */
-import { log } from '@/utils/logger';
+import { log } from '../../utils/logger';
 
 // Core configuration with sensible defaults
 export const NBASE_HOST = process.env.NBASE_HOST || 'localhost';
@@ -90,7 +90,7 @@ export async function searchSimilarContent(vector: number[], filter?: any, limit
 
     console.log(`NBase search returned ${formattedResults.length} results`);
     return formattedResults;
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error searching NBase:', error);
     return [];
   }
@@ -148,7 +148,7 @@ export async function storeVectorsInNbase(
     const result = await response.json();
     if (result.success) console.log(`Successfully stored vectors in NBase`);
     return true;
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error storing vectors in NBase:', error);
     return false;
   }
@@ -191,7 +191,7 @@ export async function deleteFileVectors(fileId: string): Promise<boolean> {
     const result = await response.json();
     log('info', `✅ Successfully deleted ${result.deleted || 0} vectors for file ID: ${fileId} from NBase`);
     return true;
-  } catch (error) {
+  } catch (error: unknown) {
     log('error', `❌ Error deleting vectors for file ID: ${fileId} from NBase:`, error);
     return false;
   }
@@ -217,7 +217,7 @@ export async function getFileVectorStats(): Promise<any> {
     }
 
     return await response.json();
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error getting NBase vector stats:', error);
     return null;
   }
@@ -272,7 +272,7 @@ export async function getFileChunks(fileId: string): Promise<any[]> {
 
     log('info', `✅ Successfully fetched ${chunks.length} chunks for file ID: ${fileId}`);
     return chunks;
-  } catch (error) {
+  } catch (error: unknown) {
     log('error', `❌ Error fetching chunks for file ID: ${fileId}:`, error);
     return [];
   }

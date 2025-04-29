@@ -94,7 +94,7 @@ async function uploadDocument() {
     
     console.log('Document uploaded:', response.data);
     return response.data;
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Upload failed:', error.response?.data || error.message);
     throw error;
   }
@@ -125,7 +125,7 @@ async function searchSimilarContent(query, knowledgeId, limit = 5) {
     
     console.log('Search results:', response.data);
     return response.data;
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Search failed:', error.response?.data || error.message);
     throw error;
   }

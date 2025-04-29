@@ -149,7 +149,7 @@ async function checkNbaseHealth() {
     const response = await fetch('http://localhost:1307/health');
     const data = await response.json();
     return data.status === 'ok';
-  } catch (error) {
+  } catch (error: unknown) {
     return false;
   }
 }

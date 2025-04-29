@@ -29,7 +29,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     console.log(`[API Send Event] Received request to send event for knowledge ID ${knowledgeId}`);
     sendFileParsingEvent(knowledgeId, eventData);
     return res.status(200).json({ message: 'Event sent successfully' });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error(`[API Send Event] Error sending event for knowledge ID ${knowledgeId}:`, error);
     return res.status(500).json({ error: 'Internal server error while sending event' });
   }

@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { prisma } from '@/lib/prisma';
+import { prisma } from '../../../../lib/prisma';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { id } = req.query;
@@ -44,7 +44,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         completedAt: task.completedAt,
         message: task.message
       });
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error fetching parsing status:", error);
       return res.status(500).json({ error: "Failed to fetch parsing status" });
     }

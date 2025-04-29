@@ -11,7 +11,7 @@ import {
   Space
 } from 'antd';
 import { UserOutlined, SaveOutlined, MailOutlined } from '@ant-design/icons';
-import { updateUserProfile } from '@/services/userService';
+import { updateUserProfile } from '../../services/userService';
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
@@ -47,7 +47,7 @@ export default function ProfileForm({ userData, userId }: ProfileFormProps) {
       });
       
       message.success('Profile updated successfully');
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Profile update error:', error);
       message.error('Failed to update profile');
     } finally {

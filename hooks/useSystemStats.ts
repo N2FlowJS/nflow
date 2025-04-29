@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getSystemStats } from '@/services/adminService';
+import { getSystemStats } from '../services/adminService';
 
 export const useSystemStats = () => {
   const [stats, setStats] = useState<any>(null);

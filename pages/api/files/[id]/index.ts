@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { prisma } from '@/lib/prisma';
+import { prisma } from '../../../../lib/prisma';
 import fs from 'fs';
 import path from 'path';
 
@@ -49,7 +49,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
 
       return res.status(204).end();
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Request error', error);
       return res.status(500).json({ error: 'Error deleting file' });
     }
@@ -79,7 +79,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
       
       return res.status(200).json(file);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error fetching file:", error);
       return res.status(500).json({ error: "Failed to fetch file" });
     }

@@ -1,10 +1,10 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { prisma } from '@/lib/prisma';
+import { prisma } from '../../../../../lib/prisma';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 import { v4 as uuidv4 } from 'uuid';
-import { InputJsonValue } from '@/prisma/client/runtime/library';
+import { InputJsonValue } from '../../../../../prisma/client/runtime/library';
 
 // Configure multer for file uploads with knowledge-specific folders
 const upload = (knowledgeId: string) => multer({
@@ -79,7 +79,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         orderBy: { createdAt: 'desc' }
       });
       return res.status(200).json(files);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Request error', error);
       return res.status(500).json({ error: 'Error fetching files' });
     }
@@ -143,7 +143,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       console.log(`Created ${fileRecords.length} file records`);
 
       return res.status(201).json(fileRecords);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Upload error:', error);
       return res.status(500).json({
         error: 'Error uploading file',

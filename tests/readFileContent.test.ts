@@ -3,7 +3,7 @@ import { expect } from "chai";
 
 // Assuming parsePdfFile is exported directly or indirectly via readFileContent
 // If parsePdfFile is not exported, you might need to export it or test via readFileContent
-import { readFileContent } from './readFileContent'; // Adjust import if parsePdfFile is exported directly
+import { readFileContent } from '../lib/workers/parse-file/readFileContent'; // Adjust import if parsePdfFile is exported directly
 
 // Define the path to the test PDF file relative to the project root or test file location
 // Adjust the relative path as needed based on your test execution context
@@ -30,7 +30,7 @@ describe('readFileContent', () => {
             // Optional: Add more specific checks based on expected content
             // expect(parsedContent.text).to.include("Mission and Core Beliefs");
 
-        } catch (error) {
+        } catch (error: unknown) {
             // Fail the test if any error occurs during parsing
             console.error("Test failed due to error:", error);
             throw error; // Re-throw to ensure Jest marks the test as failed

@@ -1,13 +1,13 @@
 import { prisma } from '../prisma';
 
 import { chunkText, extractChunkMetadata } from '../utils/textChunker';
-import { ConfigChunk } from '@/components/knowledge/ChunkSeparatorSelect';
 import { deleteFileVectors as deleteNbaseFileVectors, storeVectorsInNbase as storeNbaseChunkVectors } from '../services/nbaseService';
 import { readFileContent } from './parse-file/readFileContent';
-import fs from 'fs';
-import path from 'path';
+import * as fs from 'fs';
+import * as path from 'path';
 import { generateEmbeddingsInBatches } from '../services/embeddingService';
 import { deleteLocalVectors, storeLocalVectors } from '../services/localVectorService';
+import { ConfigChunk } from '../../components/knowledge/ChunkSeparatorSelect';
 
 // Configuration
 const POLLING_INTERVAL = parseInt(process.env.PARSING_POLLING_INTERVAL || '5000'); // Default: 5 seconds
@@ -91,7 +91,7 @@ async function postEventToApi(knowledgeId: string, eventData: any) {
     } else {
       console.log(`Worker: Successfully posted event to API for knowledge ${knowledgeId}`);
     }
-  } catch (error) {
+  } catch (error: unknown) {
     console.error(`Worker: Error posting event to API for knowledge ${knowledgeId}:`, error);
   }
 }
@@ -123,7 +123,7 @@ class FileParsingWorker {
         if (!processed) {
           await new Promise((resolve) => setTimeout(resolve, POLLING_INTERVAL));
         }
-      } catch (error) {
+      } catch (error: unknown) {
         console.error(`Worker ${this.id}: Error in processing loop:`, error);
         // Wait before trying again to avoid hammering the database on errors
         await new Promise((resolve) => setTimeout(resolve, POLLING_INTERVAL));
@@ -205,7 +205,7 @@ class FileParsingWorker {
 
       this.isProcessing = false;
       return true;
-    } catch (error) {
+    } catch (error: unknown) {
       console.log(`Worker ${this.id}: Error processing task:`, error);
       this.isProcessing = false;
       return false;
@@ -296,7 +296,7 @@ class FileParsingWorker {
 
 
       console.log(`Worker ${this.id}: Successfully stored ${vectorChunks.length} text chunks with embeddings`);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error(`Worker ${this.id}: Error processing content into vectors:`, error);
       throw error;
     }
@@ -523,7 +523,7 @@ export async function startFileParsingWorker() {
     writeStatusToFile();
 
     // Start the worker (non-blocking)
-    worker.start().catch((error) => {
+    worker.start().catch((error: unknown) => {
       console.error(`Error in worker ${workerId}:`, error);
       activeWorkers.delete(workerId);
       writeStatusToFile();

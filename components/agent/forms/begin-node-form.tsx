@@ -5,7 +5,7 @@ import {
   MessageOutlined,
   PlusOutlined
 } from "@ant-design/icons";
-import { FlowNode } from "@/models/flowTypes";
+import { FlowNode } from "../../../models/flowTypes";
 import {
   Button,
   Collapse,

@@ -22,7 +22,7 @@ import {
   StopOutlined
 } from '@ant-design/icons';
 import LLMProviderForm from '../llm/LLMProviderForm';
-import { fetchTeamLLMProviders, deleteTeamLLMProvider, createTeamLLMProvider, updateTeamLLMProvider } from '@/services/teamService';
+import { fetchTeamLLMProviders, deleteTeamLLMProvider, createTeamLLMProvider, updateTeamLLMProvider } from '../../services/teamService';
 import { LLMProvider } from '../../models/llm';
 import TeamLLMProviderDetail from '../llm/TeamLLMProviderDetail';
 
@@ -51,7 +51,7 @@ const TeamLLMProviders: React.FC<TeamLLMProvidersProps> = ({
     try {
       const data = await fetchTeamLLMProviders(teamId);
       if (data) setProviders(data);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error fetching team LLM providers:', error);
       message.error('Failed to load team LLM providers');
     } finally {
@@ -71,7 +71,7 @@ const TeamLLMProviders: React.FC<TeamLLMProvidersProps> = ({
       await deleteTeamLLMProvider(teamId, providerId);
       message.success('Provider deleted successfully');
       fetchProviders(); // Refresh data
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error deleting provider:', error);
       message.error('Failed to delete provider');
     } finally {
@@ -86,7 +86,7 @@ const TeamLLMProviders: React.FC<TeamLLMProvidersProps> = ({
       message.success('Provider added successfully');
       setIsAddModalVisible(false);
       fetchProviders(); // Refresh data
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error adding provider:', error);
       message.error('Failed to add provider');
     } finally {
@@ -104,7 +104,7 @@ const TeamLLMProviders: React.FC<TeamLLMProvidersProps> = ({
       setIsEditModalVisible(false);
       setEditingProvider(null);
       fetchProviders(); // Refresh the list after update
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error updating provider:', error);
       message.error('Failed to update provider: ' + (error instanceof Error ? error.message : 'Unknown error'));
     } finally {

@@ -1,6 +1,6 @@
 import { expect } from "chai";
-import { chunkText } from "./textChunker";
-import { readFileContent } from "../workers/parse-file/readFileContent";
+import { chunkText } from "../lib/utils/textChunker";
+import { readFileContent } from "../lib/workers/parse-file/readFileContent";
 import path from "path";
 
 describe("chunkText", () => {

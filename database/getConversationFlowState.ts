@@ -11,7 +11,7 @@ export async function getConversationFlowState(conversationId: string): Promise<
     if (conversation) {
       return JSON.parse(conversation.flowState) as FlowState;
     }
-  } catch (error) {
+  } catch (error: unknown) {
     if (error instanceof Error) {
       throw new Error(`Error retrieving flow state: ${error.message}`);
     }

@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { prisma } from "@/lib/prisma";
-import { searchSimilarContent } from "@/lib/services/vectorSearchService";
+import { prisma } from "../../../../lib/prisma";
+import { searchSimilarContent } from "../../../../lib/services/vectorSearchService";
 
 export default async function handler(
   req: NextApiRequest,
@@ -54,7 +54,7 @@ export default async function handler(
       },
       results: results
     });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Retrieval test error:", error);
     return res.status(500).json({ error: "Error performing retrieval test" });
   }

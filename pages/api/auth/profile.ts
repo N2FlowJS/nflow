@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { parseAuthHeader, verifyToken } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { parseAuthHeader, verifyToken } from "../../../lib/auth";
+import { prisma } from "../../../lib/prisma";
 
 export default async function handler(
   req: NextApiRequest,
@@ -60,7 +60,7 @@ export default async function handler(
       email: user.email,
       permission: user.permission
     });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Profile API error:', error);
     return res.status(500).json({ 
       authenticated: false,

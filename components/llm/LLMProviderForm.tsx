@@ -13,7 +13,7 @@ import {
 } from 'antd';
 import { SaveOutlined, ApiOutlined } from '@ant-design/icons';
 import { CreateLLMProviderRequest, UpdateLLMProviderRequest, LLMProviderType, LLMProvider } from '../../models/llm';
-import { testLLMProvider } from '@/services/llmService';
+import { testLLMProvider } from '../../services/llmService';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -69,7 +69,7 @@ const LLMProviderForm: React.FC<LLMProviderFormProps> = ({
       } else {
         message.error(`Test failed: ${result.error}`);
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Provider test error:', error);
       message.error('Failed to test provider connection');
     } finally {
@@ -81,7 +81,7 @@ const LLMProviderForm: React.FC<LLMProviderFormProps> = ({
     try {
       await onSubmit(values);
       message.success(`Provider ${isEdit ? 'updated' : 'created'} successfully!`);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Provider form error:', error);
       message.error(`Failed to ${isEdit ? 'update' : 'create'} provider`);
     }

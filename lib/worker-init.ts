@@ -58,7 +58,7 @@ export async function initializeWorker() {
           console.log(`> Failed to initialize NBase server after ${nbaseInitTime}ms. Falling back to local vector storage.`);
           vectorDBType = 'local';
         }
-      } catch (error) {
+      } catch (error: unknown) {
         console.error(`> NBase initialization error:`, error);
         console.log(`> Falling back to local vector storage due to error.`);
         vectorDBType = 'local';
@@ -99,7 +99,7 @@ export async function initializeWorker() {
     process.on('SIGTERM', cleanup);
 
     console.log(`> Worker initialization complete. Using ${vectorDBType.toUpperCase()} vector database for storing embeddings`);
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('> Failed to initialize worker:', error);
   }
 

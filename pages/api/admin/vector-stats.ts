@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { getWorkerStatus } from '@/lib/worker-init';
-import { getLocalVectorStats } from '@/lib/services/localVectorService';
-import { getFileVectorStats } from '@/lib/services/nbaseService';
+import { getWorkerStatus } from '../../../lib/worker-init';
+import { getLocalVectorStats } from '../../../lib/services/localVectorService';
+import { getFileVectorStats } from '../../../lib/services/nbaseService';
 
 export default async function handler(
   req: NextApiRequest,
@@ -28,7 +28,7 @@ export default async function handler(
           status: 'available',
           ...stats
         };
-      } catch (error) {
+      } catch (error: unknown) {
         vectorStats.status = 'error';
         vectorStats.error = error instanceof Error ? error.message : String(error);
       }
@@ -41,7 +41,7 @@ export default async function handler(
           status: 'available',
           ...stats
         };
-      } catch (error) {
+      } catch (error: unknown) {
         vectorStats.status = 'error';
         vectorStats.error = error instanceof Error ? error.message : String(error);
       }
@@ -53,7 +53,7 @@ export default async function handler(
       vectorDB: vectorStats,
       worker: workerStatus
     });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error getting vector stats:', error);
     res.status(500).json({ 
       error: 'Failed to get vector database statistics',

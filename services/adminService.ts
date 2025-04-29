@@ -35,7 +35,7 @@ export const getWorkerStatus = async (): Promise<any> => {
       },
       recentTasks: Array.isArray(data.recentTasks) ? data.recentTasks : []
     };
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error fetching worker status:', error);
     // Return default data structure in case of error
     return {
@@ -60,7 +60,7 @@ export const getPendingTasksCount = async (): Promise<number> => {
   try {
     const status = await getWorkerStatus();
     return status?.taskStats?.pending || 0;
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error getting pending tasks count:', error);
     return 0;
   }
@@ -79,7 +79,7 @@ export const getSystemStats = async (): Promise<any> => {
     });
      return response;
     
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error fetching system statistics:', error);
     return {
       userStats: { total: 0 },

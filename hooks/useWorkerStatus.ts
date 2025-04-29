@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getWorkerStatus } from '@/services/adminService';
+import { getWorkerStatus } from '../services/adminService';
 
 const useWorkerStatus = (pollingInterval = 5000) => {
   const [data, setData] = useState<any>(null);

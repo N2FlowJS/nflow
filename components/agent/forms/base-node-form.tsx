@@ -2,7 +2,7 @@ import {
   DeleteOutlined,
   ExclamationCircleOutlined
 } from "@ant-design/icons";
-import { FlowNode } from "@/models/flowTypes";
+import { FlowNode } from "../../../models/flowTypes";
 import { useReactFlow } from "@xyflow/react";
 import { Button, Form, Input, Modal, Space } from "antd";
 import React, { useEffect } from "react"; // Import useEffect

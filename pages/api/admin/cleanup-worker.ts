@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { getCleanupWorkerStatus } from '../../../lib/workers/cleanup-worker';
-import { parseAuthHeader, verifyToken } from '@/lib/auth';
+import { parseAuthHeader, verifyToken } from '../../../lib/auth';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {

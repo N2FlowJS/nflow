@@ -36,7 +36,7 @@ export const getAgentCount = async (): Promise<number> => {
       method: 'GET',
     });
     return response.count;
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error fetching agent count:', error);
     return 0;
   }
@@ -60,7 +60,7 @@ export async function fetchFlowConfig(agentId: string): Promise<string> {
     });
 
     return data.flowConfig || '{"nodes":[],"edges":[]}';
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error fetching agent flow config:', error);
     throw error;
   }
@@ -78,7 +78,7 @@ export async function getFlowById(agentId: string): Promise<string> {
     });
 
     return data.flowConfig || '{"nodes":[],"edges":[]}';
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error fetching flow by ID:', error);
     throw error;
   }

@@ -32,7 +32,7 @@ export default function Register() {
       } else {
         message.error(t('failed'));
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Registration error:', error);
       message.error(t('error'));
     } finally {

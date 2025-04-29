@@ -136,12 +136,12 @@ export default function KnowledgeFileList({
           } else if (data.type === 'ping') {
             console.log('[SSE] Received ping');
           }
-        } catch (error) {
+        } catch (error: unknown) {
           console.error("[SSE] Error processing SSE message:", error);
         }
       };
 
-      sse.onerror = (error) => {
+      sse.onerror = (error: unknown) => {
         console.error("[SSE] Connection error:", error);
         // Try to reconnect after a short delay
         setTimeout(() => {
@@ -190,7 +190,7 @@ export default function KnowledgeFileList({
       } else {
         message.error(result.message || t('tasksMonitor.error') || "Failed to create parsing task");
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Parse file error:", error);
       message.error(t('tasksMonitor.error') || "An error occurred while setting up file parsing");
     } finally {
@@ -205,7 +205,7 @@ export default function KnowledgeFileList({
       await deleteFile(knowledge.id, fileId);
       message.success(t('tasksMonitor.deleteTask') || "File deleted successfully");
       fetchFiles();
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Delete file error:", error);
       message.error(t('tasksMonitor.error') || "Failed to delete file");
     }
@@ -246,7 +246,7 @@ export default function KnowledgeFileList({
       setTimeout(() => {
         fetchFiles();
       }, 1000);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Batch parse files error:", error);
       message.error(t('tasksMonitor.error') || "An error occurred while parsing files");
     } finally {
@@ -294,7 +294,7 @@ export default function KnowledgeFileList({
           message.success(t('tasksMonitor.deleteTask') || `${selectedFileIds.length} files deleted successfully`);
           setSelectedFileIds([]);
           fetchFiles();
-        } catch (error) {
+        } catch (error: unknown) {
           console.error("Batch delete files error:", error);
           message.error(t('tasksMonitor.error') || "Failed to delete some files");
         } finally {

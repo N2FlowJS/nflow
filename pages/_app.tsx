@@ -13,7 +13,7 @@ if (typeof window === "undefined") {
 
   // Worker initialization if enabled
   import("../lib/worker-init").then((module) => {
-    module.initializeWorker().catch((error) => {
+    module.initializeWorker().catch((error: unknown) => {
       console.error("Worker initialization error:", error);
     });
   });

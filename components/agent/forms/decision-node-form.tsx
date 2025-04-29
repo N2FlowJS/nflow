@@ -1,8 +1,8 @@
-import { usePredecessorNodes } from '@/components/agent/hooks/usePredecessorNodes';
-import { BeginForm, DecisionBranch, DecisionNodeData, FlowNode } from '@/models/flowTypes';
+import { usePredecessorNodes } from '../../../components/agent/hooks/usePredecessorNodes';
+import { BeginForm, DecisionBranch, DecisionNodeData, FlowNode } from '../../../models/flowTypes';
 import { DeleteOutlined, LinkOutlined, PlusOutlined, QuestionCircleOutlined } from '@ant-design/icons';
-import { Edge, MarkerType, useReactFlow } from '@xyflow/react'; // Import Edge type
-import { Button, Card, Form, Input, Radio, Select, Space, Tooltip, Typography, Collapse } from 'antd';
+import { MarkerType, useReactFlow } from '@xyflow/react'; // Import Edge type
+import { Button, Card, Collapse, Form, Input, Radio, Select, Space, Tooltip, Typography } from 'antd';
 import React from 'react';
 import BaseNodeForm from './base-node-form';
 
@@ -176,7 +176,7 @@ const DecisionNodeForm: React.FC<DecisionNodeFormProps> = ({ form, selectedNode,
           <Form.List name="branches" initialValue={branches}>
             {(branchFields, { add: addBranch, remove: removeBranch }) => (
               <Space direction="vertical" style={{ width: '100%' }}>
-                {branchFields.map((branchField, _) => (
+                {branchFields.map((branchField, ) => (
                   <Card
                     key={branchField.key}
                     title={
@@ -212,7 +212,7 @@ const DecisionNodeForm: React.FC<DecisionNodeFormProps> = ({ form, selectedNode,
                               <Form.List name={[groupField.name, 'conditions']}>
                                 {(conditionFields, { add: addCondition, remove: removeCondition }) => (
                                   <Space direction="vertical" style={{ width: '100%' }}>
-                                    {conditionFields.map((condField, condIndex) => (
+                                    {conditionFields.map((condField,) => (
                                       <Card key={condField.key} size="small" bordered={false}>
                                         <Space align="baseline">
                                           <Form.Item {...condField} name={[condField.name, 'input']} rules={[{ required: true }]}>

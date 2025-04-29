@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { prisma } from "@/lib/prisma";
-import { parseAuthHeader, verifyToken } from '@/lib/auth';
+import { prisma } from "../../../../lib/prisma";
+import { parseAuthHeader, verifyToken } from '../../../../lib/auth';
 
 /**
  * API handler for managing user LLM preferences.
@@ -166,7 +166,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           }))
         }
       });
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error retrieving user preferences:', error);
       return res.status(500).json({ error: 'Failed to retrieve user preferences' });
     }
@@ -224,7 +224,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         defaultLLMProvider: updatedUser.defaultLLMProvider,
         llmPreferences: updatedUser.llmPreferences,
       });
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error updating user preferences:', error);
       return res.status(500).json({ error: 'Failed to update user preferences' });
     }

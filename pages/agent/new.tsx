@@ -9,7 +9,7 @@ import { useRouter } from 'next/router';
 import Link from 'next/link';
 import MainLayout from '../../components/layout/MainLayout';
 import { useAuth } from '../../context/AuthContext';
-import { fetchTeams } from '@/services/teamService';
+import { fetchTeams } from '../../services/teamService';
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -37,7 +37,7 @@ export default function CreateAgent() {
         // Fetch teams
         const teamsData = await fetchTeams();
         setTeams(teamsData);
-      } catch (error) {
+      } catch (error: unknown) {
         console.error('Error fetching data:', error);
         message.error('Failed to load users and teams');
       } finally {
@@ -99,7 +99,7 @@ export default function CreateAgent() {
       const newAgent = await res.json();
       message.success('Agent created successfully');
       router.push(`/agent/${newAgent.id}`);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error creating agent:', error);
       message.error('Failed to create agent');
     } finally {

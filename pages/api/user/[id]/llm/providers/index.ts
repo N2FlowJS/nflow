@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { prisma } from "@/lib/prisma";
-import { parseAuthHeader, verifyToken } from '@/lib/auth';
+import { prisma } from "../../../../../../lib/prisma";
+import { parseAuthHeader, verifyToken } from '../../../../../../lib/auth';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   // Get token from Authorization header
@@ -79,7 +79,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }));
 
       return res.status(200).json(sanitizedProviders);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error fetching LLM providers:", error);
       return res.status(500).json({ error: "Failed to fetch LLM providers" });
     }
@@ -184,7 +184,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       console.log(_);
 
       return res.status(201).json(sanitizedProvider);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error creating LLM provider:", error);
       return res.status(500).json({ error: "Failed to create LLM provider" });
     }

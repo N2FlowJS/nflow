@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { fetchTextChunksByFileId } from "@/lib/services/localVectorService";
-import { parseAuthHeader, verifyToken } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { fetchTextChunksByFileId } from "../../../../lib/services/localVectorService";
+import { parseAuthHeader, verifyToken } from "../../../../lib/auth";
+import { prisma } from "../../../../lib/prisma";
 
 export default async function handler(
   req: NextApiRequest,
@@ -44,7 +44,7 @@ export default async function handler(
     const chunks = await fetchTextChunksByFileId(id);
     
     return res.status(200).json({ chunks });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error fetching file chunks:', error);
     return res.status(500).json({ error: 'Failed to fetch file chunks' });
   }

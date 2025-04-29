@@ -30,17 +30,17 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { useCallback, useEffect, useState } from "react";
-import ChatInterface from "@/components/chat/ChatInterface";
-import MainLayout from "@/components/layout/MainLayout";
-import { IAgent } from "@/models/IAgent";
+import ChatInterface from "../../../components/chat/ChatInterface";
+import MainLayout from "../../../components/layout/MainLayout";
+import { IAgent } from "../../../models/IAgent";
 import {
   deleteAgent,
   fetchAgent,
   fetchFlowConfig,
   updateAgent,
-} from "@/services/agentService"; // Use the new service
+} from "../../../services/agentService"; // Use the new service
 import { useAuth } from "../../../context/AuthContext";
-import { useLocale } from '@/locale/index';
+import { useLocale } from '../../../locale/index';
 
 const { Title, Text } = Typography;
 const { useBreakpoint } = Grid;
@@ -80,7 +80,7 @@ export default function AgentDetail() {
         description: data.description,
         isActive: data.isActive,
       });
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error fetching agent:", error);
       message.error("Failed to load agent details");
     } finally {
@@ -96,7 +96,7 @@ export default function AgentDetail() {
     try {
       const config = await fetchFlowConfig(id as string);
       setFlowConfig(config);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error fetching flow config:", error);
       message.error("Failed to load agent flow configuration");
     } finally {
@@ -124,7 +124,7 @@ export default function AgentDetail() {
       const updatedAgent = await updateAgent(id as string, values); // Use the service
       setAgent(updatedAgent);
       message.success("Agent updated successfully");
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error updating agent:", error);
       message.error("Failed to update agent");
     } finally {
@@ -145,7 +145,7 @@ export default function AgentDetail() {
           await deleteAgent(id as string); // Use the service
           message.success(t('deleteSuccess'));
           router.push("/agent");
-        } catch (error) {
+        } catch (error: unknown) {
           console.error("Error deleting agent:", error);
           message.error(t('deleteFailed'));
         }

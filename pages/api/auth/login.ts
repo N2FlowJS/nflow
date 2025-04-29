@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { prisma } from "@/lib/prisma";
-import { verifyPassword, generateToken } from '@/lib/auth';
+import { prisma } from "../../../lib/prisma";
+import { verifyPassword, generateToken } from '../../../lib/auth';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -51,7 +51,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
       token
     });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Login error:', error);
     res.status(500).json({ error: 'Error during login' });
   }

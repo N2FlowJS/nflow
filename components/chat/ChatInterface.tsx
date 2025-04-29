@@ -5,7 +5,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { v4 as uuidv4 } from 'uuid';
 import { OpenAIExecutionResult } from '../../models/flow';
 import { FlowState } from '../../models/flowExecutionTypes';
-import { flowExecutionService } from '@/services/flowExecutionService';
+import { flowExecutionService } from '../../services/flowExecutionService';
 import ChatMessage from './ChatMessage';
 import { ISender, MessageType } from './types';
 
@@ -226,7 +226,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agentId, model, temperatu
                         break;
                     }
                 }
-            } catch (error) {
+            } catch (error: unknown) {
                 console.error('Error reading stream:', error);
                 // Optionally update message state to reflect error
                 setStreamingMessage((prev) => (prev ? { ...prev, hasError: true, text: accumulatedText + '\n(Error reading stream)' } : null));

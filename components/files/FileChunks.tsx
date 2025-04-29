@@ -12,7 +12,7 @@ import {
   message
 } from "antd";
 import { useEffect, useState } from "react";
-import { getFileChunks } from "@/services/fileService";
+import { getFileChunks } from "../../services/fileService";
 
 const { Paragraph, } = Typography;
 
@@ -47,7 +47,7 @@ export default function FileChunks({ fileId }: FileChunksProps) {
         (a.chunkIndex || 0) - (b.chunkIndex || 0)
       );
       setChunks(sortedChunks);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error loading file chunks:", error);
       message.error("Failed to load file chunks");
     } finally {

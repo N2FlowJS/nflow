@@ -61,7 +61,7 @@ export async function flowExecutionService(
 
     // Parse standard response
     return (await response.json()) as OpenAIExecutionResult;
-  } catch (error) {
+  } catch (error: unknown) {
     // Format error in OpenAI-compatible format
     console.error('Error executing flow:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';

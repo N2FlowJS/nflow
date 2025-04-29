@@ -1,4 +1,4 @@
-import { SaveOutlined, MenuOutlined, SendOutlined, CommentOutlined, ToolOutlined } from "@ant-design/icons";
+import { CommentOutlined, SaveOutlined, ToolOutlined } from "@ant-design/icons";
 import {
   addEdge,
   Background,
@@ -16,15 +16,16 @@ import {
   useReactFlow
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import { Button, Drawer, Form, message } from "antd";
+import { Drawer, Form, message } from "antd";
 import React, { useCallback, useState } from "react";
 
-import { saveFlowConfig } from "@/services/agentService";
+import { saveFlowConfig } from "../../../services/agentService";
 import NodeForm from "../forms/node-form";
 import NodePalette from "./node-palette";
 
-import { CategorizeForm, DecisionForm, FlowNode, NodeTypeString } from "@/models/flowTypes";
-import { isConnectionAllowed, NODE_REGISTRY, parseFlowConfig } from "@/utils/client";
+import { CategorizeForm, DecisionForm, FlowNode, NodeTypeString } from "../../../models/flowTypes";
+import { isConnectionAllowed, NODE_REGISTRY, parseFlowConfig } from "../../../utils/client";
+import { useTheme } from "../../../theme";
 import CustomEdge from "../edges/CustomEdge";
 import BeginNode from "../nodes/begin-node";
 import CategorizeNode from "../nodes/categorize-node";
@@ -32,7 +33,6 @@ import DecisionNode from "../nodes/decision-node";
 import GenerateNode from "../nodes/generate-node";
 import InterfaceNode from "../nodes/interface-node";
 import RetrievalNode from "../nodes/retrieval-node";
-import { useTheme } from "../../../theme";
 
 const nodeTypes: ReactFlowNodeTypes = {
   begin: BeginNode,
@@ -99,7 +99,7 @@ const FlowEditor: React.FC<FlowEditorProps> = ({
       const flow = { nodes, edges };
       await saveFlowConfig(agentId, JSON.stringify(flow));
       message.success("Flow saved successfully");
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error saving flow:", error);
       message.error("Failed to save flow");
     }

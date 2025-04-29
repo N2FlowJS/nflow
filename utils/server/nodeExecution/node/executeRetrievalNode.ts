@@ -1,8 +1,8 @@
-import { getInputs, getQueryFromSource } from '@/hooks/useInputReferences';
-import { ExecutionResult, FlowExecutionContext } from '@/models/flowExecutionTypes';
-import { FlowNode, RetrievalNodeData } from '@/models/flowTypes';
-import { retrieveFromKnowledgeBase } from '@/services/knowledgeService';
-import { findNextNodes } from '@/utils/server/findNextNode';
+import { getInputs, getQueryFromSource } from '../../../../hooks/useInputReferences';
+import { ExecutionResult, FlowExecutionContext } from '../../../../models/flowExecutionTypes';
+import { FlowNode, RetrievalNodeData } from '../../../../models/flowTypes';
+import { retrieveFromKnowledgeBase } from '../../../../services/knowledgeService';
+import { findNextNodes } from '../../../../utils/server/findNextNode';
 import { isNodeReady } from '../../isNodeReady';
 
 /**
@@ -98,7 +98,7 @@ export async function executeRetrievalNode(node: FlowNode, { flow, flowState, in
         output: formattedResults,
       },
     };
-  } catch (error) {
+  } catch (error: unknown) {
     throw new Error(`Error in retrieval node: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }

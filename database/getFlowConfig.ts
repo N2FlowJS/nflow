@@ -1,5 +1,5 @@
-import { prisma } from '@/lib/prisma';
-import { Flow } from '@/models/flowTypes';
+import { prisma } from '../lib/prisma';
+import { Flow } from '../models/flowTypes';
 
 // Default empty flow configuration
 const DEFAULT_FLOW: Flow = {
@@ -69,7 +69,7 @@ export async function getFlowConfig(flowId: string): Promise<Flow> {
       console.warn('Flow data has invalid structure, normalizing:', flowId);
       return normalizeFlowData(flowData);
     }
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error retrieving flow configuration:', error);
     return { ...DEFAULT_FLOW };
   }

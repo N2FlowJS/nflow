@@ -72,7 +72,7 @@ export default function LLMPreferences({ userId }: LLMPreferencesProps) {
             image: userPrefs?.llmPreferences?.models?.image,
           }
         });
-      } catch (error) {
+      } catch (error: unknown) {
         console.error("Error fetching LLM data:", error);
         message.error("Failed to load LLM preferences");
       } finally {
@@ -98,7 +98,7 @@ export default function LLMPreferences({ userId }: LLMPreferencesProps) {
       // Send update request
       await updateUserPreferences(userId, updateData);
       message.success("LLM preferences saved successfully");
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error saving preferences:", error);
       message.error("Failed to save LLM preferences");
     } finally {
@@ -126,7 +126,7 @@ export default function LLMPreferences({ userId }: LLMPreferencesProps) {
       const providersData = await fetchAllLLMProviders();
       setProviders(providersData);
       
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error creating default provider:", error);
       message.error("Failed to create default provider");
     } finally {

@@ -26,7 +26,7 @@ export default function Login() {
       } else {
         message.error(messages.login.failed);
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Login error:', error);
       message.error(messages.login.error);
     } finally {

@@ -32,7 +32,7 @@ import {
   updateTeamProviderModel,
   deleteTeamProviderModel,
   updateTeamLLMProvider
-} from '@/services/teamService';
+} from '../../services/teamService';
 
 const { Title, Text } = Typography;
 
@@ -66,7 +66,7 @@ const TeamLLMProviderDetail: React.FC<TeamLLMProviderDetailProps> = ({
     try {
       const data = await fetchTeamProviderModels(teamId, provider.id);
       if (data) setModels(data);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error fetching models:', error);
       message.error('Failed to load models');
     } finally {
@@ -89,7 +89,7 @@ const TeamLLMProviderDetail: React.FC<TeamLLMProviderDetailProps> = ({
       message.success('Model added successfully');
       setIsAddModalVisible(false);
       fetchModels();
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error adding model:', error);
       message.error('Failed to add model');
     } finally {
@@ -107,7 +107,7 @@ const TeamLLMProviderDetail: React.FC<TeamLLMProviderDetailProps> = ({
       setIsEditModalVisible(false);
       setEditingModel(null);
       fetchModels();
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error updating model:', error);
       message.error('Failed to update model');
     } finally {
@@ -122,7 +122,7 @@ const TeamLLMProviderDetail: React.FC<TeamLLMProviderDetailProps> = ({
       await deleteTeamProviderModel(teamId, provider.id, modelId);
       message.success('Model deleted successfully');
       fetchModels();
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error deleting model:', error);
       message.error('Failed to delete model');
     }
@@ -137,7 +137,7 @@ const TeamLLMProviderDetail: React.FC<TeamLLMProviderDetailProps> = ({
       message.success('Provider updated successfully');
       setIsEditProviderModalVisible(false);
       onProviderUpdated(); // Call the callback to refresh provider data
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error updating provider:', error);
       message.error('Failed to update provider');
     } finally {
@@ -271,7 +271,7 @@ const TeamLLMProviderDetail: React.FC<TeamLLMProviderDetailProps> = ({
       });
       message.success('Default model updated');
       fetchModels();
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error setting default model:', error);
       message.error('Failed to update default model');
     } finally {

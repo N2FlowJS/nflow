@@ -58,7 +58,7 @@ export async function generateEmbedding(
       embedding: result.data[0].embedding,
       tokenCount: result.usage?.total_tokens,
     };
-  } catch (error) {
+  } catch (error: unknown) {
     // Add more context to the error
     if (error instanceof Error) {
       console.error(`Error generating embedding: ${error.message}`);

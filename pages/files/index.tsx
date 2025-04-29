@@ -13,7 +13,7 @@ import {
 import { useRouter } from 'next/router';
 import MainLayout from '../../components/layout/MainLayout';
 import { useAuth } from '../../context/AuthContext';
-import { fetchAllFiles, deleteFile, getFileDownloadUrl } from '@/services/fileService';
+import { fetchAllFiles, deleteFile, getFileDownloadUrl } from '../../services/fileService';
 import Link from 'next/link';
 import { getTypeFile } from '../../utils/client/formatters';
 
@@ -50,7 +50,7 @@ export default function FilesPage() {
     try {
       const data = await fetchAllFiles();
       setFiles(data);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error loading files:', error);
       message.error('Failed to load files');
     } finally {
@@ -67,7 +67,7 @@ export default function FilesPage() {
       } else {
         message.error('Failed to delete file');
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Delete error:', error);
       message.error('An error occurred while deleting the file');
     }

@@ -1,10 +1,10 @@
-import { FlowNode, GenerateNodeData } from '@/models/flowTypes';
-import { ExecutionResult, FlowExecutionContext } from '@/models/flowExecutionTypes';
+import { FlowNode, GenerateNodeData } from '../../../../models/flowTypes';
+import { ExecutionResult, FlowExecutionContext } from '../../../../models/flowExecutionTypes';
 import { getInputFromTemplate, processTemplate } from '../../templateProcessor';
-import { findNextNodes } from '@/utils/server/findNextNode';
-import { prisma } from '@/lib/prisma';
+import { findNextNodes } from '../../../../utils/server/findNextNode';
+import { prisma } from '../../../../lib/prisma';
 import { isNodeReady } from '../../isNodeReady';
-import { MessagePart } from '@/models/MessagePart';
+import { MessagePart } from '../../../../models/MessagePart';
 import OpenAI from 'openai';
 
 /**
@@ -154,7 +154,7 @@ export async function executeGenerateNode(node: FlowNode, { flow, flowState }: F
         startTime: new Date().toISOString(),
       },
     };
-  } catch (error) {
+  } catch (error: unknown) {
     throw new Error(`Error generating content: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }

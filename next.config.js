@@ -1,23 +1,8 @@
 /**
  * @type {import('next').NextConfig}
  */ const nextConfig = {
-
   reactStrictMode: true,
   turbopack: {
-    resolveAlias: {
-      underscore: 'lodash',
-      "@/pages/*": ["./pages/*"],
-      "@/lib/*": ["./lib/*"],
-      "@/services/*": ["./services/*"],
-      "@/utils/*": ["./utils/*"],
-      "@/components/*": ["./components/*"],
-      "@/hooks/*": ["./hooks/*"],
-      "@/database/*": ["./database/*"],
-      "@/models/*": ["./models/*"],
-      "@/context/*": ["./context/*"],
-      "@/prisma/*": ["./prisma/*"],
-      "@/locale/*": ["./locale/*"],
-    },
     resolveExtensions: ['.mdx', '.tsx', '.ts', '.jsx', '.js', '.json'],
   },
   devIndicators: false,
@@ -30,6 +15,7 @@
       bodySizeLimit: '50mb',
     },
   },
+
   serverRuntimeConfig: {
     // Will only be available on the server side
     nodeModules: true,
@@ -51,20 +37,10 @@
   // Configure external modules that need to be transpiled
   transpilePackages: [],
   // Use the new app directory
-  serverExternalPackages: ['child_process', 'fs', 'path', 'os', 'events', 'util'],
+  serverExternalPackages: ['child_process', 'fs', 'path', 'os', 'events', 'util', './prisma/client'],
 
   webpack: (config, { isServer, dev, buildId, webpack, totalPages, nextRuntime }) => {
-    // Ignore test files
-    config.module = {
-      ...config.module,
-      rules: [
-        ...config.module.rules,
-        {
-          test: /\.(test|spec)\.(js|ts|tsx)$/,
-          loader: 'ignore-loader',
-        },
-      ],
-    };
+    config.stats = 'errors-warnings'; // Hoặc 'verbose' để xem đầy đủ
 
     // Server-specific configuration
     if (isServer) {

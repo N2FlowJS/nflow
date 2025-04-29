@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { prisma } from "@/lib/prisma";
-import { parseAuthHeader, verifyToken } from '@/lib/auth';
+import { prisma } from "../../../../../../../../lib/prisma";
+import { parseAuthHeader, verifyToken } from '../../../../../../../../lib/auth';
 
 /**
  * API handler for managing a specific model of a user's LLM provider.
@@ -121,7 +121,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
       
       return res.status(200).json(updatedModel);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error updating model:", error);
       return res.status(500).json({ error: "Failed to update model" });
     }
@@ -134,7 +134,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
       
       return res.status(200).json({ success: true });
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error deleting model:", error);
       return res.status(500).json({ error: "Failed to delete model" });
     }

@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { prisma } from '@/lib/prisma';
-import { parseAuthHeader, verifyToken } from '@/lib/auth';
+import { prisma } from '../../../lib/prisma';
+import { parseAuthHeader, verifyToken } from '../../../lib/auth';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   // Only allow GET requests
@@ -33,7 +33,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Return the count
     return res.status(200).json({ count });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error getting agent count:', error);
     return res.status(500).json({ error: 'Failed to get agent count' });
   }

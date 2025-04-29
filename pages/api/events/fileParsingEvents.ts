@@ -23,7 +23,7 @@ export function sendFileParsingEvent(knowledgeId: string, data: any) {
         console.log(`[SSE Send] Sending data to matching client: ${clientIdStr}`);
         client.write(`data: ${JSON.stringify(data)}\n\n`);
         sentCount++;
-      } catch (error) {
+      } catch (error: unknown) {
         console.error(`[SSE Send] Error sending to client ${clientIdStr}:`, error);
         // Remove problematic clients
         clients.delete(clientId);
@@ -88,7 +88,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     try {
       res.write(`event: ping\ndata: ${JSON.stringify({ timestamp: new Date().toISOString() })}\n\n`);
     
-    } catch (error) {
+    } catch (error: unknown) {
       console.error(`[SSE] Error sending ping to client ${clientId}:`, error);
       clearInterval(keepAliveInterval);
       clients.delete(clientId);

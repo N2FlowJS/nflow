@@ -19,7 +19,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import React, { useEffect, useState } from 'react';
 import MainLayout from '../../components/layout/MainLayout';
-import { checkAuthentication, redirectToLogin } from '@/services/authUtils';
+import { checkAuthentication, redirectToLogin } from '../../services/authUtils';
 import {
   addTeamMember,
   fetchAllUsers,
@@ -29,18 +29,18 @@ import {
   Team,
   updateTeam,
   updateTeamMember
-} from '@/services/teamService';
+} from '../../services/teamService';
 
 // Import our new components
-import { User } from '@/prisma/client';
+import { User } from '../../prisma/client';
 import AgentCreationModal from '../../components/team/modals/AgentCreationModal';
 import TeamAgentsTab from '../../components/team/TeamAgentsTab';
 import TeamDetailsTab from '../../components/team/TeamDetailsTab';
 import TeamMembersTab from '../../components/team/TeamMembersTab';
 import TeamProfileHeader from '../../components/team/TeamProfileHeader';
 import TeamLLMProviders from '../../components/teams/TeamLLMProviders';
-import { createAgent } from '@/services/agentService';
-import { useLocale } from '@/locale/index'; // Import the useLocale hook
+import { createAgent } from '../../services/agentService';
+import { useLocale } from '../../locale/index'; // Import the useLocale hook
 const { Title, } = Typography;
 
 const { TabPane } = Tabs;
@@ -83,7 +83,7 @@ export default function TeamDetail() {
       setAuthenticated(true);
       setUserData(authData);
       return authData;
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Authentication error:', error);
       setAuthenticated(false);
       return null;
@@ -119,9 +119,8 @@ export default function TeamDetail() {
 
         setUserPermission(currentUserMember?.permission || null);
       }
-    } catch (error) {
+    } catch  {
       message.error('Failed to fetch team details');
-      console.error(error);
     } finally {
       setLoading(false);
     }
@@ -131,9 +130,8 @@ export default function TeamDetail() {
     try {
       const users = await fetchAllUsers();
       setAvailableUsers(users);
-    } catch (error) {
+    } catch  {
       message.error('Failed to fetch users');
-      console.error(error);
     }
   };
 
@@ -184,7 +182,7 @@ export default function TeamDetail() {
       message.success('Team updated successfully');
       fetchTeamDetail();
       setIsEditing(false);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Form validation error:', error);
       message.error('Failed to update team');
     }
@@ -202,7 +200,7 @@ export default function TeamDetail() {
 
       message.success('Members added successfully');
       fetchTeamDetail();
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error adding members:', error);
       message.error('An error occurred while adding members');
     }
@@ -213,7 +211,7 @@ export default function TeamDetail() {
       await removeTeamMember(id as string, userId);
       message.success('Member removed successfully');
       fetchTeamDetail();
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error removing member:', error);
       message.error('An error occurred while removing member');
     }
@@ -224,7 +222,7 @@ export default function TeamDetail() {
       await updateTeamMember(id as string, userId, { permission: newRole });
       message.success('Role updated successfully');
       fetchTeamDetail();
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error updating role:', error);
       message.error('An error occurred while updating role');
     }
@@ -301,7 +299,7 @@ export default function TeamDetail() {
       } finally {
         setCreatingAgent(false);
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Form validation error:', error);
     }
   }

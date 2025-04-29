@@ -86,7 +86,7 @@ export async function searchSimilarContent(
       timestamp: new Date().getTime() - startAt,
       results,
     };
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error in vector search:', error);
     return fallbackToKeywordSearch(query, options);
   }
@@ -180,7 +180,7 @@ async function fallbackToKeywordSearch(
         },
       })),
     };
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error in fallback search:', error);
     return {
       timestamp: new Date().getTime(),

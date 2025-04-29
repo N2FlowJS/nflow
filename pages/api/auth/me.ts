@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { prisma } from "@/lib/prisma";
-import { parseAuthHeader, verifyToken } from '@/lib/auth';
+import { prisma } from "../../../lib/prisma";
+import { parseAuthHeader, verifyToken } from '../../../lib/auth';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
@@ -35,7 +35,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     console.log(password);
     
     res.status(200).json(userData);
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Auth error:', error);
     res.status(500).json({ error: 'Server error' });
   }
