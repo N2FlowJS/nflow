@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Menu, ConfigProvider, Layout, Drawer, Button } from "antd";
+import { Menu, Layout, Drawer, Button } from "antd";
 import {
   SunOutlined,
   MoonOutlined,
@@ -31,14 +31,17 @@ interface MainLayoutProps {
 const { Header, Content, Footer } = Layout;
 
 export default function MainLayout({ children }: MainLayoutProps) {
-  const { antdLocale, messages } = useLocale();
+  const { messages } = useLocale();
   const { theme, toggleTheme } = useTheme();
   const { user, isAuthenticated, logout } = useAuth();
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { stars, loading } = useGitHubStats();
 
-  const handleMenuClick = (e: any) => {
+  const handleMenuClick = async (e: any) => {
+   console.log(router,2222222222222);
+   
+    if (!router) return;
     if (e.key === "knowledge") {
       router.push("/knowledge");
     } else if (e.key === "agent") {
@@ -54,7 +57,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
     } else if (e.key === "home") {
       router.push("/");
     } else if (e.key === "files") {
-      router.push("/files");
+      await router.push("/files");
     } else if (e.key === "github") {
       window.open("https://github.com/N2FlowJS/nflow", "_blank");
     } else if (e.key === "docs") {
@@ -63,7 +66,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
 
     // Close mobile menu if it's open
     setMobileMenuOpen(false);
-  };
+  }
 
   // Check if user has admin permissions (owner or maintainer)
   const hasAdminPermissions =
@@ -159,88 +162,86 @@ export default function MainLayout({ children }: MainLayoutProps) {
   const allMenuItems = [...menuItems, ...rightMenuItems];
 
   return (
-    <ConfigProvider locale={antdLocale}>
-      <Layout className={styles.layoutContainer}>
-        {/* Desktop Menu */}
-        <Header className={`${styles.header} ${theme === "dark" ? styles.headerDark : styles.headerLight}`}>
-          {/* Logo and Left Menu Items */}
-          <div className={styles.logoContainer}>
-            <div
-              className={styles.logo}
-              onClick={() => router.push("/")}
-            >
-              N-Flow
-            </div>
-            <div className={styles.desktopMenu}>
-              <Menu
-                mode="horizontal"
-                onClick={handleMenuClick}
-                items={menuItems}
-                selectedKeys={[router.pathname === "/" ? "home" : ""]}
-                className={styles.menuTransparent}
-              />
-            </div>
+    <Layout className={styles.layoutContainer}>
+      {/* Desktop Menu */}
+      <Header className={`${styles.header} ${theme === "dark" ? styles.headerDark : styles.headerLight}`}>
+        {/* Logo and Left Menu Items */}
+        <div className={styles.logoContainer}>
+          <div
+            className={styles.logo}
+            onClick={() => router.push("/")}
+          >
+            N-Flow
           </div>
-
-          {/* Right Menu Items (Desktop) */}
           <div className={styles.desktopMenu}>
             <Menu
               mode="horizontal"
               onClick={handleMenuClick}
-              items={rightMenuItems}
-              selectedKeys={[]}
+              items={menuItems}
+              selectedKeys={[router.pathname === "/" ? "home" : ""]}
               className={styles.menuTransparent}
             />
           </div>
+        </div>
 
-          {/* Mobile Menu Button */}
-          <Button
-            className={styles.mobileMenuButton}
-            icon={<MenuOutlined />}
-            type="text"
-            onClick={() => setMobileMenuOpen(true)}
-          />
-        </Header>
-
-        {/* Mobile Menu Drawer */}
-        <Drawer
-          title="Menu"
-          placement="right"
-          onClose={() => setMobileMenuOpen(false)}
-          open={mobileMenuOpen}
-          width={280}
-        >
+        {/* Right Menu Items (Desktop) */}
+        <div className={styles.desktopMenu}>
           <Menu
-            mode="vertical"
-            items={allMenuItems}
+            mode="horizontal"
             onClick={handleMenuClick}
-            style={{ borderRight: "none" }}
+            items={rightMenuItems}
+            selectedKeys={[]}
+            className={styles.menuTransparent}
           />
-        </Drawer>
+        </div>
 
-        {/* Page Content */}
-        <Content className={`${styles.content} ${theme === "dark" ? styles.contentDark : styles.contentLight}`}>
-          {/* Main Content */}
-          <div className={`${styles.mainContent} ${theme === "dark" ? styles.mainContentDark : styles.mainContentLight}`}>
-            {children}
-          </div>
-        </Content>
+        {/* Mobile Menu Button */}
+        <Button
+          className={styles.mobileMenuButton}
+          icon={<MenuOutlined />}
+          type="text"
+          onClick={() => setMobileMenuOpen(true)}
+        />
+      </Header>
 
-        {/* Footer */}
-        <Footer className={`${styles.footer} ${theme === "dark" ? styles.footerDark : styles.footerLight}`}>
-          <div className={styles.footerContent}>
-            <span>{messages.mainLayout.footer} © {new Date().getFullYear()} - Knowledge Management Platform</span>
-            <a 
-              href="https://github.com/N2FlowJS/nflow" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className={styles.githubStats}
-            >
-              <GithubOutlined /> Stars {loading ? '...' : stars || 0}
-            </a>
-          </div>
-        </Footer>
-      </Layout>
-    </ConfigProvider>
+      {/* Mobile Menu Drawer */}
+      <Drawer
+        title="Menu"
+        placement="right"
+        onClose={() => setMobileMenuOpen(false)}
+        open={mobileMenuOpen}
+        width={280}
+      >
+        <Menu
+          mode="vertical"
+          items={allMenuItems}
+          onClick={handleMenuClick}
+          style={{ borderRight: "none" }}
+        />
+      </Drawer>
+
+      {/* Page Content */}
+      <Content className={`${styles.content} ${theme === "dark" ? styles.contentDark : styles.contentLight}`}>
+        {/* Main Content */}
+        <div className={`${styles.mainContent} ${theme === "dark" ? styles.mainContentDark : styles.mainContentLight}`}>
+          {children}
+        </div>
+      </Content>
+
+      {/* Footer */}
+      <Footer className={`${styles.footer} ${theme === "dark" ? styles.footerDark : styles.footerLight}`}>
+        <div className={styles.footerContent}>
+          <span>{messages.mainLayout.footer} © {new Date().getFullYear()} - Knowledge Management Platform</span>
+          <a
+            href="https://github.com/N2FlowJS/nflow"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.githubStats}
+          >
+            <GithubOutlined /> Stars {loading ? '...' : stars || 0}
+          </a>
+        </div>
+      </Footer>
+    </Layout>
   );
 }

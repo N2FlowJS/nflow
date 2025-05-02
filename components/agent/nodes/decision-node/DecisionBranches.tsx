@@ -3,6 +3,7 @@ import { Card, Space, Tag, Typography, Divider } from "antd";
 import { ArrowRightOutlined } from "@ant-design/icons";
 import { useReactFlow } from "@xyflow/react";
 import { DecisionBranch,  DecisionCondition, FlowNode } from "../../../../models/flowTypes";
+import {  NODE_REGISTRY } from "../../../../utils/client";
 
 const OPERATOR_SYMBOLS: Record<string, string> = {
   equals: '=',
@@ -30,6 +31,7 @@ const DecisionBranches: React.FC<DecisionBranchesProps> = ({ branches }) => {
     const operatorSymbol = OPERATOR_SYMBOLS[condition.operator] || condition.operator;
     return `${condition.input} ${operatorSymbol} ${condition.value}`;
   };
+  const nodeConfig =NODE_REGISTRY['decision'];
 
   return (
     <Space direction="vertical" style={{ width: '100%' }}>
@@ -40,8 +42,7 @@ const DecisionBranches: React.FC<DecisionBranchesProps> = ({ branches }) => {
           title={<Typography.Text strong>{branch.name}</Typography.Text>}
           style={{
             marginBottom: 8,
-            backgroundColor: 'rgba(255, 255, 255, 0.7)',
-            borderColor: '#91d5ff'
+            borderColor: nodeConfig.color.border
           }}
         >
           {branch?.groups?.map((group, groupIndex) => (

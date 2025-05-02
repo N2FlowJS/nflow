@@ -23,6 +23,8 @@ import { useScreenSize } from '../../hooks/useScreenSize';
 const { Title, Text, Paragraph } = Typography;
 
 export default function KnowledgeList() {
+  console.log('Knowledge page rendered');
+
   const [knowledgeItems, setKnowledgeItems] = useState<IKnowledge[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalVisible, setIsModalVisible] = useState(false);

@@ -4,9 +4,7 @@
 import { log } from '../../utils/logger';
 
 // Core configuration with sensible defaults
-export const NBASE_HOST = process.env.NBASE_HOST || 'localhost';
-export const NBASE_PORT = process.env.NBASE_PORT || '1307';
-export const NBASE_URL = process.env.NBASE_URL || `http://${NBASE_HOST}:${NBASE_PORT}`;
+export const NBASE_URL = process.env.NBASE_URL;
 
 
 /**

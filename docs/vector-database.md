@@ -70,8 +70,6 @@ To use NBase:
 
 ```
 VECTOR_DB_TYPE=nbase
-NBASE_HOST=localhost      # Optional: NBase server host
-NBASE_PORT=1307           # Optional: NBase server port
 NBASE_URL=http://localhost:1307  # Optional: Override full URL
 ```
 

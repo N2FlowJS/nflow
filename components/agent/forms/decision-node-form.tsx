@@ -1,4 +1,4 @@
-import { usePredecessorNodes } from '../../../components/agent/hooks/usePredecessorNodes';
+import { usePredecessorNodes } from '../hooks/usePredecessorNodes';
 import { BeginForm, DecisionBranch, DecisionNodeData, FlowNode } from '../../../models/flowTypes';
 import { DeleteOutlined, LinkOutlined, PlusOutlined, QuestionCircleOutlined } from '@ant-design/icons';
 import { MarkerType, useReactFlow } from '@xyflow/react'; // Import Edge type

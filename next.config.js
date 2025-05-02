@@ -2,23 +2,18 @@
  * @type {import('next').NextConfig}
  */ const nextConfig = {
   reactStrictMode: true,
-  turbopack: {
-    resolveExtensions: ['.mdx', '.tsx', '.ts', '.jsx', '.js', '.json'],
+  pageExtensions: ['js', 'jsx', 'md', 'mdx', 'ts', 'tsx'],
+  turbopack: {},
+  devIndicators: {
+    position: 'bottom-left',
   },
-  devIndicators: false,
   output: 'standalone',
   experimental: {
-    turbopackMinify: false,
     webpackBuildWorker: true,
     serverActions: {
       allowedOrigins: ['*'],
       bodySizeLimit: '50mb',
     },
-  },
-
-  serverRuntimeConfig: {
-    // Will only be available on the server side
-    nodeModules: true,
   },
 
   // Add environment variables for Nbase integration
@@ -30,36 +25,7 @@
     OPENAI_BASE_URL: process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1',
     OPENAI_API_KEY: process.env.OPENAI_API_KEY,
     EMBEDDING_MODEL: process.env.EMBEDDING_MODEL || 'text-embedding-ada-002',
-    NBASE_DB_PATH: process.env.NBASE_DB_PATH,
     PORT: process.env.PORT || 1407,
-  },
-
-  // Configure external modules that need to be transpiled
-  transpilePackages: [],
-  // Use the new app directory
-  serverExternalPackages: ['child_process', 'fs', 'path', 'os', 'events', 'util', './prisma/client'],
-
-  webpack: (config, { isServer, dev, buildId, webpack, totalPages, nextRuntime }) => {
-    config.stats = 'errors-warnings'; // Hoặc 'verbose' để xem đầy đủ
-
-    // Server-specific configuration
-    if (isServer) {
-      // No need to modify server config, Node.js modules are available server-side
-    } else {
-      // Client-specific configuration (fallbacks for browser)
-      config.resolve.fallback = {
-        ...config.resolve.fallback,
-        fs: false,
-        path: false,
-        os: false,
-        child_process: false,
-        net: false,
-        tls: false,
-        stream: false,
-      };
-    }
-
-    return config;
   },
 };
 

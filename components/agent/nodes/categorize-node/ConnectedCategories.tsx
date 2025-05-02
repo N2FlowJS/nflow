@@ -36,7 +36,6 @@ const ConnectedCategories: React.FC<ConnectedCategoriesProps> = ({
       title={<Typography.Text type="secondary">Routing</Typography.Text>}
       style={{ 
         marginBottom: 8,
-        backgroundColor: 'rgba(255, 255, 255, 0.7)',
         borderColor: '#ffadd2'
       }}
     >

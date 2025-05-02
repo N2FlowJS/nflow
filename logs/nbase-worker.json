@@ -1,7 +1,6 @@
 {
-  "enabled": false,
-  "status": "stopped",
-  "pid": null,
-  "serverType": null,
-  "lastUpdated": "2025-04-29T15:35:08.534Z"
+  "enabled": true,
+  "status": "running",
+  "serverType": "nbase",
+  "lastUpdated": "2025-05-02T13:48:05.675Z"
 }
