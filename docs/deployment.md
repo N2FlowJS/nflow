@@ -102,9 +102,7 @@ JWT_SECRET=your-secret-key-at-least-32-chars-long
 NEXTAUTH_URL=https://your-domain.com
 NEXTAUTH_SECRET=another-secure-random-secret
 
-# OpenAI API (for embeddings)
-OPENAI_API_KEY=your-openai-api-key
-EMBEDDING_MODEL=text-embedding-3-small
+
 
 # Vector Database
 VECTOR_DB_TYPE=nbase

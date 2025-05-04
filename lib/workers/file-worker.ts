@@ -217,10 +217,20 @@ class FileParsingWorker {
   /**
    * Process text content into chunks and generate vector embeddings
    */
-  async processContentIntoVectors({ config: { chunkSeparator, tokenChunk }, content, fileId, knowledgeId }: ProcessContentIntoVectorsProps): Promise<void> {
+  async processContentIntoVectors({ config: { chunkSeparator, tokenChunk, modelId }, content, fileId, knowledgeId }: ProcessContentIntoVectorsProps): Promise<void> {
     try {
 
 
+      if (!modelId) throw new Error('No AI model specified in the form');
+
+      // Fetch the model details directly from the database
+      const model = await prisma.lLMModel.findUnique({
+        where: { id: modelId },
+        include: { provider: true },
+      });
+
+      if (!model) throw new Error('Model not found in the database');
+      if (!model.provider) throw new Error('Provider not found for this model');
 
       console.log(`Worker ${this.id}: Processing content into chunks with tokenChunk=${tokenChunk}, separator=${JSON.stringify(chunkSeparator)}`);
 
@@ -247,7 +257,7 @@ class FileParsingWorker {
       console.log(`Worker ${this.id}: Split content into ${chunks.length} chunks`);
 
       // Generate embeddings for chunks (in batches to avoid rate limits)
-      const embedding = await generateEmbeddingsInBatches(chunks); // Changed variable name for clarity
+      const embedding = await generateEmbeddingsInBatches(model.provider.endpointUrl,model.provider.apiKey, model.name , chunks); // Changed variable name for clarity
 
       // Determine which vector storage to use
       const vectorDBType = process.env.VECTOR_DB_TYPE || 'local';
@@ -343,14 +353,15 @@ class FileParsingWorker {
         console.log(`config chunk`, JSON.stringify(file.config, null, 2));
         let config: ConfigChunk = {
           chunkSeparator: [`\n`],
-          tokenChunk: 128
+          tokenChunk: 128,
+          modelId:""
         }
         try {
           config = JSON.parse(`${file.config}`)
         }
         catch {
-            console.log('JSON parsing with error');
-            
+          console.log('JSON parsing with error');
+
         }
         await this.processContentIntoVectors({
           content, fileId, knowledgeId: file.knowledgeId, config: config

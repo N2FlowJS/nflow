@@ -15,6 +15,9 @@ export interface LLMProvider {
       id: string;
       name: string;
     };
+    createdAt: Date;
+    updatedAt: Date;
+    userOwnerId?: string ;
     teamOwnerId?: string | null;
 }
 

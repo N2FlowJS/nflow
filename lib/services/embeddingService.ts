@@ -2,11 +2,7 @@
  * Service for generating vector embeddings from text
  */
 
-// Default embedding model - could be configurable in the future
-const EMBEDDING_MODEL = process.env.EMBEDDING_MODEL || "text-embedding-3-small";
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-const OPENAI_BASE_URL =
-  process.env.OPENAI_BASE_URL || "https://api.openai.com/v1/";
+import { llmOpenAI } from "../../llm/openai";
 
 interface EmbeddingResponse {
   embedding: number[];
@@ -17,40 +13,22 @@ interface EmbeddingResponse {
  * Generate vector embeddings for a text chunk using OpenAI API
  */
 export async function generateEmbedding(
+  baseURL: string,
+  apiKey: string,
+  model: string,
   text: string
 ): Promise<EmbeddingResponse> {
-  if (!OPENAI_API_KEY) {
-    throw new Error("OpenAI API key is not configured");
-  }
-  const url = `${OPENAI_BASE_URL}embeddings`;
-  
+
   // Log minimal info to reduce noise in logs
   console.log(`Generating embedding for text (length: ${text.length})`);
 
   try {
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${OPENAI_API_KEY}`,
-      },
-      body: JSON.stringify({
-        input: text,
-        model: EMBEDDING_MODEL,
-      }),
-    });
+    const result = await llmOpenAI.embeddings(baseURL, apiKey, model, text)
 
-    const result = await response.json();
 
-    if (!response.ok) {
-      const errorMessage = result.error?.message || response.statusText;
-      // Add more context to the error for easier debugging
-      console.error(`OpenAI API error (${response.status}): ${errorMessage}`);
-      throw new Error(`API error: ${errorMessage}`);
-    }
 
     // Validate that we received the expected data
-    if (!result.data?.[0]?.embedding) {
+    if (!result.data[0]?.embedding) {
       throw new Error("Invalid response: missing embedding data");
     }
 
@@ -76,6 +54,9 @@ export async function generateEmbedding(
  * with rate limiting to avoid API throttling
  */
 export async function generateEmbeddingsInBatches(
+  baseURL: string,
+  apiKey: string,
+  model: string,
   textChunks: string[],
   batchSize: number = 5
 ): Promise<EmbeddingResponse[]> {
@@ -87,7 +68,9 @@ export async function generateEmbeddingsInBatches(
 
     // Process batch in parallel
     const batchResults = await Promise.all(
-      batch.map((text) => generateEmbedding(text))
+      batch.map((text) => generateEmbedding(baseURL,
+        apiKey,
+        model, text))
     );
 
     results.push(...batchResults);

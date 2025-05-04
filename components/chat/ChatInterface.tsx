@@ -1,14 +1,16 @@
 import { ReloadOutlined, RobotOutlined, SendOutlined, SmileOutlined, StopOutlined } from '@ant-design/icons';
-import { Alert, Avatar, Button, Card, Divider, Empty, Input, Layout, Space, Spin, theme, Tooltip, Typography, Grid } from 'antd';
+import { Alert, Avatar, Button, Card, Divider, Empty, Input, Layout, Space, Spin, Tooltip, Typography } from 'antd';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
+import { useMobile, useToken } from '../../hooks/useMobile';
 import { OpenAIExecutionResult } from '../../models/flow';
 import { FlowState } from '../../models/flowExecutionTypes';
 import { flowExecutionService } from '../../services/flowExecutionService';
 import ChatMessage from './ChatMessage';
 import { ISender, MessageType } from './types';
 
-const { useBreakpoint } = Grid;
+
+
 
 interface ChatInterfaceProps {
     agentId: string;
@@ -25,9 +27,8 @@ interface ChatInterfaceProps {
 }
 
 const ChatInterface: React.FC<ChatInterfaceProps> = ({ agentId, model, temperature, maxTokens, enableStreaming = false, id: initialId, onConversationCreated, onConversationUpdated, onNewChatStarted, variables = {} }) => {
-    const { token } = theme.useToken();
-    const screens = useBreakpoint();
-    const isMobile = !screens.md;
+    const { token } = useToken();
+    const { isMobile } = useMobile();
 
     // State for chat messages and input
     const [messages, setMessages] = useState<MessageType[]>([]);
@@ -418,7 +419,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agentId, model, temperatu
             abortControllerRef.current = null;
         }
 
-     
+
         if (streamingMessage) {
             const stoppedMessage: MessageType = {
                 ...streamingMessage,
@@ -432,8 +433,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agentId, model, temperatu
             setStreamingMessage(null); // Clear immediately for UI responsiveness
         }
 
-        setLoading(false); 
-    }, [streamingMessage]); 
+        setLoading(false);
+    }, [streamingMessage]);
 
     // Start a new chat
     const startNewChat = useCallback(() => {

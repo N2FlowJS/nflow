@@ -5,7 +5,7 @@ import { findNextNodes } from '../../../../utils/server/findNextNode';
 import { prisma } from '../../../../lib/prisma';
 import { isNodeReady } from '../../isNodeReady';
 import { MessagePart } from '../../../../models/MessagePart';
-import OpenAI from 'openai';
+import { llmOpenAI } from '../../../../llm/openai';
 
 /**
  * Handler for executing Generate nodes
@@ -100,10 +100,10 @@ export async function executeGenerateNode(node: FlowNode, { flow, flowState }: F
 
     switch (model.provider.providerType) {
       case 'openai':
-        aiResponse = await callOpenAIAPI(model.provider, model, message, undefined, streamCallback);
+        aiResponse = await llmOpenAI.completions(model.provider.endpointUrl, model.provider.apiKey, model.name, message, undefined, streamCallback);
         break;
       case 'openai-compatible':
-        aiResponse = await callCustomAPI(model.provider, model, message, undefined, streamCallback);
+        aiResponse = await llmOpenAI.completions(model.provider.endpointUrl, model.provider.apiKey, model.name, message, undefined, streamCallback);
         break;
       default:
         return {
@@ -157,101 +157,17 @@ export async function executeGenerateNode(node: FlowNode, { flow, flowState }: F
     throw new Error(`Error generating content: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
-
-/**
- * Call the OpenAI API
- */
-async function callOpenAIAPI(
-  provider: any,
-  model: any,
-  message: MessagePart[],
-  options?: any,
-  callback?: (result: string) => void
-): Promise<string> {
-  const openai = new OpenAI({
-    apiKey: provider.apiKey,
-    baseURL: provider.endpointUrl,
-  });
-
-  const params: OpenAI.Chat.ChatCompletionCreateParams = {
-    model: model.name,
-    messages: message as OpenAI.Chat.ChatCompletionMessageParam[],
-    temperature: options?.temperature || 0.7,
-    max_tokens: options?.maxTokens,
-    top_p: options?.topP,
-    frequency_penalty: options?.frequencyPenalty,
-    presence_penalty: options?.presencePenalty,
-    stop: options?.stop,
-    stream: !!callback,
-  };
-
-  if (params.stream) {
-    // Stream mode
-    const stream = await openai.chat.completions.create(params);
-    let result = '';
-
-    for await (const part of stream) {
-      const content = part.choices?.[0]?.delta?.content || '';
-      if (content) {
-        result += content;
-        if (callback) callback(result);
-      }
-    }
-
-    return result;
-  } else {
-    // Non-stream mode
-    const completion = await openai.chat.completions.create(params);
-    return completion.choices[0].message.content || '';
+export type LLMProvider =
+  {
+    id: string;
+    createdAt: Date;
+    updatedAt: Date;
+    ownerType: string;
+    providerType: string;
+    endpointUrl: string;
+    apiKey: string;
+    userOwnerId: string | null;
+    teamOwnerId: string | null;
   }
-}
-
-/**
- * Call a custom API endpoint
- */
-async function callCustomAPI(
-  provider: any,
-  model: any,
-  message: MessagePart[],
-  options?: any,
-  callback?: (result: string) => void
-): Promise<string> {
-  const openai = new OpenAI({
-    apiKey: provider.apiKey,
-    baseURL: provider.endpointUrl,
-  });
-
-  const params: OpenAI.Chat.ChatCompletionCreateParams = {
-    model: model.name,
-    messages: message as OpenAI.Chat.ChatCompletionMessageParam[],
-    temperature: options?.temperature || 0.7,
-    max_tokens: options?.maxTokens,
-    top_p: options?.topP,
-    frequency_penalty: options?.frequencyPenalty,
-    presence_penalty: options?.presencePenalty,
-    stop: options?.stop,
-    stream: !!callback,
-  };
-
-  if (params.stream) {
-    // Stream mode
-    const stream = await openai.chat.completions.create(params);
-    let result = '';
-
-    for await (const part of stream) {
-      const content = part.choices?.[0]?.delta?.content || '';
-      if (content) {
-        result += content;
-        if (callback) callback(result);
-      }
-    }
-
-    return result;
-  } else {
-    // Non-stream mode
-    const completion = await openai.chat.completions.create(params);
-    return completion.choices[0].message.content || '';
-  }
-}
 
 

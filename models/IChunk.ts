@@ -1,4 +1,3 @@
-import { JsonValue } from "../prisma/client/runtime/library";
 
 export type IChunk = {
   id: string;
@@ -7,5 +6,5 @@ export type IChunk = {
   fileId: string;
   fileName: string;
   knowledgeId: string;
-  metadata: JsonValue;
+  metadata: any;
 };

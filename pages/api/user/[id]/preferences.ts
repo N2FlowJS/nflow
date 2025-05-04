@@ -64,7 +64,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 select: {
                   id: true,
                   providerType: true,
-                  isActive: true,
                   ownerType: true,
                   teamOwnerId: true,
                   models: {
@@ -85,7 +84,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const userProviders = await prisma.lLMProvider.findMany({
         where: {
           userOwnerId: id,
-          isActive: true
         },
         include: {
           models: {
@@ -98,36 +96,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
       });
       
-      // Get system-wide providers
-      const systemProviders = await prisma.lLMProvider.findMany({
-        where: {
-          ownerType: "system",
-          isActive: true
-        },
-        include: {
-          models: {
-            select: {
-              id: true,
-              name: true,
-              modelType: true,
-            }
-          },
-          userOwner: {
-            select: {
-              id: true,
-              name: true
-            }
-          },
-          teamOwner: {
-            select: {
-              id: true,
-              name: true
-            }
-          }
-        }
-      });
+
       
-      // Collect all team-owned providers from user's teams
       const teamProviders = userTeams.flatMap((membership: any) => 
         membership.team.ownedLLMProviders.filter((provider: any) => provider.isActive)
       );
@@ -137,7 +107,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         availableProviders: {
           userProviders,
           teamProviders,
-          systemProviders,
           teams: userTeams.map((membership: any) => ({
             teamId: membership.team.id,
             teamName: membership.team.name,

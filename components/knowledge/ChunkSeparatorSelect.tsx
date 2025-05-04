@@ -5,6 +5,7 @@ import { useLocale } from "../../locale";
 export type ConfigChunk = {
     tokenChunk: number;
     chunkSeparator: string[];
+    modelId: string
 }
 
 export const separatorOptions = [

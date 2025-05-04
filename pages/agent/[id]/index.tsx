@@ -188,200 +188,196 @@ export default function AgentDetail() {
   if (!agent && !loading) {
     return (
       <MainLayout title={t('agentNotFound')}>
-        <div style={{ padding: "24px" }}>
-          <Title level={4}>{t('agentNotFound')}</Title>
-          <Button type="primary" onClick={() => router.push("/agent")}>
-            {t('backToAgentsList')}
-          </Button>
-        </div>
+        <Title level={4}>{t('agentNotFound')}</Title>
+        <Button type="primary" onClick={() => router.push("/agent")}>
+          {t('backToAgentsList')}
+        </Button>
       </MainLayout>
     );
   }
 
   return (
     <MainLayout title={`${t('agent')}: ${agent?.name || t('detail')}`}>
-      <div style={{ padding: isMobile ? '12px' : '24px' }}>
-        <Breadcrumb
-          style={{ marginBottom: isMobile ? '12px' : '24px' }}
-          items={[
-            {
-              title: <Link href="/">Home</Link>,
-            },
-            {
-              title: <Link href="/agent">{t('agents')}</Link>,
-            },
-            {
-              title: agent?.name || t('detail'),
-            },
-          ]}
-        />
+      <Breadcrumb
+        style={{ marginBottom: isMobile ? '12px' : '24px' }}
+        items={[
+          {
+            title: <Link href="/">Home</Link>,
+          },
+          {
+            title: <Link href="/agent">{t('agents')}</Link>,
+          },
+          {
+            title: agent?.name || t('detail'),
+          },
+        ]}
+      />
 
-        <Row gutter={[16, 16]} align="stretch">
-          {/* Agent Info Card */}
-          <Col xs={24} md={8}>
-            <Card>
-              <Row align="middle" >
-                <Col flex="none" >
-                  <Avatar
-                    size={isMobile ? 56 : 72}
-                    icon={<RobotOutlined />}
-                    style={{
-                      background: "#1677ff",
-                      marginRight: isMobile ? 16 : 32,
-                      marginBottom: isMobile ? 16 : 0
-                    }}
-                  />
-                </Col>
-                <Col flex="auto">
-                  <Title level={isMobile ? 3 : 2} style={{ margin: 0 }}>{agent?.name}</Title>
-                  <Typography.Text type="secondary" style={{ fontSize: isMobile ? 14 : 16 }}>
-                    {agent?.description}
-                  </Typography.Text>
-                  <div style={{ marginTop: 12 }}>
-                    <Tag color={agent?.isActive ? "green" : "red"}>
-                      {agent?.isActive ? t('active') : t('inactive')}
-                    </Tag>
-                    {agent?.ownerType === "user" ? (
-                      <Tag icon={<UserOutlined />} color="blue">
-                        {agent?.user?.name}
-                      </Tag>
-                    ) : (
-                      <Tag icon={<TeamOutlined />} color="gold">
-                        {agent?.team?.name}
-                      </Tag>
-                    )}
-                  </div>
-                </Col>
-              </Row>
-
-              <Divider style={{ margin: 0 }} />
-
-              <Form
-                form={form}
-                layout="vertical"
-                size={isMobile ? "middle" : "large"}
-              >
-                <Form.Item
-                  name="name"
-                  label={<b>{t('form.name')}</b>}
-                  rules={[{ required: true }]}
-                >
-                  <Input size="large" />
-                </Form.Item>
-                <Form.Item
-                  name="description"
-                  label={<b>{t('form.description')}</b>}
-                  rules={[{ required: true }]}
-                >
-                  <Input.TextArea rows={4} />
-                </Form.Item>
-                <Form.Item name="isActive" label={<b>{t('form.status')}</b>} valuePropName="checked">
-                  <Switch checkedChildren={t('active')} unCheckedChildren={t('inactive')} />
-                </Form.Item>
-                <Divider />
-                <Row gutter={24}>
-                  <Col span={12}>
-                    <Text type="secondary">{t('createdBy')}</Text>
-                    <div><b>{agent?.createdBy?.name}</b></div>
-                  </Col>
-                  <Col span={12}>
-                    <Text type="secondary">{t('createdAt')}</Text>
-                    <div><b>{new Date(agent?.createdAt || "").toLocaleString()}</b></div>
-                  </Col>
-                  <Col span={12} style={{ marginTop: 16 }}>
-                    <Text type="secondary">{t('lastUpdated')}</Text>
-                    <div><b>{new Date(agent?.updatedAt || "").toLocaleString()}</b></div>
-                  </Col>
-                </Row>
-                {/* Add Save button at the bottom */}
-                <Row justify="space-between" style={{ marginTop: 24 }}>
-                  <Button
-                    type="primary"
-                    danger
-                    icon={<DeleteOutlined />}
-                    onClick={confirmDelete}
-                    size={isMobile ? "middle" : "large"}
-                  />
-                  <Button
-                    type="primary"
-                    icon={<SaveOutlined />}
-                    onClick={handleSave}
-                    loading={saving}
-                    size={isMobile ? "middle" : "large"}
-                  >
-                    {t('save')}
-                  </Button>
-                </Row>
-              </Form>
-            </Card>
-          </Col>
-
-          {/* Chat Interface Card */}
-          <Col xs={24} md={16}>
-            <Card
-              title={
-                <Space
+      <Row gutter={[16, 16]} align="stretch">
+        {/* Agent Info Card */}
+        <Col xs={24} md={8}>
+          <Card>
+            <Row align="middle" >
+              <Col flex="none" >
+                <Avatar
+                  size={isMobile ? 56 : 72}
+                  icon={<RobotOutlined />}
                   style={{
-                    width: "100%",
-                    justifyContent: "space-between",
-                    flexWrap: isMobile ? 'wrap' : 'nowrap',
-                    rowGap: isMobile ? '8px' : 0
-                  }}
-                >
-                  <Button
-                    icon={<AppstoreOutlined />}
-                    onClick={() => router.push(`/agent/canvas/${id}`)}
-                    size={isMobile ? "middle" : "large"}
-                  />
-                  {!isMobile && <Typography.Text strong>{t('chatWithAgent')}</Typography.Text>}
-                  <Switch
-                    checkedChildren={<ThunderboltOutlined />}
-                    unCheckedChildren={<ThunderboltOutlined />}
-                    checked={enableStreaming}
-                    onChange={setEnableStreaming}
-                  />
-                </Space>
-              }
-            >
-              {flowLoading ? (
-                <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
-                  <Spin size="large" />
-                  <Typography.Text style={{ marginTop: 16 }}>{t('loadingAgentFlow')}</Typography.Text>
-                </div>
-              ) : !flowConfig ? (
-                <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '20px' }}>
-                  <InfoCircleOutlined style={{ fontSize: '48px', color: '#faad14', marginBottom: '16px' }} />
-                  <Typography.Title level={4}>{t('noFlowConfigFound')}</Typography.Title>
-                  <Typography.Text type="secondary" style={{ marginBottom: '16px' }}>
-                    {t('flowConfigNeeded')}
-                  </Typography.Text>
-                  <Button
-                    type="primary"
-                    icon={<EditOutlined />}
-                    onClick={() => router.push(`/agent/flow-editor?agentId=${id}`)}
-                  >
-                    {t('goToFlowEditor')}
-                  </Button>
-                </div>
-              ) : (
-                <ChatInterface
-                  agentId={id as string}
-                  flowConfig={flowConfig}
-                  enableStreaming={enableStreaming}
-                  id={currentConversationId}
-                  onConversationCreated={handleConversationCreated}
-                  onConversationUpdated={handleConversationUpdated}
-                  onNewChatStarted={handleNewChatStarted}
-                  variables={{
-                    agentName: agent?.name,
-                    userDisplayName: user?.name || 'User',
+                    background: "#1677ff",
+                    marginRight: isMobile ? 16 : 32,
+                    marginBottom: isMobile ? 16 : 0
                   }}
                 />
-              )}
-            </Card>
-          </Col>
-        </Row>
-      </div>
+              </Col>
+              <Col flex="auto">
+                <Title level={isMobile ? 3 : 2} style={{ margin: 0 }}>{agent?.name}</Title>
+                <Typography.Text type="secondary" style={{ fontSize: isMobile ? 14 : 16 }}>
+                  {agent?.description}
+                </Typography.Text>
+                <div style={{ marginTop: 12 }}>
+                  <Tag color={agent?.isActive ? "green" : "red"}>
+                    {agent?.isActive ? t('active') : t('inactive')}
+                  </Tag>
+                  {agent?.ownerType === "user" ? (
+                    <Tag icon={<UserOutlined />} color="blue">
+                      {agent?.user?.name}
+                    </Tag>
+                  ) : (
+                    <Tag icon={<TeamOutlined />} color="gold">
+                      {agent?.team?.name}
+                    </Tag>
+                  )}
+                </div>
+              </Col>
+            </Row>
+
+            <Divider style={{ margin: 0 }} />
+
+            <Form
+              form={form}
+              layout="vertical"
+              size={isMobile ? "middle" : "large"}
+            >
+              <Form.Item
+                name="name"
+                label={<b>{t('form.name')}</b>}
+                rules={[{ required: true }]}
+              >
+                <Input size="large" />
+              </Form.Item>
+              <Form.Item
+                name="description"
+                label={<b>{t('form.description')}</b>}
+                rules={[{ required: true }]}
+              >
+                <Input.TextArea rows={4} />
+              </Form.Item>
+              <Form.Item name="isActive" label={<b>{t('form.status')}</b>} valuePropName="checked">
+                <Switch checkedChildren={t('active')} unCheckedChildren={t('inactive')} />
+              </Form.Item>
+              <Divider />
+              <Row gutter={24}>
+                <Col span={12}>
+                  <Text type="secondary">{t('createdBy')}</Text>
+                  <div><b>{agent?.createdBy?.name}</b></div>
+                </Col>
+                <Col span={12}>
+                  <Text type="secondary">{t('createdAt')}</Text>
+                  <div><b>{new Date(agent?.createdAt || "").toLocaleString()}</b></div>
+                </Col>
+                <Col span={12} style={{ marginTop: 16 }}>
+                  <Text type="secondary">{t('lastUpdated')}</Text>
+                  <div><b>{new Date(agent?.updatedAt || "").toLocaleString()}</b></div>
+                </Col>
+              </Row>
+              {/* Add Save button at the bottom */}
+              <Row justify="space-between" style={{ marginTop: 24 }}>
+                <Button
+                  type="primary"
+                  danger
+                  icon={<DeleteOutlined />}
+                  onClick={confirmDelete}
+                  size={isMobile ? "middle" : "large"}
+                />
+                <Button
+                  type="primary"
+                  icon={<SaveOutlined />}
+                  onClick={handleSave}
+                  loading={saving}
+                  size={isMobile ? "middle" : "large"}
+                >
+                  {t('save')}
+                </Button>
+              </Row>
+            </Form>
+          </Card>
+        </Col>
+
+        {/* Chat Interface Card */}
+        <Col xs={24} md={16}>
+          <Card
+            title={
+              <Space
+                style={{
+                  width: "100%",
+                  justifyContent: "space-between",
+                  flexWrap: isMobile ? 'wrap' : 'nowrap',
+                  rowGap: isMobile ? '8px' : 0
+                }}
+              >
+                <Button
+                  icon={<AppstoreOutlined />}
+                  onClick={() => router.push(`/agent/canvas/${id}`)}
+                  size={isMobile ? "middle" : "large"}
+                />
+                {!isMobile && <Typography.Text strong>{t('chatWithAgent')}</Typography.Text>}
+                <Switch
+                  checkedChildren={<ThunderboltOutlined />}
+                  unCheckedChildren={<ThunderboltOutlined />}
+                  checked={enableStreaming}
+                  onChange={setEnableStreaming}
+                />
+              </Space>
+            }
+          >
+            {flowLoading ? (
+              <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+                <Spin size="large" />
+                <Typography.Text style={{ marginTop: 16 }}>{t('loadingAgentFlow')}</Typography.Text>
+              </div>
+            ) : !flowConfig ? (
+              <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '20px' }}>
+                <InfoCircleOutlined style={{ fontSize: '48px', color: '#faad14', marginBottom: '16px' }} />
+                <Typography.Title level={4}>{t('noFlowConfigFound')}</Typography.Title>
+                <Typography.Text type="secondary" style={{ marginBottom: '16px' }}>
+                  {t('flowConfigNeeded')}
+                </Typography.Text>
+                <Button
+                  type="primary"
+                  icon={<EditOutlined />}
+                  onClick={() => router.push(`/agent/flow-editor?agentId=${id}`)}
+                >
+                  {t('goToFlowEditor')}
+                </Button>
+              </div>
+            ) : (
+              <ChatInterface
+                agentId={id as string}
+                flowConfig={flowConfig}
+                enableStreaming={enableStreaming}
+                id={currentConversationId}
+                onConversationCreated={handleConversationCreated}
+                onConversationUpdated={handleConversationUpdated}
+                onNewChatStarted={handleNewChatStarted}
+                variables={{
+                  agentName: agent?.name,
+                  userDisplayName: user?.name || 'User',
+                }}
+              />
+            )}
+          </Card>
+        </Col>
+      </Row>
     </MainLayout>
   );
 }

@@ -188,8 +188,7 @@ model LLMProvider {
   id           String   @id @default(uuid())
   providerType String // "openai", "openai-compatible"
   endpointUrl  String // API endpoint URL
-  isActive     Boolean  @default(true)
-  apiKey       String? // Encrypted API key
+  apiKey       String   @default("")
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 

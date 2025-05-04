@@ -4,39 +4,47 @@ import MainLayout from "../../../components/layout/MainLayout";
 import { useAuth } from "../../../context/AuthContext";
 import { fetchAgent } from "../../../services/agentService";
 import { ReactFlowProvider } from "@xyflow/react";
-import { Drawer, Spin, message } from "antd";
+import { Drawer, Flex, Skeleton, Spin, message } from "antd";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import FlowEditorHeader from "../../../components/agent/canvas/flow-editor-header";
+import { useMobile } from "../../../hooks/useMobile";
 
 export default function FlowEditorPage() {
   const router = useRouter();
-  const { agentId } = router.query;
+  const { agentId } = router.query as {
+    agentId: string
+  };
   const { user } = useAuth();
-
+  const { isMobile } = useMobile()
   const [loading, setLoading] = useState<boolean>(false);
   const [agent, setAgent] = useState<any | null>(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [currentConversationId, setCurrentConversationId] = useState<string | undefined>(undefined);
 
+  const loadAgentData = React.useCallback(async () => {
+    if (!agentId) return
+    setLoading(true);
+    try {
+      const agentData = await fetchAgent(agentId);
+      console.log(agentData, 'agentData');
+
+      if (agentData) setAgent(agentData);
+
+    } catch (error: unknown) {
+      console.error("Error loading data:", error);
+      message.error("Failed to load data");
+    } finally {
+      setLoading(false);
+    }
+  }, [agentId]);
+
+
+
   useEffect(() => {
-    const loadAgentData = async () => {
-      setLoading(true);
-      try {
-        if (agentId && typeof agentId === "string") {
-          const agentData = await fetchAgent(agentId);
-          setAgent(agentData);
-        }
-      } catch (error: unknown) {
-        console.error("Error loading data:", error);
-        message.error("Failed to load data");
-      } finally {
-        setLoading(false);
-      }
-    };
 
     loadAgentData();
-  }, [agentId, user]);
+  }, [loadAgentData]);
 
   // Chat handlers
   const handleConversationCreated = (conversationId: string) => {
@@ -62,48 +70,37 @@ export default function FlowEditorPage() {
       </MainLayout>
     );
   }
+  if (!agent?.id) {
+    return <Skeleton />
+  }
 
   return (
     <MainLayout title="Flow Editor">
-      <FlowEditorHeader agent={agent} />
-      {agent ? (
-        <ReactFlowProvider>
-          <FlowEditor
-            flowConfig={agent.flowConfig}
-            agentId={agent.id}
-            onStartConversation={() => setIsChatOpen(true)}
-          />
-
-        </ReactFlowProvider>
-      ) : (
-        <div style={{ textAlign: "center", padding: "100px 0" }}>
-          <p>No agent selected. Please select an agent to edit its flow.</p>
-        </div>
-      )}
+      <ReactFlowProvider>
+        <FlowEditor
+          flowConfig={agent?.flowConfig}
+          agentId={agent?.id}
+          onStartConversation={() => setIsChatOpen(true)}
+        />
+      </ReactFlowProvider>
       <Drawer
         title="Test Chat"
         placement="right"
-        width={window.innerWidth > 768 ? '45%' : "80%"}
+        width={isMobile ? '45%' : "80%"}
         open={isChatOpen}
         onClose={() => setIsChatOpen(false)}
-        styles={{
-          body: {
-            padding: 0,
-            height: 'calc(100% - 55px)',
-            overflow: 'hidden',
-          },
-        }}
+
       >
         <ChatInterface
-          agentId={agent.id}
-          flowConfig={agent.flowConfig || "{}"}
+          agentId={agent?.id}
+          flowConfig={agent?.flowConfig}
           enableStreaming={true}
           id={currentConversationId}
           onConversationCreated={handleConversationCreated}
           onConversationUpdated={handleConversationUpdated}
           onNewChatStarted={handleNewChatStarted}
           variables={{
-            agentName: agent.name,
+            agentName: agent?.name,
             userDisplayName: user?.name || 'User',
           }}
         />

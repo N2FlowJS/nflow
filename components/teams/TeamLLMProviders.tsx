@@ -167,16 +167,6 @@ const TeamLLMProviders: React.FC<TeamLLMProvidersProps> = ({
       ),
     },
     {
-      title: 'Status',
-      key: 'status',
-      dataIndex: 'isActive',
-      render: (isActive: boolean) => (
-        <Tag color={isActive ? 'success' : 'error'} icon={isActive ? <CheckCircleOutlined /> : <StopOutlined />}>
-          {isActive ? 'Active' : 'Inactive'}
-        </Tag>
-      ),
-    },
-    {
       title: 'Actions',
       key: 'actions',
       render: (record: LLMProvider) => (

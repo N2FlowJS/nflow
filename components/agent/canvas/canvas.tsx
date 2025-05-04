@@ -46,7 +46,7 @@ const nodeTypes: ReactFlowNodeTypes = {
 const edgeTypes: EdgeTypes = {
   default: CustomEdge,
   smoothstep: CustomEdge,
-  floating: CustomEdge, // Add floating edge type
+  floating: CustomEdge, 
 };
 
 interface FlowEditorProps {
@@ -291,7 +291,7 @@ const FlowEditor: React.FC<FlowEditorProps> = ({
   }, [onEdgeDelete, setEdges]);
 
   return (
-    <div style={{ height: "calc(100vh- 400px)", width: "100%", position: "relative" }}>
+    <div style={{ height: "100%", width: "100%" }}>
 
 
       <Drawer

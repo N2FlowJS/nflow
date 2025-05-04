@@ -32,7 +32,6 @@ import {
 } from '../../services/teamService';
 
 // Import our new components
-import { User } from '../../prisma/client';
 import AgentCreationModal from '../../components/team/modals/AgentCreationModal';
 import TeamAgentsTab from '../../components/team/TeamAgentsTab';
 import TeamDetailsTab from '../../components/team/TeamDetailsTab';
@@ -41,6 +40,7 @@ import TeamProfileHeader from '../../components/team/TeamProfileHeader';
 import TeamLLMProviders from '../../components/teams/TeamLLMProviders';
 import { createAgent } from '../../services/agentService';
 import { useLocale } from '../../locale/index'; // Import the useLocale hook
+import { User } from '../../models/auth';
 const { Title, } = Typography;
 
 const { TabPane } = Tabs;

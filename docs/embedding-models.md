@@ -29,9 +29,7 @@ You can configure the embedding model through environment variables:
 
 ```
 # In your .env file
-EMBEDDING_MODEL=text-embedding-3-small
-OPENAI_API_KEY=your-api-key
-OPENAI_BASE_URL=https://api.openai.com/v1/  # Optional: Override for custom endpoints
+
 ```
 
 ## Understanding Embedding Dimensions

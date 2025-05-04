@@ -37,10 +37,7 @@ A **Large Language Model (LLM)** is an AI model trained on massive text datasets
 Set your LLM provider and model via environment variables:
 
 ```env
-LLM_PROVIDER=openai
-LLM_MODEL=gpt-3.5-turbo
-OPENAI_API_KEY=your-openai-key
-OPENAI_BASE_URL=https://api.openai.com/v1/
+
 ```
 
 

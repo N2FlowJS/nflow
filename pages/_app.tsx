@@ -6,6 +6,7 @@ import dynamic from "next/dynamic";
 import { AuthProvider } from "../context/AuthContext";
 import { LocaleProvider, useLocale } from "../locale";
 import { ThemeProvider } from "../theme";
+import '../style/globals.css'
 
 if (typeof window === "undefined") {
   import("../lib/worker-init").then((module) => {
@@ -30,22 +31,16 @@ function ConfigProviderWrapper({ children }: { children: React.ReactNode }) {
 
 function IFlowApp({ Component, pageProps }: AppProps) {
   return (
-    <body style={{
-      padding: 0,
-      margin: 0
-    }}>
-      <AuthProvider>
-        <ThemeProvider>
-          <LocaleProvider>
-            <ConfigProviderWrapper>
-              <DatabaseStatus />
-              <Component {...pageProps} />
-            </ConfigProviderWrapper>
-          </LocaleProvider>
-        </ThemeProvider>
-      </AuthProvider>
-    </body>
-
+    <AuthProvider>
+      <ThemeProvider>
+        <LocaleProvider>
+          <ConfigProviderWrapper>
+            <DatabaseStatus />
+            <Component {...pageProps} />
+          </ConfigProviderWrapper>
+        </LocaleProvider>
+      </ThemeProvider>
+    </AuthProvider>
   );
 }
 

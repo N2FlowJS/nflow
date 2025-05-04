@@ -1,4 +1,4 @@
-import { Breadcrumb, Space } from "antd";
+import { Breadcrumb } from "antd";
 import Link from "next/link";
 import React from "react";
 
@@ -12,6 +12,7 @@ const FlowEditorHeader: React.FC<FlowEditorHeaderProps> = ({
   agent,
 
 }) => {
+  if (!agent) return (<span>Loading</span>)
   const breadcrumbItems = [
     {
       title: <Link href="/">Home</Link>,
@@ -31,12 +32,8 @@ const FlowEditorHeader: React.FC<FlowEditorHeaderProps> = ({
     title: <span >Flow Editor</span>,
   });
 
-  return (
+  return <Breadcrumb items={breadcrumbItems} />
 
-    <Space style={{ width: "100%", justifyContent: "space-between" }}>
-      <Breadcrumb items={breadcrumbItems} />
-    </Space>
-  );
 };
 
 export default FlowEditorHeader;

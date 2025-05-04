@@ -1,33 +1,32 @@
-import React, { useState } from "react";
-import { Menu, Layout, Drawer, Button, Flex, Card } from "antd";
 import {
-  SunOutlined,
-  MoonOutlined,
+  DashboardOutlined,
   DatabaseOutlined,
-  RobotOutlined,
-  UserOutlined,
+  FileOutlined,
+  GithubOutlined,
   LoginOutlined,
   LogoutOutlined,
-  UserAddOutlined,
-  FileOutlined,
-  DashboardOutlined,
   MenuOutlined,
-  HomeOutlined,
-  GithubOutlined,
+  MoonOutlined,
+  RobotOutlined,
+  SunOutlined,
+  UserAddOutlined,
+  UserOutlined
 } from "@ant-design/icons";
+import { Button, Drawer, Layout, Menu, Space } from "antd";
 import { useRouter } from "next/router";
+import React, { useState } from "react";
+import { useAuth } from "../../context/AuthContext";
+import { useGitHubStats } from '../../hooks/useGitHubStats';
+import { useMobile } from "../../hooks/useMobile";
 import { useLocale } from "../../locale";
 import { useTheme } from "../../theme";
-import { useAuth } from "../../context/AuthContext";
 import LanguageMenu from "./LanguageMenu";
-import { useGitHubStats } from '../../hooks/useGitHubStats';
 
 interface MainLayoutProps {
   children: React.ReactNode;
   title?: string;
 }
 
-const { Header, Content, Footer } = Layout;
 
 export default function MainLayout({ children }: MainLayoutProps) {
   const { messages } = useLocale();
@@ -36,7 +35,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { stars, loading } = useGitHubStats();
-
+  const { isMobile } = useMobile()
   const handleMenuClick = async (e: any) => {
     if (e.key === "knowledge") {
       router.push("/knowledge");
@@ -71,11 +70,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
     (user.permission === "owner" || user.permission === "maintainer" || user.permission === "admin");
 
   const menuItems = [
-    {
-      key: "home",
-      icon: <HomeOutlined />,
-      label: messages.mainLayout.home,
-    },
+
     {
       key: "knowledge",
       icon: <DatabaseOutlined />,
@@ -102,7 +97,6 @@ export default function MainLayout({ children }: MainLayoutProps) {
       icon: <FileOutlined />,
       label: "Docs",
     },
-    // Admin section - only visible to users with admin permissions
     ...(hasAdminPermissions
       ? [
         {
@@ -125,9 +119,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
     {
       key: "locale-menu",
       label: <LanguageMenu />,
-      // Remove icon and children, handled inside LanguageMenu
     },
-    // Auth menu items are conditionally displayed
     ...(isAuthenticated
       ? [
         {
@@ -155,22 +147,22 @@ export default function MainLayout({ children }: MainLayoutProps) {
       ]),
   ];
 
-  // Combine all menu items for mobile view
   const allMenuItems = [...menuItems, ...rightMenuItems];
 
   return (
     <Layout style={{ height: '100vh' }}>
-      <Header style={{
-        padding: 0,
+      {!isMobile && <Layout.Header style={{
         position: 'sticky',
         top: 0,
         zIndex: 1000,
-        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
+        width: '100%',
+        padding: '0',
         display: 'flex',
+        alignItems: 'center',
         justifyContent: 'space-between',
-        background: theme === 'dark' ? '#141414' : '#fff'
+        background: theme === 'dark' ? '#141414' : '#fff',
       }}>
-        <Flex align="center">
+        <Space align="center">
           <div
             style={{
               fontWeight: 'bold',
@@ -187,27 +179,68 @@ export default function MainLayout({ children }: MainLayoutProps) {
             onClick={handleMenuClick}
             items={menuItems}
             selectedKeys={[router.pathname === "/" ? "home" : ""]}
-            style={{ background: 'transparent', borderBottom: 'none' }}
+            style={{
+              background: 'transparent',
+              borderBottom: 'none',
+            }}
           />
-        </Flex>
+        </Space>
 
-        <Flex>
+        <Space>
           <Menu
             mode="horizontal"
             onClick={handleMenuClick}
             items={rightMenuItems}
             selectedKeys={[]}
-            style={{ background: 'transparent', borderBottom: 'none' }}
+            style={{
+              background: 'transparent',
+              borderBottom: 'none',
+            }}
           />
-        </Flex>
 
-        <Button
-          icon={<MenuOutlined />}
-          type="text"
-          onClick={() => setMobileMenuOpen(true)}
+        </Space>
+      </Layout.Header>}
 
-        />
-      </Header>
+
+      <Layout.Content style={{
+        padding: '24px',
+        minHeight: 280,
+        overflowY: 'auto',
+        overflowX:'hidden',
+        flex: 1
+      }}>
+        {children}
+      </Layout.Content>
+      {!isMobile && <Layout.Footer style={{
+        textAlign: 'center',
+        background: theme === 'dark' ? '#141414' : '#f0f2f5',
+        display: 'flex',
+        justifyContent: 'space-between',
+        padding: '24px'
+      }}>
+        <span>{messages.mainLayout.footer} © {new Date().getFullYear()} - Knowledge Management Platform</span>
+        <a
+          href="https://github.com/N2FlowJS/nflow"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            color: 'inherit',
+          }}
+        >
+          <GithubOutlined /> Stars {loading ? '...' : stars || 0}
+        </a>
+      </Layout.Footer>}
+      {isMobile && <Button
+        icon={<MenuOutlined />}
+        type="text"
+        style={{
+          position: "absolute", right: 2, top: 2
+        }}
+        onClick={() => setMobileMenuOpen(true)}
+      />}
 
       <Drawer
         title="Menu"
@@ -223,36 +256,6 @@ export default function MainLayout({ children }: MainLayoutProps) {
           style={{ borderRight: 'none' }}
         />
       </Drawer>
-
-      <Card style={{
-        padding: '0 20px',
-        overflow: 'auto',
-        flex: 1,
-      }}>
-
-        {children}
-      </Card>
-
-      <Footer style={{
-        background: theme === 'dark' ? '#141414' : '#f0f2f5'
-      }}>
-        <Flex justify="space-between" align="center">
-          <span>{messages.mainLayout.footer} © {new Date().getFullYear()} - Knowledge Management Platform</span>
-          <a
-            href="https://github.com/N2FlowJS/nflow"
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              color: 'inherit',
-            }}
-          >
-            <GithubOutlined /> Stars {loading ? '...' : stars || 0}
-          </a>
-        </Flex>
-      </Footer>
     </Layout>
   );
 }

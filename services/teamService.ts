@@ -1,7 +1,27 @@
+import { User } from '../models/auth';
 import { CreateLLMModelRequest, LLMModel, LLMProvider, UpdateLLMModelRequest } from '../models/llm';
 import { apiRequest } from './apiUtils';
-import { Agent, User, MemberTeam } from '../prisma/client';
-
+ export  type Agent= {
+  id: string
+  name: string
+  description: string
+  flowConfig: string
+  isActive: boolean
+  ownerType: string
+  createdAt: Date
+  updatedAt: Date
+  createdById: string
+  userId: string | null
+  teamId: string | null
+ }
+export type MemberTeam ={
+  id: string
+  permission: string
+  joinedAt: Date
+  leftAt: Date | null
+  teamId: string
+  userId: string
+}
 export interface Team {
   id: string;
   name: string;
