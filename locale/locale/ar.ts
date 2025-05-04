@@ -224,7 +224,7 @@ export default {
     chunkSeparator: {
       label: "Chunk Separator",
       tooltip: "Characters used to divide text into chunks (e.g., ['\\n','\\r'] for paragraphs)",
-      description: "Please enter chunk separator" ,
+      description: "Please enter chunk separator",
       placeholder: "Enter or select chunk separators"
     },
     testing: {

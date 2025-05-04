@@ -4,6 +4,7 @@ export interface IKnowledge {
   name: string;
   description: string;
   config: string;
+  modelId: string;
   createdAt: string;
   updatedAt: string;
   createdBy?: {

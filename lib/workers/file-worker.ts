@@ -73,14 +73,12 @@ type ProcessContentIntoVectorsProps = {
  * Helper function to send event data to the API endpoint
  */
 async function postEventToApi(knowledgeId: string, eventData: any) {
-  const apiUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:1407'}/api/events/sendParsingEvent`;
+  const apiUrl = `http://localhost:3000/api/events/sendParsingEvent`;
   try {
     const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        // Optional: Add a secret header for security
-        // 'X-Internal-Secret': process.env.INTERNAL_WORKER_SECRET || '',
       },
       body: JSON.stringify({ knowledgeId, eventData }),
     });
@@ -217,15 +215,19 @@ class FileParsingWorker {
   /**
    * Process text content into chunks and generate vector embeddings
    */
-  async processContentIntoVectors({ config: { chunkSeparator, tokenChunk, modelId }, content, fileId, knowledgeId }: ProcessContentIntoVectorsProps): Promise<void> {
+  async processContentIntoVectors({ config: { chunkSeparator, tokenChunk }, content, fileId, knowledgeId }: ProcessContentIntoVectorsProps): Promise<void> {
     try {
+      const knowledge = await prisma.knowledge.findUnique({
+        where: { id: knowledgeId }
 
+      })
 
-      if (!modelId) throw new Error('No AI model specified in the form');
+      if (!knowledge) throw new Error('No knowledge specified in the form');
+      if (!knowledge.modelId) throw new Error('No AI model specified in the form');
 
       // Fetch the model details directly from the database
       const model = await prisma.lLMModel.findUnique({
-        where: { id: modelId },
+        where: { id: knowledge.modelId },
         include: { provider: true },
       });
 
@@ -257,7 +259,7 @@ class FileParsingWorker {
       console.log(`Worker ${this.id}: Split content into ${chunks.length} chunks`);
 
       // Generate embeddings for chunks (in batches to avoid rate limits)
-      const embedding = await generateEmbeddingsInBatches(model.provider.endpointUrl,model.provider.apiKey, model.name , chunks); // Changed variable name for clarity
+      const embedding = await generateEmbeddingsInBatches(model.provider.endpointUrl, model.provider.apiKey, model.name, chunks); // Changed variable name for clarity
 
       // Determine which vector storage to use
       const vectorDBType = process.env.VECTOR_DB_TYPE || 'local';
@@ -354,7 +356,7 @@ class FileParsingWorker {
         let config: ConfigChunk = {
           chunkSeparator: [`\n`],
           tokenChunk: 128,
-          modelId:""
+          modelId: ""
         }
         try {
           config = JSON.parse(`${file.config}`)

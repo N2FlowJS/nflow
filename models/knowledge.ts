@@ -14,6 +14,7 @@ export interface Knowledge {
   name: string;
   config?: string;
   description: string;
+  modelId: string;
   createdAt: string;
   updatedAt: string;
   createdBy?: {

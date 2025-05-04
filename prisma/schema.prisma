@@ -63,6 +63,9 @@ model Knowledge {
   // Creator relationship - always required
   createdBy User   @relation(fields: [userId], references: [id], name: "CreatedKnowledge")
   userId    String
+  
+  llmModel LLMModel? @relation(fields: [modelId], references: [id], name: "ModelKnowledge")
+  modelId String?
 
   // Optional associations
   users User[] @relation("UserKnowledge")
@@ -223,6 +226,9 @@ model LLMModel {
   // Relation to provider
   provider   LLMProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
   providerId String
+
+  knowledges Knowledge[] @relation("ModelKnowledge")
+
 }
 
 // New model for storing conversation data

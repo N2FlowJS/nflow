@@ -56,7 +56,7 @@ export default async function handler(
 
   if (req.method === "PUT") {
     try {
-      const { name, description, userIds, teamIds , config } = req.body;
+      const { name, description, userIds, teamIds, config, modelId } = req.body;
 
       if (!name && !description && !userIds && !teamIds && !config) {
         return res
@@ -69,6 +69,7 @@ export default async function handler(
         ...(name && { name }),
         ...(description && { description }),
         ...(config && { config }),
+        ...(modelId && { modelId }),
       };
 
       // Handle relationship updates if provided

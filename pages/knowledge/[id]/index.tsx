@@ -47,6 +47,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { useEffect, useState, CSSProperties } from "react";
 import { useLocale } from "../../../locale/index";
+import KnowledgeModelForm from "../../../components/knowledge/KnowledgeModelForm";
 
 const { Title, Text } = Typography;
 const { TabPane } = Tabs;
@@ -102,6 +103,7 @@ export default function KnowledgeDetail() {
           name: data.name,
           description: data.description,
           config: config,
+          modelId: data.modelId
         });
       } else {
         message.error(messages.knowledgeDetail.fetchKnowledgeFailed);
@@ -126,20 +128,13 @@ export default function KnowledgeDetail() {
 
       if (!id || typeof id !== "string") return;
 
-      // Convert config object to JSON string
       const dataToSubmit = {
         name: values.name,
+        modelId: values.modelId,
         description: values.description,
-        config: JSON.stringify({
-          ...values.config,
-          chunkSeparator: Array.isArray(values.config.chunkSeparator)
-            ? values.config.chunkSeparator
-            : typeof values.config.chunkSeparator === "string"
-              ? [values.config.chunkSeparator]
-              : [],
-        }),
+        updateKnowledge: values.updateKnowledge,
+        config: JSON.stringify(values.config,),
       };
-      console.log(dataToSubmit);
 
       const updated = await updateKnowledge(id, dataToSubmit);
       if (updated) {
@@ -537,7 +532,17 @@ export default function KnowledgeDetail() {
                   >
                     <KnowledgeDetailForm form={form} />
                   </Card>
-
+                  <Card
+                    title={
+                      <div>
+                        <SettingOutlined /> Embedding Configuration
+                      </div>
+                    }
+                    style={{ marginBottom: isMobile ? 12 : 24 }}
+                    size={isMobile ? "small" : "default"}
+                  >
+                    <KnowledgeModelForm form={form} />
+                  </Card>
                   <Card
                     title={
                       <div>
@@ -549,6 +554,7 @@ export default function KnowledgeDetail() {
                   >
                     <KnowledgeConfigForm form={form} />
                   </Card>
+                
 
                   <Button
                     type="primary"

@@ -1,5 +1,5 @@
 import React from "react";
-import { Select, Form } from "antd";
+import { Select, Form, Tag } from "antd";
 import { useLocale } from "../../locale";
 
 export type ConfigChunk = {
@@ -29,21 +29,12 @@ export const renderSeparatorTokens = (separators: string[]) => {
     return (
         <div style={{ marginTop: 8 }}>
             {separators.map((sep, idx) => (
-                <span
+                <Tag
                     key={idx}
-                    style={{
-                        display: 'inline-block',
-                        background: '#f0f0f0',
-                        borderRadius: 4,
-                        padding: '2px 8px',
-                        marginRight: 4,
-                        fontFamily: 'monospace',
-                        fontSize: 13,
-                        border: '1px solid #d9d9d9',
-                    }}
+
                 >
                     {JSON.stringify(sep)}
-                </span>
+                </Tag>
             ))}
         </div>
     );
