@@ -1,10 +1,8 @@
 import {
   ApiOutlined,
-  CheckCircleOutlined,
   DeleteOutlined,
   EditOutlined,
-  PlusOutlined,
-  StopOutlined
+  PlusOutlined
 } from '@ant-design/icons';
 import {
   Button,
