@@ -329,7 +329,7 @@ export default function AgentDetail() {
                 >
                   <Button
                     icon={<EditOutlined />}
-                    onClick={() => router.push(`/agent/flow-editor?agentId=${id}`)}
+                    onClick={() => router.push(`/agent/canvas/${id}`)}
                     size={isMobile ? "middle" : "large"}
                   >
                     {!isMobile && t('flowEditor')}

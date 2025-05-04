@@ -1,11 +1,7 @@
 import {
-  CheckCircleOutlined,
   DeleteOutlined,
   EditOutlined,
-  PlusOutlined,
-  StarFilled,
-  StarOutlined,
-  StopOutlined,
+  PlusOutlined
 } from '@ant-design/icons';
 import {
   Button,

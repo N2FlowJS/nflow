@@ -418,13 +418,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agentId, model, temperatu
             abortControllerRef.current = null;
         }
 
-        // The finalization logic is now primarily within processStreamResponse's finally block.
-        // We might not need to add the message here explicitly anymore,
-        // but ensure loading state is reset.
-        // If streamingMessage is still present, the finally block should handle it.
-        // Consider if immediate UI feedback is needed upon clicking stop.
+     
         if (streamingMessage) {
-            // Optionally add a message indicating streaming was stopped by user
             const stoppedMessage: MessageType = {
                 ...streamingMessage,
                 text: streamingMessage.text + '\n(Streaming stopped by user)',
@@ -437,8 +432,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agentId, model, temperatu
             setStreamingMessage(null); // Clear immediately for UI responsiveness
         }
 
-        setLoading(false); // Ensure loading is stopped
-    }, [streamingMessage]); // Keep dependency if reading streamingMessage
+        setLoading(false); 
+    }, [streamingMessage]); 
 
     // Start a new chat
     const startNewChat = useCallback(() => {

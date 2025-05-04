@@ -1,23 +1,21 @@
-import React, { useState } from 'react';
+import { ApiOutlined, SaveOutlined } from '@ant-design/icons';
 import {
-  Form,
-  Input,
-  Select,
-  Switch,
+  Alert,
   Button,
   Card,
-  Typography,
+  Form,
+  Input,
   message,
+  Select,
   Space,
-  Alert
+  Typography
 } from 'antd';
-import { SaveOutlined, ApiOutlined } from '@ant-design/icons';
-import { CreateLLMProviderRequest, UpdateLLMProviderRequest, LLMProviderType, LLMProvider } from '../../models/llm';
+import React, { useState } from 'react';
+import { CreateLLMProviderRequest, LLMProvider, LLMProviderType, UpdateLLMProviderRequest } from '../../models/llm';
 import { testLLMProvider } from '../../services/llmService';
 
-const { Title, Text } = Typography;
+const { Title } = Typography;
 const { Option } = Select;
-const { TextArea } = Input;
 
 interface LLMProviderFormProps {
   initialValues?: Partial<LLMProvider>;

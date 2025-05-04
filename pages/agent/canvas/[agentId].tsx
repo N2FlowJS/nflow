@@ -1,4 +1,4 @@
-import FlowEditor from "../../../components/agent/flow-editor";
+import FlowEditor from "../../../components/agent/canvas/canvas";
 import ChatInterface from "../../../components/chat/ChatInterface";
 import MainLayout from "../../../components/layout/MainLayout";
 import { useAuth } from "../../../context/AuthContext";
@@ -7,7 +7,7 @@ import { ReactFlowProvider } from "@xyflow/react";
 import { Drawer, Spin, message } from "antd";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import FlowEditorHeader from "./header";
+import FlowEditorHeader from "../../../components/agent/canvas/flow-editor-header";
 
 export default function FlowEditorPage() {
   const router = useRouter();

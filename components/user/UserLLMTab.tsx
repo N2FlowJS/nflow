@@ -1,11 +1,11 @@
+import { ApiOutlined, DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
+import { Alert, Button, Card, Popconfirm, Space, Table, Tag, Typography } from 'antd';
 import React, { useState } from 'react';
-import { Card, Typography, Button, Space, Table, Tag, Popconfirm, Alert } from 'antd';
-import { PlusOutlined, ApiOutlined, EditOutlined, DeleteOutlined, CheckCircleOutlined, StopOutlined, ExperimentOutlined } from '@ant-design/icons';
 import { LLMProvider } from '../../models/llm';
 import UserLLMProviderDetail from '../llm/UserLLMProviderDetail';
 import LLMProviderPreferences from '../profile/LLMProviderPreferences';
 
-const { Title, Text } = Typography;
+const { Title } = Typography;
 
 interface UserLLMTabProps {
   userId: string;
