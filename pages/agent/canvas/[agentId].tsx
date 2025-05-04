@@ -1,14 +1,13 @@
+import { ReactFlowProvider } from "@xyflow/react";
+import { Drawer, Skeleton, Spin, message } from "antd";
+import { useRouter } from "next/router";
+import React, { useEffect, useState } from "react";
 import FlowEditor from "../../../components/agent/canvas/canvas";
 import ChatInterface from "../../../components/chat/ChatInterface";
 import MainLayout from "../../../components/layout/MainLayout";
 import { useAuth } from "../../../context/AuthContext";
-import { fetchAgent } from "../../../services/agentService";
-import { ReactFlowProvider } from "@xyflow/react";
-import { Drawer, Flex, Skeleton, Spin, message } from "antd";
-import { useRouter } from "next/router";
-import React, { useEffect, useState } from "react";
-import FlowEditorHeader from "../../../components/agent/canvas/flow-editor-header";
 import { useMobile } from "../../../hooks/useMobile";
+import { fetchAgent } from "../../../services/agentService";
 
 export default function FlowEditorPage() {
   const router = useRouter();
