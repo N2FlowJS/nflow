@@ -2,7 +2,7 @@ import { FlowState } from '../models/flowExecutionTypes';
 
 
 export function getQueryFromSource(inputRef: string[] = [], flowState: FlowState): string | null {
-  let input: string[] = [];
+  const input: string[] = [];
 
   if (inputRef.length > 0) {
     // Iterate through the input source references to find the input

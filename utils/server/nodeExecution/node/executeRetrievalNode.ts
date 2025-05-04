@@ -13,7 +13,7 @@ export async function executeRetrievalNode(node: FlowNode, { flow, flowState, in
   const startTime = new Date().toISOString();
   // Ensure form exists with a default empty object to prevent TypeScript errors
   const form = data.form || {};
-  const ready = isNodeReady(node.id, flowState);
+  const ready = isNodeReady(getInputs(node.id, flowState, []), flowState);
   if (!ready) {
     return {
       nextNodes: [],
@@ -62,13 +62,10 @@ export async function executeRetrievalNode(node: FlowNode, { flow, flowState, in
       )
     );
 
-    // Flatten and limit results
     const allResults = retrievalResults.flat().slice(0, maxResults);
 
-    // Format the results based on the outputFormat setting
-    let formattedResults: string;
 
-    formattedResults = allResults.map((result, index) => `[${index + 1}] ${result.text}\nSource: ${result.source}`).join('\n\n');
+    const formattedResults = allResults.map((result, index) => `[${index + 1}] ${result.text}\nSource: ${result.source}`).join('\n\n');
 
 
     flowState.components[node.id]['output'] = formattedResults;

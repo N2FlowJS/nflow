@@ -24,19 +24,17 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
   const roleLabel = sender === 'user' ? 'You' : sender === 'system' ? 'System' : sender === 'developer' ? 'Developer' : 'Agent';
 
   if (sender === 'user') {
-    return (<Flex justify="flex-end" style={{
-      marginBottom: token.marginMD,
-      background: token.colorBgContainer,
-      maxWidth: '85%',
-      alignSelf: 'flex-end',
-    }}>
+    return (
+      <Flex vertical  justify={'flex-end'} align='flex-end'>
+
       <Typography.Paragraph
-        style={{ margin: 0 }}
         copyable
       >
         <ReactMarkdown>{text}</ReactMarkdown>
       </Typography.Paragraph>
-    </Flex>)
+      </Flex>
+
+    )
   }
 
   return (

@@ -11,18 +11,19 @@ import {
   Tag
 } from "antd";
 import React from "react";
-import { CategorizeNodeData, FlowNode, ICategory } from "../../../../models/flowTypes";
+import { CategorizeForm, CategorizeNodeData, FlowNode, ICategory } from "../../../../models/flowTypes";
 import BaseNodeForm from "../base-node-form";
 import InputReferences from "../shared/InputReferences";
 import RoleSelector from "../shared/RoleSelector";
 import CategoryCreator from "./category-creator";
 import CategoryListItem from "./category-list-item";
 import DefaultCategorySelector from "./default-category-selector";
+import { FormInstance } from "antd/lib";
 
 const { Panel } = Collapse;
 
 interface CategorizeNodeFormProps {
-  form: any;
+  form:  FormInstance<CategorizeForm>;
   selectedNode: FlowNode;
   setIsDrawerOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }

@@ -4,9 +4,9 @@ import {
 } from "@ant-design/icons";
 import { FlowNode } from "../../../models/flowTypes";
 import { useReactFlow } from "@xyflow/react";
-import { Button, Form, Input, Modal, Space } from "antd";
+import { Button, Form, Input, Modal, Space, Typography } from "antd";
 import React, { useEffect } from "react"; // Import useEffect
-
+const { Text } = Typography
 interface BaseNodeFormProps {
   form: any;
   selectedNode: FlowNode;
@@ -35,7 +35,7 @@ const BaseNodeForm: React.FC<BaseNodeFormProps> = ({
 
   const handleSave = (values: any) => {
     console.log(values, 4444444444444444);
-    
+
     // Always perform the default save behavior
     setNodes((nds) =>
       nds.map((node: any) =>
@@ -84,6 +84,7 @@ const BaseNodeForm: React.FC<BaseNodeFormProps> = ({
       onFinish={handleSave}
       className="node-form"
     >
+      <Text>Node ID: {selectedNode.id}</Text>
       <Form.Item name="name" label="Name">
         <Input placeholder="Enter name" />
       </Form.Item>

@@ -1,4 +1,4 @@
-import { NodeTypeString, NodeConfig, BeginNodeData, InterfaceNodeData, GenerateNodeData, CategorizeNodeData, RetrievalNodeData, InputOutputInfo, DecisionNodeData } from '../../models/flowTypes';
+import { NodeTypeString, NodeConfig, BeginNodeData, InterfaceNodeData, GenerateNodeData, CategorizeNodeData, RetrievalNodeData, DecisionNodeData } from '../../models/flowTypes';
 import { BranchesOutlined, DatabaseOutlined, PlayCircleOutlined, QuestionOutlined, RobotOutlined, SendOutlined } from '@ant-design/icons';
 
 // Central registry of all node types
@@ -195,7 +195,7 @@ export function getQueryInputSources(): Array<{ id: string; name: string; descri
 
 
 // Get input/output info for a node type
-export function getNodeInputInfo(nodeType: NodeTypeString): InputOutputInfo | undefined {
+export function getNodeInputInfo(nodeType: NodeTypeString) {
   return NODE_REGISTRY[nodeType]?.input ?? undefined;
 }
 

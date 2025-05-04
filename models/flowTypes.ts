@@ -22,7 +22,7 @@ export interface InputReference {
 
 
 // Generic Base Node Data with form type parameter
-export type BaseNodeData<TForm = any> = {
+export type BaseNodeData<TForm = unknown> = {
   label: string;
   id: string;
   position: { x: number; y: number };
@@ -164,10 +164,6 @@ export interface NodeFormField {
   rows?: number;
 }
 
-// Input/Output information for node configuration
-export interface InputOutputInfo {
-
-}
 
 // Node configuration
 export interface NodeConfig {

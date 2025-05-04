@@ -1,10 +1,12 @@
 import { usePredecessorNodes } from '../hooks/usePredecessorNodes';
-import { BeginForm, DecisionBranch, DecisionNodeData, FlowNode } from '../../../models/flowTypes';
+import { DecisionBranch, DecisionForm, DecisionNodeData, FlowNode, NodeData } from '../../../models/flowTypes';
 import { DeleteOutlined, LinkOutlined, PlusOutlined, QuestionCircleOutlined } from '@ant-design/icons';
 import { MarkerType, useReactFlow } from '@xyflow/react'; // Import Edge type
 import { Button, Card, Collapse, Form, Input, Radio, Select, Space, Tooltip, Typography } from 'antd';
 import React from 'react';
 import BaseNodeForm from './base-node-form';
+import { FormInstance } from 'antd/lib';
+import RoleSelector from './shared/RoleSelector';
 
 const { Text } = Typography;
 const { Panel } = Collapse;
@@ -20,7 +22,7 @@ const OPERATORS = [
 ];
 
 interface DecisionNodeFormProps {
-  form: any;
+  form: FormInstance<DecisionForm>;
   selectedNode: FlowNode;
   setIsDrawerOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
@@ -37,18 +39,17 @@ const DecisionNodeForm: React.FC<DecisionNodeFormProps> = ({ form, selectedNode,
   // Get all available variables from predecessor nodes
   const getAvailableVariables = () => {
     const variables: { label: string; value: string; category: string }[] = [];
+    console.log('predecessorNodes', predecessorNodes);
 
     // Add variables from begin nodes
     predecessorNodes
-      .filter((node) => node.type === 'begin')
+
       .forEach((node) => {
-        const nodeVars = (node.data?.form as BeginForm)?.variables || [];
-        nodeVars.forEach((v: any) => {
-          variables.push({
-            label: v.name,
-            value: v.name,
-            category: `${node.data?.form?.name || node.id} (Variables)`,
-          });
+
+        variables.push({
+          label: node.data.form.name,
+          value: node.id,
+          category: `${node.data?.form?.name || node.id} (Variables)`,
         });
       });
 
@@ -56,6 +57,8 @@ const DecisionNodeForm: React.FC<DecisionNodeFormProps> = ({ form, selectedNode,
   };
 
   const availableVariables = getAvailableVariables();
+  console.log(availableVariables, 'availableVariables');
+
 
   // Renamed from handleSave: This function now only syncs edges
   const syncEdgesWithBranches = (values: DecisionNodeData['form']) => {
@@ -148,6 +151,8 @@ const DecisionNodeForm: React.FC<DecisionNodeFormProps> = ({ form, selectedNode,
 
   return (
     <BaseNodeForm form={form} selectedNode={selectedNode} setIsDrawerOpen={setIsDrawerOpen} onSaveSuccess={syncEdgesWithBranches}>
+      <RoleSelector />
+
       <Collapse defaultActiveKey={['branches', 'defaultTarget']} bordered={false} expandIconPosition="end" className="form-collapse">
         <Panel
           header={
@@ -165,7 +170,7 @@ const DecisionNodeForm: React.FC<DecisionNodeFormProps> = ({ form, selectedNode,
               style={{ width: '100%' }}
               options={flowNodes.map((node) => ({
                 value: node.id,
-                label: (node.data?.form as any)?.name || node.id,
+                label: (node.data?.form as NodeData)?.name || node.id,
               }))}
               optionFilterProp="label"
               showSearch
@@ -176,7 +181,7 @@ const DecisionNodeForm: React.FC<DecisionNodeFormProps> = ({ form, selectedNode,
           <Form.List name="branches" initialValue={branches}>
             {(branchFields, { add: addBranch, remove: removeBranch }) => (
               <Space direction="vertical" style={{ width: '100%' }}>
-                {branchFields.map((branchField, ) => (
+                {branchFields.map((branchField,) => (
                   <Card
                     key={branchField.key}
                     title={
@@ -256,7 +261,7 @@ const DecisionNodeForm: React.FC<DecisionNodeFormProps> = ({ form, selectedNode,
                         style={{ width: '100%' }}
                         options={flowNodes.map((node) => ({
                           value: node.id,
-                          label: (node.data?.form as any)?.name || node.id,
+                          label: (node.data?.form as NodeData)?.name || node.id,
                         }))}
                         optionFilterProp="label"
                         showSearch

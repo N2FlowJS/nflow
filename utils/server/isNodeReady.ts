@@ -1,8 +1,6 @@
-import { getInputs } from '../../hooks/useInputReferences';
 import { FlowState } from '../../models/flowExecutionTypes';
 
-export function isNodeReady(nodeid: string, flowState: FlowState): boolean {
-  const inputs = getInputs(nodeid, flowState, []);
+export function isNodeReady(inputs: string[], flowState: FlowState): boolean {
   if (inputs.length === 0) return true;
   return inputs.every((input: string) => {
     const component = flowState.components[input];

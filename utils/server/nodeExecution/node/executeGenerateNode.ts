@@ -13,7 +13,9 @@ import OpenAI from 'openai';
 export async function executeGenerateNode(node: FlowNode, { flow, flowState }: FlowExecutionContext, callback?: (result: ExecutionResult) => void): Promise<ExecutionResult> {
   const data = node.data as GenerateNodeData;
   const form = data.form || {};
-  const ready = isNodeReady(node.id, flowState);
+  const inputs: string[] = getInputFromTemplate(form.prompt);
+
+  const ready = isNodeReady(inputs, flowState);
   if (!ready) {
     return {
       nextNodes: [],
@@ -36,15 +38,12 @@ export async function executeGenerateNode(node: FlowNode, { flow, flowState }: F
   }
 
 
-  const inputs: string[] = getInputFromTemplate(form.prompt);
 
   const vars: Record<string, string> = {};
   inputs.forEach((key) => {
-
     if (flowState.components[key] !== undefined) {
       vars[key] = flowState.components[key].output || "";
     }
-
   });
 
   try {
@@ -195,7 +194,7 @@ async function callOpenAIAPI(
       const content = part.choices?.[0]?.delta?.content || '';
       if (content) {
         result += content;
-        callback && callback(result);
+        if (callback) callback(result);
       }
     }
 
@@ -243,7 +242,7 @@ async function callCustomAPI(
       const content = part.choices?.[0]?.delta?.content || '';
       if (content) {
         result += content;
-        callback && callback(result);
+        if (callback) callback(result);
       }
     }
 

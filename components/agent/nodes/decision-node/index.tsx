@@ -28,6 +28,8 @@ const DecisionNode = ({
         output: [],
       }}
       icon={<QuestionOutlined style={{ color: "#faad14" }} />}
+      role={form?.role}
+
     >
       <div>
         {hasBranches && (

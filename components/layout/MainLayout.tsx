@@ -39,9 +39,6 @@ export default function MainLayout({ children }: MainLayoutProps) {
   const { stars, loading } = useGitHubStats();
 
   const handleMenuClick = async (e: any) => {
-   console.log(router,2222222222222);
-   
-    if (!router) return;
     if (e.key === "knowledge") {
       router.push("/knowledge");
     } else if (e.key === "agent") {
@@ -83,7 +80,8 @@ export default function MainLayout({ children }: MainLayoutProps) {
     {
       key: "knowledge",
       icon: <DatabaseOutlined />,
-      label: messages.mainLayout.knowledge,
+      label: messages.mainLayout.knowledge
+
     },
     {
       key: "files",

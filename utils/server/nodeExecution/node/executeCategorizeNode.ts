@@ -11,7 +11,7 @@ export async function executeCategorizeNode(node: FlowNode, { flowState }: FlowE
   const data = node.data as CategorizeNodeData;
   const form = data.form || {};
 
-  const ready = isNodeReady(node.id, flowState);
+  const ready = isNodeReady(getInputs(node.id, flowState, []), flowState);
   if (!ready) {
     return {
       nextNodes: [],

@@ -76,12 +76,14 @@ export async function apiRequest<T>(
       responseData = true;
     }
 
-    // Log the API response
+    // Log the API responses
     const endTime = performance.now();
     const duration = Math.round(endTime - startTime);
 
     logApiResponse(method, url, response.status, responseData, duration);
-
+    if (response.status === 401) {
+      window.location.href = "/"
+    }
     // Process the response
     return handleApiResponse<T>(response);
   } catch (error: unknown) {

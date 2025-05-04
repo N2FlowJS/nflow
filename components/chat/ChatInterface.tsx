@@ -1,6 +1,6 @@
 import { ReloadOutlined, RobotOutlined, SendOutlined, SmileOutlined, StopOutlined } from '@ant-design/icons';
 import { Alert, Avatar, Button, Card, Divider, Empty, Input, Layout, Space, Spin, theme, Tooltip, Typography, Grid } from 'antd';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { OpenAIExecutionResult } from '../../models/flow';
@@ -559,19 +559,15 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agentId, model, temperatu
                 {messages.length === 0 && !streamingMessage ? (
                     <Empty image={<RobotOutlined style={{ fontSize: 64, color: token.colorPrimary }} />} description="Start a conversation with this agent" />
                 ) : (
-                    <AnimatePresence>
+                    <>
                         {messages.map((message) => (
-                            <motion.div key={message.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
-                                <ChatMessage message={message} />
-                            </motion.div>
+                            <ChatMessage key={message.id} message={message} />
                         ))}
 
                         {streamingMessage && (
-                            <motion.div key={streamingMessage.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-                                <ChatMessage message={streamingMessage} />
-                            </motion.div>
+                            <ChatMessage message={streamingMessage} />
                         )}
-                    </AnimatePresence>
+                    </>
                 )}
 
                 {loading && !streamingMessage && (

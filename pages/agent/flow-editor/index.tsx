@@ -79,7 +79,7 @@ export default function FlowEditorPage() {
               <Drawer
                 title="Test Chat"
                 placement="right"
-                width={450}
+                width={window.innerWidth > 768 ? '45%' : "80%"}
                 open={isChatOpen}
                 onClose={() => setIsChatOpen(false)}
                 styles={{

@@ -9,7 +9,8 @@ export async function continueExecution(flow: Flow, result: ExecutionResult, cal
     throw new Error(`No next nodes to continue execution for node ID: ${result.nodeInfo.id}`);
 
   for (const nodeId of result.nextNodes) {
-    let nextResult = await processNode(flow, nodeId, result, callback);
+    const nextResult = await processNode(flow, nodeId, result, callback);
+    
     if (
       nextResult.status !== EXECUTION_STATUS.COMPLETED &&
       nextResult.nextNodes.length > 0

@@ -1,5 +1,5 @@
 import { FileTextOutlined } from "@ant-design/icons";
-import { FlowNode, } from "../../../models/flowTypes"; // Import Edge type
+import { FlowNode, GenerateForm, } from "../../../models/flowTypes"; // Import Edge type
 import { fetchAllLLMProviders } from "../../../services/llmService";
 import { Collapse, Form, Select, Space, Spin, Typography } from "antd";
 import React, { useEffect, useMemo, useState } from "react"; // Import useMemo
@@ -7,6 +7,7 @@ import { Mention, MentionsInput, SuggestionDataItem } from 'react-mentions';
 import { usePredecessorNodes } from "../hooks/usePredecessorNodes";
 import BaseNodeForm from "./base-node-form";
 import RoleSelector from "./shared/RoleSelector";
+import { FormInstance } from "antd/lib";
 
 const { Text } = Typography;
 const { Panel } = Collapse;
@@ -67,7 +68,7 @@ const mentionItemStyle = {
 };
 
 interface GenerateNodeFormProps {
-  form: any;
+  form: FormInstance<GenerateForm>;
   selectedNode: FlowNode;
   setIsDrawerOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
@@ -77,7 +78,7 @@ const GenerateNodeForm: React.FC<GenerateNodeFormProps> = (props) => {
 
   const [loading, setLoading] = useState(false);
   const [models, setModels] = useState<{ id: string, name: string, displayName: string, providerId: string }[]>([]);
-  const [providers, setProviders] = useState<{ id: string, name: string, models: any[] }[]>([]);
+  const [providers, setProviders] = useState<{ id: string, name: string, models: unknown[] }[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   // Use our new hook to get variables
@@ -203,7 +204,7 @@ const GenerateNodeForm: React.FC<GenerateNodeFormProps> = (props) => {
               a11ySuggestionsListLabel={"Suggested variables"}
               allowSpaceInQuery={true} // Allows searching for multi-word variables if needed
               // Control the component value
-              onChange={(event: any, value: string) => {
+              onChange={(event: unknown, value: string) => {
                 console.log(event);
 
                 props.form.setFieldsValue({ prompt: value })

@@ -1,10 +1,11 @@
-import { isBeginNodeData, isInterfaceNodeData, isGenerateNodeData, isCategorizeNodeData, isRetrievalNodeData } from '../../../../utils/client';
+import { isBeginNodeData, isInterfaceNodeData, isGenerateNodeData, isCategorizeNodeData, isDecisionNodeData, isRetrievalNodeData } from '../../../../utils/client';
 import { FlowExecutionContext, ExecutionResult } from '../../../../models/flowExecutionTypes';
 import { executeBeginNode } from './executeBeginNode';
 import { executeInterfaceNode } from './executeInterfaceNode';
 import { executeGenerateNode } from './executeGenerateNode';
 import { executeCategorizeNode } from './executeCategorizeNode';
 import { executeRetrievalNode } from './executeRetrievalNode';
+import { executeDecisionNode } from './executeDecisionNode';
 
 export async function executeNode(node: any, context: FlowExecutionContext, callback?: (result: ExecutionResult) => void): Promise<ExecutionResult> {
   if (isBeginNodeData(node.data)) {
@@ -17,7 +18,8 @@ export async function executeNode(node: any, context: FlowExecutionContext, call
     return await executeCategorizeNode(node, context);
   } else if (isRetrievalNodeData(node.data)) {
     return await executeRetrievalNode(node, context);
+  } else if (isDecisionNodeData(node.data)) {
+    return await executeDecisionNode(node, context);
   }
-
   throw new Error(`Unsupported node type: ${node.type}`);
 }

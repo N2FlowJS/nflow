@@ -29,7 +29,7 @@ const DecisionBranches: React.FC<DecisionBranchesProps> = ({ branches }) => {
 
   const formatCondition = (condition: DecisionCondition) => {
     const operatorSymbol = OPERATOR_SYMBOLS[condition.operator] || condition.operator;
-    return `${condition.input} ${operatorSymbol} ${condition.value}`;
+    return `${getNodeName(condition.input)} ${operatorSymbol} ${condition.value}`;
   };
   const nodeConfig =NODE_REGISTRY['decision'];
 

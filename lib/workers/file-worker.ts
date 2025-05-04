@@ -73,7 +73,7 @@ type ProcessContentIntoVectorsProps = {
  * Helper function to send event data to the API endpoint
  */
 async function postEventToApi(knowledgeId: string, eventData: any) {
-  const apiUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000'}/api/events/sendParsingEvent`;
+  const apiUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:1407'}/api/events/sendParsingEvent`;
   try {
     const response = await fetch(apiUrl, {
       method: 'POST',
