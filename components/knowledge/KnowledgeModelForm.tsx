@@ -4,13 +4,8 @@ import { fetchAllLLMProviders } from '../../services/llmService';
 
 const { Text } = Typography;
 
-interface KnowledgeModelFormProps {
-  form: any;
-}
 
-const KnowledgeModelForm: React.FC<KnowledgeModelFormProps> = ({
-  form,
-}) => {
+const KnowledgeModelForm: React.FC = () => {
 
   const [loadingLLM, setLoadingLLM] = useState(false);
   const [models, setModels] = useState<{ id: string, name: string, providerId: string }[]>([]);

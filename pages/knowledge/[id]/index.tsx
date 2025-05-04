@@ -541,7 +541,7 @@ export default function KnowledgeDetail() {
                     style={{ marginBottom: isMobile ? 12 : 24 }}
                     size={isMobile ? "small" : "default"}
                   >
-                    <KnowledgeModelForm form={form} />
+                    <KnowledgeModelForm  />
                   </Card>
                   <Card
                     title={
