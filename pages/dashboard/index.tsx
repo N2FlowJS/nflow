@@ -19,10 +19,10 @@ import {
 } from "antd";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import MainLayout from "../components/layout/MainLayout";
-import { useAuth } from "../context/AuthContext";
-import { getSystemStats, getWorkerStatus } from "../services/adminService";
-import { useLocale } from "../locale";
+import MainLayout from "../../components/layout/MainLayout";
+import { useAuth } from "../../context/AuthContext";
+import { getSystemStats, getWorkerStatus } from "../../services/adminService";
+import { useLocale } from "../../locale";
 
 const { Title, Text } = Typography;
 const { TabPane } = Tabs;

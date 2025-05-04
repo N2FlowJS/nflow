@@ -126,8 +126,8 @@ const FlowEditor: React.FC<FlowEditorProps> = ({
             setNodes((nds: FlowNode[]) =>
               nds.map((n) => {
                 if (n.id === params.source) {
-                  const form :DecisionForm = { ...n.data.form } as DecisionForm;
-                  
+                  const form: DecisionForm = { ...n.data.form } as DecisionForm;
+
                   if (params.sourceHandle === "out-default") {
                     form.defaultTarget = params.target;
                   } else {
@@ -291,7 +291,7 @@ const FlowEditor: React.FC<FlowEditorProps> = ({
   }, [onEdgeDelete, setEdges]);
 
   return (
-    <div style={{ height: "80vh", width: "100%", position: "relative" }}>
+    <div style={{ height: "calc(100vh- 400px)", width: "100%", position: "relative" }}>
 
 
       <Drawer
@@ -357,7 +357,7 @@ const FlowEditor: React.FC<FlowEditorProps> = ({
             <ToolOutlined />
           </ControlButton>
         </Controls>
-        <Background  />
+        <Background />
 
       </ReactFlow>
 

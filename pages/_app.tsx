@@ -5,10 +5,7 @@ import { AppProps } from "next/app";
 import dynamic from "next/dynamic";
 import { AuthProvider } from "../context/AuthContext";
 import { LocaleProvider, useLocale } from "../locale";
-import "../styles/globals.css";
 import { ThemeProvider } from "../theme";
-import { Suspense } from "react";
-import Loading from "../components/Loading";
 
 if (typeof window === "undefined") {
   import("../lib/worker-init").then((module) => {
@@ -33,7 +30,10 @@ function ConfigProviderWrapper({ children }: { children: React.ReactNode }) {
 
 function IFlowApp({ Component, pageProps }: AppProps) {
   return (
-    <Suspense fallback={<Loading />}>
+    <body style={{
+      padding: 0,
+      margin: 0
+    }}>
       <AuthProvider>
         <ThemeProvider>
           <LocaleProvider>
@@ -44,7 +44,8 @@ function IFlowApp({ Component, pageProps }: AppProps) {
           </LocaleProvider>
         </ThemeProvider>
       </AuthProvider>
-    </Suspense>
+    </body>
+
   );
 }
 

@@ -1,4 +1,5 @@
 import {
+  AppstoreOutlined,
   DeleteOutlined,
   EditOutlined,
   InfoCircleOutlined,
@@ -328,12 +329,10 @@ export default function AgentDetail() {
                   }}
                 >
                   <Button
-                    icon={<EditOutlined />}
+                    icon={<AppstoreOutlined />}
                     onClick={() => router.push(`/agent/canvas/${id}`)}
                     size={isMobile ? "middle" : "large"}
-                  >
-                    {!isMobile && t('flowEditor')}
-                  </Button>
+                  />
                   {!isMobile && <Typography.Text strong>{t('chatWithAgent')}</Typography.Text>}
                   <Switch
                     checkedChildren={<ThunderboltOutlined />}

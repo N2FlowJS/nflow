@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Menu, Layout, Drawer, Button } from "antd";
+import { Menu, Layout, Drawer, Button, Flex, Card } from "antd";
 import {
   SunOutlined,
   MoonOutlined,
@@ -19,7 +19,6 @@ import { useRouter } from "next/router";
 import { useLocale } from "../../locale";
 import { useTheme } from "../../theme";
 import { useAuth } from "../../context/AuthContext";
-import styles from '../../styles/MainLayout.module.css';
 import LanguageMenu from "./LanguageMenu";
 import { useGitHubStats } from '../../hooks/useGitHubStats';
 
@@ -160,49 +159,56 @@ export default function MainLayout({ children }: MainLayoutProps) {
   const allMenuItems = [...menuItems, ...rightMenuItems];
 
   return (
-    <Layout className={styles.layoutContainer}>
-      {/* Desktop Menu */}
-      <Header className={`${styles.header} ${theme === "dark" ? styles.headerDark : styles.headerLight}`}>
-        {/* Logo and Left Menu Items */}
-        <div className={styles.logoContainer}>
+    <Layout style={{ height: '100vh' }}>
+      <Header style={{
+        padding: 0,
+        position: 'sticky',
+        top: 0,
+        zIndex: 1000,
+        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
+        display: 'flex',
+        justifyContent: 'space-between',
+        background: theme === 'dark' ? '#141414' : '#fff'
+      }}>
+        <Flex align="center">
           <div
-            className={styles.logo}
+            style={{
+              fontWeight: 'bold',
+              fontSize: '18px',
+              padding: '0 24px',
+              cursor: 'pointer'
+            }}
             onClick={() => router.push("/")}
           >
             N-Flow
           </div>
-          <div className={styles.desktopMenu}>
-            <Menu
-              mode="horizontal"
-              onClick={handleMenuClick}
-              items={menuItems}
-              selectedKeys={[router.pathname === "/" ? "home" : ""]}
-              className={styles.menuTransparent}
-            />
-          </div>
-        </div>
+          <Menu
+            mode="horizontal"
+            onClick={handleMenuClick}
+            items={menuItems}
+            selectedKeys={[router.pathname === "/" ? "home" : ""]}
+            style={{ background: 'transparent', borderBottom: 'none' }}
+          />
+        </Flex>
 
-        {/* Right Menu Items (Desktop) */}
-        <div className={styles.desktopMenu}>
+        <Flex>
           <Menu
             mode="horizontal"
             onClick={handleMenuClick}
             items={rightMenuItems}
             selectedKeys={[]}
-            className={styles.menuTransparent}
+            style={{ background: 'transparent', borderBottom: 'none' }}
           />
-        </div>
+        </Flex>
 
-        {/* Mobile Menu Button */}
         <Button
-          className={styles.mobileMenuButton}
           icon={<MenuOutlined />}
           type="text"
           onClick={() => setMobileMenuOpen(true)}
+
         />
       </Header>
 
-      {/* Mobile Menu Drawer */}
       <Drawer
         title="Menu"
         placement="right"
@@ -214,31 +220,38 @@ export default function MainLayout({ children }: MainLayoutProps) {
           mode="vertical"
           items={allMenuItems}
           onClick={handleMenuClick}
-          style={{ borderRight: "none" }}
+          style={{ borderRight: 'none' }}
         />
       </Drawer>
 
-      {/* Page Content */}
-      <Content className={`${styles.content} ${theme === "dark" ? styles.contentDark : styles.contentLight}`}>
-        {/* Main Content */}
-        <div className={`${styles.mainContent} ${theme === "dark" ? styles.mainContentDark : styles.mainContentLight}`}>
-          {children}
-        </div>
-      </Content>
+      <Card style={{
+        padding: '0 20px',
+        overflow: 'auto',
+        flex: 1,
+      }}>
 
-      {/* Footer */}
-      <Footer className={`${styles.footer} ${theme === "dark" ? styles.footerDark : styles.footerLight}`}>
-        <div className={styles.footerContent}>
+        {children}
+      </Card>
+
+      <Footer style={{
+        background: theme === 'dark' ? '#141414' : '#f0f2f5'
+      }}>
+        <Flex justify="space-between" align="center">
           <span>{messages.mainLayout.footer} © {new Date().getFullYear()} - Knowledge Management Platform</span>
           <a
             href="https://github.com/N2FlowJS/nflow"
             target="_blank"
             rel="noopener noreferrer"
-            className={styles.githubStats}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              color: 'inherit',
+            }}
           >
             <GithubOutlined /> Stars {loading ? '...' : stars || 0}
           </a>
-        </div>
+        </Flex>
       </Footer>
     </Layout>
   );

@@ -65,53 +65,49 @@ export default function FlowEditorPage() {
 
   return (
     <MainLayout title="Flow Editor">
-      <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
-        <FlowEditorHeader agent={agent} />
-        <div style={{ flex: 1, position: "relative" }}>
-          {agent ? (
-            <ReactFlowProvider>
-              <FlowEditor
-                flowConfig={agent.flowConfig || "{}"}
-                agentId={agent.id}
-                onStartConversation={() => setIsChatOpen(true)}
-              />
+      <FlowEditorHeader agent={agent} />
+      {agent ? (
+        <ReactFlowProvider>
+          <FlowEditor
+            flowConfig={agent.flowConfig}
+            agentId={agent.id}
+            onStartConversation={() => setIsChatOpen(true)}
+          />
 
-              <Drawer
-                title="Test Chat"
-                placement="right"
-                width={window.innerWidth > 768 ? '45%' : "80%"}
-                open={isChatOpen}
-                onClose={() => setIsChatOpen(false)}
-                styles={{
-                  body: {
-                    padding: 0,
-                    height: 'calc(100% - 55px)',
-                    overflow: 'hidden',
-                  },
-                }}
-              >
-                <ChatInterface
-                  agentId={agent.id}
-                  flowConfig={agent.flowConfig || "{}"}
-                  enableStreaming={true}
-                  id={currentConversationId}
-                  onConversationCreated={handleConversationCreated}
-                  onConversationUpdated={handleConversationUpdated}
-                  onNewChatStarted={handleNewChatStarted}
-                  variables={{
-                    agentName: agent.name,
-                    userDisplayName: user?.name || 'User',
-                  }}
-                />
-              </Drawer>
-            </ReactFlowProvider>
-          ) : (
-            <div style={{ textAlign: "center", padding: "100px 0" }}>
-              <p>No agent selected. Please select an agent to edit its flow.</p>
-            </div>
-          )}
+        </ReactFlowProvider>
+      ) : (
+        <div style={{ textAlign: "center", padding: "100px 0" }}>
+          <p>No agent selected. Please select an agent to edit its flow.</p>
         </div>
-      </div>
+      )}
+      <Drawer
+        title="Test Chat"
+        placement="right"
+        width={window.innerWidth > 768 ? '45%' : "80%"}
+        open={isChatOpen}
+        onClose={() => setIsChatOpen(false)}
+        styles={{
+          body: {
+            padding: 0,
+            height: 'calc(100% - 55px)',
+            overflow: 'hidden',
+          },
+        }}
+      >
+        <ChatInterface
+          agentId={agent.id}
+          flowConfig={agent.flowConfig || "{}"}
+          enableStreaming={true}
+          id={currentConversationId}
+          onConversationCreated={handleConversationCreated}
+          onConversationUpdated={handleConversationUpdated}
+          onNewChatStarted={handleNewChatStarted}
+          variables={{
+            agentName: agent.name,
+            userDisplayName: user?.name || 'User',
+          }}
+        />
+      </Drawer>
     </MainLayout>
   );
 }
