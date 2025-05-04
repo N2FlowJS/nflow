@@ -77,8 +77,8 @@ const GenerateNodeForm: React.FC<GenerateNodeFormProps> = (props) => {
   const { selectedNode } = props;
 
   const [loading, setLoading] = useState(false);
-  const [models, setModels] = useState<{ id: string, name: string, displayName: string, providerId: string }[]>([]);
-  const [providers, setProviders] = useState<{ id: string, name: string, models: unknown[] }[]>([]);
+  const [models, setModels] = useState<{ id: string, name: string, providerId: string }[]>([]);
+  const [providers, setProviders] = useState<{ id: string, providerType: string, models: unknown[] }[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   // Use our new hook to get variables
@@ -89,38 +89,39 @@ const GenerateNodeForm: React.FC<GenerateNodeFormProps> = (props) => {
     id: string;
     display: string;
   }[] = useMemo(() => [...predecessorVariables], [predecessorVariables]);
-  console.log(allVariables);
 
+
+  const loadModels = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      // Fetch providers with their models
+      const providersData = await fetchAllLLMProviders();
+
+      setProviders(providersData);
+
+      // Collect all chat models from all providers
+      const allModels = providersData.flatMap(provider =>
+        (provider.models || [])
+          .filter(model => model.modelType === 'chat')
+          .map(model => ({
+            id: model.id,
+            name: model.name,
+            providerId: provider.id,
+            providerName: provider.providerType
+          }))
+      );
+
+      setModels(allModels);
+    } catch (err) {
+      console.error("Failed to load models:", err);
+      setError("Failed to load available models. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
   useEffect(() => {
-    const loadModels = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        // Fetch providers with their models
-        const providersData = await fetchAllLLMProviders();
-        setProviders(providersData);
 
-        // Collect all chat models from all providers
-        const allModels = providersData.flatMap(provider =>
-          (provider.models || [])
-            .filter(model => model.modelType === 'chat' && model.isActive)
-            .map(model => ({
-              id: model.id,
-              name: model.name,
-              displayName: model.displayName || model.name,
-              providerId: provider.id,
-              providerName: provider.name
-            }))
-        );
-
-        setModels(allModels);
-      } catch (err) {
-        console.error("Failed to load models:", err);
-        setError("Failed to load available models. Please try again.");
-      } finally {
-        setLoading(false);
-      }
-    };
 
     loadModels();
   }, []);
@@ -158,10 +159,10 @@ const GenerateNodeForm: React.FC<GenerateNodeFormProps> = (props) => {
             loading={loading}
           >
             {groupedModels.map(group => (
-              <Select.OptGroup key={group.provider.id} label={group.provider.name}>
+              <Select.OptGroup key={group.provider.id} label={group.provider.providerType}>
                 {group.models.map(model => (
                   <Select.Option key={model.id} value={model.id}>
-                    {model.displayName}
+                    {model.name}
                   </Select.Option>
                 ))}
               </Select.OptGroup>

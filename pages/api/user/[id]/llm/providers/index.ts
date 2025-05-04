@@ -31,15 +31,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       const teamIds = userTeams.map((t: any) => t.teamId);
       console.log(teamIds);
-      
+
 
       // Build the query to get all providers the user has access to
       const providers = await prisma.lLMProvider.findMany({
         where: {
           OR: [
-            // System providers
-            { ownerType: 'system' },
-            // User's own providers
+
             {
               ownerType: 'user',
               userOwnerId: payload.userId
@@ -73,7 +71,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
 
       // Mask API keys for security
-      const sanitizedProviders = providers.map((provider: any )=> ({
+      const sanitizedProviders = providers.map((provider: any) => ({
         ...provider,
         apiKey: provider.apiKey ? '********' : null,
       }));
@@ -86,33 +84,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   } else if (req.method === 'POST') {
     try {
       const {
-        name,
         description,
         providerType,
         endpointUrl,
-        isActive = true,
-        isDefault = false,
         apiKey,
-        config,
         ownerType = 'user',
         teamOwnerId
       } = req.body;
 
       // Validate required fields
-      if (!name || !providerType || !endpointUrl) {
+      if (!providerType || !endpointUrl) {
         return res.status(400).json({ error: "Missing required fields" });
       }
 
       // Determine the owner type and verify permissions
       const createData: any = {
-        name,
         description,
         providerType,
         endpointUrl,
-        isActive,
-        isDefault,
+
         apiKey,
-        config: config || {},
         ownerType
       };
 
@@ -140,7 +131,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             userId: payload.userId,
             teamId: teamOwnerId,
             leftAt: null,
-            // Only owners and admins can add providers
             permission: { in: ['owner', 'admin'] }
           }
         });
@@ -152,13 +142,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         createData.teamOwnerId = teamOwnerId;
       }
 
-      // If setting as default, unset any existing defaults
-      if (isDefault) {
-        await prisma.lLMProvider.updateMany({
-          where: { isDefault: true },
-          data: { isDefault: false }
-        });
-      }
+
 
       // Create new provider
       const newProvider = await prisma.lLMProvider.create({

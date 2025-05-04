@@ -20,7 +20,7 @@ import {
 } from 'antd';
 import React, { useState } from 'react';
 import { LLMModel, LLMProvider } from '../../models/llm';
-import { deleteLLMModel, setDefaultLLMModel, updateLLMModel } from '../../services/llmService';
+import { deleteLLMModel, updateLLMModel } from '../../services/llmService';
 import LLMModelForm from './LLMModelForm';
 
 const { Title } = Typography;
@@ -62,19 +62,6 @@ const LLMModelsTable: React.FC<LLMModelsTableProps> = ({
     }
   };
 
-  const handleSetDefault = async (id: string) => {
-    try {
-      setActionLoading(true);
-      await setDefaultLLMModel(id);
-      message.success('Default model updated');
-      onRefresh();
-    } catch (error: unknown) {
-      console.error('Set default model error:', error);
-      message.error('Failed to update default model');
-    } finally {
-      setActionLoading(false);
-    }
-  };
 
   const handleEditSubmit = async (values: any) => {
     if (!editingModel?.id) return;
@@ -126,13 +113,9 @@ const LLMModelsTable: React.FC<LLMModelsTableProps> = ({
       render: (record: LLMModel) => (
         <Space direction="vertical" size={0}>
           <Space>
-            {record.isDefault && (
-              <Tooltip title="Default Model for this type">
-                <StarFilled style={{ color: '#faad14' }} />
-              </Tooltip>
-            )}
+           
             <Typography.Text strong>
-              {record.displayName || record.name}
+              {record.name}
             </Typography.Text>
           </Space>
           <Typography.Text type="secondary" style={{ fontSize: '12px' }}>
@@ -153,15 +136,7 @@ const LLMModelsTable: React.FC<LLMModelsTableProps> = ({
       key: 'contextWindow',
       render: (value: number) => value ? `${value.toLocaleString()} tokens` : '-',
     },
-    {
-      title: 'Status',
-      key: 'status',
-      render: (record: LLMModel) => (
-        <Tag color={record.isActive ? 'success' : 'error'} icon={record.isActive ? <CheckCircleOutlined /> : <StopOutlined />}>
-          {record.isActive ? 'Active' : 'Inactive'}
-        </Tag>
-      ),
-    },
+   
     {
       title: 'Actions',
       key: 'actions',
@@ -175,17 +150,7 @@ const LLMModelsTable: React.FC<LLMModelsTableProps> = ({
             />
           </Tooltip>
 
-          {!record.isDefault && (
-            <Tooltip title="Set as Default for this type">
-              <Button
-                type="text"
-                icon={<StarOutlined />}
-                onClick={() => handleSetDefault(record.id)}
-                disabled={actionLoading}
-              />
-            </Tooltip>
-          )}
-
+       
           <Popconfirm
             title="Delete this model?"
             description="This action cannot be undone."

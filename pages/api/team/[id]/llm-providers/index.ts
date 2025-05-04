@@ -51,18 +51,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           OR: [
             // Team-specific providers
             { teamOwnerId: teamId },
-            // System providers available to all
-            { ownerType: 'system' }
+      
           ]
         },
         include: {
           models: {
             select: {
               id: true,
-              displayName: true,
               modelType: true,
-              isActive: true,
-              isDefault: true
             }
           },
           userOwner: {
@@ -111,8 +107,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         providerType,
         endpointUrl,
         isActive = true,
-        apiKey,description,
-        config
+        apiKey,
       } = req.body;
       
       // Validate required fields
@@ -126,10 +121,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           providerType,
           endpointUrl,
           isActive,
-          name,
-          description,
           apiKey,
-          config: config || {},
           ownerType: 'team',
           teamOwnerId: teamId
         }

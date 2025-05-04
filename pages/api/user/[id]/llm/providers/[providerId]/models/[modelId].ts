@@ -69,41 +69,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     try {
       const {
         name,
-        displayName,
         description,
         modelType,
         contextWindow,
-        isActive,
-        isDefault,
+
         config
       } = req.body;
 
-      // If setting as default or changing model type + is already default
-      if (isDefault || (modelType && modelType !== model.modelType && model.isDefault)) {
-        // The type to use for resetting defaults
-        const typeToReset = modelType || model.modelType;
-        
-        // Unset any existing defaults of the same type
-        await prisma.lLMModel.updateMany({
-          where: { 
-            providerId,
-            modelType: typeToReset, 
-            isDefault: true,
-            id: { not: modelId }
-          },
-          data: { isDefault: false }
-        });
-      }
+
 
       // Create update data object
       const updateData: any = {
         name,
-        displayName,
         description,
         modelType,
         contextWindow,
-        isActive,
-        isDefault,
         config
       };
 

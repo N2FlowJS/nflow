@@ -29,8 +29,6 @@ import { parseAuthHeader, verifyToken } from '../../../../lib/auth';
  * - `description` (string, optional): A description of the provider.
  * - `providerType` (string, required): Type of provider (e.g., "openai", "azure", "custom").
  * - `endpointUrl` (string, required): The API endpoint URL.
- * - `isActive` (boolean, optional): Whether the provider is active, defaults to true.
- * - `isDefault` (boolean, optional): Whether the provider is the default, defaults to false.
  * - `apiKey` (string, optional): API key for the provider.
  * - `config` (object, optional): Additional configuration options.
  *
@@ -73,14 +71,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const providers = await prisma.lLMProvider.findMany({
         where: {
           OR: [
-            // System providers
-            { ownerType: 'system' },
-            // User's own providers
+          
             { 
               ownerType: 'user',
               userOwnerId: payload.userId 
             },
-            // Team providers from teams the user belongs to
             { 
               ownerType: 'team',
               teamOwnerId: { in: teamIds }
@@ -130,8 +125,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         description,
         providerType,
         endpointUrl,
-        isActive = true,
-        isDefault = false,
         apiKey,
         config,
         ownerType = 'user',
@@ -149,8 +142,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         description,
         providerType,
         endpointUrl,
-        isActive,
-        isDefault,
         apiKey,
         config: config || {},
         ownerType
@@ -192,13 +183,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         createData.teamOwnerId = teamOwnerId;
       }
 
-      // If setting as default, unset any existing defaults
-      if (isDefault) {
-        await prisma.lLMProvider.updateMany({
-          where: { isDefault: true },
-          data: { isDefault: false }
-        });
-      }
+     
 
       // Create new provider
       const newProvider = await prisma.lLMProvider.create({

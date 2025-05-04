@@ -181,13 +181,9 @@ const TeamLLMProviderDetail: React.FC<TeamLLMProviderDetailProps> = ({
       render: (record: LLMModel) => (
         <Space direction="vertical" size={0}>
           <Space>
-            {record.isDefault && (
-              <Tooltip title="Default Model for this type">
-                <StarFilled style={{ color: '#faad14' }} />
-              </Tooltip>
-            )}
+          
             <Typography.Text strong>
-              {record.displayName || record.name}
+              {record.name}
             </Typography.Text>
           </Space>
           <Typography.Text type="secondary" style={{ fontSize: '12px' }}>
@@ -209,15 +205,6 @@ const TeamLLMProviderDetail: React.FC<TeamLLMProviderDetailProps> = ({
       render: (value: number) => value ? `${value.toLocaleString()} tokens` : '-',
     },
     {
-      title: 'Status',
-      key: 'status',
-      render: (record: LLMModel) => (
-        <Tag color={record.isActive ? 'success' : 'error'} icon={record.isActive ? <CheckCircleOutlined /> : <StopOutlined />}>
-          {record.isActive ? 'Active' : 'Inactive'}
-        </Tag>
-      ),
-    },
-    {
       title: 'Actions',
       key: 'actions',
       render: (record: LLMModel) => (
@@ -234,16 +221,6 @@ const TeamLLMProviderDetail: React.FC<TeamLLMProviderDetailProps> = ({
               />
             </Tooltip>
 
-            {!record.isDefault && (
-              <Tooltip title="Set as Default for this type">
-                <Button
-                  type="text"
-                  icon={<StarOutlined />}
-                  onClick={() => handleSetDefault(record)}
-                  disabled={actionLoading}
-                />
-              </Tooltip>
-            )}
 
             <Popconfirm
               title="Delete this model?"
@@ -263,22 +240,7 @@ const TeamLLMProviderDetail: React.FC<TeamLLMProviderDetailProps> = ({
     },
   ];
 
-  const handleSetDefault = async (model: LLMModel) => {
-    setActionLoading(true);
-    try {
-      await updateTeamProviderModel(teamId, provider.id, model.id, {
-        isDefault: true
-      });
-      message.success('Default model updated');
-      fetchModels();
-    } catch (error: unknown) {
-      console.error('Error setting default model:', error);
-      message.error('Failed to update default model');
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
+ 
   return (
     <div>
       <Card>
@@ -306,13 +268,7 @@ const TeamLLMProviderDetail: React.FC<TeamLLMProviderDetailProps> = ({
           <Descriptions.Item label="Name">{provider.name}</Descriptions.Item>
           <Descriptions.Item label="Type">{provider.providerType}</Descriptions.Item>
           <Descriptions.Item label="Endpoint URL">{provider.endpointUrl}</Descriptions.Item>
-          <Descriptions.Item label="Status">
-            {provider.isActive ? (
-              <Tag icon={<CheckCircleOutlined />} color="success">Active</Tag>
-            ) : (
-              <Tag icon={<StopOutlined />} color="error">Inactive</Tag>
-            )}
-          </Descriptions.Item>
+     
           <Descriptions.Item label="Description" span={2}>{provider.description || 'No description'}</Descriptions.Item>
         </Descriptions>
 

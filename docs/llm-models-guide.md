@@ -43,20 +43,6 @@ OPENAI_API_KEY=your-openai-key
 OPENAI_BASE_URL=https://api.openai.com/v1/
 ```
 
-**Azure OpenAI:**
-```env
-LLM_PROVIDER=azure
-LLM_MODEL=gpt-35-turbo
-AZURE_OPENAI_ENDPOINT=https://your-endpoint.openai.azure.com/
-AZURE_OPENAI_KEY=your-azure-key
-```
-
-**Self-hosted:**
-```env
-LLM_PROVIDER=custom
-LLM_MODEL=llama-2-7b
-LLM_BASE_URL=http://localhost:8000/v1/
-```
 
 ---
 
@@ -66,10 +52,6 @@ LLM_BASE_URL=http://localhost:8000/v1/
 |---------------|-------------------|:-------------:|----------------------------------|
 | OpenAI        | gpt-3.5-turbo     | 16k           | General chat, Q&A, workflows     |
 | OpenAI        | gpt-4             | 128k          | Advanced reasoning, long docs    |
-| Azure OpenAI  | gpt-35-turbo      | 16k           | Enterprise, compliance           |
-| Anthropic     | claude-3-opus     | 200k+         | Long context, safety-focused     |
-| Google        | gemini-pro        | 32k           | Google ecosystem, summarization  |
-| Self-hosted   | llama-2, mistral  | 4k-32k        | Private, on-premise, custom      |
 
 ---
 

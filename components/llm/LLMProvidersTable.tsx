@@ -1,31 +1,27 @@
-import React, { useState } from 'react';
 import {
-  Table,
+  ApiOutlined,
+  DeleteOutlined,
+  EditOutlined,
+  ExperimentOutlined,
+  PlusOutlined
+} from '@ant-design/icons';
+import {
+  Badge,
   Button,
+  message,
+  Modal,
+  Popconfirm,
   Space,
-  Typography,
+  Table,
   Tag,
   Tooltip,
-  Popconfirm,
-  Modal,
-  Badge,
-  message
+  Typography
 } from 'antd';
-import {
-  EditOutlined,
-  DeleteOutlined,
-  PlusOutlined,
-  CheckCircleOutlined,
-  StopOutlined,
-  StarOutlined,
-  StarFilled,
-  ExperimentOutlined,
-  ApiOutlined
-} from '@ant-design/icons';
 import { useRouter } from 'next/router';
+import React, { useState } from 'react';
 import { LLMProvider } from '../../models/llm';
+import { deleteLLMProvider, updateLLMProvider } from '../../services/llmService';
 import LLMProviderForm from './LLMProviderForm';
-import { deleteLLMProvider, setDefaultLLMProvider, updateLLMProvider } from '../../services/llmService';
 
 const { Title } = Typography;
 
@@ -64,20 +60,7 @@ const LLMProvidersTable: React.FC<LLMProvidersTableProps> = ({
     }
   };
 
-  const handleSetDefault = async (id: string) => {
-    try {
-      setActionLoading(true);
-      await setDefaultLLMProvider(id);
-      message.success('Default provider updated');
-      onRefresh();
-    } catch (error: unknown) {
-      console.error('Set default provider error:', error);
-      message.error('Failed to update default provider');
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
+ 
   const handleEditSubmit = async (values: any) => {
     if (!editingProvider?.id) return;
     
@@ -97,17 +80,11 @@ const LLMProvidersTable: React.FC<LLMProvidersTableProps> = ({
       title: 'Name',
       dataIndex: 'name',
       key: 'name',
-      render: (text: string, record: LLMProvider) => (
+      render: (name: string) => (
         <Space>
-          {record.isDefault && (
-            <Tooltip title="Default Provider">
-              <StarFilled style={{ color: '#faad14' }} />
-            </Tooltip>
-          )}
-          <span>{text}</span>
-          {!record.isActive && (
-            <Tag color="red">Disabled</Tag>
-          )}
+         
+          <span>{name}</span>
+       
         </Space>
       ),
     },
@@ -125,21 +102,6 @@ const LLMProvidersTable: React.FC<LLMProvidersTableProps> = ({
             color = 'green';
             icon = <ApiOutlined />;
             label = 'OpenAI';
-            break;
-          case 'azure':
-            color = 'blue';
-            icon = <ApiOutlined />;
-            label = 'Azure';
-            break;
-          case 'anthropic':
-            color = 'purple';
-            icon = <ApiOutlined />;
-            label = 'Anthropic';
-            break;
-          case 'local':
-            color = 'orange';
-            icon = <ExperimentOutlined />;
-            label = 'Local';
             break;
           case 'custom':
             color = 'geekblue';
@@ -162,15 +124,7 @@ const LLMProvidersTable: React.FC<LLMProvidersTableProps> = ({
         <Badge count={models?.length || 0} overflowCount={99} style={{ backgroundColor: '#1890ff' }} />
       ),
     },
-    {
-      title: 'Status',
-      key: 'status',
-      render: (record: LLMProvider) => (
-        <Tag color={record.isActive ? 'success' : 'error'} icon={record.isActive ? <CheckCircleOutlined /> : <StopOutlined />}>
-          {record.isActive ? 'Active' : 'Inactive'}
-        </Tag>
-      ),
-    },
+   
     {
       title: 'Actions',
       key: 'actions',
@@ -184,17 +138,7 @@ const LLMProvidersTable: React.FC<LLMProvidersTableProps> = ({
             />
           </Tooltip>
           
-          {!record.isDefault && (
-            <Tooltip title="Set as Default">
-              <Button
-                type="text"
-                icon={<StarOutlined />}
-                onClick={() => handleSetDefault(record.id)}
-                disabled={actionLoading}
-              />
-            </Tooltip>
-          )}
-          
+        
           <Tooltip title="View Models">
             <Button
               type="text"

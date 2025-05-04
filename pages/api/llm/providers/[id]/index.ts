@@ -36,8 +36,6 @@ import { parseAuthHeader, verifyToken } from '../../../../../lib/auth';
  * - `name` (string, optional): The updated name.
  * - `description` (string, optional): The updated description.
  * - `endpointUrl` (string, optional): The updated API endpoint URL.
- * - `isActive` (boolean, optional): Whether the provider is active.
- * - `isDefault` (boolean, optional): Whether the provider is the default.
  * - `apiKey` (string, optional): Updated API key (only if provided).
  * - `config` (object, optional): Updated configuration options.
  *
@@ -117,30 +115,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         name,
         description,
         endpointUrl,
-        isActive,
-        isDefault,
         apiKey,
         config
       } = req.body;
 
-      // If setting as default, unset any existing defaults
-      if (isDefault) {
-        await prisma.lLMProvider.updateMany({
-          where: { 
-            isDefault: true,
-            id: { not: id }
-          },
-          data: { isDefault: false }
-        });
-      }
+  
 
       // Create update data object
       const updateData: any = {
         name,
         description,
         endpointUrl,
-        isActive,
-        isDefault,
         config
       };
 

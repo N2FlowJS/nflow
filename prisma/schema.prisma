@@ -83,41 +83,18 @@ model User {
   updatedAt   DateTime @updatedAt
   permission  String   @default("guest") // "owner", "maintainer", "developer", "guest"
 
-  // Teams created by this user
   createdTeams Team[] @relation("CreatedTeams")
-
-  // Team memberships
   teamMemberships MemberTeam[]
-
-  // Keep the direct relation temporarily for backward compatibility
   teams Team[] @relation("TeamToUser")
-
-  // Knowledge created by this user
   createdKnowledge Knowledge[] @relation("CreatedKnowledge")
-
-  // Knowledge associated with this user
   knowledge Knowledge[] @relation("UserKnowledge")
-
-  // Agent ownership relation
   ownedAgents Agent[] @relation("UserOwnedAgents")
-
-  // Agents created by this user
   createdAgents Agent[] @relation("AgentCreatedBy")
-
-  // File parsing tasks created by this user
   FileParsingTask FileParsingTask[] @relation("FileParsingTaskCreatedBy")
-
-  // LLM preferences
-  defaultLLMProviderId String? // Reference to default provider for this user
-  defaultLLMProvider   LLMProvider? @relation("UserDefaultProvider", fields: [defaultLLMProviderId], references: [id], onDelete: SetNull)
-
-  // LLM model preferences per type (stored as JSON)
-  llmPreferences Json? // Stores preferred models by type
-
-  // User-owned LLM Providers
   ownedLLMProviders LLMProvider[] @relation("UserOwnedProviders")
 
-  // Conversations owned by the user
+  lmmConfig Json?
+
 }
 
 // Update the File model to include parsing status
@@ -209,27 +186,20 @@ model TextChunk {
 // LLM Provider model
 model LLMProvider {
   id           String   @id @default(uuid())
-  name         String   @default("")
-  description  String?
   providerType String // "openai", "openai-compatible"
   endpointUrl  String // API endpoint URL
   isActive     Boolean  @default(true)
-  isDefault    Boolean  @default(false)
   apiKey       String? // Encrypted API key
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  // Ownership type - "user", "team", or "system" 
-  ownerType String @default("system")
+  // Ownership type - "user" or "team"
+  ownerType String @default("user")
 
-  // Configuration options stored as JSON
-  config Json?
 
   // Models available from this provider
   models LLMModel[]
 
-  // Users who have this as their default provider
-  usersWithDefault User[] @relation("UserDefaultProvider")
 
   // User ownership relation (optional)
   userOwner   User?   @relation("UserOwnedProviders", fields: [userOwnerId], references: [id])
@@ -239,25 +209,17 @@ model LLMProvider {
   teamOwner   Team?   @relation("TeamOwnedProviders", fields: [teamOwnerId], references: [id])
   teamOwnerId String?
 
-  // Permission settings
-  permissionSettings Json? // Store access rules here as JSON
 }
 
 // LLM Model details
 model LLMModel {
   id            String   @id @default(uuid())
   name          String
-  displayName   String?
-  description   String?
-  modelType     String // "text", "chat", "embedding", "image", etc.
+  modelType     String // "chat", "embedding", "image", etc.
   contextWindow Int? // Max context window size
-  isActive      Boolean  @default(true)
-  isDefault     Boolean  @default(false)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @default(now())
 
-  // Model-specific configuration
-  config Json?
 
   // Relation to provider
   provider   LLMProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)

@@ -35,15 +35,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     where: { id },
     select: {
       id: true,
-      defaultLLMProviderId: true,
-      llmPreferences: true,
-      defaultLLMProvider: {
-        select: {
-          id: true,
-          name: true,
-          providerType: true,
-        },
-      }
+     
     }
   });
   
@@ -71,7 +63,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               ownedLLMProviders: {
                 select: {
                   id: true,
-                  name: true,
                   providerType: true,
                   isActive: true,
                   ownerType: true,
@@ -80,10 +71,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     select: {
                       id: true,
                       name: true,
-                      displayName: true,
                       modelType: true,
-                      isDefault: true,
-                      isActive: true
                     }
                   }
                 }
@@ -104,10 +92,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             select: {
               id: true,
               name: true,
-              displayName: true,
               modelType: true,
-              isDefault: true,
-              isActive: true
             }
           }
         }
@@ -124,10 +109,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             select: {
               id: true,
               name: true,
-              displayName: true,
               modelType: true,
-              isDefault: true,
-              isActive: true
             }
           },
           userOwner: {
@@ -152,9 +134,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       
       // Return user preferences along with available providers
       return res.status(200).json({
-        defaultLLMProviderId: user.defaultLLMProviderId,
-        defaultLLMProvider: user.defaultLLMProvider,
-        llmPreferences: user.llmPreferences,
         availableProviders: {
           userProviders,
           teamProviders,
@@ -202,27 +181,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const updatedUser = await prisma.user.update({
         where: { id },
         data: {
-          defaultLLMProviderId: defaultLLMProviderId === null ? null : defaultLLMProviderId,
-          llmPreferences: llmPreferences || undefined,
         },
         select: {
           id: true,
-          defaultLLMProviderId: true,
-          llmPreferences: true,
-          defaultLLMProvider: {
-            select: {
-              id: true,
-              name: true,
-              providerType: true,
-            },
-          }
+        
         }
       });
       
       return res.status(200).json({
-        defaultLLMProviderId: updatedUser.defaultLLMProviderId,
-        defaultLLMProvider: updatedUser.defaultLLMProvider,
-        llmPreferences: updatedUser.llmPreferences,
+
       });
     } catch (error: unknown) {
       console.error('Error updating user preferences:', error);
@@ -236,10 +203,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 // Helper function to verify if a user has access to a provider
 async function verifyProviderAccess(userId: string, provider: any): Promise<boolean> {
-  // System providers are available to everyone
-  if (provider.ownerType === 'system') {
-    return true;
-  }
+
   
   // User-owned providers are available to their owners
   if (provider.ownerType === 'user' && provider.userOwnerId === userId) {

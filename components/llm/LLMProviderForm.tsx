@@ -97,28 +97,11 @@ const LLMProviderForm: React.FC<LLMProviderFormProps> = ({
         form={form}
         layout="vertical"
         initialValues={initialValues || {
-          isActive: true,
-          isDefault: false,
           providerType: 'openai',
           endpointUrl: 'https://api.openai.com/v1'
         }}
         onFinish={handleFinish}
       >
-        <Form.Item
-          name="name"
-          label="Provider Name"
-          rules={[{ required: true, message: 'Please enter provider name' }]}
-        >
-          <Input placeholder="e.g., OpenAI, Azure, Local LLM" />
-        </Form.Item>
-
-        <Form.Item
-          name="description"
-          label="Description"
-        >
-          <TextArea rows={2} placeholder="Optional description of this provider" />
-        </Form.Item>
-
         <Form.Item
           name="providerType"
           label="Provider Type"
@@ -149,15 +132,7 @@ const LLMProviderForm: React.FC<LLMProviderFormProps> = ({
           <Input.Password placeholder={isEdit ? "••••••••" : "Enter API key"} />
         </Form.Item>
 
-        <Form.Item name="isActive" valuePropName="checked">
-          <Switch checkedChildren="Active" unCheckedChildren="Inactive" /> 
-          <Text style={{ marginLeft: 8 }}>Enable this provider</Text>
-        </Form.Item>
-
-        <Form.Item name="isDefault" valuePropName="checked">
-          <Switch checkedChildren="Default" unCheckedChildren="Not Default" />
-          <Text style={{ marginLeft: 8 }}>Set as default provider</Text>
-        </Form.Item>
+      
 
         {/* Hide ownership settings if in team or user context */}
         {!teamContext && !userContext && !isEdit && (

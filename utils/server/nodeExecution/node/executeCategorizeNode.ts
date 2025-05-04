@@ -69,8 +69,6 @@ export async function executeCategorizeNode(node: FlowNode, { flowState }: FlowE
       model = await prisma.lLMModel.findFirst({
         where: {
           modelType: 'chat',
-          isDefault: true,
-          isActive: true,
         },
         include: { provider: true },
       });
@@ -80,11 +78,7 @@ export async function executeCategorizeNode(node: FlowNode, { flowState }: FlowE
       throw new Error('No suitable model found for categorization');
     }
 
-    if (!model.provider) {
-      throw new Error('Provider not found for this model');
-    }
-
-    // Build the prompt for categorization
+ 
     const categoriesDescription = categories.map((c) => `- ${c.name}: ${c.description}${c.examples ? `\n  Examples: ${c.examples.join(', ')}` : ''}`).join('\n');
 
     const prompt = `

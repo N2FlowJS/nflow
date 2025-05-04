@@ -13,61 +13,30 @@ export function getBestModelForType(
   modelType: string,
   userPreferences: any,
   providers: LLMProvider[],
-  defaultProviderId?: string
 ): string | undefined {
   // 1. Check if user has a preference for this model type
   const preferredModelId = userPreferences?.models?.[modelType];
   if (preferredModelId) {
     // Verify this model still exists
     for (const provider of providers) {
-      const model = provider.models.find(m => m.id === preferredModelId && m.isActive);
+      const model = provider.models.find(m => m.id === preferredModelId);
       if (model) return model.id;
     }
   }
   
-  // 2. Try to find a default model from the user's preferred provider
-  if (defaultProviderId) {
-    const userProvider = providers.find(p => p.id === defaultProviderId && p.isActive);
-    if (userProvider) {
-      const defaultModel = userProvider.models.find(
-        m => m.modelType === modelType && m.isActive && m.isDefault
-      );
-      if (defaultModel) return defaultModel.id;
-      
-      // If no default, use any active model of the right type
-      const anyModel = userProvider.models.find(
-        m => m.modelType === modelType && m.isActive
-      );
-      if (anyModel) return anyModel.id;
-    }
-  }
-  
-  // 3. Try to find a system-default model of the right type
-  const systemDefaultProvider = providers.find(p => p.isDefault && p.isActive);
-  if (systemDefaultProvider) {
-    const defaultModel = systemDefaultProvider.models.find(
-      m => m.modelType === modelType && m.isActive && m.isDefault
-    );
-    if (defaultModel) return defaultModel.id;
-    
-    // If no default, use any active model of the right type
-    const anyModel = systemDefaultProvider.models.find(
-      m => m.modelType === modelType && m.isActive
-    );
-    if (anyModel) return anyModel.id;
-  }
+
   
   // 4. Fall back to any provider with an active model of the right type
-  for (const provider of providers.filter(p => p.isActive)) {
+  for (const provider of providers) {
     // First try default models
     const defaultModel = provider.models.find(
-      m => m.modelType === modelType && m.isActive && m.isDefault
+      m => m.modelType === modelType
     );
     if (defaultModel) return defaultModel.id;
     
     // Then any active model
     const anyModel = provider.models.find(
-      m => m.modelType === modelType && m.isActive
+      m => m.modelType === modelType
     );
     if (anyModel) return anyModel.id;
   }

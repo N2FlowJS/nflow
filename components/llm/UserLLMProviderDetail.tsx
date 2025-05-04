@@ -67,7 +67,7 @@ const UserLLMProviderDetail: React.FC<UserLLMProviderDetailProps> = ({
     }, [provider?.id, userId]);
 
     useEffect(() => {
-      fetchModels();
+        fetchModels();
 
     }, [fetchModels]);
 
@@ -154,13 +154,9 @@ const UserLLMProviderDetail: React.FC<UserLLMProviderDetailProps> = ({
             render: (record: LLMModel) => (
                 <Space direction="vertical" size={0}>
                     <Space>
-                        {record.isDefault && (
-                            <Tooltip title="Default Model for this type">
-                                <StarFilled style={{ color: '#faad14' }} />
-                            </Tooltip>
-                        )}
+                  
                         <Typography.Text strong>
-                            {record.displayName || record.name}
+                            {record.name}
                         </Typography.Text>
                     </Space>
                     <Typography.Text type="secondary" style={{ fontSize: '12px' }}>
@@ -181,15 +177,7 @@ const UserLLMProviderDetail: React.FC<UserLLMProviderDetailProps> = ({
             key: 'contextWindow',
             render: (value: number) => value ? `${value.toLocaleString()} tokens` : '-',
         },
-        {
-            title: 'Status',
-            key: 'status',
-            render: (record: LLMModel) => (
-                <Tag color={record.isActive ? 'success' : 'error'} icon={record.isActive ? <CheckCircleOutlined /> : <StopOutlined />}>
-                    {record.isActive ? 'Active' : 'Inactive'}
-                </Tag>
-            ),
-        },
+
         {
             title: 'Actions',
             key: 'actions',
@@ -206,17 +194,7 @@ const UserLLMProviderDetail: React.FC<UserLLMProviderDetailProps> = ({
                         />
                     </Tooltip>
 
-                    {!record.isDefault && (
-                        <Tooltip title="Set as Default for this type">
-                            <Button
-                                type="text"
-                                icon={<StarOutlined />}
-                                onClick={() => handleSetDefault(record)}
-                                disabled={actionLoading}
-                            />
-                        </Tooltip>
-                    )}
-
+                  
                     <Popconfirm
                         title="Delete this model?"
                         description="This action cannot be undone."
@@ -232,21 +210,6 @@ const UserLLMProviderDetail: React.FC<UserLLMProviderDetailProps> = ({
         },
     ];
 
-    const handleSetDefault = async (model: LLMModel) => {
-        setActionLoading(true);
-        try {
-            await updateUserProviderModel(userId, provider.id, model.id, {
-                isDefault: true
-            });
-            message.success('Default model updated');
-            fetchModels();
-        } catch (error: unknown) {
-            console.error('Error setting default model:', error);
-            message.error('Failed to update default model');
-        } finally {
-            setActionLoading(false);
-        }
-    };
 
     return (
         <div>
@@ -265,11 +228,7 @@ const UserLLMProviderDetail: React.FC<UserLLMProviderDetailProps> = ({
                     <Descriptions.Item label="Endpoint URL">
                         {provider.endpointUrl}
                     </Descriptions.Item>
-                    <Descriptions.Item label="Status">
-                        <Tag color={provider.isActive ? 'success' : 'error'}>
-                            {provider.isActive ? 'Active' : 'Inactive'}
-                        </Tag>
-                    </Descriptions.Item>
+                 
                     <Descriptions.Item label="Description">
                         {provider.description || 'No description'}
                     </Descriptions.Item>

@@ -25,12 +25,9 @@ import { parseAuthHeader, verifyToken } from '../../../../../../lib/auth';
  *
  * #### Request Body:
  * - `name` (string, required): The name of the model.
- * - `displayName` (string, optional): A display name for the model.
  * - `description` (string, optional): A description of the model.
  * - `modelType` (string, required): Type of model (e.g., "chat", "text", "embedding").
  * - `contextWindow` (number, optional): The context window size in tokens.
- * - `isActive` (boolean, optional): Whether the model is active, defaults to true.
- * - `isDefault` (boolean, optional): Whether the model is the default for its type, defaults to false.
  * - `config` (object, optional): Additional configuration options.
  * - `providerId` (string, required): ID of the provider that offers this model.
  *
@@ -61,7 +58,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           provider: {
             select: {
               id: true,
-              name: true,
               providerType: true
             }
           }
@@ -80,13 +76,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     try {
       const {
         name,
-        displayName,
-        description,
         modelType,
         contextWindow,
-        isActive = true,
-        isDefault = false,
-        config,
         providerId
       } = req.body;
 
@@ -104,34 +95,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(404).json({ error: "Provider not found" });
       }
 
-      // If setting as default, unset any existing defaults of the same type
-      if (isDefault) {
-        await prisma.lLMModel.updateMany({
-          where: { 
-            modelType, 
-            isDefault: true 
-          },
-          data: { isDefault: false }
-        });
-      }
+
 
       // Create new model
       const newModel = await prisma.lLMModel.create({
         data: {
           name,
-          displayName,
-          description,
           modelType,
           contextWindow,
-          isActive,
-          isDefault,
-          config: config || {},
           providerId
         },
         include: {
           provider: {
             select: {
-              name: true,
               providerType: true
             }
           }

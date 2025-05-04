@@ -1,6 +1,5 @@
 import { ReloadOutlined, RobotOutlined, SendOutlined, SmileOutlined, StopOutlined } from '@ant-design/icons';
 import { Alert, Avatar, Button, Card, Divider, Empty, Input, Layout, Space, Spin, theme, Tooltip, Typography, Grid } from 'antd';
-import { AnimatePresence } from 'framer-motion';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { OpenAIExecutionResult } from '../../models/flow';

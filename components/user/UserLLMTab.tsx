@@ -51,26 +51,6 @@ const UserLLMTab: React.FC<UserLLMTabProps> = ({
         icon = <ApiOutlined />;
         label = 'OpenAI Compatible';
         break;
-      case 'azure':
-        color = 'blue';
-        icon = <ApiOutlined />;
-        label = 'Azure';
-        break;
-      case 'anthropic':
-        color = 'purple';
-        icon = <ApiOutlined />;
-        label = 'Anthropic';
-        break;
-      case 'local':
-        color = 'orange';
-        icon = <ExperimentOutlined />;
-        label = 'Local';
-        break;
-      case 'custom':
-        color = 'geekblue';
-        icon = <ExperimentOutlined />;
-        label = 'Custom';
-        break;
       default:
         color = 'default';
         break;
@@ -81,12 +61,7 @@ const UserLLMTab: React.FC<UserLLMTabProps> = ({
 
   // Define columns for the providers table
   const llmProviderColumns = [
-    {
-      title: 'Provider Name',
-      dataIndex: 'name',
-      key: 'name',
-      render: (text: string) => <Text strong>{text}</Text>,
-    },
+
     {
       title: 'Type',
       dataIndex: 'providerType',
@@ -101,16 +76,7 @@ const UserLLMTab: React.FC<UserLLMTabProps> = ({
         <span>{models?.length || 0} models</span>
       ),
     },
-    {
-      title: 'Status',
-      key: 'status',
-      dataIndex: 'isActive',
-      render: (isActive: boolean) => (
-        <Tag color={isActive ? 'success' : 'error'} icon={isActive ? <CheckCircleOutlined /> : <StopOutlined />}>
-          {isActive ? 'Active' : 'Inactive'}
-        </Tag>
-      ),
-    },
+
     {
       title: 'Actions',
       key: 'actions',
@@ -147,7 +113,7 @@ const UserLLMTab: React.FC<UserLLMTabProps> = ({
   return (
     <>
       {userId && <LLMProviderPreferences userId={userId} viewOnly={!isCurrentUser && currentUserId !== userId} userName={userName} />}
-      
+
       {/* Provider detail view or list view */}
       {selectedProvider ? (
         <UserLLMProviderDetail
@@ -157,7 +123,7 @@ const UserLLMTab: React.FC<UserLLMTabProps> = ({
           onProviderUpdated={onRefreshProviders}
         />
       ) : (
-        <Card 
+        <Card
           title={
             <Title level={4}>
               <Space>

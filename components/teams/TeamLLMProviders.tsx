@@ -128,26 +128,7 @@ const TeamLLMProviders: React.FC<TeamLLMProvidersProps> = ({
         icon = <ApiOutlined />;
         label = 'OpenAI Compatible';
         break;
-      case 'azure':
-        color = 'blue';
-        icon = <ApiOutlined />;
-        label = 'Azure';
-        break;
-      case 'anthropic':
-        color = 'purple';
-        icon = <ApiOutlined />;
-        label = 'Anthropic';
-        break;
-      case 'local':
-        color = 'orange';
-        icon = <ExperimentOutlined />;
-        label = 'Local';
-        break;
-      case 'custom':
-        color = 'geekblue';
-        icon = <ExperimentOutlined />;
-        label = 'Custom';
-        break;
+  
       default:
         color = 'default';
         break;
@@ -166,12 +147,7 @@ const TeamLLMProviders: React.FC<TeamLLMProvidersProps> = ({
   };
 
   const columns = [
-    {
-      title: 'Provider Name',
-      dataIndex: 'name',
-      key: 'name',
-      render: (text: string) => <Text strong>{text}</Text>,
-    },
+   
     {
       title: 'Type',
       dataIndex: 'providerType',

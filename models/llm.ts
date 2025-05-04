@@ -5,8 +5,6 @@ export interface LLMProvider {
     providerType: string;
     endpointUrl: string;
     apiKey: string;
-    isActive: boolean;
-    isDefault: boolean;
     models: LLMModel[];
     ownerType: string;
     userOwner?: {
@@ -25,12 +23,9 @@ export type LLMProviderType = 'openai' | 'openai-compatible';
 export interface LLMModel {
   id: string;
   name: string;
-  displayName?: string;
   description?: string;
   modelType: LLMModelType;
   contextWindow?: number;
-  isActive: boolean;
-  isDefault: boolean;
   createdAt: Date;
   updatedAt: Date;
   config?: Record<string, any>;
@@ -45,8 +40,6 @@ export interface CreateLLMProviderRequest {
   description?: string;
   providerType: LLMProviderType;
   endpointUrl: string;
-  isActive?: boolean;
-  isDefault?: boolean;
   apiKey?: string;
   config?: Record<string, any>;
 }
@@ -55,32 +48,25 @@ export interface UpdateLLMProviderRequest {
   name?: string;
   description?: string;
   endpointUrl?: string;
-  isActive?: boolean;
-  isDefault?: boolean;
   apiKey?: string;
   config?: Record<string, any>;
 }
 
 export interface CreateLLMModelRequest {
   name: string;
-  displayName?: string;
   description?: string;
   modelType: LLMModelType;
   contextWindow?: number;
-  isActive?: boolean;
-  isDefault?: boolean;
   config?: Record<string, any>;
   providerId: string;
 }
 
 export interface UpdateLLMModelRequest {
   name?: string;
-  displayName?: string;
   description?: string;
   modelType?: LLMModelType;
   contextWindow?: number;
   isActive?: boolean;
-  isDefault?: boolean;
   config?: Record<string, any>;
 }
 

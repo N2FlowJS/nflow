@@ -74,7 +74,6 @@ const LLMModelForm: React.FC<LLMModelFormProps> = ({
 
   const modelTypes: { label: string, value: LLMModelType }[] = [
     { label: 'Chat Completion', value: 'chat' },
-    { label: 'Text Completion', value: 'text' },
     { label: 'Embedding', value: 'embedding' },
     { label: 'Image Generation', value: 'image' }
   ];
@@ -102,11 +101,8 @@ const LLMModelForm: React.FC<LLMModelFormProps> = ({
         form={form}
         layout="vertical"
         initialValues={{
-          isActive: true,
-          isDefault: false,
           modelType: 'chat',
           ...initialValues,
-          // If providerId is supplied as prop, override initialValues
           ...(providerId ? { providerId } : {})
         }}
         onFinish={handleFinish}
@@ -119,15 +115,6 @@ const LLMModelForm: React.FC<LLMModelFormProps> = ({
         >
           <Input placeholder="e.g., gpt-4, gpt-3.5-turbo, claude-2" />
         </Form.Item>
-
-        <Form.Item
-          name="displayName"
-          label="Display Name"
-          tooltip="A user-friendly name to display in the UI"
-        >
-          <Input placeholder="e.g., GPT-4, Claude 2" />
-        </Form.Item>
-
         <Form.Item
           name="description"
           label="Description"
@@ -182,15 +169,8 @@ const LLMModelForm: React.FC<LLMModelFormProps> = ({
           />
         </Form.Item>
 
-        <Form.Item name="isActive" valuePropName="checked">
-          <Switch checkedChildren="Active" unCheckedChildren="Inactive" /> 
-          <Text style={{ marginLeft: 8 }}>Enable this model</Text>
-        </Form.Item>
 
-        <Form.Item name="isDefault" valuePropName="checked">
-          <Switch checkedChildren="Default" unCheckedChildren="Not Default" />
-          <Text style={{ marginLeft: 8 }}>Set as default model for this type</Text>
-        </Form.Item>
+     
 
         <Form.Item>
           <Button 

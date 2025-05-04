@@ -68,13 +68,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     try {
       const {
         name,
-        displayName,
-        description,
         modelType,
         contextWindow,
-        isActive = true,
-        isDefault = false,
-        config
       } = req.body;
 
       // Validate required fields
@@ -82,29 +77,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(400).json({ error: "Missing required fields" });
       }
 
-      // If setting as default, unset any existing defaults of the same type
-      if (isDefault) {
-        await prisma.lLMModel.updateMany({
-          where: { 
-            providerId,
-            modelType, 
-            isDefault: true 
-          },
-          data: { isDefault: false }
-        });
-      }
-
+     
       // Create new model
       const newModel = await prisma.lLMModel.create({
         data: {
           name,
-          displayName,
-          description,
           modelType,
           contextWindow,
-          isActive,
-          isDefault,
-          config: config || {},
           providerId
         }
       });

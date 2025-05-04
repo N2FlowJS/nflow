@@ -84,7 +84,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         where: {
           providerId: provider.id,
           modelType: 'chat',
-          isDefault: true,
         },
       });
 
@@ -113,14 +112,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     switch (provider.providerType) {
       case 'openai':
         result = await testOpenAIProvider(provider.endpointUrl, provider.apiKey, modelName, message);
-        break;
-
-      case 'azure':
-        result = await testAzureOpenAIProvider(provider.endpointUrl, provider.apiKey, modelName, message, provider.config);
-        break;
-
-      case 'anthropic':
-        result = await testAnthropicProvider(provider.endpointUrl, provider.apiKey, modelName, message);
         break;
 
       case 'custom':
@@ -195,101 +186,3 @@ async function testOpenAIProvider(endpointUrl: string, apiKey: string, modelName
   }
 }
 
-// Helper function to test Azure OpenAI provider
-async function testAzureOpenAIProvider(endpointUrl: string, apiKey: string, modelName: string, message: string, config: any) {
-  const startTime = Date.now();
-
-  try {
-    // Azure OpenAI requires a deployment name
-    const deploymentName = config?.deploymentName || modelName;
-
-    const response = await fetch(`${endpointUrl}/openai/deployments/${deploymentName}/chat/completions?api-version=${config?.apiVersion || '2023-05-15'}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'api-key': apiKey,
-      },
-      body: JSON.stringify({
-        messages: [{ role: 'user', content: message }],
-        temperature: 0.7,
-        max_tokens: 150,
-      }),
-    });
-
-    const data = await response.json();
-    const latency = Date.now() - startTime;
-
-    if (!response.ok || data.error) {
-      return {
-        success: false,
-        error: data.error?.message || `Error ${response.status}: ${response.statusText}`,
-        latency,
-      };
-    }
-
-    return {
-      success: true,
-      response: data.choices[0]?.message?.content || 'No response',
-      latency,
-      tokens: {
-        input: data.usage?.prompt_tokens || 0,
-        output: data.usage?.completion_tokens || 0,
-      },
-    };
-  } catch (error: unknown) {
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Network or API error',
-      latency: Date.now() - startTime,
-    };
-  }
-}
-
-// Helper function to test Anthropic provider
-async function testAnthropicProvider(endpointUrl: string, apiKey: string, modelName: string, message: string) {
-  const startTime = Date.now();
-
-  try {
-    const response = await fetch(`${endpointUrl}/v1/messages`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify({
-        model: modelName,
-        messages: [{ role: 'user', content: message }],
-        max_tokens: 150,
-      }),
-    });
-
-    const data = await response.json();
-    const latency = Date.now() - startTime;
-
-    if (!response.ok || data.error) {
-      return {
-        success: false,
-        error: data.error?.message || `Error ${response.status}: ${response.statusText}`,
-        latency,
-      };
-    }
-
-    return {
-      success: true,
-      response: data.content[0]?.text || 'No response',
-      latency,
-      // Anthropic doesn't provide token counts in the same way
-      tokens: {
-        input: 0,
-        output: 0,
-      },
-    };
-  } catch (error: unknown) {
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Network or API error',
-      latency: Date.now() - startTime,
-    };
-  }
-}

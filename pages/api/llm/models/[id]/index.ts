@@ -34,12 +34,9 @@ import { parseAuthHeader, verifyToken } from '../../../../../lib/auth';
  *
  * #### Request Body:
  * - `name` (string, optional): The updated name.
- * - `displayName` (string, optional): The updated display name.
  * - `description` (string, optional): The updated description.
  * - `modelType` (string, optional): The updated model type.
  * - `contextWindow` (number, optional): The updated context window size.
- * - `isActive` (boolean, optional): Whether the model is active.
- * - `isDefault` (boolean, optional): Whether the model is the default for its type.
  * - `config` (object, optional): Updated configuration options.
  *
  * #### Response:
@@ -68,7 +65,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!token) {
     return res.status(401).json({ error: 'Authentication required' });
   }
-  
+
   // Verify token
   const payload = verifyToken(token);
   if (!payload) {
@@ -76,7 +73,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const { id } = req.query;
-  
+
   if (!id || typeof id !== 'string') {
     return res.status(400).json({ error: "Invalid model ID" });
   }
@@ -90,34 +87,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           provider: {
             select: {
               id: true,
-              name: true,
               providerType: true
             }
           }
         }
       });
-      
+
       if (!model) {
         return res.status(404).json({ error: "Model not found" });
       }
-      
+
       return res.status(200).json(model);
     } catch (error: unknown) {
       console.error("Error fetching LLM model:", error);
       return res.status(500).json({ error: "Failed to fetch LLM model" });
     }
-  } 
+  }
   // PUT - Update a specific model
   else if (req.method === 'PUT') {
     try {
       const {
         name,
-        displayName,
         description,
         modelType,
         contextWindow,
-        isActive,
-        isDefault,
         config
       } = req.body;
 
@@ -125,36 +118,31 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const currentModel = await prisma.lLMModel.findUnique({
         where: { id }
       });
-      
+
       if (!currentModel) {
         return res.status(404).json({ error: "Model not found" });
       }
 
-      // If setting as default or changing model type + is already default
-      if (isDefault || (modelType && modelType !== currentModel.modelType && currentModel.isDefault)) {
+      if ((modelType && modelType !== currentModel.modelType)) {
         // The type to use for resetting defaults
         const typeToReset = modelType || currentModel.modelType;
-        
+
         // Unset any existing defaults of the same type
         await prisma.lLMModel.updateMany({
-          where: { 
-            modelType: typeToReset, 
-            isDefault: true,
+          where: {
+            modelType: typeToReset,
             id: { not: id }
           },
-          data: { isDefault: false }
+          data: {}
         });
       }
 
       // Create update data object
       const updateData: any = {
         name,
-        displayName,
         description,
         modelType,
         contextWindow,
-        isActive,
-        isDefault,
         config
       };
 
@@ -173,33 +161,32 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           provider: {
             select: {
               id: true,
-              name: true,
               providerType: true
             }
           }
         }
       });
-      
+
       return res.status(200).json(updatedModel);
     } catch (error: unknown) {
       console.error("Error updating LLM model:", error);
       return res.status(500).json({ error: "Failed to update LLM model" });
     }
-  } 
+  }
   // DELETE - Delete a specific model
   else if (req.method === 'DELETE') {
     try {
       await prisma.lLMModel.delete({
         where: { id }
       });
-      
+
       return res.status(200).json({ success: true });
     } catch (error: unknown) {
       console.error("Error deleting LLM model:", error);
       return res.status(500).json({ error: "Failed to delete LLM model" });
     }
   }
-  
+
   res.setHeader('Allow', ['GET', 'PUT', 'DELETE']);
   return res.status(405).end(`Method ${req.method} Not Allowed`);
 }

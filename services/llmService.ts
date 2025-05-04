@@ -6,15 +6,12 @@ export interface CreateLLMProviderRequest {
   description?: string;
   providerType: string;
   endpointUrl: string;
-  isActive?: boolean;
-  isDefault?: boolean;
   apiKey?: string;
   config?: Record<string, any>;
   ownerType?: string;
   teamOwnerId?: string;
 }
 
-export interface UpdateLLMProviderRequest extends Partial<CreateLLMProviderRequest> {}
 
 export const fetchAllLLMProviders = async () => {
   return apiRequest<LLMProvider[]>('/api/llm/providers');
@@ -31,7 +28,7 @@ export const createLLMProvider = async (data: CreateLLMProviderRequest) => {
   });
 };
 
-export const updateLLMProvider = async (id: string, data: UpdateLLMProviderRequest) => {
+export const updateLLMProvider = async (id: string, data: unknown) => {
   return apiRequest<LLMProvider>(`/api/llm/providers/${id}`, {
     method: 'PUT',
     body: JSON.stringify(data),
@@ -44,11 +41,7 @@ export const deleteLLMProvider = async (id: string) => {
   });
 };
 
-export const setDefaultLLMProvider = async (id: string) => {
-  return apiRequest<LLMProvider>(`/api/llm/providers/${id}/default`, {
-    method: 'PUT',
-  });
-};
+
 
 export interface CreateDefaultLLMProviderRequest {
   apiKey: string;
@@ -56,12 +49,7 @@ export interface CreateDefaultLLMProviderRequest {
   teamOwnerId?: string;
 }
 
-export const createDefaultLLMProvider = async (data: CreateDefaultLLMProviderRequest) => {
-  return apiRequest<{ provider: LLMProvider; modelsCreated: number }>('/api/llm/providers/default', {
-    method: 'POST',
-    body: JSON.stringify(data),
-  });
-};
+
 
 export const fetchLLMModelsByProvider = async (providerId: string) => {
   return apiRequest<LLMModel[]>(`/api/llm/providers/${providerId}/models`);
@@ -91,12 +79,6 @@ export const deleteLLMModel = async (id: string) => {
   });
 };
 
-export const setDefaultLLMModel = async (id: string) => {
-  return apiRequest<LLMModel>(`/api/llm/models/${id}/default`, {
-    method: 'PUT',
-  });
-};
-
 export const testLLMProvider = async (data: TestLLMProviderRequest): Promise<TestLLMProviderResponse> => {
   return apiRequest<TestLLMProviderResponse>('/api/llm/test', {
     method: 'POST',
@@ -115,7 +97,7 @@ export const createUserLLMProvider = async (userId: string, data: CreateLLMProvi
   });
 };
 
-export const updateUserLLMProvider = async (providerId: string, data: UpdateLLMProviderRequest) => {
+export const updateUserLLMProvider = async (providerId: string, data: any) => {
   return apiRequest<LLMProvider>(`/api/llm/providers/${providerId}`, {
     method: 'PUT',
     body: JSON.stringify({
@@ -175,29 +157,6 @@ export async function getLLMResponse(modelId: string, prompt: string): Promise<s
     });
   } catch (error: unknown) {
     console.error('Error calling LLM API:', error);
-    throw error;
-  }
-}
-
-/**
- * Categorize text using an LLM - use only from client-side code
- * For server-side processing, use the direct implementation in the node handlers
- */
-export async function categorizeLLMResponse(text: string, categories: { name: string; description: string; examples: string[] }[]): Promise<{ category: string; confidence: number }> {
-  try {
-    // Call to your LLM API for categorization
-    return apiRequest('/api/llm/categorize', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        text,
-        categories,
-      }),
-    });
-  } catch (error: unknown) {
-    console.error('Error calling categorization API:', error);
     throw error;
   }
 }

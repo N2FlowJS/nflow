@@ -41,15 +41,12 @@ const GenerateNode = ({ data, id, selected }: NodeProps<Node<GenerateNodeData>>)
     if (error) return "Error loading model";
     if (!form?.model) return "No model selected";
 
-    // Use the display name from API if available
-    if (modelDetails?.displayName) return modelDetails.displayName;
     if (modelDetails?.name) return modelDetails.name;
 
     // Fall back to the model ID or name from the form
     return form.model;
   };
 
-  // Get model provider name if available
   const getProviderName = () => {
     if (modelDetails?.provider?.name) {
       return modelDetails.provider.name;

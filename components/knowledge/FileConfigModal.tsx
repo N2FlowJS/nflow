@@ -3,7 +3,7 @@ import {
   Form,
   InputNumber,
   Modal,
-  Space,
+  Space
 } from "antd";
 import React, { useEffect } from "react";
 import ChunkSeparatorSelect, { ConfigChunk } from "./ChunkSeparatorSelect";
@@ -18,7 +18,6 @@ interface FileConfigModalProps {
   fileConfig: ConfigChunk;
   loading: boolean;
 }
-
 const FileConfigModal: React.FC<FileConfigModalProps> = ({
   visible,
   onClose,
@@ -28,6 +27,7 @@ const FileConfigModal: React.FC<FileConfigModalProps> = ({
   loading,
 }) => {
   const [form] = Form.useForm();
+  
 
   useEffect(() => {
     if (visible) {
@@ -74,6 +74,8 @@ const FileConfigModal: React.FC<FileConfigModalProps> = ({
       confirmLoading={loading}
     >
       <Form form={form} layout="vertical">
+
+
         <Form.Item
           name="tokenChunk"
           label="Tokens Per Chunk"

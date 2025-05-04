@@ -10,13 +10,11 @@ import {
   Tag,
   Tooltip,
   Tabs,
-  Space,
   Empty,
 } from 'antd';
 import {
   ApiOutlined,
   StarFilled,
-  CheckCircleOutlined,
 } from '@ant-design/icons';
 import { updateUserPreferences, fetchUserPreferences } from '../../services/userService';
 import { LLMProvider } from '../../models/llm';
@@ -130,21 +128,7 @@ const LLMProviderPreferences: React.FC<LLMProviderPreferencesProps> = ({
   }, [fetchPreferences]);
 
   const columns = [
-    {
-      title: 'Provider Name',
-      dataIndex: 'name',
-      key: 'name',
-      render: (text: string, record: LLMProvider) => (
-        <Space>
-          {record.id === preferences?.defaultLLMProviderId && (
-            <Tooltip title="Default Provider">
-              <StarFilled style={{ color: '#faad14' }} />
-            </Tooltip>
-          )}
-          <Text strong>{text}</Text>
-        </Space>
-      ),
-    },
+
     {
       title: 'Type',
       dataIndex: 'providerType',
@@ -164,16 +148,7 @@ const LLMProviderPreferences: React.FC<LLMProviderPreferencesProps> = ({
         <span>{models?.length || 0} models</span>
       ),
     },
-    {
-      title: 'Status',
-      key: 'status',
-      dataIndex: 'isActive',
-      render: (isActive: boolean) => (
-        <Tag color={isActive ? 'success' : 'error'} icon={isActive ? <CheckCircleOutlined /> : null}>
-          {isActive ? 'Active' : 'Inactive'}
-        </Tag>
-      ),
-    },
+  
   ];
 
   const renderProviderSelector = () => {
@@ -239,15 +214,7 @@ const LLMProviderPreferences: React.FC<LLMProviderPreferencesProps> = ({
             pagination={false}
           />
         </TabPane>
-        <TabPane tab="System Providers" key="system">
-          <Table
-            dataSource={preferences.availableProviders?.systemProviders || []}
-            columns={columns}
-            rowKey="id"
-            pagination={false}
-            locale={{ emptyText: <Empty description="No system providers available" /> }}
-          />
-        </TabPane>
+
         <TabPane tab={`${userName ? `${userName}'s Providers` : 'My Providers'}`} key="user">
           <Table
             dataSource={preferences.availableProviders?.userProviders || []}
