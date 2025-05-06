@@ -125,15 +125,7 @@ export async function generateCustomEmbedding(text: string): Promise<{
 For privacy-sensitive applications or to reduce API costs, you can self-host embedding models:
 
 1. **Local Models**: Use frameworks like Hugging Face's Sentence Transformers
-2. **API Proxy**: Set up a local model server and configure `OPENAI_BASE_URL`
-3. **Containerized Deployment**: Use Docker to deploy models within your infrastructure
-
-Example configuration for a self-hosted model:
-
-```
-EMBEDDING_MODEL=all-MiniLM-L6-v2
-OPENAI_BASE_URL=http://localhost:8000/v1/
-```
+2. **Containerized Deployment**: Use Docker to deploy models within your infrastructure
 
 ## Best Practices
 

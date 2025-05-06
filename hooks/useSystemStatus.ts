@@ -84,25 +84,21 @@ export function useSystemStatus(user: any) {
     }
 
     async function checkNbaseStatus() {
-      if (process.env.NBASE_ENABLED === "true") {
-        try {
-          const res = await fetch("/api/nbase-status");
-          if (!res.ok) {
-            setNbaseStatus("error");
-            setNbaseTooltip("Failed to fetch Nbase status");
-            return;
-          }
-          const data = await res.json();
-          setNbaseStatus(data.status === "running" ? "running" : "error");
-          setNbaseTooltip(data.message || "Nbase status unknown");
-        } catch (error: any) {
+      try {
+        const res = await fetch("/api/nbase-status");
+        if (!res.ok) {
           setNbaseStatus("error");
-          setNbaseTooltip(`Error checking Nbase: ${error.message}`);
+          setNbaseTooltip("Failed to fetch Nbase status");
+          return;
         }
-      } else {
-        setNbaseStatus("disabled");
-        setNbaseTooltip("Nbase is not enabled");
+        const data = await res.json();
+        setNbaseStatus(data.status === "running" ? "running" : "error");
+        setNbaseTooltip(data.message || "Nbase status unknown");
+      } catch (error: any) {
+        setNbaseStatus("error");
+        setNbaseTooltip(`Error checking Nbase: ${error.message}`);
       }
+
     }
 
     async function checkCleanupWorkerStatus() {
@@ -124,7 +120,7 @@ export function useSystemStatus(user: any) {
     }
 
     let intervals: NodeJS.Timeout[] = [];
-    
+
     if (user) {
       // Initial checks
       checkStatus();

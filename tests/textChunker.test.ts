@@ -1,4 +1,5 @@
-import { expect } from "chai";
+import {expect} from '@jest/globals';
+
 import { chunkText } from "../lib/utils/textChunker";
 import { readFileContent } from "../lib/workers/parse-file/readFileContent";
 import path from "path";
@@ -13,36 +14,36 @@ describe("chunkText", () => {
         const chunks = chunkText(text, [`\n`], 128);
         console.log(chunks.flatMap(p => p.length));
 
-        expect(chunks).to.be.an("array");
-        expect(chunks.length).to.be.greaterThan(0);
-        expect(chunks.join("").replace(/\s/g, "")).to.include(text.replace(/\s/g, "").substring(0, 20));
+        expect(Array.isArray(chunks)).toBe(true);
+        expect(chunks.length).toBeGreaterThan(0);
+        expect(chunks.join("").replace(/\s/g, "")).toContain(text.replace(/\s/g, "").substring(0, 20));
     });
 
     it("splits text by custom separator", () => {
         const text = "a--b--c";
         const chunks = chunkText(text, ["--"]);
 
-        expect(chunks.length).to.equal(1);
-        expect(chunks[0]).to.include("a b c");
+        expect(chunks.length).toBe(1);
+        expect(chunks[0]).toContain("a b c");
 
     });
 
     it("respects maxTokensPerChunk", () => {
         const text = "a b c d e f g h i j";
         const chunks = chunkText(text, [" "], 3);
-        expect(chunks.length).to.be.greaterThan(1);
+        expect(chunks.length).toBeGreaterThan(1);
     });
 
     it("handles empty text", () => {
         const chunks = chunkText("");
-        expect(chunks).to.be.an("array");
-        expect(chunks.length).to.be.equal(0);
+        expect(Array.isArray(chunks)).toBe(true);
+        expect(chunks.length).toBe(0);
     });
 
     it("handles no separator provided", () => {
         const text = "abc";
         const chunks = chunkText(text, []);
-        expect(chunks.length).to.equal(1);
-        expect(chunks[0]).to.include("a b c");
+        expect(chunks.length).toBe(1);
+        expect(chunks[0]).toContain("abc");
     });
 });

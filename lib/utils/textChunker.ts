@@ -3,15 +3,16 @@
  */
 export function chunkText(
   text: string,
-  chunkSeparator: string[] = ["\n"],
+  chunkSeparator: string[] = [],
   maxTokensPerChunk: number = 128
 ): string[] {
-
+  chunkSeparator = chunkSeparator.length == 0 ? ["\n"] : chunkSeparator;
 
   const escaped = chunkSeparator.map(sep =>
     sep.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&')
   );
   const separatorRegex = new RegExp(escaped.join('|'), 'g');
+
 
 
 
@@ -23,7 +24,7 @@ export function chunkText(
 
   for (let chunk of rawChunks) {
     chunk = chunk.trim();
-    if (!chunk) continue; // Skip empty chunks
+    if (!chunk) continue;
 
 
 
@@ -40,7 +41,6 @@ export function chunkText(
   if (currentChunk.length > 0) {
     resultChunks.push(currentChunk);
   }
-
   return resultChunks;
 }
 
@@ -52,7 +52,6 @@ export function extractChunkMetadata(chunk: string, index: number): Record<strin
     chunkIndex: index,
     charCount: chunk.length,
     estimatedTokenCount: Math.ceil(chunk.length / 4),
-    // Extract a brief heading/title from the first line
     heading: chunk.split('\n')[0].substring(0, 100)
   };
 }

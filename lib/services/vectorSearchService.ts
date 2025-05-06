@@ -27,10 +27,10 @@ export type SearchSimilarResult = {
  */
 export async function searchSimilarContent(
   query: string,
-  options?: {
+  options: {
     limit?: number;
     fileId?: string;
-    knowledgeId?: string;
+    knowledgeId: string;
     similarityThreshold?: number; // Expose threshold parameter
   }
 ): Promise<{
@@ -42,9 +42,25 @@ export async function searchSimilarContent(
     const startAt = new Date().getTime();
     const limit = options?.limit || 5;
     const similarityThreshold = options?.similarityThreshold || 0.7;
+    const knowledge = await prisma.knowledge.findUnique({
+      where: { id: options?.knowledgeId }
+
+    })
+
+    if (!knowledge) throw new Error('No knowledge specified in the form');
+    if (!knowledge.modelId) throw new Error('No AI model specified in the form');
+
+    // Fetch the model details directly from the database
+    const model = await prisma.lLMModel.findUnique({
+      where: { id: knowledge.modelId },
+      include: { provider: true },
+    });
+
+    if (!model) throw new Error('Model not found in the database');
+    if (!model.provider) throw new Error('Provider not found for this model');
 
     // Generate embedding for the query
-    const queryEmbeddingResult = await generateEmbedding(query);
+    const queryEmbeddingResult = await generateEmbedding(model.provider.endpointUrl, model.provider.apiKey, model.name, query);
 
     // Create filter for vector search
     const filter: any = {};
@@ -123,7 +139,7 @@ async function fallbackToKeywordSearch(
         where: { knowledgeId: options.knowledgeId },
         select: { id: true },
       });
-      fileIds = files.map((f:any) => f.id);
+      fileIds = files.map((f: any) => f.id);
 
       if (fileIds.length > 0) {
         where.fileId = { in: fileIds };
@@ -165,7 +181,7 @@ async function fallbackToKeywordSearch(
         fileId: chunk.fileId,
         fileName: chunk.file.originalName,
         id: chunk.id,
-        similarity:0, // Not applicable for keyword search
+        similarity: 0, // Not applicable for keyword search
         knowledgeId: chunk.file.knowledgeId,
         metadata: {
           charCount: chunk.content.length,

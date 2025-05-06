@@ -1,10 +1,8 @@
 import OpenAI from 'openai';
+import 'openai/shims/node'
 import { MessagePart } from '../models/MessagePart';
 
 class LLMOpenAI {
-    /**
-     * Call the OpenAI API
-     */
     completions = async (
         baseURL: string,
         apiKey: string,

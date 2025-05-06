@@ -1,8 +1,6 @@
 import path from 'path';
-import { expect } from "chai";
+import { expect } from '@jest/globals'; // Import expect from Jest
 
-// Assuming parsePdfFile is exported directly or indirectly via readFileContent
-// If parsePdfFile is not exported, you might need to export it or test via readFileContent
 import { readFileContent } from '../lib/workers/parse-file/readFileContent'; // Adjust import if parsePdfFile is exported directly
 
 // Define the path to the test PDF file relative to the project root or test file location
@@ -18,17 +16,17 @@ describe('readFileContent', () => {
             const content = await readFileContent(testPdfPath);
 
             // Basic assertion: Check if the result is a non-empty string
-            expect(content).to.be.a('string');
-            expect(content.length).to.be.greaterThan(0);
+            expect(typeof content).toBe('string');
+            expect(content.length).toBeGreaterThan(0);
 
             // More specific assertion: Check if the parsed JSON has a 'text' property
             const parsedContent = JSON.parse(content);
-            expect(parsedContent).to.have.property('text');
-            expect(parsedContent.text).to.be.a('string');
-            expect(parsedContent.text.length).to.be.greaterThan(0);
+            expect(parsedContent).toHaveProperty('text');
+            expect(typeof parsedContent.text).toBe('string');
+            expect(parsedContent.text.length).toBeGreaterThan(0);
 
             // Optional: Add more specific checks based on expected content
-            // expect(parsedContent.text).to.include("Mission and Core Beliefs");
+            // expect(parsedContent.text).toContain("Mission and Core Beliefs");
 
         } catch (error: unknown) {
             // Fail the test if any error occurs during parsing

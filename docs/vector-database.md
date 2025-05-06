@@ -273,14 +273,6 @@ const results = await searchSimilarContent(
 
 ## Advanced Configuration
 
-### Custom Embedding Models
-
-You can use alternative embedding models by configuring:
-
-```
-EMBEDDING_MODEL=alternative-model-name
-```
-
 ### Custom Vector Distance Metrics
 
 NBase supports multiple distance metrics:
