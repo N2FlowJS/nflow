@@ -1,6 +1,9 @@
-import type { NextConfig } from "next";
+import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
+  compiler: {
+    styledComponents: true,
+  },
   reactStrictMode: true,
   pageExtensions: ['js', 'jsx', 'md', 'mdx', 'ts', 'tsx'],
   turbopack: {},
@@ -22,6 +25,7 @@ const nextConfig: NextConfig = {
     NBASE_URL: process.env.NBASE_URL || 'http://localhost:1307',
     VECTOR_DB_TYPE: process.env.VECTOR_DB_TYPE,
   },
+
 };
 
 export default nextConfig;

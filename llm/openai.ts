@@ -1,5 +1,4 @@
 import OpenAI from 'openai';
-import 'openai/shims/node'
 import { MessagePart } from '../models/MessagePart';
 
 class LLMOpenAI {
