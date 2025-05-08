@@ -5,8 +5,7 @@ const nextConfig: NextConfig = {
     styledComponents: true,
   },
   reactStrictMode: true,
-  pageExtensions: ['js', 'jsx', 'md', 'mdx', 'ts', 'tsx'],
-  turbopack: {},
+  pageExtensions: ['js', 'jsx', 'md', 'mdx', 'ts', 'tsx', 'css'],
   devIndicators: {
     position: 'bottom-left',
   },
@@ -25,7 +24,6 @@ const nextConfig: NextConfig = {
     NBASE_URL: process.env.NBASE_URL || 'http://localhost:1307',
     VECTOR_DB_TYPE: process.env.VECTOR_DB_TYPE,
   },
-
 };
 
 export default nextConfig;

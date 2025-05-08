@@ -55,8 +55,6 @@
     "react-dom": "^19.0.0",
     "react-markdown": "^10.1.0",
     "react-mentions": "^4.4.10",
-    "resize-observer-polyfill": "^1.5.1",
-    "toggle-selection": "^1.0.6",
     "uuid": "^11.1.0",
     "xlsx": "^0.18.5"
   },
