@@ -7,7 +7,7 @@ import { MessagePart } from './MessagePart';
 export interface FlowComponent {
   type: NodeTypeString;
   output: string;
-  ready: boolean;
+  executionTime: number;
   inputFlow: {
     id: string;
     name: string;
@@ -21,6 +21,8 @@ export interface FlowComponent {
 export interface FlowState {
   // The ID of the currently executing node
   currentNode: FlowNode;
+  executionTime: number;
+
 
   // Components in the flow with their execution state
   components: Record<string, FlowComponent>;
