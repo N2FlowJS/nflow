@@ -1,6 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '../../../lib/prisma';
-import { getConversationFlowState } from '../../../database/getConversationFlowState';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { method } = req;
@@ -12,61 +11,55 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     switch (method) {
-      case 'GET':
-        {  // Get conversation with messages
-          const conversation = await prisma.conversation.findUnique({
-            where: { id },
-            include: {
-              messages: {
-                orderBy: { timestamp: 'asc' }
-              },
-              agent: {
-                select: { name: true, description: true }
-              }
-            }
-          });
+      case 'GET': {
+        // Get conversation with messages
+        const conversation = await prisma.conversation.findUnique({
+          where: { id },
+          include: {
+            messages: {
+              orderBy: { timestamp: 'asc' },
+            },
+            agent: {
+              select: { name: true, description: true },
+            },
+          },
+        });
 
-          if (!conversation) {
-            return res.status(404).json({ error: 'Conversation not found' });
-          }
-
-          // Get flow state
-          const flowState = await getConversationFlowState(id);
-
-          return res.status(200).json({
-            conversation,
-            flowState,
-            // Note: client should handle parsing of metadata JSON strings
-          });
+        if (!conversation) {
+          return res.status(404).json({ error: 'Conversation not found' });
         }
 
-      case 'DELETE':
-        {  // Delete conversation
-          await prisma.conversation.delete({
-            where: { id }
-          });
+        // Get flow state
 
-          return res.status(200).json({ success: true, message: 'Conversation deleted' });
+        return res.status(200).json(conversation);
+      }
+
+      case 'DELETE': {
+        // Delete conversation
+        await prisma.conversation.delete({
+          where: { id },
+        });
+
+        return res.status(200).json({ success: true, message: 'Conversation deleted' });
+      }
+      case 'PATCH': {
+        // Update conversation title
+        const { title } = req.body;
+
+        if (!title) {
+          return res.status(400).json({ error: 'Title is required' });
         }
-      case 'PATCH':
-        {
-          // Update conversation title
-          const { title } = req.body;
 
-          if (!title) {
-            return res.status(400).json({ error: 'Title is required' });
-          }
+        const updatedConversation = await prisma.conversation.update({
+          where: { id },
+          data: { title },
+        });
 
-          const updatedConversation = await prisma.conversation.update({
-            where: { id },
-            data: { title }
-          });
-
-          return res.status(200).json({
-            success: true,
-            conversation: updatedConversation
-          });
-        }
+        return res.status(200).json({
+          success: true,
+          conversation: updatedConversation,
+        });
+      }
       default: {
         res.setHeader('Allow', ['GET', 'DELETE', 'PATCH']);
         return res.status(405).json({ error: `Method ${method} Not Allowed` });

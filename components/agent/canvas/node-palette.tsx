@@ -43,7 +43,6 @@ const NodePalette: React.FC<NodePaletteProps> = ({ nodes }) => {
                 style={{
                   padding: "12px 18px",
                   marginBottom: "12px",
-                  background: config.color.background,
                   border: `1px solid ${config.color.border}`,
                   borderRadius: "6px",
                   cursor: "grab",

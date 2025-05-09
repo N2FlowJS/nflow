@@ -80,6 +80,7 @@ export default function FlowEditorPage() {
           flowConfig={agent?.flowConfig}
           agentId={agent?.id}
           onStartConversation={() => setIsChatOpen(true)}
+          activeConversationId={isChatOpen ? undefined: currentConversationId}
         />
       </ReactFlowProvider>
       <Drawer

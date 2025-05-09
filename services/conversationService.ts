@@ -1,5 +1,11 @@
 import { apiRequest } from './apiUtils';
 import { FlowState } from '../models/flowExecutionTypes';
+import { Conversation } from '@prisma/client'; // Or your specific Conversation type from Prisma
+
+// It's often useful to have a type that represents the conversation with its flowState already parsed
+export interface ConversationWithParsedFlowState extends Omit<Conversation, 'flowState'> {
+  flowState: FlowState | null; // flowState will be an object or null after parsing
+}
 
 /**
  * Service for managing conversation persistence via API
@@ -48,11 +54,7 @@ export const conversationService = {
   /**
    * Get a conversation by ID with its messages
    */
-  async getConversation(conversationId: string): Promise<{
-    conversation: any;
-    messages: any[];
-    flowState?: FlowState;
-  }> {
+ async getConversation(conversationId: string): Promise<any> {
     return apiRequest(`/api/conversations/${conversationId}`);
   },
   
@@ -94,3 +96,4 @@ export const conversationService = {
     return response.flowState;
   }
 };
+

@@ -34,6 +34,7 @@ model Team {
   ownedLLMProviders LLMProvider[] @relation("TeamOwnedProviders")
 
   // Conversations owned by the team
+  conversations Conversation[] @relation("TeamConversations")
 }
 
 model MemberTeam {
@@ -95,6 +96,7 @@ model User {
   createdAgents Agent[] @relation("AgentCreatedBy")
   FileParsingTask FileParsingTask[] @relation("FileParsingTaskCreatedBy")
   ownedLLMProviders LLMProvider[] @relation("UserOwnedProviders")
+  conversations Conversation[] @relation("UserConversations")
 
   lmmConfig Json?
 
@@ -236,11 +238,19 @@ model Conversation {
   id            String   @id @default(uuid())
   title         String? // Auto-generated or user-defined title
   agentId       String // Reference to the agent used
-  flowState     String // JSON serialized FlowState
+  flowState     Json // JSON serialized FlowState
   status        String   @default("active") // "active", "completed", "archived"
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   lastMessageAt DateTime @default(now())
+
+  // User who initiated or is the primary interactor in the conversation
+  userId String?
+  user   User?   @relation("UserConversations", fields: [userId], references: [id], onDelete: SetNull)
+
+  // Team associated with the conversation (e.g., if a team agent is used)
+  teamId String?
+  team   Team?   @relation("TeamConversations", fields: [teamId], references: [id], onDelete: SetNull)
 
   // Relationships
   agent Agent @relation(fields: [agentId], references: [id])
@@ -250,6 +260,8 @@ model Conversation {
 
   @@index([agentId])
   @@index([lastMessageAt])
+  @@index([userId])
+  @@index([teamId])
 }
 
 // Model for individual messages in a conversation

@@ -34,7 +34,6 @@ const BaseNodeForm: React.FC<BaseNodeFormProps> = ({
   }, [selectedNode, form]);
 
   const handleSave = (values: any) => {
-    console.log(values, 4444444444444444);
 
     // Always perform the default save behavior
     setNodes((nds) =>
