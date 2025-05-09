@@ -128,7 +128,7 @@ export async function executeGenerateNode(node: FlowNode, { flow, flowState }: F
 
     flowState.components[node.id]['output'] = aiResponse;
     flowState.components[node.id]['type'] = 'generate';
-    flowState.components[node.id]['ready'] = true;
+    flowState.components[node.id]['executionTime'] = Date.now();
     flowState.currentNode = node;
 
     // Find the next node

@@ -3,7 +3,6 @@ import { ExecutionResult, FlowExecutionContext } from '../../../../models/flowEx
 import { FlowNode, RetrievalNodeData } from '../../../../models/flowTypes';
 import { retrieveFromKnowledgeBase } from '../../../../services/knowledgeService';
 import { findNextNodes } from '../../../../utils/server/findNextNode';
-import { isNodeReady } from '../../isNodeReady';
 
 /**
  * Handler for executing Retrieval nodes
@@ -13,28 +12,7 @@ export async function executeRetrievalNode(node: FlowNode, { flow, flowState, in
   const startTime = new Date().toISOString();
   // Ensure form exists with a default empty object to prevent TypeScript errors
   const form = data.form || {};
-  const ready = isNodeReady(getInputs(node.id, flowState, []), flowState);
-  if (!ready) {
-    return {
-      nextNodes: [],
-      status: 'waiting',
-      message: 'Waiting for input to retrieve',
-      flowState,
-      nodeInfo: {
-        id: node.id,
-        name: node.data?.label || node.id,
-        type: 'retrieval',
-        role: 'developer',
-      },
-      execution: {
-        output: 'Waiting for input to retrieve',
-        nodeId: node.id,
-        nodeName: node.data?.label || node.id,
-        startTime,
-        endTime: new Date().toISOString(),
-      },
-    };
-  }
+
 
 
   const inputs = getInputs(node.id, flowState, []);
@@ -70,7 +48,7 @@ export async function executeRetrievalNode(node: FlowNode, { flow, flowState, in
 
     flowState.components[node.id]['output'] = formattedResults;
     flowState.components[node.id]['type'] = 'retrieval';
-    flowState.components[node.id]['ready'] = true;
+    flowState.components[node.id]['executionTime'] = Date.now();
     flowState.currentNode = node;
 
     const nextNodes = findNextNodes(flow, node.id);

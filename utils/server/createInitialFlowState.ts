@@ -15,9 +15,9 @@ export function createInitialFlowState({ beginNode, variables, flowConfig }: Ini
     components[`${node.id}`] = {
       type: node.type,
       output: '',
-      ready: node.type === 'interface' ? true : false,
       inputFlow: [],
       inputRefs: node.data.form.inputRefs,
+      executionTime: Date.now(),
     };
   });
   flowConfig.edges.forEach((edge) => {
@@ -35,5 +35,7 @@ export function createInitialFlowState({ beginNode, variables, flowConfig }: Ini
     variables: variables || {},
     components: components,
     history: [],
+    executionTime: Date.now(),
+
   };
 }

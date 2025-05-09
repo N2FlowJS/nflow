@@ -28,7 +28,7 @@ export async function executeBeginNode(node: FlowNode, { flow, flowState }: Flow
 
   flowState.components[node.id]['output'] = processedGreeting;
   flowState.components[node.id]['type'] = 'begin';
-  flowState.components[node.id]['ready'] = true;
+  flowState.components[node.id]['executionTime'] = Date.now();
   flowState.currentNode = node;
 
   // Find the next node

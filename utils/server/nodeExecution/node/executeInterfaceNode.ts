@@ -18,7 +18,7 @@ export async function executeInterfaceNode(node: FlowNode, { flow, flowState, in
 
   flowState.components[node.id]['output'] = input.content || '';
   flowState.components[node.id]['type'] = 'interface';
-  flowState.components[node.id]['ready'] = true;
+    flowState.components[node.id]['executionTime'] = Date.now();
   flowState.currentNode = node;
 
   const nextNodes = findNextNodes(flow, node.id);

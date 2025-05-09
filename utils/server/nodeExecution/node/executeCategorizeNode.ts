@@ -1,8 +1,7 @@
-import { FlowNode, CategorizeNodeData, ICategory } from '../../../../models/flowTypes';
-import { ExecutionResult, FlowExecutionContext } from '../../../../models/flowExecutionTypes';
-import { getQueryFromSource, getInputs } from '../../../../hooks/useInputReferences';
+import { getInputs, getQueryFromSource } from '../../../../hooks/useInputReferences';
 import { prisma } from '../../../../lib/prisma';
-import { isNodeReady } from '../../isNodeReady';
+import { ExecutionResult, FlowExecutionContext } from '../../../../models/flowExecutionTypes';
+import { CategorizeNodeData, FlowNode, ICategory } from '../../../../models/flowTypes';
 
 /**
  * Handler for executing Categorize nodes
@@ -11,27 +10,6 @@ export async function executeCategorizeNode(node: FlowNode, { flowState }: FlowE
   const data = node.data as CategorizeNodeData;
   const form = data.form || {};
 
-  const ready = isNodeReady(getInputs(node.id, flowState, []), flowState);
-  if (!ready) {
-    return {
-      nextNodes: [],
-      status: 'waiting',
-      message: 'Waiting for input to categorize',
-      flowState,
-      nodeInfo: {
-        id: node.id,
-        name: node.data?.label || node.id,
-        type: 'categorize',
-        role: 'developer',
-      },
-      execution: {
-        output: 'Waiting for input to categorize',
-        nodeId: node.id,
-        nodeName: node.data?.label || node.id,
-        startTime: new Date().toISOString(),
-      },
-    };
-  }
 
   const inputs = getInputs(node.id, flowState, [])
 
@@ -78,7 +56,7 @@ export async function executeCategorizeNode(node: FlowNode, { flowState }: FlowE
       throw new Error('No suitable model found for categorization');
     }
 
- 
+
     const categoriesDescription = categories.map((c) => `- ${c.name}: ${c.description}${c.examples ? `\n  Examples: ${c.examples.join(', ')}` : ''}`).join('\n');
 
     const prompt = `
@@ -166,7 +144,7 @@ Analyze the text and determine which category it belongs to. Respond with ONLY t
 
 
     flowState.components[node.id]['type'] = 'categorize';
-    flowState.components[node.id]['ready'] = true;
+    flowState.components[node.id]['executionTime'] = Date.now();
     flowState.currentNode = node;
 
 
