@@ -13,7 +13,7 @@ export default async function handler(
 
   if (req.method === "GET") {
     try {
-      const knowledge = await prisma.knowledge.findUnique({
+   const knowledge = await prisma.knowledge.findUnique({
         where: { id },
         include: {
           createdBy: {
@@ -21,25 +21,26 @@ export default async function handler(
               id: true,
               name: true,
               email: true,
+              code: true,
+              permission: true
             }
           },
           users: {
             select: {
               id: true,
               name: true,
+              email: true
             }
           },
           teams: {
             select: {
               id: true,
               name: true,
+              description: true
             }
           },
-          files: {
-            orderBy: {
-              createdAt: 'desc'
-            }
-          }
+          files: true,
+          llmModel: true
         }
       });
 

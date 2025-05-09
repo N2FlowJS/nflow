@@ -86,10 +86,16 @@ export default function FlowEditorPage() {
       <Drawer
         title="Test Chat"
         placement="right"
-        width={isMobile ? '45%' : "80%"}
+        width={isMobile ? '90%' : "50%"}
         open={isChatOpen}
         onClose={() => setIsChatOpen(false)}
-
+        contentWrapperStyle={{ height: '100%' }}
+        bodyStyle={{ 
+          padding: 0, 
+          height: '100%', 
+          display: 'flex', 
+          flexDirection: 'column' 
+        }}
       >
         <ChatInterface
           agentId={agent?.id}

@@ -475,7 +475,12 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agentId, model, temperatu
 
     // Render the chat interface
     return (
-        <Layout style={{ height: 'calc(100vh - 300px)' }}>
+        <Layout style={{ 
+            height: '100%', 
+            minHeight: isMobile ? '70vh' : 'calc(100vh - 300px)',
+            display: 'flex',
+            flexDirection: 'column'
+        }}>
             <Layout.Header
                 style={{
                     background: 'transparent',
@@ -487,6 +492,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agentId, model, temperatu
                     alignItems: 'center',
                     flexWrap: isMobile ? 'wrap' : 'nowrap',
                     gap: token.padding,
+                    marginBottom: isMobile ? token.marginXS : token.marginSM
                 }}>
                 <Space>
                     <Avatar
@@ -544,15 +550,22 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agentId, model, temperatu
 
             <div
                 style={{
-                    flex: 1,
+                    flex: '1 1 auto',
                     overflowY: 'auto',
-                    padding: isMobile ? token.paddingMD : token.paddingLG,
-                    minHeight: 320,
-
-                    WebkitOverflowScrolling: 'touch', // For smooth scrolling on iOS
+                    padding: isMobile ? `${token.paddingSM}px ${token.paddingSM}px` : `${token.paddingMD}px ${token.paddingLG}px`,
+                    minHeight: isMobile ? '250px' : '320px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    WebkitOverflowScrolling: 'touch',
+                    msOverflowStyle: 'none', /* IE and Edge */
+                    scrollbarWidth: 'thin', /* Firefox */
                 }}>
                 {messages.length === 0 && !streamingMessage ? (
-                    <Empty image={<RobotOutlined style={{ fontSize: 64, color: token.colorPrimary }} />} description="Start a conversation with this agent" />
+                    <Empty 
+                        image={<RobotOutlined style={{ fontSize: isMobile ? 48 : 64, color: token.colorPrimary }} />} 
+                        description="Start a conversation with this agent"
+                        style={{ margin: 'auto' }} 
+                    />
                 ) : (
                     <>
                         {messages.map((message) => (
@@ -591,7 +604,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agentId, model, temperatu
                 <div ref={messagesEndRef} />
             </div>
 
-            <Card >
+            <Card style={{ borderRadius: 0, borderLeft: 0, borderRight: 0, borderBottom: 0 }}>
                 <Space.Compact block style={{ position: 'relative' }}>
                     {!isMobile && <Button icon={<SmileOutlined />} type="text" />}
                     <Input.TextArea

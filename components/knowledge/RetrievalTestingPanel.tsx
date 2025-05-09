@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
     Card, Typography, Input, Button, Slider, InputNumber,
-    Space, Divider, List, Tag, Empty, Spin, Collapse, Alert, Grid
+    Space, Divider, List, Tag, Empty, Spin, Collapse, Alert, Grid, Tooltip, Progress
 } from 'antd';
 import { SearchOutlined, ExperimentOutlined } from '@ant-design/icons';
 import { testKnowledgeRetrieval } from '../../services/knowledgeService';
@@ -29,6 +29,7 @@ const RetrievalTestingPanel: React.FC<RetrievalTestingPanelProps> = ({ knowledge
         error?: string;
     } | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [queryProgress, setQueryProgress] = useState(0);
     const screens = useBreakpoint();
 
     const handleRunTest = async () => {
@@ -39,6 +40,15 @@ const RetrievalTestingPanel: React.FC<RetrievalTestingPanelProps> = ({ knowledge
 
         setError(null);
         setLoading(true);
+        setQueryProgress(0);
+
+        // Simulate progress for better user experience
+        const progressInterval = setInterval(() => {
+            setQueryProgress(prev => {
+                const newProgress = prev + Math.random() * 15;
+                return newProgress >= 90 ? 90 : newProgress;
+            });
+        }, 300);
 
         try {
             const result = await testKnowledgeRetrieval(knowledgeId, {
@@ -47,26 +57,44 @@ const RetrievalTestingPanel: React.FC<RetrievalTestingPanelProps> = ({ knowledge
                 threshold
             });
 
+            setQueryProgress(100);
             setTestResult(result);
         } catch (err) {
             console.error('Error running retrieval test:', err);
             setError(t('knowledgeDetail.testing.runFailedError'));
         } finally {
-            setLoading(false);
+            clearInterval(progressInterval);
+            setTimeout(() => {
+                setLoading(false);
+                setQueryProgress(0);
+            }, 500); // Give users time to see 100% completion
         }
     };
 
     const renderSimilarityBadge = (similarity: number) => {
         let color = 'red';
-        if (similarity >= 0.9) color = 'green';
-        else if (similarity >= 0.8) color = 'lime';
-        else if (similarity >= 0.7) color = 'blue';
-        else if (similarity >= 0.5) color = 'orange';
+        let description = t('knowledgeDetail.testing.similarityLow');
+        
+        if (similarity >= 0.9) {
+            color = 'green';
+            description = t('knowledgeDetail.testing.similarityVeryHigh');
+        } else if (similarity >= 0.8) {
+            color = 'lime';
+            description = t('knowledgeDetail.testing.similarityHigh');
+        } else if (similarity >= 0.7) {
+            color = 'blue';
+            description = t('knowledgeDetail.testing.similarityMedium');
+        } else if (similarity >= 0.5) {
+            color = 'orange';
+            description = t('knowledgeDetail.testing.similarityModerate');
+        }
 
         return (
-            <Tag color={color}>
-                { t('knowledgeDetail.testing.similarityMatch', { percent: (similarity * 100).toFixed(1) })}
-            </Tag>
+            <Tooltip title={description}>
+                <Tag color={color} style={{ cursor: 'help' }}>
+                    {(similarity * 100).toFixed(1)}% {!isMobile && description}
+                </Tag>
+            </Tooltip>
         );
     };
 
@@ -181,7 +209,10 @@ const RetrievalTestingPanel: React.FC<RetrievalTestingPanelProps> = ({ knowledge
 
                 {loading && (
                     <div style={{ textAlign: 'center', padding: isMobile ? '12px 0' : '20px 0' }}>
-                        <Spin tip={t('knowledgeDetail.testing.runningTestTip')} />
+                        <Space direction="vertical" size="small" style={{ width: '100%' }}>
+                            <Spin tip={t('knowledgeDetail.testing.runningTestTip')} />
+                            <Progress percent={Math.round(queryProgress)} status="active" />
+                        </Space>
                     </div>
                 )}
 

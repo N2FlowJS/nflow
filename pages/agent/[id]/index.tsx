@@ -339,6 +339,12 @@ export default function AgentDetail() {
                 />
               </Space>
             }
+            bodyStyle={{ 
+              padding: 0, 
+              height: isMobile ? '60vh' : 'calc(100vh - 350px)',
+              display: 'flex',
+              flexDirection: 'column'
+            }}
           >
             {flowLoading ? (
               <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>

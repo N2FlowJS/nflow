@@ -77,6 +77,8 @@ export default function KnowledgeDetail() {
       const data = await fetchKnowledgeById(id);
       if (data) {
         console.log("Knowledge data received:", data);
+        // Log specific information about users
+        console.log("Users data:", data.users);
         setKnowledge(data as Knowledge);
 
         // Parse config JSON
@@ -426,14 +428,19 @@ export default function KnowledgeDetail() {
                 <List.Item>
                   <List.Item.Meta
                     avatar={<Avatar icon={<UserOutlined />} size={isMobile ? "small" : "default"} />}
-                    title={user.name}
+                    title={user.name || 'Unknown User'}
                   />
                 </List.Item>
               )}
             />
           ) : (
             <Empty
-              description={messages.knowledgeDetail.noUsersAssociated}
+              description={
+                <span>
+                  {messages.knowledgeDetail.noUsersAssociated}
+                  {knowledge?.users === undefined && " (Users data is undefined)"}
+                </span>
+              }
               image={Empty.PRESENTED_IMAGE_SIMPLE}
             />
           )}

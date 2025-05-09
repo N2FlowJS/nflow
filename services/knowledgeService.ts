@@ -1,6 +1,6 @@
-import { apiRequest } from './apiUtils';
+import { SearchSimilarResult } from '../lib/services/vectorSearchService';
 import { IKnowledge } from '../models/IKnowledge';
-import { searchSimilarContent, SearchSimilarResult } from '../lib/services/vectorSearchService';
+import { apiRequest } from './apiUtils';
 
 export const fetchAllKnowledge = async () => {
   return apiRequest<IKnowledge[]>('/api/knowledge');
@@ -43,17 +43,19 @@ export const testKnowledgeRetrieval = async (
     threshold?: number;
   }
 ) => {
-  // Determine which vector database to use
-  const result: {
+  return apiRequest<{
     timestamp: number;
     results: SearchSimilarResult[];
     error?: string;
-  } = await searchSimilarContent(options.query, {
-    limit: options.limit || 5,
-    knowledgeId: knowledgeId,
+  }>('/api/knowledge/test', {
+    method: 'POST',
+    body: JSON.stringify({
+      knowledgeId,
+      query: options.query,
+      limit: options.limit || 5,
+      threshold: options.threshold
+    }),
   });
-  console.log('Retrieval test results:', result);
-  return result;
 };
 
 /**
@@ -68,27 +70,17 @@ export async function retrieveFromKnowledgeBase(
   } = {}
 ): Promise<{ text: string; source: string; relevance: number }[]> {
   try {
-    // Use searchSimilarContent directly instead of API call
-    const result:{
-      timestamp: number;
-      results: SearchSimilarResult[];
-      error?: string;
-    }  = await searchSimilarContent(query, {
-      limit: options.maxResults || 5,
-      similarityThreshold: options.threshold || 0.7,
-      knowledgeId: knowledgeId,
-    });
-    
-    if (result.error) {
-      throw new Error(`Knowledge retrieval failed: ${result.error}`);
-    }
-    
-    // Transform the search results to the expected format
-    return result.results.map(item => ({
-      text: item.content|| "",
-      source: item.knowledgeId ||"Unknown source",
-      relevance: item.similarity || 0
-    }));
+    return apiRequest<{ text: string; source: string; relevance: number }[]>(
+      '/api/knowledge/retrieve', {
+        method: 'POST',
+        body: JSON.stringify({
+          knowledgeId,
+          query,
+          maxResults: options.maxResults || 5,
+          threshold: options.threshold || 0.7
+        }),
+      }
+    );
   } catch (error: unknown) {
     console.error('Error retrieving from knowledge base:', error);
     throw error;
