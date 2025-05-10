@@ -1,11 +1,11 @@
 import { DeleteOutlined, EditOutlined, PlusOutlined, ThunderboltOutlined } from '@ant-design/icons';
-import { Button, Modal, Popconfirm, Space, Table, Tag, Tooltip, Typography, message, Spin } from 'antd';
+import { Button, Modal, Popconfirm, Space, Table, Tag, Tooltip, Typography, message, Spin, Card, Row, Col, Empty } from 'antd';
 import React, { useState } from 'react';
 import { LLMModel, LLMProvider } from '../../models/llm';
 import { deleteLLMModel, fetchModelsByProvider, updateLLMModel } from '../../services/llmService';
 import LLMModelForm from './LLMModelForm';
 
-const { Title } = Typography;
+const { Title, Text } = Typography;
 
 interface LLMModelsTableProps {
   models: LLMModel[];
@@ -126,51 +126,6 @@ const LLMModelsTable: React.FC<LLMModelsTableProps> = ({ models, provider, loadi
     }
   };
 
-  const columns = [
-    {
-      title: 'Model',
-      key: 'name',
-      render: (record: LLMModel) => (
-        <Space direction="vertical" size={0}>
-          <Space>
-            <Typography.Text strong>{record.name}</Typography.Text>
-          </Space>
-          <Typography.Text type="secondary" style={{ fontSize: '12px' }}>
-            {record.name}
-          </Typography.Text>
-        </Space>
-      ),
-    },
-    {
-      title: 'Type',
-      dataIndex: 'modelType',
-      key: 'modelType',
-      render: getModelTypeTag,
-    },
-    {
-      title: 'Context',
-      dataIndex: 'contextWindow',
-      key: 'contextWindow',
-      render: (value: number) => (value ? `${value.toLocaleString()} tokens` : '-'),
-    },
-
-    {
-      title: 'Actions',
-      key: 'actions',
-      render: (record: LLMModel) => (
-        <Space size="small">
-          <Tooltip title="Edit Model">
-            <Button type="text" icon={<EditOutlined />} onClick={() => handleEdit(record)} />
-          </Tooltip>
-
-          <Popconfirm title="Delete this model?" description="This action cannot be undone." onConfirm={() => handleDelete(record.id)} okText="Delete" cancelText="Cancel" okButtonProps={{ danger: true }}>
-            <Button type="text" danger icon={<DeleteOutlined />} />
-          </Popconfirm>
-        </Space>
-      ),
-    },
-  ];
-
   const quickAddModalTitle = provider.providerType === 'openai' ? 'Quick Add OpenAI Models' : 'Quick Add Models';
 
   return (
@@ -189,7 +144,63 @@ const LLMModelsTable: React.FC<LLMModelsTableProps> = ({ models, provider, loadi
         </Space>
       </div>
 
-      <Table dataSource={models} columns={columns} rowKey="id" loading={loading} pagination={false} />
+      {loading ? (
+        <div style={{ textAlign: 'center', padding: '40px 0' }}>
+          <Spin size="large" />
+          <Text style={{ display: 'block', marginTop: 16 }}>Loading models...</Text>
+        </div>
+      ) : models.length === 0 ? (
+        <Empty
+          description="No models configured for this provider"
+          image={Empty.PRESENTED_IMAGE_SIMPLE}
+        />
+      ) : (
+        <Row gutter={[16, 16]}>
+          {models.map(model => (
+            <Col xs={24} sm={12} md={8} lg={6} xl={6} key={model.id}>
+              <Card 
+                hoverable
+                className="model-card"
+                actions={[
+                  <Tooltip title="Edit Model" key="edit">
+                    <Button type="text" icon={<EditOutlined />} onClick={() => handleEdit(model)} />
+                  </Tooltip>,
+                  <Popconfirm
+                    key="delete"
+                    title="Delete this model?"
+                    description="This action cannot be undone."
+                    onConfirm={() => handleDelete(model.id)}
+                    okText="Delete"
+                    cancelText="Cancel"
+                    okButtonProps={{ danger: true }}
+                  >
+                    <Button type="text" danger icon={<DeleteOutlined />} />
+                  </Popconfirm>
+                ]}
+              >
+                <div style={{ marginBottom: 12 }}>
+                  {getModelTypeTag(model.modelType)}
+                </div>
+                <Typography.Title level={5} ellipsis style={{ marginTop: 0, marginBottom: 8 }}>
+                  {model.name}
+                </Typography.Title>
+                <div style={{ marginBottom: 8 }}>
+                  <Text type="secondary" style={{ fontSize: '12px' }}>
+                    Model ID: {model.name}
+                  </Text>
+                </div>
+                {model.contextWindow && (
+                  <div style={{ marginTop: 8 }}>
+                    <Text type="secondary">
+                      Context: {model.contextWindow.toLocaleString()} tokens
+                    </Text>
+                  </div>
+                )}
+              </Card>
+            </Col>
+          ))}
+        </Row>
+      )}
 
       {/* Edit Model Modal */}
       <Modal title="Edit LLM Model" open={isEditModalVisible} onCancel={() => setIsEditModalVisible(false)} footer={null} width={700}>
@@ -250,6 +261,24 @@ const LLMModelsTable: React.FC<LLMModelsTableProps> = ({ models, provider, loadi
           </>
         )}
       </Modal>
+
+      <style jsx global>{`
+        .model-card {
+          height: 100%;
+          display: flex;
+          flex-direction: column;
+          transition: all 0.3s;
+        }
+        
+        .model-card:hover {
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+          transform: translateY(-3px);
+        }
+        
+        .model-card .ant-card-body {
+          flex: 1;
+        }
+      `}</style>
     </>
   );
 };

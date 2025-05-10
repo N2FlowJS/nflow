@@ -1,9 +1,7 @@
+import { PlusOutlined, RobotOutlined } from '@ant-design/icons';
+import { Badge, Button, Empty, List, Space } from 'antd';
 import React from 'react';
-import { Card, Button, Typography, Table, Tag, Alert, Space } from 'antd';
-import { RobotOutlined, PlusOutlined } from '@ant-design/icons';
-import Link from 'next/link';
 
-const { Title, Text } = Typography;
 
 interface Agent {
   id: string;
@@ -26,101 +24,95 @@ const UserAgentsTab: React.FC<UserAgentsTabProps> = ({
   agents,
   onShowCreateAgent
 }) => {
-  const agentColumns = [
-    {
-      title: 'Name',
-      dataIndex: 'name',
-      key: 'name',
-      render: (text: string, record: Agent) => (
-        <Link href={`/agent/${record.id}`}>{text}</Link>
-      ),
-    },
-    {
-      title: 'Description',
-      dataIndex: 'description',
-      key: 'description',
-      ellipsis: true,
-    },
-    {
-      title: 'Status',
-      dataIndex: 'isActive',
-      key: 'isActive',
-      render: (isActive: boolean) => (
-        <Tag color={isActive ? 'green' : 'red'}>
-          {isActive ? 'Active' : 'Inactive'}
-        </Tag>
-      ),
-    },
-    {
-      title: 'Last Updated',
-      dataIndex: 'updatedAt',
-      key: 'updatedAt',
-      render: (date: string) => new Date(date).toLocaleString(),
-    },
-    {
-      title: 'Actions',
-      key: 'actions',
-      render: (_: any, record: Agent) => (
-        <Button
-          type="primary"
-          size="small"
-          onClick={() => window.location.href = `/agent/${record.id}`}
-        >
-          View
-        </Button>
-      ),
-    },
-  ];
-
   return (
-    <Card
-      title={
-        <Title level={4}>
-          <Space>
-            <RobotOutlined />
-            {isCurrentUser ? "My Agents" : "User's Agents"}
-          </Space>
-        </Title>
-      }
-      extra={
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          onClick={onShowCreateAgent}
-        >
-          Create Agent
-        </Button>
-      }
-    >
+    <div className="agents-container">
       {agents?.length === 0 ? (
-        <Alert
-          message="No Agents Found"
+        <Empty
+          image={Empty.PRESENTED_IMAGE_SIMPLE}
           description={
-            isCurrentUser ?
-              "You haven't created any agents yet. Create your first agent to get started." :
-              "This user has not created any agents."
+            <span>
+              {isCurrentUser ? 
+                "You haven't created any agents yet" : 
+                "This user hasn't created any agents"}
+            </span>
           }
-          type="info"
-          showIcon
-          style={{ marginBottom: 16 }}
-        />
+        >
+          {isCurrentUser && (
+            <Button 
+              type="primary" 
+              icon={<PlusOutlined />}
+              onClick={onShowCreateAgent}
+            >
+              Create Agent
+            </Button>
+          )}
+        </Empty>
       ) : (
-        <Text style={{ marginBottom: 16, display: 'block' }}>
-          {isCurrentUser ?
-            "These are the agents you've created:" :
-            "These are the agents this user has created:"
-          }
-        </Text>
+        <List
+          itemLayout="horizontal"
+          dataSource={agents}
+          renderItem={(agent) => (
+            <List.Item
+              className="agent-list-item"
+              actions={[
+                <Button 
+                  key="view" 
+                  type="link"
+                  onClick={() => window.location.href = `/agent/${agent.id}`}
+                >
+                  Open Agent
+                </Button>
+              ]}
+            >
+              <List.Item.Meta
+                avatar={
+                  <div className="agent-avatar">
+                    <RobotOutlined style={{ fontSize: '24px', color: '#13c2c2' }} />
+                  </div>
+                }
+                title={
+                  <Space>
+                    <span className="agent-name">{agent.name}</span>
+                    <Badge 
+                      status={agent.isActive ? "success" : "default"} 
+                      text={agent.isActive ? "Active" : "Inactive"} 
+                    />
+                  </Space>
+                }
+                description={agent.description}
+              />
+            </List.Item>
+          )}
+        />
       )}
 
-      <Table
-        columns={agentColumns}
-        dataSource={agents || []}
-        rowKey="id"
-        pagination={false}
-        locale={{ emptyText: isCurrentUser ? 'You have not created any agents' : 'This user has not created any agents' }}
-      />
-    </Card>
+      <style jsx global>{`
+        .agents-container {
+          padding: 0;
+        }
+        .agent-list-item {
+          padding: 12px;
+          border-radius: 6px;
+          transition: all 0.3s;
+          margin-bottom: 8px;
+        }
+        .agent-list-item:hover {
+          background-color: #e6fffb;
+        }
+        .agent-avatar {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          background-color: #e6fffb;
+        }
+        .agent-name {
+          font-weight: 500;
+        }
+      `}</style>
+    </div>
   );
 };
 

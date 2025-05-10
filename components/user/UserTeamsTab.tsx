@@ -1,9 +1,8 @@
-import React from 'react';
-import { Card, Button, Typography, Table, Tag, Alert, Space } from 'antd';
-import { TeamOutlined, CrownOutlined, PlusOutlined } from '@ant-design/icons';
+import { CrownOutlined, PlusOutlined, TeamOutlined } from '@ant-design/icons';
+import { Button, Empty, List, Space, Tag } from 'antd';
 import { useRouter } from 'next/router';
+import React from 'react';
 
-const { Title, Text } = Typography;
 
 interface Team {
   id: string;
@@ -38,93 +37,72 @@ const UserTeamsTab: React.FC<UserTeamsTabProps> = ({
     }
   };
 
-  const getRoleBadge = (role: string) => {
-    if (role === 'owner') {
-      return <Tag color="gold" icon={<CrownOutlined />}>{role.toUpperCase()}</Tag>;
-    }
-    const color = getRoleColor(role);
-    return <Tag color={color}>{role.toUpperCase()}</Tag>;
-  };
-
-  const teamColumns = [
-    {
-      title: 'Name',
-      dataIndex: 'name',
-      key: 'name',
-      render: (text: string, record: Team) => (
-        <a onClick={() => router.push(`/team/${record.id}`)}>{text}</a>
-      ),
-    },
-    {
-      title: 'Description',
-      dataIndex: 'description',
-      key: 'description',
-    },
-    {
-      title: 'Role',
-      dataIndex: 'role',
-      key: 'role',
-      render: (role: string) => getRoleBadge(role)
-    },
-    {
-      title: 'Joined',
-      dataIndex: 'joinedAt',
-      key: 'joinedAt',
-      render: (date: string) => date ? new Date(date).toLocaleDateString() : '-',
-    }
-  ];
-
   return (
-    <Card
-      title={
-        <Title level={4}>
-          <Space>
-            <TeamOutlined />
-            Team Memberships
-          </Space>
-        </Title>
-      }
-      extra={
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          onClick={onShowCreateTeam}
-        >
-          Create Team
-        </Button>
-      }
-    >
+    <div className="teams-container">
       {teams?.length === 0 ? (
-        <Alert
-          message="No Team Memberships"
+        <Empty
+          image={Empty.PRESENTED_IMAGE_SIMPLE}
           description={
-            isCurrentUser ?
-              "You are not a member of any team. Create a team or ask to be invited to one." :
-              "This user is not a member of any team."
+            <span>
+              {isCurrentUser ? 
+                "You're not a member of any team yet" : 
+                "This user is not a member of any team"}
+            </span>
           }
-          type="info"
-          showIcon
-          style={{ marginBottom: 16 }}
-        />
+        >
+          {isCurrentUser && (
+            <Button 
+              type="primary" 
+              icon={<PlusOutlined />}
+              onClick={onShowCreateTeam}
+            >
+              Create Team
+            </Button>
+          )}
+        </Empty>
       ) : (
-        <div style={{ marginBottom: 16 }}>
-          <Text>
-            {isCurrentUser ?
-              "You are a member of the following teams:" :
-              "This user is a member of the following teams:"
-            }
-          </Text>
-        </div>
+        <List
+          itemLayout="horizontal"
+          dataSource={teams}
+          renderItem={(team) => (
+            <List.Item
+              className="team-list-item"
+              actions={[
+                <Button 
+                  key="view" 
+                  type="link"
+                  onClick={() => router.push(`/team/${team.id}`)}
+                >
+                  View Details
+                </Button>
+              ]}
+            >
+              <List.Item.Meta
+                avatar={
+                  <div className="team-avatar">
+                    <TeamOutlined style={{ fontSize: '24px', color: '#722ed1' }} />
+                  </div>
+                }
+                title={
+                  <Space>
+                    <span className="team-name">{team.name}</span>
+                    {team.role === 'owner' && (
+                      <Tag color="gold" icon={<CrownOutlined />}>OWNER</Tag>
+                    )}
+                    {team.role !== 'owner' && (
+                      <Tag color={getRoleColor(team.role||'')}>{team.role?.toUpperCase()}</Tag>
+                    )}
+                  </Space>
+                }
+                description={team.description}
+              />
+            </List.Item>
+          )}
+        />
       )}
 
-      <Table
-        columns={teamColumns}
-        dataSource={teams}
-        rowKey="id"
-        pagination={false}
-        locale={{ emptyText: isCurrentUser ? 'You are not a member of any team' : 'This user is not a member of any team' }}
-      />
-    </Card>
+  
+    </div>
   );
 };
 

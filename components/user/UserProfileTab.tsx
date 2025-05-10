@@ -1,36 +1,23 @@
 import React from 'react';
-import { Card, Form, Input, Button, Typography, Row, Col, Divider } from 'antd';
-import { EditOutlined, UserOutlined, MailOutlined, CalendarOutlined } from '@ant-design/icons';
+import { Form, Input, Typography, Row, Col, Divider } from 'antd';
+import { UserOutlined, MailOutlined, CalendarOutlined } from '@ant-design/icons';
 import { IUser } from '../../models/IUser';
 
-const { Title, Text, Paragraph } = Typography;
+const { Text, Paragraph } = Typography;
 
 interface UserProfileTabProps {
   user: IUser;
-  isCurrentUser: boolean;
   isEditing: boolean;
   form: any;
-  onEdit: () => void;
 }
 
 const UserProfileTab: React.FC<UserProfileTabProps> = ({
   user,
-  isCurrentUser,
   isEditing,
   form,
-  onEdit
 }) => {
   return (
-    <Card
-      title={<Title level={4}>User Information</Title>}
-      extra={
-        !isEditing && isCurrentUser && (
-          <Button type="primary" icon={<EditOutlined />} onClick={onEdit}>
-            Edit Profile
-          </Button>
-        )
-      }
-    >
+    <>
       {isEditing ? (
         <Form
           form={form}
@@ -71,45 +58,72 @@ const UserProfileTab: React.FC<UserProfileTabProps> = ({
           </Form.Item>
         </Form>
       ) : (
-        <Row gutter={[24, 24]}>
-          <Col xs={24} sm={12}>
-            <Text strong style={{ fontSize: '16px' }}>Name: </Text>
-            <Text style={{ fontSize: '16px' }}>{user?.name}</Text>
-          </Col>
-          <Col xs={24} sm={12}>
-            <Text strong style={{ fontSize: '16px' }}>Email: </Text>
-            <Text style={{ fontSize: '16px' }}>{user?.email || 'No email provided'}</Text>
-          </Col>
-          <Col span={24}>
-            <Text strong style={{ fontSize: '16px', display: 'block', marginBottom: 8 }}>
-              Description:
-            </Text>
-            <Paragraph style={{ fontSize: '16px' }}>
-              {user?.description || 'No description provided.'}
-            </Paragraph>
-          </Col>
-          <Col span={24}>
-            <Divider />
-            <Row gutter={16}>
-              <Col span={8}>
-                <Text type="secondary">Created At:</Text>
-                <div>
-                  <CalendarOutlined style={{ marginRight: 8 }} />
-                  {user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
-                </div>
-              </Col>
-              <Col span={8}>
-                <Text type="secondary">Last Login:</Text>
-                <div>
-                  <CalendarOutlined style={{ marginRight: 8 }} />
-                  {user?.lastLoginAt ? new Date(user.lastLoginAt).toLocaleDateString() : 'N/A'}
-                </div>
-              </Col>
-            </Row>
-          </Col>
-        </Row>
+        <div className="user-info-container">
+          <Row gutter={[24, 16]}>
+            <Col xs={24} sm={12}>
+              <div className="info-item">
+                <Text strong style={{ fontSize: '16px' }}>Name: </Text>
+                <Text style={{ fontSize: '16px' }}>{user?.name}</Text>
+              </div>
+            </Col>
+            <Col xs={24} sm={12}>
+              <div className="info-item">
+                <Text strong style={{ fontSize: '16px' }}>Email: </Text>
+                <Text style={{ fontSize: '16px' }}>{user?.email || 'No email provided'}</Text>
+              </div>
+            </Col>
+            <Col span={24}>
+              <div className="info-item">
+                <Text strong style={{ fontSize: '16px', display: 'block', marginBottom: 8 }}>
+                  Description:
+                </Text>
+                <Paragraph style={{ fontSize: '16px' }}>
+                  {user?.description || 'No description provided.'}
+                </Paragraph>
+              </div>
+            </Col>
+            <Col span={24}>
+              <Divider style={{ margin: '16px 0' }} />
+              <Row gutter={32}>
+                <Col xs={24} sm={12}>
+                  <div className="date-item">
+                    <Text type="secondary">Created At:</Text>
+                    <div>
+                      <CalendarOutlined style={{ marginRight: 8 }} />
+                      {user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
+                    </div>
+                  </div>
+                </Col>
+                <Col xs={24} sm={12}>
+                  <div className="date-item">
+                    <Text type="secondary">Last Login:</Text>
+                    <div>
+                      <CalendarOutlined style={{ marginRight: 8 }} />
+                      {user?.lastLoginAt ? new Date(user.lastLoginAt).toLocaleDateString() : 'N/A'}
+                    </div>
+                  </div>
+                </Col>
+              </Row>
+            </Col>
+          </Row>
+        </div>
       )}
-    </Card>
+
+      <style jsx global>{`
+        .user-info-container {
+          padding: 0;
+        }
+        .info-item {
+          margin-bottom: 8px;
+        }
+        .date-item {
+          background-color: #f9f9f9;
+          padding: 12px;
+          border-radius: 6px;
+          margin-top: 8px;
+        }
+      `}</style>
+    </>
   );
 };
 

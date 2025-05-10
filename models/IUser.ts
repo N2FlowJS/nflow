@@ -1,4 +1,3 @@
-
 export interface IUser {
   id: string;
   name: string;
@@ -11,4 +10,12 @@ export interface IUser {
   ownedAgents?: any[];
   lastLoginAt?: string;
   permission?: string;
+  lmmConfig?: LMMConfig;
+}
+
+export interface LMMConfig {
+  defaultModels: {
+    chat: string | null;
+    embedding: string | null;
+  };
 }

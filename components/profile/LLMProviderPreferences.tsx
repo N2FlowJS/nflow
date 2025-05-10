@@ -1,46 +1,38 @@
-import React, { useState, useEffect } from 'react';
-import {
-  Card,
-  Typography,
-  Select,
-  Button,
-  Spin,
-  message,
-  Table,
-  Tag,
-  Tooltip,
-  Tabs,
-  Empty,
-} from 'antd';
 import {
   ApiOutlined,
-  StarFilled,
 } from '@ant-design/icons';
-import { updateUserPreferences, fetchUserPreferences } from '../../services/userService';
+import {
+  Card,
+  Col,
+  Empty,
+  message,
+  Row,
+  Space,
+  Spin,
+  Tag,
+  Tooltip,
+  Typography,
+} from 'antd';
+import React, { useEffect, useState } from 'react';
 import { LLMProvider } from '../../models/llm';
+import { fetchUserPreferences } from '../../services/userService';
 
 const { Title, Text } = Typography;
-const { TabPane } = Tabs;
-const { Option } = Select;
 
 interface LLMProviderPreferencesProps {
   userId?: string;
   teamId?: string;
-  viewOnly?: boolean;
   userName?: string;
 }
 
 const LLMProviderPreferences: React.FC<LLMProviderPreferencesProps> = ({
   userId,
-  viewOnly = false,
   userName
 }) => {
   const [loading, setLoading] = useState(false);
   const [preferences, setPreferences] = useState<any>(null);
-  const [selectedProvider, setSelectedProvider] = useState<string | null>(null);
-  const [saving, setSaving] = useState(false);
-
-
+  
+  // Fetch preferences including available models and current defaults
   const fetchPreferences = React.useCallback(async () => {
     if (!userId) return;
 
@@ -48,7 +40,6 @@ const LLMProviderPreferences: React.FC<LLMProviderPreferencesProps> = ({
     try {
       const data = await fetchUserPreferences(userId);
       setPreferences(data);
-      setSelectedProvider(data.defaultLLMProviderId);
     } catch (error: unknown) {
       console.error('Error fetching LLM preferences:', error);
       message.error('Failed to load LLM preferences');
@@ -56,28 +47,10 @@ const LLMProviderPreferences: React.FC<LLMProviderPreferencesProps> = ({
       setLoading(false);
     }
   }, [userId]);
-
-  const handleProviderChange = (providerId: string) => {
-    setSelectedProvider(providerId);
-  };
-
-  const handleSave = async () => {
-    if (!userId) return;
-
-    setSaving(true);
-    try {
-      await updateUserPreferences(userId, {
-        defaultLLMProviderId: selectedProvider
-      });
-      message.success('Default LLM provider updated successfully');
-      fetchPreferences(); // Refresh data
-    } catch (error: unknown) {
-      console.error('Error updating preferences:', error);
-      message.error('Failed to update preferences');
-    } finally {
-      setSaving(false);
-    }
-  };
+  
+  useEffect(() => {
+    fetchPreferences();
+  }, [fetchPreferences]);
 
   const getProviderTypeTag = (type: string) => {
     let color = '';
@@ -122,118 +95,61 @@ const LLMProviderPreferences: React.FC<LLMProviderPreferencesProps> = ({
     }
     return null;
   };
-  useEffect(() => {
-    fetchPreferences();
 
-  }, [fetchPreferences]);
-
-  const columns = [
-
-    {
-      title: 'Type',
-      dataIndex: 'providerType',
-      key: 'providerType',
-      render: (type: string) => getProviderTypeTag(type),
-    },
-    {
-      title: 'Owner',
-      key: 'owner',
-      render: (record: LLMProvider) => getOwnerTag(record),
-    },
-    {
-      title: 'Models',
-      dataIndex: 'models',
-      key: 'models',
-      render: (models: any[]) => (
-        <span>{models?.length || 0} models</span>
-      ),
-    },
-  
-  ];
-
-  const renderProviderSelector = () => {
-    if (!preferences) return null;
-
-    const allProviders = [
-      ...(preferences.availableProviders?.systemProviders || []),
-      ...(preferences.availableProviders?.userProviders || []),
-      ...(preferences.availableProviders?.teamProviders || []),
-    ];
+  const renderProviderCards = (providers: LLMProvider[], title: string) => {
+    if (providers.length === 0) {
+      return null;
+    }
 
     return (
       <div style={{ marginBottom: 24 }}>
-        <Title level={4}>Default LLM Provider</Title>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <Select
-            placeholder="Select default LLM provider"
-            style={{ width: 300 }}
-            value={selectedProvider}
-            onChange={handleProviderChange}
-            disabled={viewOnly}
-          >
-            <Option value={null}>No default provider</Option>
-            {allProviders.map(provider => (
-              <Option key={provider.id} value={provider.id}>
-                {provider.name} {getProviderTypeTag(provider.providerType)} {getOwnerTag(provider)}
-              </Option>
-            ))}
-          </Select>
-
-          {!viewOnly && (
-            <Button
-              type="primary"
-              onClick={handleSave}
-              loading={saving}
-              icon={<StarFilled />}
-            >
-              Set as Default
-            </Button>
-          )}
-        </div>
-        <Text type="secondary" style={{ marginTop: 8, display: 'block' }}>
-          The default provider will be used for all AI interactions unless otherwise specified
-        </Text>
+        <Title level={5} style={{ marginBottom: 16 }}>{title}</Title>
+        <Row gutter={[16, 16]}>
+          {providers.map(provider => (
+            <Col xs={24} sm={12} md={8} lg={6} key={provider.id}>
+              <Card 
+                hoverable
+                className="provider-preference-card"
+              >
+                <div style={{ marginBottom: 12 }}>
+                  {getProviderTypeTag(provider.providerType)}
+                  {getOwnerTag(provider)}
+                </div>
+                <Typography.Title level={5} ellipsis style={{ margin: '0 0 12px 0' }}>
+                  {provider.name || 'Unnamed Provider'}
+                </Typography.Title>
+                <Space style={{ marginTop: 8 }}>
+                  <Text type="secondary">
+                    {provider.models?.length || 0} models
+                  </Text>
+                </Space>
+              </Card>
+            </Col>
+          ))}
+        </Row>
       </div>
     );
   };
 
-  const renderProviderTabs = () => {
+  const renderAllProviders = () => {
     if (!preferences) return null;
 
-    return (
-      <Tabs defaultActiveKey="all">
-        <TabPane tab="All Providers" key="all">
-          <Table
-            dataSource={[
-              ...(preferences.availableProviders?.systemProviders || []),
-              ...(preferences.availableProviders?.userProviders || []),
-              ...(preferences.availableProviders?.teamProviders || []),
-            ]}
-            columns={columns}
-            rowKey="id"
-            pagination={false}
-          />
-        </TabPane>
+    const systemProviders = preferences.availableProviders?.systemProviders || [];
+    const userProviders = preferences.availableProviders?.userProviders || [];
+    const teamProviders = preferences.availableProviders?.teamProviders || [];
+    
+    const hasAnyProviders = systemProviders.length > 0 || userProviders.length > 0 || teamProviders.length > 0;
+    
+    if (!hasAnyProviders) {
+      return <Empty description="No providers available" />;
+    }
 
-        <TabPane tab={`${userName ? `${userName}'s Providers` : 'My Providers'}`} key="user">
-          <Table
-            dataSource={preferences.availableProviders?.userProviders || []}
-            columns={columns}
-            rowKey="id"
-            pagination={false}
-            locale={{ emptyText: <Empty description="You have no personal providers" /> }}
-          />
-        </TabPane>
-        <TabPane tab="Team Providers" key="team">
-          <Table
-            dataSource={preferences.availableProviders?.teamProviders || []}
-            columns={columns}
-            rowKey="id"
-            pagination={false}
-            locale={{ emptyText: <Empty description="No team providers available" /> }}
-          />
-        </TabPane>
-      </Tabs>
+    return (
+      <>
+        {userProviders.length > 0 && renderProviderCards(userProviders, `${userName ? `${userName}'s` : 'My'} Providers`)}
+        {teamProviders.length > 0 && renderProviderCards(teamProviders, 'Team Providers')}
+        {systemProviders.length > 0 && renderProviderCards(systemProviders, 'System Providers')}
+      </>
     );
   };
 
@@ -250,14 +166,30 @@ const LLMProviderPreferences: React.FC<LLMProviderPreferencesProps> = ({
 
   return (
     <Card>
-      <Title level={3}>LLM Provider Preferences</Title>
-
-      {renderProviderSelector()}
+      <Title level={3}>Available LLM Providers</Title>
+      <Text type="secondary">
+        These providers are available for use with your agents and workflows.
+      </Text>
 
       <div style={{ marginTop: 24 }}>
-        <Title level={4}>Available Providers</Title>
-        {renderProviderTabs()}
+        {renderAllProviders()}
       </div>
+
+      <style jsx global>{`
+        .provider-preference-card {
+          height: 100%;
+          transition: all 0.3s;
+        }
+        
+        .provider-preference-card:hover {
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+          transform: translateY(-3px);
+        }
+        
+        .provider-preference-card .ant-card-body {
+          padding: 16px;
+        }
+      `}</style>
     </Card>
   );
 };

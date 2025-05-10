@@ -28,7 +28,6 @@ export function getBestModelForType(
   
   // 4. Fall back to any provider with an active model of the right type
   for (const provider of providers) {
-    // First try default models
     const defaultModel = provider.models.find(
       m => m.modelType === modelType
     );

@@ -1,29 +1,43 @@
-import { ApiOutlined, ArrowLeftOutlined, DashboardOutlined, LockOutlined, RobotOutlined, TeamOutlined, UserOutlined } from '@ant-design/icons';
+import {
+  ApiOutlined,
+  ArrowLeftOutlined,
+  LockOutlined,
+  PlusOutlined,
+  RobotOutlined,
+  TeamOutlined,
+  UserOutlined,
+} from '@ant-design/icons';
+import { Alert, Badge, Button, Card, Col, Form, Row, Skeleton, Space, Statistic, Tooltip, message } from 'antd';
+import { useRouter } from 'next/router';
+import React, { Suspense, lazy, useEffect, useState } from 'react';
 import MainLayout from '../../components/layout/MainLayout';
 import PasswordChangeForm from '../../components/profile/PasswordChangeForm';
-import { createAgent } from "../../services/agentService";
-import { checkAuthentication, redirectToLogin } from '../../services/authUtils';
-import { createUserLLMProvider, deleteUserLLMProvider, fetchUserLLMProviders, updateUserLLMProvider } from '../../services/llmService';
-import { createTeam } from "../../services/teamService";
-import { fetchUserById, updateUser } from "../../services/userService";
-import { Alert, Breadcrumb, Button, Form, Skeleton, Space, Tabs, message } from 'antd';
-import Link from 'next/link';
-import { useRouter } from 'next/router';
-import React, { useEffect, useState } from 'react';
 import { IUser } from '../../models/IUser';
 import { LLMProvider } from '../../models/llm';
+import { createAgent } from '../../services/agentService';
+import { checkAuthentication, redirectToLogin } from '../../services/authUtils';
+import {
+  createUserLLMProvider,
+  deleteUserLLMProvider,
+  fetchUserLLMProviders,
+  updateUserLLMProvider,
+} from '../../services/llmService';
+import { createTeam } from '../../services/teamService';
+import { fetchUserById, updateUser } from '../../services/userService';
 import { useTheme } from '../../theme';
 
-import UserAgentsTab from '../../components/user/UserAgentsTab';
-import UserLLMTab from '../../components/user/UserLLMTab';
+// Regular imports for immediately needed components
+import DefaultModelsForm from '../../components/llm/DefaultModelsForm';
 import UserProfileHeader from '../../components/user/UserProfileHeader';
 import UserProfileTab from '../../components/user/UserProfileTab';
-import UserTeamsTab from '../../components/user/UserTeamsTab';
-import AgentCreationModal from '../../components/user/modals/AgentCreationModal';
-import LLMProviderModal from '../../components/user/modals/LLMProviderModal';
-import TeamCreationModal from '../../components/user/modals/TeamCreationModal';
 
-const { TabPane } = Tabs;
+// Lazy load components that aren't needed immediately
+const UserAgentsTab = lazy(() => import('../../components/user/UserAgentsTab'));
+const UserLLMTab = lazy(() => import('../../components/user/UserLLMTab'));
+const UserTeamsTab = lazy(() => import('../../components/user/UserTeamsTab'));
+const AgentCreationModal = lazy(() => import('../../components/user/modals/AgentCreationModal'));
+const LLMProviderModal = lazy(() => import('../../components/user/modals/LLMProviderModal'));
+const TeamCreationModal = lazy(() => import('../../components/user/modals/TeamCreationModal'));
 
 export default function UserDetail() {
   const router = useRouter();
@@ -51,7 +65,7 @@ export default function UserDetail() {
 
   // Check authentication
   const validateAuthentication = React.useCallback(async () => {
-    if (!id) return
+    if (!id) return;
     try {
       const authData = await checkAuthentication();
 
@@ -190,7 +204,7 @@ export default function UserDetail() {
           ...values,
           ownerType: 'user',
           userId: id as string,
-          flowConfig: JSON.stringify({ nodes: [], edges: [] })
+          flowConfig: JSON.stringify({ nodes: [], edges: [] }),
         };
 
         const newAgent = await createAgent(agentData);
@@ -280,11 +294,24 @@ export default function UserDetail() {
   if (loading) {
     return (
       <MainLayout title="Loading User Profile">
-        <div style={{ padding: '24px' }}>
-          <Skeleton avatar paragraph={{ rows: 4 }} active />
-          <div style={{ marginTop: 16 }}>
-            <Skeleton active />
-          </div>
+        <div className="dashboard-container" style={{ padding: '24px' }}>
+          <Row gutter={[24, 24]}>
+            <Col span={24}>
+              <Card>
+                <Skeleton avatar paragraph={{ rows: 4 }} active />
+              </Card>
+            </Col>
+            <Col span={24}>
+              <Card>
+                <Skeleton active paragraph={{ rows: 6 }} />
+              </Card>
+            </Col>
+            <Col span={24}>
+              <Card>
+                <Skeleton active paragraph={{ rows: 4 }} />
+              </Card>
+            </Col>
+          </Row>
         </div>
       </MainLayout>
     );
@@ -310,126 +337,292 @@ export default function UserDetail() {
   }
 
   return (
-    <MainLayout title={isCurrentUser ? "My Profile" : `${user?.name}'s Profile`}>
-      <div style={{ padding: '24px' }}>
-        <Space direction="vertical" size="large" style={{ width: '100%' }}>
-          {/* Breadcrumb with Admin Link */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Breadcrumb
-              style={{ fontSize: '14px' }}
-              items={isCurrentUser ? [
-                { title: 'Dashboard' },
-                { title: user?.name || 'My Profile' }
-              ] : [
-                {
-                  title: <Link href="/user">Users</Link>
-                },
-                { title: user?.name || 'User Profile' }
-              ]}
-            />
-            {isCurrentUser && user?.permission === 'owner' && (
-              <Link href="/admin">
-                <Button type="primary" icon={<DashboardOutlined />}>
-                  Admin Dashboard
-                </Button>
-              </Link>
-            )}
-          </div>
-          <UserProfileHeader
-            user={user as IUser}
-            isCurrentUser={isCurrentUser}
-            isEditing={isEditing}
-            currentUserId={currentUserId}
-            form={form}
-            theme={theme}
-            llmProviders={llmProviders}
-            onEdit={handleEdit}
-            onCancel={handleCancel}
-            onSubmit={handleSubmit}
-          />
-          <Tabs defaultActiveKey="profile" type="card" size="large">
-            {/* Profile Tab */}
-            <TabPane tab={<span><UserOutlined /> Profile</span>} key="profile">
-              <UserProfileTab
+    <MainLayout title={isCurrentUser ? 'My Profile' : `${user?.name}'s Profile`}>
+      <div className="dashboard-container" style={{ padding: '24px' }}>
+        {/* User Profile Header with accent color */}
+        <Row gutter={[24, 24]}>
+          <Col span={24}>
+            <Card className="profile-header-card accent-top accent-color-blue">
+              <UserProfileHeader
                 user={user as IUser}
                 isCurrentUser={isCurrentUser}
                 isEditing={isEditing}
-                form={form}
-                onEdit={handleEdit}
-              />
-            </TabPane>
-
-            {/* Security Tab */}
-            <TabPane tab={<span><LockOutlined /> Security</span>} key="security">
-              {id && <PasswordChangeForm userId={id as string} />}
-            </TabPane>
-
-            {/* LLM Settings Tab */}
-            <TabPane tab={<span><ApiOutlined /> LLM Settings</span>} key="llm">
-              <UserLLMTab
-                userId={id as string}
-                isCurrentUser={isCurrentUser}
                 currentUserId={currentUserId}
-                llmProviders={llmProviders}
-                llmProviderLoading={llmProviderLoading}
-                onOpenAddModal={() => setIsLLMProviderModalVisible(true)}
-                onOpenEditModal={(provider) => {
-                  setEditingLLMProvider(provider);
-                  setIsEditLLMProviderModalVisible(true);
-                }}
-                onDeleteProvider={handleDeleteLLMProvider}
-                onRefreshProviders={fetchUserProviders}
-                userName={user?.name}  // Add this line
+                theme={theme}
+                onEdit={handleEdit}
+                onCancel={handleCancel}
+                onSubmit={handleSubmit}
               />
-            </TabPane>
+            </Card>
+          </Col>
+        </Row>
 
-            {/* Teams Tab */}
-            <TabPane tab={<span><TeamOutlined /> Teams</span>} key="teams">
-              <UserTeamsTab
-                userId={id as string}
-                isCurrentUser={isCurrentUser}
-                teams={user?.teamsWithRoles || []}
-                onShowCreateTeam={() => setIsTeamModalVisible(true)}
+        <Row gutter={[24, 24]} style={{ marginTop: '16px' }}>
+          <Col xs={24} sm={8}>
+            <Card className="dashboard-stat-card accent-left accent-color-purple" hoverable>
+              <Statistic
+                title={
+                  <Space>
+                    <TeamOutlined /> Teams
+                  </Space>
+                }
+                value={user?.teamsWithRoles?.length || 0}
+                valueStyle={{ color: '#722ed1', fontSize: '32px', fontWeight: 'bold' }}
               />
-            </TabPane>
-
-            {/* Agents Tab */}
-            <TabPane tab={<span><RobotOutlined /> Agents</span>} key="agents">
-              <UserAgentsTab
-                isCurrentUser={isCurrentUser}
-                agents={user?.ownedAgents || []}
-                onShowCreateAgent={() => setIsAgentModalVisible(true)}
+              {user?.teamsWithRoles && user?.teamsWithRoles?.length > 0 && (
+                <div className="stat-footer">
+                  <Tooltip title="Click to view teams">
+                    <Button
+                      type="link"
+                      style={{ padding: 0 }}
+                      onClick={() => document.getElementById('teams-section')?.scrollIntoView({ behavior: 'smooth' })}>
+                      View details
+                    </Button>
+                  </Tooltip>
+                </div>
+              )}
+            </Card>
+          </Col>
+          <Col xs={24} sm={8}>
+            <Card className="dashboard-stat-card accent-left accent-color-teal" hoverable>
+              <Statistic
+                title={
+                  <Space>
+                    <RobotOutlined /> Agents
+                  </Space>
+                }
+                value={user?.ownedAgents?.length || 0}
+                valueStyle={{ color: '#13c2c2', fontSize: '32px', fontWeight: 'bold' }}
               />
-            </TabPane>
-          </Tabs>
+              {user?.ownedAgents && user.ownedAgents.length > 0 && (
+                <div className="stat-footer">
+                  <Tooltip title="Click to view agents">
+                    <Button
+                      type="link"
+                      style={{ padding: 0 }}
+                      onClick={() => document.getElementById('agents-section')?.scrollIntoView({ behavior: 'smooth' })}>
+                      View details
+                    </Button>
+                  </Tooltip>
+                </div>
+              )}
+            </Card>
+          </Col>
+          <Col xs={24} sm={8}>
+            <Card className="dashboard-stat-card accent-left accent-color-blue" hoverable>
+              <Statistic
+                title={
+                  <Space>
+                    <ApiOutlined /> LLM Providers
+                  </Space>
+                }
+                value={llmProviders?.length || 0}
+                valueStyle={{ color: '#1890ff', fontSize: '32px', fontWeight: 'bold' }}
+              />
+              {llmProviders?.length > 0 && (
+                <div className="stat-footer">
+                  <Tooltip title="Click to view LLM providers">
+                    <Button
+                      type="link"
+                      style={{ padding: 0 }}
+                      onClick={() => document.getElementById('llm-section')?.scrollIntoView({ behavior: 'smooth' })}>
+                      View details
+                    </Button>
+                  </Tooltip>
+                </div>
+              )}
+            </Card>
+          </Col>
+        </Row>
 
-          {/* Modals */}
-          <TeamCreationModal
-            isVisible={isTeamModalVisible}
-            isLoading={creatingTeam}
-            form={teamForm}
-            onCancel={() => setIsTeamModalVisible(false)}
-            onSubmit={handleCreateTeam}
-          />
+        <Row gutter={[24, 24]} style={{ marginTop: '24px' }}>
+          <Col xs={24} lg={12}>
+            <Card
+              id="profile-section"
+              className="dashboard-content-card accent-top accent-color-blue"
+              title={
+                <Space>
+                  <UserOutlined /> Profile Information
+                </Space>
+              }
+              style={{ marginBottom: '24px' }}
+              hoverable>
+              <UserProfileTab user={user as IUser} isEditing={isEditing} form={form} />
+            </Card>
 
-          <AgentCreationModal
-            isVisible={isAgentModalVisible}
-            isLoading={creatingAgent}
-            form={agentForm}
-            onCancel={() => setIsAgentModalVisible(false)}
-            onSubmit={handleCreateAgent}
-          />
+            {/* Security Section */}
+            <Card
+              className="dashboard-content-card accent-top accent-color-gold"
+              title={
+                <Space>
+                  <LockOutlined /> Security Settings
+                </Space>
+              }
+              hoverable>
+              {id && <PasswordChangeForm userId={id as string} />}
+            </Card>
+          </Col>
 
-          <LLMProviderModal
-            isVisible={isLLMProviderModalVisible}
-            editProvider={null}
-            isLoading={llmActionLoading}
-            userId={id as string}
-            onCancel={() => setIsLLMProviderModalVisible(false)}
-            onSubmit={handleAddLLMProvider}
-          />
+          {/* Right Column - Teams & Agents */}
+          <Col xs={24} lg={12}>
+            {/* Teams Section */}
+            <Card
+              id="teams-section"
+              className="dashboard-content-card accent-top accent-color-purple"
+              title={
+                <div className="card-title-with-count">
+                  <Space>
+                    <TeamOutlined /> Teams
+                  </Space>
+                  {user?.teamsWithRoles && user?.teamsWithRoles?.length > 0 && (
+                    <Badge count={user?.teamsWithRoles?.length} style={{ backgroundColor: '#722ed1' }} />
+                  )}
+                </div>
+              }
+              extra={
+                isCurrentUser && (
+                  <Button type="primary" icon={<PlusOutlined />} onClick={() => setIsTeamModalVisible(true)} ghost>
+                    Create Team
+                  </Button>
+                )
+              }
+              style={{ marginBottom: '24px' }}
+              hoverable>
+              <Suspense fallback={<Skeleton active />}>
+                <UserTeamsTab
+                  userId={id as string}
+                  isCurrentUser={isCurrentUser}
+                  teams={user?.teamsWithRoles || []}
+                  onShowCreateTeam={() => setIsTeamModalVisible(true)}
+                />
+              </Suspense>
+            </Card>
 
-          {editingLLMProvider && (
+            {/* Agents Section */}
+            <Card
+              id="agents-section"
+              className="dashboard-content-card accent-top accent-color-teal"
+              title={
+                <div className="card-title-with-count">
+                  <Space>
+                    <RobotOutlined /> Agents
+                  </Space>
+                  {user?.ownedAgents && user?.ownedAgents?.length > 0 && (
+                    <Badge count={user?.ownedAgents?.length} style={{ backgroundColor: '#13c2c2' }} />
+                  )}
+                </div>
+              }
+              extra={
+                isCurrentUser && (
+                  <Button type="primary" icon={<PlusOutlined />} onClick={() => setIsAgentModalVisible(true)} ghost>
+                    Create Agent
+                  </Button>
+                )
+              }
+              style={{ marginBottom: '24px' }}
+              hoverable>
+              <Suspense fallback={<Skeleton active />}>
+                <UserAgentsTab
+                  isCurrentUser={isCurrentUser}
+                  agents={user?.ownedAgents || []}
+                  onShowCreateAgent={() => setIsAgentModalVisible(true)}
+                />
+              </Suspense>
+            </Card>
+            {isCurrentUser && (
+              <Card
+                id="default-models-section"
+                className="dashboard-content-card accent-top accent-color-teal"
+                title={
+                  <Space>
+                    <ApiOutlined /> Default LLM Models
+                  </Space>
+                }
+                hoverable>
+                <DefaultModelsForm userId={id as string} viewOnly={!isCurrentUser} onRefresh={fetchUserDetail} />
+              </Card>
+            )}
+          </Col>
+
+          {/* Full width for LLM Settings */}
+          <Col span={24}>
+            <Card
+              id="llm-section"
+              className="dashboard-content-card accent-top accent-color-blue"
+              title={
+                <div className="card-title-with-count">
+                  <Space>
+                    <ApiOutlined /> LLM Providers
+                  </Space>
+                  {llmProviders?.length > 0 && (
+                    <Badge count={llmProviders?.length} style={{ backgroundColor: '#1890ff' }} />
+                  )}
+                </div>
+              }
+              extra={
+                isCurrentUser && (
+                  <Button
+                    type="primary"
+                    icon={<PlusOutlined />}
+                    onClick={() => setIsLLMProviderModalVisible(true)}
+                    ghost>
+                    Add Provider
+                  </Button>
+                )
+              }
+              hoverable>
+              <Suspense fallback={<Skeleton active />}>
+                <UserLLMTab
+                  userId={id as string}
+                  isCurrentUser={isCurrentUser}
+                  llmProviders={llmProviders}
+                  llmProviderLoading={llmProviderLoading}
+                  onOpenEditModal={(provider) => {
+                    setEditingLLMProvider(provider);
+                    setIsEditLLMProviderModalVisible(true);
+                  }}
+                  onDeleteProvider={handleDeleteLLMProvider}
+                  onRefreshProviders={fetchUserProviders}
+                />
+              </Suspense>
+            </Card>
+          </Col>
+        </Row>
+
+        {/* Suspense-wrapped modals for lazy loading */}
+        <Suspense fallback={null}>
+          {isTeamModalVisible && (
+            <TeamCreationModal
+              isVisible={isTeamModalVisible}
+              isLoading={creatingTeam}
+              form={teamForm}
+              onCancel={() => setIsTeamModalVisible(false)}
+              onSubmit={handleCreateTeam}
+            />
+          )}
+
+          {isAgentModalVisible && (
+            <AgentCreationModal
+              isVisible={isAgentModalVisible}
+              isLoading={creatingAgent}
+              form={agentForm}
+              onCancel={() => setIsAgentModalVisible(false)}
+              onSubmit={handleCreateAgent}
+            />
+          )}
+
+          {isLLMProviderModalVisible && (
+            <LLMProviderModal
+              isVisible={isLLMProviderModalVisible}
+              editProvider={null}
+              isLoading={llmActionLoading}
+              userId={id as string}
+              onCancel={() => setIsLLMProviderModalVisible(false)}
+              onSubmit={handleAddLLMProvider}
+            />
+          )}
+
+          {editingLLMProvider && isEditLLMProviderModalVisible && (
             <LLMProviderModal
               isVisible={isEditLLMProviderModalVisible}
               editProvider={editingLLMProvider}
@@ -439,7 +632,7 @@ export default function UserDetail() {
               onSubmit={handleEditLLMProvider}
             />
           )}
-        </Space>
+        </Suspense>
       </div>
     </MainLayout>
   );

@@ -1,9 +1,8 @@
-import { ApiOutlined, ArrowLeftOutlined, EditOutlined, RobotOutlined, SaveOutlined, TeamOutlined, UserOutlined } from '@ant-design/icons';
-import { Avatar, Button, Card, Col, Form, Input, Row, Space, Statistic, Tag, Typography } from 'antd';
+import { ArrowLeftOutlined, EditOutlined, SaveOutlined } from '@ant-design/icons';
+import { Avatar, Button, Col, Form, Input, Row, Tag, Typography } from 'antd';
 import { useRouter } from 'next/router';
 import React from 'react';
 import { IUser } from '../../models/IUser';
-import { LLMProvider } from '../../models/llm';
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -12,28 +11,15 @@ interface UserProfileHeaderProps {
   isCurrentUser: boolean;
   isEditing: boolean;
   currentUserId: string | null;
-  form: any;
   theme: string;
-  llmProviders: LLMProvider[];
   onEdit: () => void;
   onCancel: () => void;
   onSubmit: () => void;
 }
 
-const UserProfileHeader: React.FC<UserProfileHeaderProps> = ({
-  user,
-  isCurrentUser,
-  isEditing,
-  currentUserId,
-  form,
-  theme,
-  llmProviders,
-  onEdit,
-  onCancel,
-  onSubmit
-}) => {
+const UserProfileHeader: React.FC<UserProfileHeaderProps> = ({ user, isCurrentUser, isEditing, currentUserId, theme, onEdit, onCancel, onSubmit }) => {
   const router = useRouter();
-  
+
   const getPermissionColor = (permission?: string) => {
     switch (permission) {
       case 'owner':
@@ -48,137 +34,107 @@ const UserProfileHeader: React.FC<UserProfileHeaderProps> = ({
   };
 
   return (
-    <Card>
-      <Row gutter={24} align="middle">
-        {/* User Avatar Column */}
-        <Col xs={24} sm={6} md={4} style={{ textAlign: 'center' }}>
+    <Row gutter={[24, 16]} align="middle">
+      {/* User Avatar Column */}
+      <Col xs={24} sm={6} md={4} style={{ textAlign: 'center' }}>
+        <div className="avatar-wrapper">
           <Avatar
             size={100}
-            icon={<UserOutlined />}
+            // src={user?.avatarUrl}
             style={{
               backgroundColor: theme === 'dark' ? '#1668dc' : '#1890ff',
-              marginBottom: 16
-            }}
-          />
-        </Col>
+              boxShadow: '0 4px 12px rgba(24, 144, 255, 0.15)',
+              fontSize: '42px',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}>
+            {user?.name?.charAt(0)?.toUpperCase()}
+          </Avatar>
+        </div>
+      </Col>
 
-        {/* User Details Column */}
-        <Col xs={24} sm={18} md={20}>
-          <Row>
-            <Col span={24}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
-                {/* User Name and Permission */}
-                <Space direction="vertical" size="small">
-                  <Space align="center">
-                    <Title level={2} style={{ margin: 0 }}>
-                      {isEditing ? (
-                        <Form.Item
-                          name="name"
-                          style={{ marginBottom: 0 }}
-                          rules={[{ required: true, message: 'Please enter a name' }]}
-                        >
-                          <Input placeholder="Enter name" />
-                        </Form.Item>
-                      ) : (
-                        user?.name
-                      )}
-                    </Title>
-                    <Tag color={getPermissionColor(user?.permission)} style={{ marginLeft: 8 }}>
-                      {user?.permission?.toUpperCase()}
-                    </Tag>
-                  </Space>
-                  <Text type="secondary" style={{ fontSize: '14px' }}>{user?.email}</Text>
-                </Space>
-
-                {/* Action Buttons */}
-                <Space>
-                  {!isEditing ? (
-                    <>
-                    
-                      {(isCurrentUser || (!isCurrentUser && currentUserId !== user?.id)) && (
-                        <Button
-                          type="default"
-                          icon={<EditOutlined />}
-                          onClick={onEdit}
-                        >
-                          Edit Profile
-                        </Button>
-                      )}
-                      {!isCurrentUser && (
-                        <Button
-                          icon={<ArrowLeftOutlined />}
-                          onClick={() => router.push('/user')}
-                        >
-                          Back to List
-                        </Button>
-                      )}
-                    </>
-                  ) : (
-                    <>
-                      <Button onClick={onCancel}>
-                        Cancel
-                      </Button>
-                      <Button
-                        type="primary"
-                        icon={<SaveOutlined />}
-                        onClick={onSubmit}
-                      >
-                        Save Changes
-                      </Button>
-                    </>
-                  )}
-                </Space>
-              </div>
-            </Col>
-          </Row>
-
-          {isEditing ? (
-            <Form
-              form={form}
-              layout="vertical"
-            >
-              <Form.Item
-                name="description"
-                label="Description"
-                rules={[{ required: true, message: 'Please enter a description' }]}
-              >
-                <Input.TextArea rows={3} placeholder="Enter a brief description" />
+      {/* User Details Column */}
+      <Col xs={24} sm={18} md={20}>
+        <div className="profile-header-content">
+          {/* User Name and Email */}
+          <div style={{ marginBottom: isEditing ? 0 : '16px' }}>
+            {isEditing ? (
+              <Form.Item name="name" style={{ marginBottom: 0 }} rules={[{ required: true, message: 'Please enter a name' }]}>
+                <Input placeholder="Enter name" size="large" />
               </Form.Item>
-            </Form>
-          ) : (
-            <>
-              <Paragraph style={{ fontSize: '16px' }}>
-                {user?.description || 'No description provided.'}
-              </Paragraph>
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+                <Title level={2} style={{ margin: 0 }}>
+                  {user?.name}
+                </Title>
+                <Tag color={getPermissionColor(user?.permission)}>{user?.permission?.toUpperCase()}</Tag>
+              </div>
+            )}
+            <Text type="secondary">{user?.email}</Text>
+          </div>
 
-              <Row gutter={16} style={{ marginTop: 16 }}>
-                <Col xs={24} sm={8}>
-                  <Statistic
-                    title="Teams"
-                    value={user?.teamsWithRoles?.length || 0}
-                    prefix={<TeamOutlined />}
-                  />
-                </Col>
-                <Col xs={24} sm={8}>
-                  <Statistic
-                    title="Agents"
-                    value={user?.ownedAgents?.length || 0}
-                    prefix={<RobotOutlined />}
-                  />
-                </Col>
-                <Col xs={24} sm={8}>
-                  <Statistic
-                    title="LLM Providers"
-                    value={llmProviders?.length || 0}
-                    prefix={<ApiOutlined />}
-                  />
-                </Col>
-              </Row>
-            </>
-          )}
-        </Col>
-      </Row>
-    </Card>
+          {/* Description */}
+          <div style={{ marginBottom: '16px', marginTop: isEditing ? '16px' : 0 }}>
+            {isEditing ? (
+              <Form.Item name="description" rules={[{ required: true, message: 'Please enter a description' }]} style={{ marginBottom: 0 }}>
+                <Input.TextArea rows={2} placeholder="Enter a brief description" />
+              </Form.Item>
+            ) : (
+              <Paragraph style={{ fontSize: '16px', marginBottom: 0 }}>{user?.description || 'No description provided.'}</Paragraph>
+            )}
+          </div>
+
+          {/* Action Buttons */}
+          <div className="action-buttons">
+            {!isEditing ? (
+              <>
+                {(isCurrentUser || (!isCurrentUser && currentUserId !== user?.id)) && (
+                  <Button type="primary" icon={<EditOutlined />} onClick={onEdit}>
+                    Edit Profile
+                  </Button>
+                )}
+                {!isCurrentUser && (
+                  <Button icon={<ArrowLeftOutlined />} onClick={() => router.push('/user')}>
+                    Back to List
+                  </Button>
+                )}
+              </>
+            ) : (
+              <>
+                <Button onClick={onCancel}>Cancel</Button>
+                <Button type="primary" icon={<SaveOutlined />} onClick={onSubmit}>
+                  Save Changes
+                </Button>
+              </>
+            )}
+          </div>
+        </div>
+      </Col>
+
+      <style jsx global>{`
+        .avatar-wrapper {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          margin-bottom: 12px;
+        }
+        .profile-header-content {
+          display: flex;
+          flex-direction: column;
+        }
+        .action-buttons {
+          display: flex;
+          gap: 8px;
+          justify-content: flex-start;
+        }
+        @media (max-width: 576px) {
+          .avatar-wrapper {
+            margin-bottom: 24px;
+          }
+        }
+      `}</style>
+    </Row>
   );
 };
 
