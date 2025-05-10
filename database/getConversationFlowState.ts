@@ -1,15 +1,14 @@
 import { prisma } from '../lib/prisma';
 import { FlowState } from '../models/flowExecutionTypes';
 
-
 export async function getConversationFlowState(conversationId: string): Promise<FlowState | undefined> {
   try {
     const conversation = await prisma.conversation.findUnique({
       where: { id: conversationId },
       select: { flowState: true },
     });
-    if (conversation) {
-      return JSON.parse(conversation.flowState) as FlowState;
+    if (conversation && conversation.flowState) {
+      return JSON.parse(conversation.flowState as string) as FlowState;
     }
   } catch (error: unknown) {
     if (error instanceof Error) {

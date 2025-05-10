@@ -68,6 +68,27 @@ class LLMOpenAI {
 
         return response;
     }
+
+    /**
+     * Fetch available models from OpenAI API
+     */
+    models = async (
+        baseURL: string,
+        apiKey: string
+    ): Promise<any> => {
+        const openai = new OpenAI({
+            apiKey: apiKey,
+            baseURL: baseURL,
+        });
+
+        try {
+            const response = await openai.models.list();
+            return response.data;
+        } catch (error) {
+            console.error('Error fetching OpenAI models:', error);
+            throw error;
+        }
+    }
 }
 
 export const llmOpenAI = new LLMOpenAI()

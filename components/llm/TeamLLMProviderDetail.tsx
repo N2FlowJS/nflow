@@ -2,7 +2,8 @@ import {
   ArrowLeftOutlined,
   DeleteOutlined,
   EditOutlined,
-  PlusOutlined
+  PlusOutlined,
+  ThunderboltOutlined
 } from '@ant-design/icons';
 import {
   Button,
@@ -16,7 +17,8 @@ import {
   Table,
   Tag,
   Tooltip,
-  Typography
+  Typography,
+  Spin
 } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { LLMModel, LLMProvider } from '../../models/llm';
@@ -27,6 +29,7 @@ import {
   updateTeamLLMProvider,
   updateTeamProviderModel
 } from '../../services/teamService';
+import { llmOpenAI } from '../../llm/openai';
 import LLMModelForm from './LLMModelForm';
 import LLMProviderForm from './LLMProviderForm';
 
@@ -54,6 +57,11 @@ const TeamLLMProviderDetail: React.FC<TeamLLMProviderDetailProps> = ({
   const [isEditProviderModalVisible, setIsEditProviderModalVisible] = useState(false);
   const [editingModel, setEditingModel] = useState<LLMModel | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
+  const [fetchedModels, setFetchedModels] = useState<any[]>([]);
+  const [selectedModels, setSelectedModels] = useState<string[]>([]);
+  const [isQuickAddModalVisible, setIsQuickAddModalVisible] = useState(false);
+  const [fetchingModels, setFetchingModels] = useState(false);
+
   const fetchModels = React.useCallback(async () => {
     if (!provider?.id) return;
     if (!teamId) return;
@@ -69,12 +77,10 @@ const TeamLLMProviderDetail: React.FC<TeamLLMProviderDetailProps> = ({
       setLoading(false);
     }
   }, [teamId, provider?.id]);
+
   useEffect(() => {
     fetchModels();
-
   }, [fetchModels]);
-
-
 
   const handleAddModel = async (values: any) => {
     if (!provider?.id) return;
@@ -141,6 +147,80 @@ const TeamLLMProviderDetail: React.FC<TeamLLMProviderDetailProps> = ({
     }
   };
 
+  const handleFetchModels = async () => {
+    if (!['openai', 'openai-compatible'].includes(provider.providerType)) {
+      message.warning('Quick add is only available for OpenAI providers');
+      return;
+    }
+
+    setFetchingModels(true);
+    setIsQuickAddModalVisible(true);
+    try {
+      const models = await llmOpenAI.models(
+        provider.endpointUrl || 'https://api.openai.com/v1',
+        provider.apiKey || ''
+      );
+
+      // Filter to only include GPT models and embedding models
+      const filteredModels = models.filter((model: any) => 
+        model.id.includes('gpt') || 
+        model.id.includes('text-embedding')
+      );
+      
+      setFetchedModels(filteredModels);
+    } catch (error) {
+      console.error('Error fetching models:', error);
+      message.error('Failed to fetch models from OpenAI');
+    } finally {
+      setFetchingModels(false);
+    }
+  };
+
+  const handleQuickAddModels = async () => {
+    setActionLoading(true);
+    try {
+      let successCount = 0;
+      let errorCount = 0;
+
+      for (const modelId of selectedModels) {
+        try {
+          const modelType = modelId.includes('embedding') ? 'embedding' : 'chat';
+          const modelData = {
+            name: modelId,
+            modelType: modelType,
+            providerId: provider.id,
+            // Add appropriate context window size based on model
+            contextWindow: modelId.includes('gpt-4') ? 8192 : 
+                          (modelId.includes('gpt-3.5-turbo-16k') ? 16384 : 4096)
+          };
+          
+          await createTeamProviderModel(teamId, provider.id, modelData as any);
+          successCount++;
+        } catch (err) {
+          console.error(`Error adding model ${modelId}:`, err);
+          errorCount++;
+        }
+      }
+
+      if (successCount > 0) {
+        message.success(`Successfully added ${successCount} models`);
+      }
+      
+      if (errorCount > 0) {
+        message.warning(`Failed to add ${errorCount} models`);
+      }
+      
+      setIsQuickAddModalVisible(false);
+      setSelectedModels([]);
+      fetchModels();
+    } catch (error) {
+      console.error('Error adding models:', error);
+      message.error('Failed to add models');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const getModelTypeTag = (type: string) => {
     let color = '';
     let label = type;
@@ -177,7 +257,6 @@ const TeamLLMProviderDetail: React.FC<TeamLLMProviderDetailProps> = ({
       render: (record: LLMModel) => (
         <Space direction="vertical" size={0}>
           <Space>
-          
             <Typography.Text strong>
               {record.name}
             </Typography.Text>
@@ -216,8 +295,6 @@ const TeamLLMProviderDetail: React.FC<TeamLLMProviderDetailProps> = ({
                 }}
               />
             </Tooltip>
-
-
             <Popconfirm
               title="Delete this model?"
               description="This action cannot be undone."
@@ -236,7 +313,6 @@ const TeamLLMProviderDetail: React.FC<TeamLLMProviderDetailProps> = ({
     },
   ];
 
- 
   return (
     <div>
       <Card>
@@ -264,7 +340,6 @@ const TeamLLMProviderDetail: React.FC<TeamLLMProviderDetailProps> = ({
           <Descriptions.Item label="Name">{provider.name}</Descriptions.Item>
           <Descriptions.Item label="Type">{provider.providerType}</Descriptions.Item>
           <Descriptions.Item label="Endpoint URL">{provider.endpointUrl}</Descriptions.Item>
-     
           <Descriptions.Item label="Description" span={2}>{provider.description || 'No description'}</Descriptions.Item>
         </Descriptions>
 
@@ -273,13 +348,25 @@ const TeamLLMProviderDetail: React.FC<TeamLLMProviderDetailProps> = ({
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
           <Title level={4}>Models</Title>
           {canManageModels && (
-            <Button
-              type="primary"
-              icon={<PlusOutlined />}
-              onClick={() => setIsAddModalVisible(true)}
-            >
-              Add Model
-            </Button>
+            <Space>
+              {['openai', 'openai-compatible'].includes(provider.providerType) && (
+                <Button
+                  type="primary"
+                  icon={<ThunderboltOutlined />}
+                  onClick={handleFetchModels}
+                  ghost
+                >
+                  Quick Add Models
+                </Button>
+              )}
+              <Button
+                type="primary"
+                icon={<PlusOutlined />}
+                onClick={() => setIsAddModalVisible(true)}
+              >
+                Add Model
+              </Button>
+            </Space>
           )}
         </div>
 
@@ -343,6 +430,56 @@ const TeamLLMProviderDetail: React.FC<TeamLLMProviderDetailProps> = ({
           isLoading={actionLoading}
           teamContext={teamId}
         />
+      </Modal>
+
+      {/* Quick Add Models Modal */}
+      <Modal
+        title="Quick Add OpenAI Models"
+        open={isQuickAddModalVisible}
+        onCancel={() => setIsQuickAddModalVisible(false)}
+        okText="Add Selected Models"
+        okButtonProps={{ disabled: selectedModels.length === 0, loading: actionLoading }}
+        onOk={handleQuickAddModels}
+        width={700}
+      >
+        {fetchingModels ? (
+          <div style={{ textAlign: 'center', padding: '30px' }}>
+            <Spin tip="Fetching available models..." />
+          </div>
+        ) : (
+          <>
+            <p>Select models you want to add to your provider:</p>
+            <div style={{ maxHeight: '400px', overflow: 'auto' }}>
+              <Table
+                dataSource={fetchedModels}
+                rowKey="id"
+                pagination={false}
+                rowSelection={{
+                  type: 'checkbox',
+                  onChange: (selectedRowKeys) => {
+                    setSelectedModels(selectedRowKeys as string[]);
+                  }
+                }}
+                columns={[
+                  {
+                    title: 'Model ID',
+                    dataIndex: 'id',
+                    key: 'id',
+                  },
+                  {
+                    title: 'Type',
+                    key: 'type',
+                    render: (model: any) => (
+                      <Tag color={model.id.includes('embedding') ? 'purple' : 'green'}>
+                        {model.id.includes('embedding') ? 'Embedding' : 'Chat'}
+                      </Tag>
+                    )
+                  }
+                ]}
+              />
+            </div>
+          </>
+        )}
       </Modal>
     </div>
   );
