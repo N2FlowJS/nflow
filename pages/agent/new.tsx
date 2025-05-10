@@ -1,19 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import {
-  Card, Form, Input, Button,
-  Typography, Space, message, Breadcrumb,
-  Select, Radio
-} from 'antd';
 import { ArrowLeftOutlined, SaveOutlined } from '@ant-design/icons';
+import { Button, Card, Form, Input, Radio, Select, Space, Typography, message } from 'antd';
 import { useRouter } from 'next/router';
-import Link from 'next/link';
+import { useEffect, useState } from 'react';
 import MainLayout from '../../components/layout/MainLayout';
 import { useAuth } from '../../context/AuthContext';
 import { fetchTeams } from '../../services/teamService';
 
 const { Title } = Typography;
 const { Option } = Select;
-
 
 interface Team {
   id: string;
@@ -79,14 +73,14 @@ export default function CreateAgent() {
       const payload = {
         ...values,
         ownerType,
-        flowConfig: JSON.stringify({ nodes: [], edges: [] })
+        flowConfig: JSON.stringify({ nodes: [], edges: [] }),
       };
 
       const res = await fetch('/api/agent', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(payload),
       });
@@ -111,45 +105,23 @@ export default function CreateAgent() {
     <MainLayout title="Create Agent">
       <div style={{ padding: '24px' }}>
         <Space direction="vertical" size="large" style={{ width: '100%' }}>
-          <Breadcrumb>
-            <Breadcrumb.Item>
-              <Link href="/">Home</Link>
-            </Breadcrumb.Item>
-            <Breadcrumb.Item>
-              <Link href="/agent">Agents</Link>
-            </Breadcrumb.Item>
-            <Breadcrumb.Item>Create</Breadcrumb.Item>
-          </Breadcrumb>
-
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Title level={2}>Create New Agent</Title>
-            <Button
-              icon={<ArrowLeftOutlined />}
-              onClick={() => router.push('/agent')}
-            >
+            <Button icon={<ArrowLeftOutlined />} onClick={() => router.push('/agent')}>
               Back to List
             </Button>
           </div>
 
           <Card>
-            <Form
-              form={form}
-              layout="vertical"
-              onFinish={handleSubmit}
-            >
-              <Form.Item
-                name="name"
-                label="Name"
-                rules={[{ required: true, message: 'Please enter a name' }]}
-              >
+            <Form form={form} layout="vertical" onFinish={handleSubmit}>
+              <Form.Item name="name" label="Name" rules={[{ required: true, message: 'Please enter a name' }]}>
                 <Input placeholder="Agent name" />
               </Form.Item>
 
               <Form.Item
                 name="description"
                 label="Description"
-                rules={[{ required: true, message: 'Please enter a description' }]}
-              >
+                rules={[{ required: true, message: 'Please enter a description' }]}>
                 <Input.TextArea rows={4} placeholder="Describe what this agent does" />
               </Form.Item>
 
@@ -167,8 +139,7 @@ export default function CreateAgent() {
                     label="User Owner"
                     initialValue={user?.id}
                     rules={[{ required: true, message: 'Please select a user' }]}
-                    hidden
-                  >
+                    hidden>
                     <Input type="hidden" />
                   </Form.Item>
                   <Form.Item label="User Owner">
@@ -179,28 +150,19 @@ export default function CreateAgent() {
                 <Form.Item
                   name="teamId"
                   label="Team Owner"
-                  rules={[{ required: true, message: 'Please select a team' }]}
-                >
-                  <Select
-                    placeholder="Select team"
-                    loading={loading}
-                    showSearch
-                    optionFilterProp="children"
-                  >
-                    {teams.map(team => (
-                      <Option key={team.id} value={team.id}>{team.name}</Option>
+                  rules={[{ required: true, message: 'Please select a team' }]}>
+                  <Select placeholder="Select team" loading={loading} showSearch optionFilterProp="children">
+                    {teams.map((team) => (
+                      <Option key={team.id} value={team.id}>
+                        {team.name}
+                      </Option>
                     ))}
                   </Select>
                 </Form.Item>
               )}
 
               <Form.Item>
-                <Button
-                  type="primary"
-                  htmlType="submit"
-                  icon={<SaveOutlined />}
-                  loading={saving}
-                >
+                <Button type="primary" htmlType="submit" icon={<SaveOutlined />} loading={saving}>
                   Create Agent
                 </Button>
               </Form.Item>

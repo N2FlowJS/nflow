@@ -15,14 +15,40 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(401).json({ error: 'Invalid token' });
       }
 
+      // Extract filter parameters from query
+      const { search, createdBy } = req.query;
+
+      // Build filter conditions
+      const whereConditions: any = {
+        OR: [
+          { userId: payload.userId },
+          { users: { some: { id: payload.userId } } },
+          { teams: { some: { members: { some: { userId: payload.userId } } } } }
+        ]
+      };
+
+      // Add search filter if provided
+      if (search) {
+        whereConditions.AND = [
+          {
+            OR: [
+              { name: { contains: search as string, lte: 'insensitive' } },
+              { description: { contains: search as string, lte: 'insensitive' } }
+            ]
+          }
+        ];
+      }
+
+      // Add creator filter if provided
+      if (createdBy) {
+        whereConditions.AND = whereConditions.AND || [];
+        whereConditions.AND.push({
+          createdById: createdBy as string
+        });
+      }
+
       const knowledgeItems = await prisma.knowledge.findMany({
-        where: {
-          OR: [
-            { userId: payload.userId },
-            { users: { some: { id: payload.userId } } },
-            { teams: { some: { members: { some: { userId: payload.userId } } } } }
-          ]
-        },
+        where: whereConditions,
         include: {
           createdBy: {
             select: {

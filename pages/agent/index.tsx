@@ -1,22 +1,37 @@
-import React, { useEffect, useState } from 'react';
 import {
-  Table, Card, Button, Space, Tag,
-  Breadcrumb, // Keep Breadcrumb import
-  Typography, message, Spin,
-  Select, Input, Modal
-} from 'antd';
-import {
-  PlusOutlined, SearchOutlined,
-  TeamOutlined, UserOutlined,
-  EditOutlined, DeleteOutlined
+  ClockCircleOutlined,
+  DeleteOutlined,
+  EditOutlined,
+  InfoCircleOutlined,
+  PlusOutlined,
+  SearchOutlined,
+  TeamOutlined,
+  UserOutlined,
 } from '@ant-design/icons';
-import MainLayout from '../../components/layout/MainLayout';
-import { useRouter } from 'next/router';
+import {
+  Button,
+  Card,
+  Col,
+  Divider,
+  Empty,
+  Input,
+  message,
+  Modal,
+  Row,
+  Select,
+  Space,
+  Spin,
+  Tag,
+  Tooltip, // Keep Breadcrumb import
+  Typography
+} from 'antd';
 import Link from 'next/link';
-import { apiRequest } from '../../services/apiUtils';
+import { useRouter } from 'next/router';
+import React, { useEffect, useState } from 'react';
+import MainLayout from '../../components/layout/MainLayout';
 import { useLocale } from '../../locale/index';
+import { apiRequest } from '../../services/apiUtils';
 
-const { Title } = Typography;
 const { Option } = Select;
 
 interface Agent {
@@ -94,7 +109,7 @@ export default function AgentsList() {
       okText: t('deleteConfirmation.okText'),
       okType: 'danger',
       cancelText: t('deleteConfirmation.cancelText'),
-      onOk: () => deleteAgent(id)
+      onOk: () => deleteAgent(id),
     });
   };
 
@@ -106,8 +121,8 @@ export default function AgentsList() {
       const res = await fetch(`/api/agent/${id}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       if (res.ok) {
@@ -122,164 +137,128 @@ export default function AgentsList() {
     }
   };
 
-  // Table columns
-  const columns = [
-    {
-      title: t('table.name'),
-      dataIndex: 'name',
-      key: 'name',
-      render: (text: string, record: Agent) => (
-        <Link href={`/agent/${record.id}`}>{text}</Link>
-      )
-    },
-    {
-      title: t('table.description'),
-      dataIndex: 'description',
-      key: 'description',
-      ellipsis: true
-    },
-    {
-      title: t('table.owner'),
-      key: 'owner',
-      render: (_: any, record: Agent) => (
-        <Space>
-          {record.ownerType === 'user' ? (
-            <>
-              <UserOutlined />
-              <Link href={`/user/${record.user?.id}`}>{record.user?.name}</Link>
-            </>
-          ) : (
-            <>
-              <TeamOutlined />
-              <Link href={`/team/${record.team?.id}`}>{record.team?.name}</Link>
-            </>
-          )}
+  // Render agent card
+  const renderAgentCard = (agent: Agent) => {
+    return (
+      <Card
+        hoverable
+        style={{ marginBottom: '16px', height: '100%' }}
+        actions={[
+          <Tooltip title={t('table.actions.edit')} key="edit">
+            <Button icon={<EditOutlined />} onClick={() => router.push(`/agent/${agent.id}`)} type="text" />
+          </Tooltip>,
+          <Tooltip title={t('table.actions.delete')} key="delete">
+            <Button icon={<DeleteOutlined />} onClick={() => confirmDelete(agent.id)} type="text" danger />
+          </Tooltip>,
+        ]}>
+        <div
+          style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+          <div>
+            <Typography.Title level={4} style={{ marginBottom: '4px' }}>
+              <Link href={`/agent/${agent.id}`}>{agent.name}</Link>
+            </Typography.Title>
+            <Tag color={agent.isActive ? 'green' : 'red'} style={{ marginBottom: '8px' }}>
+              {agent.isActive ? t('active') : t('inactive')}
+            </Tag>
+          </div>
+        </div>
+
+        <Typography.Paragraph ellipsis={{ rows: 2 }} style={{ marginBottom: '16px' }}>
+          {agent.description || <em style={{ color: '#999' }}>{t('noDescription')}</em>}
+        </Typography.Paragraph>
+
+        <Divider style={{ margin: '8px 0' }} />
+
+        <Space direction="vertical" size="small" style={{ width: '100%' }}>
+          <div>
+            <Space>
+              {agent.ownerType === 'user' ? (
+                <>
+                  <UserOutlined />
+                  <span>{t('table.owner')}:</span>
+                  <Link href={`/user/${agent.user?.id}`}>{agent.user?.name}</Link>
+                </>
+              ) : (
+                <>
+                  <TeamOutlined />
+                  <span>{t('table.owner')}:</span>
+                  <Link href={`/team/${agent.team?.id}`}>{agent.team?.name}</Link>
+                </>
+              )}
+            </Space>
+          </div>
+
+          <div>
+            <Space>
+              <InfoCircleOutlined />
+              <span>{t('table.createdBy')}:</span>
+              <Link href={`/user/${agent.createdBy.id}`}>{agent.createdBy.name}</Link>
+            </Space>
+          </div>
+
+          <div>
+            <Space>
+              <ClockCircleOutlined />
+              <span>{t('table.lastUpdated')}:</span>
+              <span>{new Date(agent.updatedAt).toLocaleString()}</span>
+            </Space>
+          </div>
         </Space>
-      )
-    },
-    {
-      title: t('table.status'),
-      dataIndex: 'isActive',
-      key: 'isActive',
-      render: (active: boolean) => (
-        <Tag color={active ? 'green' : 'red'}>
-          {active ? t(active ? 'active' : 'inactive') : ''}
-        </Tag>
-      )
-    },
-    {
-      title: t('table.createdBy'),
-      key: 'createdBy',
-      render: (_: any, record: Agent) => (
-        <Link href={`/user/${record.createdBy.id}`}>{record.createdBy.name}</Link>
-      )
-    },
-    {
-      title: t('table.lastUpdated'),
-      dataIndex: 'updatedAt',
-      key: 'updatedAt',
-      render: (date: string) => new Date(date).toLocaleString()
-    },
-    {
-      title: t('table.actions'),
-      key: 'actions',
-      render: (_: any, record: Agent) => (
-        <Space>
-          <Button
-            icon={<EditOutlined />}
-            onClick={() => router.push(`/agent/${record.id}`)}
-            type="text"
-          />
-          <Button
-            icon={<DeleteOutlined />}
-            onClick={() => confirmDelete(record.id)}
-            type="text"
-            danger
-          />
-        </Space>
-      )
-    }
-  ];
+      </Card>
+    );
+  };
 
   return (
     <MainLayout title={t('title')}>
-      <div style={{ padding: '24px' }}>
-        <Breadcrumb
-          style={{ marginBottom: '16px' }}
-          items={[
-            {
-              title: <Link href="/">Home</Link>,
-            },
-            {
-              title: t('breadcrumb.agents'),
-            },
-          ]}
-        />
+      <Space style={{ marginBottom: '16px', width: '100%', justifyContent: 'space-between' }}>
+        <Space>
+          <Input
+            placeholder={t('searchPlaceholder')}
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            style={{ width: 200 }}
+            suffix={<SearchOutlined style={{ cursor: 'pointer' }} onClick={handleSearch} />}
+            onPressEnter={handleSearch}
+          />
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-          <Title level={2}>{t('title')}</Title>
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => router.push('/agent/new')}
-          >
-            {t('createAgentButton')}
-          </Button>
+          <Select
+            placeholder={t('ownerTypePlaceholder')}
+            allowClear
+            style={{ width: 150 }}
+            onChange={(value) => setFilterOwnerType(value)}>
+            <Option value="user">{t('user')}</Option>
+            <Option value="team">{t('team')}</Option>
+          </Select>
+
+          <Select
+            placeholder={t('statusPlaceholder')}
+            allowClear
+            style={{ width: 150 }}
+            onChange={(value) => setFilterActive(value === null ? null : value === true)}>
+            <Option value={true}>{t('active')}</Option>
+            <Option value={false}>{t('inactive')}</Option>
+          </Select>
+        </Space>
+        <Button type="primary" icon={<PlusOutlined />} onClick={() => router.push('/agent/new')}>
+          {t('createAgentButton')}
+        </Button>
+      </Space>
+
+      {loading ? (
+        <div style={{ textAlign: 'center', padding: '50px' }}>
+          <Spin size="large" />
         </div>
-
-        <Card style={{ marginBottom: '24px' }}>
-          <Space style={{ marginBottom: '16px', width: '100%', justifyContent: 'space-between' }}>
-            <Space>
-              <Input
-                placeholder={t('searchPlaceholder')}
-                value={searchText}
-                onChange={(e) => setSearchText(e.target.value)}
-                style={{ width: 200 }}
-                suffix={
-                  <SearchOutlined
-                    style={{ cursor: 'pointer' }}
-                    onClick={handleSearch}
-                  />
-                }
-                onPressEnter={handleSearch}
-              />
-
-              <Select
-                placeholder={t('ownerTypePlaceholder')}
-                allowClear
-                style={{ width: 150 }}
-                onChange={(value) => setFilterOwnerType(value)}
-              >
-                <Option value="user">{t('user')}</Option>
-                <Option value="team">{t('team')}</Option>
-              </Select>
-
-              <Select
-                placeholder={t('statusPlaceholder')}
-                allowClear
-                style={{ width: 150 }}
-                onChange={(value) => setFilterActive(value === null ? null : value === true)}
-              >
-                <Option value={true}>{t('active')}</Option>
-                <Option value={false}>{t('inactive')}</Option>
-              </Select>
-            </Space>
-          </Space>
-
-          {loading ? (
-            <div style={{ textAlign: 'center', padding: '50px' }}>
-              <Spin size="large" />
-            </div>
-          ) : (
-            <Table
-              columns={columns}
-              dataSource={agents}
-              rowKey="id"
-              pagination={{ pageSize: 10 }}
-            />
-          )}
-        </Card>
-      </div>
+      ) : agents.length === 0 ? (
+        <Empty description={t('noAgentsFound')} />
+      ) : (
+        <Row gutter={[16, 16]}>
+          {agents.map((agent) => (
+            <Col xs={24} sm={24} md={12} lg={8} xl={6} key={agent.id}>
+              {renderAgentCard(agent)}
+            </Col>
+          ))}
+        </Row>
+      )}
     </MainLayout>
   );
 }

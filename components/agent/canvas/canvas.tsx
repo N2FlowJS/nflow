@@ -17,15 +17,17 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { Drawer, Form, message } from 'antd';
-import React, { useCallback, useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 
 import { saveFlowConfig } from '../../../services/agentService';
 import NodeForm from '../forms/node-form';
 import NodePalette from './node-palette';
 
+import { FlowStateProvider, useFlowState } from '../../../context/FlowStateContext';
 import { CategorizeForm, DecisionForm, FlowNode, NodeTypeString } from '../../../models/flowTypes';
-import { isConnectionAllowed, NODE_REGISTRY, parseFlowConfig } from '../../../utils/client';
+import { conversationService } from '../../../services/conversationService';
 import { useTheme } from '../../../theme';
+import { isConnectionAllowed, NODE_REGISTRY, parseFlowConfig } from '../../../utils/client';
 import CustomEdge from '../edges/CustomEdge';
 import BeginNode from '../nodes/begin-node';
 import CategorizeNode from '../nodes/categorize-node';
@@ -33,9 +35,6 @@ import DecisionNode from '../nodes/decision-node';
 import GenerateNode from '../nodes/generate-node';
 import InterfaceNode from '../nodes/interface-node';
 import RetrievalNode from '../nodes/retrieval-node';
-import { FlowStateProvider, useFlowState } from '../../../context/FlowStateContext';
-import { conversationService } from '../../../services/conversationService';
-import { FlowState } from '../../../models/flowExecutionTypes';
 
 const nodeTypes: ReactFlowNodeTypes = {
   begin: BeginNode,

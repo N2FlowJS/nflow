@@ -1,26 +1,16 @@
-import { DeleteOutlined, EditOutlined, FileOutlined, PlusOutlined } from '@ant-design/icons';
-import {
-  Button,
-  Form,
-  message, Popconfirm,
-  Space,
-  Typography,
-  Card,
-  Row,
-  Col,
-  Empty
-} from 'antd';
+import { DeleteOutlined, EditOutlined, FileOutlined, PlusOutlined, SearchOutlined } from '@ant-design/icons';
+import { Button, Card, Col, Empty, Form, Input, message, Popconfirm, Row, Select, Space, Typography } from 'antd';
 import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import KnowledgeForm from '../../components/knowledge/KnowledgeForm';
 import MainLayout from '../../components/layout/MainLayout';
 import { useAuth } from '../../context/AuthContext';
-import { IKnowledge } from "../../models/IKnowledge";
-import { createKnowledge, deleteKnowledge, fetchAllKnowledge, updateKnowledge } from '../../services/knowledgeService';
 import { useLocale } from '../../locale';
-import { useScreenSize } from '../../hooks/useScreenSize';
+import { IKnowledge } from '../../models/IKnowledge';
+import { createKnowledge, deleteKnowledge, fetchAllKnowledge, updateKnowledge } from '../../services/knowledgeService';
 
 const { Title, Text, Paragraph } = Typography;
+const { Option } = Select;
 
 export default function KnowledgeList() {
   console.log('Knowledge page rendered');
@@ -30,22 +20,41 @@ export default function KnowledgeList() {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [form] = Form.useForm();
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [searchText, setSearchText] = useState('');
+  const [filterCreator, setFilterCreator] = useState<string | null>(null);
   const router = useRouter();
   const { isAuthenticated, user } = useAuth();
   const { messages } = useLocale();
-  const { isMobile } = useScreenSize();
 
+  const loadKnowledgeItems = React.useCallback(
+    async function loadKnowledgeItems() {
+      setLoading(true);
+      try {
+        // Build query params for filtering
+        const params = new URLSearchParams();
+        if (searchText) params.append('search', searchText);
+        if (filterCreator) params.append('createdBy', filterCreator);
+
+        const queryString = params.toString() ? `?${params.toString()}` : '';
+        const items = await fetchAllKnowledge(queryString);
+        setKnowledgeItems(items);
+      } catch (error) {
+        console.error('Error loading knowledge items:', error);
+        message.error('Failed to load knowledge items');
+      } finally {
+        setLoading(false);
+      }
+    },
+    [filterCreator, searchText]
+  );
   // Load knowledge items on component mount
   useEffect(() => {
     loadKnowledgeItems();
-  }, []);
+  }, [loadKnowledgeItems]);
 
-  async function loadKnowledgeItems() {
-    setLoading(true);
-    const items = await fetchAllKnowledge();
-    setKnowledgeItems(items);
-    setLoading(false);
-  }
+  const handleSearch = () => {
+    loadKnowledgeItems();
+  };
 
   const showModal = (record?: IKnowledge) => {
     if (record) {
@@ -115,21 +124,16 @@ export default function KnowledgeList() {
     <Row gutter={[16, 16]}>
       {knowledgeItems.length === 0 && !loading ? (
         <Col span={24}>
-          <Empty description={messages.knowledgeList.noKnowledgeItems || "No knowledge items found"} />
+          <Empty description={messages.knowledgeList.noKnowledgeItems || 'No knowledge items found'} />
         </Col>
       ) : (
-        knowledgeItems.map(item => (
+        knowledgeItems.map((item) => (
           <Col xs={24} sm={12} md={8} lg={8} xl={6} key={item.id}>
             <Card
               hoverable
               style={{ height: '100%' }}
               actions={[
-                <Button
-                  type="text"
-                  icon={<EditOutlined />}
-                  onClick={() => showModal(item)}
-                  key="edit"
-                />,
+                <Button type="text" icon={<EditOutlined />} onClick={() => showModal(item)} key="edit" />,
                 <Button
                   type="text"
                   icon={<FileOutlined />}
@@ -141,18 +145,18 @@ export default function KnowledgeList() {
                   onConfirm={() => handleDelete(item.id)}
                   okText={messages.knowledgeList.yes}
                   cancelText={messages.knowledgeList.no}
-                  key="delete"
-                >
+                  key="delete">
                   <Button type="text" danger icon={<DeleteOutlined />} />
                 </Popconfirm>,
-              ]}
-            >
+              ]}>
               <Card.Meta
                 title={<a onClick={() => router.push(`/knowledge/${item.id}`)}>{item.name}</a>}
                 description={
                   <>
                     <Paragraph ellipsis={{ rows: 3 }}>{item.description}</Paragraph>
-                    <Text type="secondary">{messages.knowledgeList.createdBy}: {item.createdBy?.name || 'Unknown'}</Text>
+                    <Text type="secondary">
+                      {messages.knowledgeList.createdBy}: {item.createdBy?.name || 'Unknown'}
+                    </Text>
                   </>
                 }
               />
@@ -167,25 +171,51 @@ export default function KnowledgeList() {
     <MainLayout title={messages.knowledgeList.knowledgeManagement}>
       <div style={{ padding: '24px' }}>
         <Space direction="vertical" size="large" style={{ width: '100%' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap:'wrap' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap' }}>
             <Title level={2}>{messages.knowledgeList.knowledgeManagement}</Title>
-            <Button
-              type="primary"
-              icon={<PlusOutlined />}
-              onClick={() => showModal()}
-              disabled={!isAuthenticated}
-            >
+            <Button type="primary" icon={<PlusOutlined />} onClick={() => showModal()} disabled={!isAuthenticated}>
               {messages.knowledgeList.addKnowledge}
             </Button>
           </div>
 
           {!isAuthenticated && (
             <div style={{ marginBottom: 16 }}>
-              <Text type="warning">
-                {messages.knowledgeList.loginRequired}
-              </Text>
+              <Text type="warning">{messages.knowledgeList.loginRequired}</Text>
             </div>
           )}
+
+          <Space style={{ marginBottom: '16px', width: '100%' }}>
+            <Input
+              placeholder={messages.knowledgeList.searchPlaceholder || 'Search knowledge...'}
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              style={{ width: 200 }}
+              suffix={<SearchOutlined style={{ cursor: 'pointer' }} onClick={handleSearch} />}
+              onPressEnter={handleSearch}
+            />
+
+            <Select
+              placeholder={messages.knowledgeList.creatorPlaceholder || 'Filter by creator'}
+              allowClear
+              style={{ width: 150 }}
+              onChange={(value) => setFilterCreator(value)}>
+              {knowledgeItems
+                .map((item) => item.createdBy)
+                .filter((creator, index, self) => creator && self.findIndex((c) => c && c.id === creator.id) === index)
+                .map(
+                  (creator) =>
+                    creator && (
+                      <Option key={creator.id} value={creator.id}>
+                        {creator.name}
+                      </Option>
+                    )
+                )}
+            </Select>
+
+            <Button onClick={handleSearch} type="primary">
+              {messages.knowledgeList.filter || 'Filter'}
+            </Button>
+          </Space>
 
           <div style={{ minHeight: '200px' }}>
             {loading ? (
