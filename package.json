@@ -50,6 +50,8 @@
     "officeparser": "^5.1.1",
     "openai": "^4.96.0",
     "pdf2json": "^3.1.5",
+    "postcss-flexbugs-fixes": "^5.0.2",
+    "postcss-preset-env": "^10.1.6",
     "rc-util": "^5.44.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
