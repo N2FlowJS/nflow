@@ -30,6 +30,9 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
+          
+      - name: Clear Next.js Cache
+        run: rm -rf .next
 
       - name: Install Dependencies
         run: |
