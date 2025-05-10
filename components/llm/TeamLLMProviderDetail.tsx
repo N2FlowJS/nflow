@@ -29,7 +29,7 @@ import {
   updateTeamLLMProvider,
   updateTeamProviderModel
 } from '../../services/teamService';
-import { llmOpenAI } from '../../llm/openai';
+import { fetchModelsByProvider } from '../../services/llmService';
 import LLMModelForm from './LLMModelForm';
 import LLMProviderForm from './LLMProviderForm';
 
@@ -61,6 +61,8 @@ const TeamLLMProviderDetail: React.FC<TeamLLMProviderDetailProps> = ({
   const [selectedModels, setSelectedModels] = useState<string[]>([]);
   const [isQuickAddModalVisible, setIsQuickAddModalVisible] = useState(false);
   const [fetchingModels, setFetchingModels] = useState(false);
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+  const [batchActionLoading, setBatchActionLoading] = useState(false);
 
   const fetchModels = React.useCallback(async () => {
     if (!provider?.id) return;
@@ -149,24 +151,16 @@ const TeamLLMProviderDetail: React.FC<TeamLLMProviderDetailProps> = ({
 
   const handleFetchModels = async () => {
     if (!['openai', 'openai-compatible'].includes(provider.providerType)) {
-      message.warning('Quick add is only available for OpenAI providers');
+      message.warning('Quick add is only available for OpenAI or OpenAI-compatible providers.');
       return;
     }
 
     setFetchingModels(true);
     setIsQuickAddModalVisible(true);
     try {
-      const models = await llmOpenAI.models(
-        provider.endpointUrl || 'https://api.openai.com/v1',
-        provider.apiKey || ''
+      const filteredModels = await fetchModelsByProvider(
+        provider.id
       );
-
-      // Filter to only include GPT models and embedding models
-      const filteredModels = models.filter((model: any) => 
-        model.id.includes('gpt') || 
-        model.id.includes('text-embedding')
-      );
-      
       setFetchedModels(filteredModels);
     } catch (error) {
       console.error('Error fetching models:', error);
@@ -221,6 +215,42 @@ const TeamLLMProviderDetail: React.FC<TeamLLMProviderDetailProps> = ({
     }
   };
 
+  const handleBatchDelete = async () => {
+    if (!provider?.id || selectedRowKeys.length === 0) return;
+    
+    setBatchActionLoading(true);
+    try {
+      let successCount = 0;
+      let errorCount = 0;
+      
+      for (const modelId of selectedRowKeys) {
+        try {
+          await deleteTeamProviderModel(teamId, provider.id, modelId as string);
+          successCount++;
+        } catch (err) {
+          console.error(`Error deleting model ${modelId}:`, err);
+          errorCount++;
+        }
+      }
+      
+      if (successCount > 0) {
+        message.success(`Successfully deleted ${successCount} models`);
+      }
+      
+      if (errorCount > 0) {
+        message.warning(`Failed to delete ${errorCount} models`);
+      }
+      
+      setSelectedRowKeys([]);
+      fetchModels();
+    } catch (error) {
+      console.error('Error in batch delete:', error);
+      message.error('Failed to delete selected models');
+    } finally {
+      setBatchActionLoading(false);
+    }
+  };
+  
   const getModelTypeTag = (type: string) => {
     let color = '';
     let label = type;
@@ -248,6 +278,13 @@ const TeamLLMProviderDetail: React.FC<TeamLLMProviderDetailProps> = ({
     }
 
     return <Tag color={color}>{label}</Tag>;
+  };
+
+  const rowSelection = {
+    selectedRowKeys,
+    onChange: (selectedKeys: React.Key[]) => {
+      setSelectedRowKeys(selectedKeys);
+    }
   };
 
   const columns = [
@@ -313,6 +350,8 @@ const TeamLLMProviderDetail: React.FC<TeamLLMProviderDetailProps> = ({
     },
   ];
 
+  const quickAddModalTitle = provider.providerType === 'openai' ? 'Quick Add OpenAI Models' : 'Quick Add Models';
+
   return (
     <div>
       <Card>
@@ -347,27 +386,48 @@ const TeamLLMProviderDetail: React.FC<TeamLLMProviderDetailProps> = ({
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
           <Title level={4}>Models</Title>
-          {canManageModels && (
-            <Space>
-              {['openai', 'openai-compatible'].includes(provider.providerType) && (
+          <Space>
+            {canManageModels && selectedRowKeys.length > 0 && (
+              <Popconfirm
+                title={`Delete ${selectedRowKeys.length} selected models?`}
+                description="This action cannot be undone."
+                onConfirm={handleBatchDelete}
+                okText="Delete"
+                cancelText="Cancel"
+                okButtonProps={{ danger: true, loading: batchActionLoading }}
+              >
+                <Button 
+                  type="primary" 
+                  danger 
+                  icon={<DeleteOutlined />}
+                  loading={batchActionLoading}
+                >
+                  Delete Selected ({selectedRowKeys.length})
+                </Button>
+              </Popconfirm>
+            )}
+            {canManageModels && (
+              <Space>
+                {['openai', 'openai-compatible'].includes(provider.providerType) && (
+                  <Button
+                    type="primary"
+                    icon={<ThunderboltOutlined />}
+                    onClick={handleFetchModels}
+                    ghost
+                  >
+                    Quick Add Models
+                  </Button>
+                )}
                 <Button
                   type="primary"
-                  icon={<ThunderboltOutlined />}
-                  onClick={handleFetchModels}
-                  ghost
+                  icon={<PlusOutlined />}
+                  onClick={() => setIsAddModalVisible(true)}
                 >
-                  Quick Add Models
+                  Add Model
                 </Button>
-              )}
-              <Button
-                type="primary"
-                icon={<PlusOutlined />}
-                onClick={() => setIsAddModalVisible(true)}
-              >
-                Add Model
-              </Button>
-            </Space>
-          )}
+              </Space>
+            )}
+          </Space>
         </div>
 
         <Table
@@ -376,6 +436,7 @@ const TeamLLMProviderDetail: React.FC<TeamLLMProviderDetailProps> = ({
           rowKey="id"
           loading={loading}
           pagination={false}
+          rowSelection={canManageModels ? rowSelection : undefined}
         />
       </Card>
 
@@ -434,7 +495,7 @@ const TeamLLMProviderDetail: React.FC<TeamLLMProviderDetailProps> = ({
 
       {/* Quick Add Models Modal */}
       <Modal
-        title="Quick Add OpenAI Models"
+        title={quickAddModalTitle}
         open={isQuickAddModalVisible}
         onCancel={() => setIsQuickAddModalVisible(false)}
         okText="Add Selected Models"

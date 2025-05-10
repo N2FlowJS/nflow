@@ -2,8 +2,7 @@ import { DeleteOutlined, EditOutlined, PlusOutlined, ThunderboltOutlined } from 
 import { Button, Modal, Popconfirm, Space, Table, Tag, Tooltip, Typography, message, Spin } from 'antd';
 import React, { useState } from 'react';
 import { LLMModel, LLMProvider } from '../../models/llm';
-import { deleteLLMModel, updateLLMModel } from '../../services/llmService';
-import { llmOpenAI } from '../../llm/openai';
+import { deleteLLMModel, fetchModelsByProvider, updateLLMModel } from '../../services/llmService';
 import LLMModelForm from './LLMModelForm';
 
 const { Title } = Typography;
@@ -88,19 +87,17 @@ const LLMModelsTable: React.FC<LLMModelsTableProps> = ({ models, provider, loadi
   };
 
   const handleFetchModels = async () => {
-    if (provider.providerType !== 'openai') {
-      message.warning('Quick add is only available for OpenAI providers');
+    if (!['openai', 'openai-compatible'].includes(provider.providerType)) {
+      message.warning('Quick add is only available for OpenAI or OpenAI-compatible providers.');
       return;
     }
 
     setFetchingModels(true);
     setIsQuickAddModalVisible(true);
     try {
-      const models = await llmOpenAI.models(provider.endpointUrl || 'https://api.openai.com/v1', provider.apiKey || '');
-
-      // Filter to only include GPT models and embedding models
-      const filteredModels = models.filter((model: any) => model.id.includes('gpt') || model.id.includes('text-embedding'));
-
+      const filteredModels = await fetchModelsByProvider(
+        provider.id 
+      );
       setFetchedModels(filteredModels);
     } catch (error) {
       console.error('Error fetching models:', error);
@@ -174,6 +171,8 @@ const LLMModelsTable: React.FC<LLMModelsTableProps> = ({ models, provider, loadi
     },
   ];
 
+  const quickAddModalTitle = provider.providerType === 'openai' ? 'Quick Add OpenAI Models' : 'Quick Add Models';
+
   return (
     <>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
@@ -215,7 +214,7 @@ const LLMModelsTable: React.FC<LLMModelsTableProps> = ({ models, provider, loadi
       </Modal>
 
       {/* Quick Add Models Modal */}
-      <Modal title="Quick Add OpenAI Models" open={isQuickAddModalVisible} onCancel={() => setIsQuickAddModalVisible(false)} okText="Add Selected Models" okButtonProps={{ disabled: selectedModels.length === 0, loading: actionLoading }} onOk={handleQuickAddModels} width={700}>
+      <Modal title={quickAddModalTitle} open={isQuickAddModalVisible} onCancel={() => setIsQuickAddModalVisible(false)} okText="Add Selected Models" okButtonProps={{ disabled: selectedModels.length === 0, loading: actionLoading }} onOk={handleQuickAddModels} width={700}>
         {fetchingModels ? (
           <div style={{ textAlign: 'center', padding: '30px' }}>
             <Spin tip="Fetching available models..." />

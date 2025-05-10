@@ -35,6 +35,16 @@ export const updateLLMProvider = async (id: string, data: unknown) => {
   });
 };
 
+// New service function to fetch models from the API
+export const fetchModelsByProvider = async (providerId: string) => {
+  return apiRequest<any[]>('/api/llm/fetchModels', {
+    method: 'POST',
+    body: JSON.stringify({
+      providerId,
+    }),
+  });
+};
+
 export const deleteLLMProvider = async (id: string) => {
   return apiRequest<{ success: boolean }>(`/api/llm/providers/${id}`, {
     method: 'DELETE',
