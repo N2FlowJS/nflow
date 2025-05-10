@@ -86,6 +86,7 @@ export async function flowExecutionService(
         total_tokens: 0,
       },
       flowState: {
+        executionTime: Date.now(),
         currentNode: {
           id: 'error',
           type: 'interface',
