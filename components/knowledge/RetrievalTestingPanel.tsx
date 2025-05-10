@@ -1,12 +1,27 @@
-import React, { useState } from 'react';
+import { ExperimentOutlined, SearchOutlined } from '@ant-design/icons';
 import {
-    Card, Typography, Input, Button, Slider, InputNumber,
-    Space, Divider, List, Tag, Empty, Spin, Collapse, Alert, Grid, Tooltip, Progress
+    Alert,
+    Button,
+    Card,
+    Col,
+    Collapse,
+    Divider,
+    Empty,
+    Grid,
+    Input,
+    InputNumber,
+    Progress, Row,
+    Slider,
+    Space,
+    Spin,
+    Tag,
+    Tooltip,
+    Typography
 } from 'antd';
-import { SearchOutlined, ExperimentOutlined } from '@ant-design/icons';
-import { testKnowledgeRetrieval } from '../../services/knowledgeService';
+import React, { useState } from 'react';
 import { SearchSimilarResult } from '../../lib/services/vectorSearchService';
 import { useLocale } from '../../locale'; // Add this import
+import { testKnowledgeRetrieval } from '../../services/knowledgeService';
 
 const { Text, Paragraph } = Typography;
 const { TextArea } = Input;
@@ -109,7 +124,7 @@ const RetrievalTestingPanel: React.FC<RetrievalTestingPanelProps> = ({ knowledge
                     <span>{t('knowledgeDetail.testing.title')}</span>
                 </Space>
             }
-            className="retrieval-testing-panel"
+            className="dashboard-card retrieval-testing-panel"
             size={isMobile ? 'small' : 'default'}
         >
             <Space direction="vertical" style={{ width: '100%' }} size={isMobile ? 'small' : 'middle'}>
@@ -117,26 +132,19 @@ const RetrievalTestingPanel: React.FC<RetrievalTestingPanelProps> = ({ knowledge
                     <Alert type="error" message={error} closable onClose={() => setError(null)} />
                 )}
 
-                <div>
-                    <Text strong>{t('knowledgeDetail.testing.testQueryLabel')}</Text>
-                    <TextArea
-                        placeholder={t('knowledgeDetail.testing.testQueryPlaceholder')}
-                        value={query}
-                        onChange={(e) => setQuery(e.target.value)}
-                        rows={isMobile ? 2 : 3}
-                        style={{ marginTop: 8 }}
-                    />
-                </div>
-
-                <div style={{
-                    display: 'flex',
-                    flexDirection: isMobile ? 'column' : 'row',
-                    gap: isMobile ? '12px' : '20px'
-                }}>
-                    <div style={{
-                        flex: 1,
-                        minWidth: isMobile ? '100%' : '200px'
-                    }}>
+                {/* Query Input and Controls */}
+                <Row gutter={[16, 16]}>
+                    <Col xs={24}>
+                        <Text strong>{t('knowledgeDetail.testing.testQueryLabel')}</Text>
+                        <TextArea
+                            placeholder={t('knowledgeDetail.testing.testQueryPlaceholder')}
+                            value={query}
+                            onChange={(e) => setQuery(e.target.value)}
+                            rows={isMobile ? 2 : 3}
+                            style={{ marginTop: 8 }}
+                        />
+                    </Col>
+                    <Col xs={24} md={12}>
                         <Text strong>{t('knowledgeDetail.testing.resultsLimitLabel')}</Text>
                         <div style={{
                             display: 'flex',
@@ -160,12 +168,8 @@ const RetrievalTestingPanel: React.FC<RetrievalTestingPanelProps> = ({ knowledge
                                 style={{ width: isMobile ? '100%' : 'auto' }}
                             />
                         </div>
-                    </div>
-
-                    <div style={{
-                        flex: 1,
-                        minWidth: isMobile ? '100%' : '200px'
-                    }}>
+                    </Col>
+                    <Col xs={24} md={12}>
                         <Text strong>{t('knowledgeDetail.testing.similarityThresholdLabel')}</Text>
                         <div style={{
                             display: 'flex',
@@ -193,19 +197,20 @@ const RetrievalTestingPanel: React.FC<RetrievalTestingPanelProps> = ({ knowledge
                                 style={{ width: isMobile ? '100%' : 'auto' }}
                             />
                         </div>
-                    </div>
-                </div>
-
-                <Button
-                    type="primary"
-                    icon={<SearchOutlined />}
-                    onClick={handleRunTest}
-                    loading={loading}
-                    block
-                    size={isMobile ? 'middle' : 'large'}
-                >
-                    {t('knowledgeDetail.testing.runTestButton')}
-                </Button>
+                    </Col>
+                    <Col xs={24}>
+                        <Button
+                            type="primary"
+                            icon={<SearchOutlined />}
+                            onClick={handleRunTest}
+                            loading={loading}
+                            block
+                            size={isMobile ? 'middle' : 'large'}
+                        >
+                            {t('knowledgeDetail.testing.runTestButton')}
+                        </Button>
+                    </Col>
+                </Row>
 
                 {loading && (
                     <div style={{ textAlign: 'center', padding: isMobile ? '12px 0' : '20px 0' }}>
@@ -216,6 +221,7 @@ const RetrievalTestingPanel: React.FC<RetrievalTestingPanelProps> = ({ knowledge
                     </div>
                 )}
 
+                {/* Test Results */}
                 {testResult && !loading && (
                     <>
                         <Divider orientation={isMobile ? "left" : "center"} style={{ margin: isMobile ? '12px 0' : '24px 0' }}>
@@ -233,21 +239,18 @@ const RetrievalTestingPanel: React.FC<RetrievalTestingPanelProps> = ({ knowledge
                                     showIcon
                                 />
 
+                                {/* Result Cards instead of List */}
                                 {testResult.results.length === 0 ? (
                                     <Empty
                                         description={t('knowledgeDetail.testing.noResultsFound')}
                                         image={Empty.PRESENTED_IMAGE_SIMPLE}
                                     />
                                 ) : (
-                                    <List
-                                        itemLayout="vertical"
-                                        dataSource={testResult.results}
-                                        renderItem={(item, index) => (
-                                            <List.Item
-                                                style={{ padding: isMobile ? '8px 0' : '12px 0' }}
-                                                extra={isMobile ? null : renderSimilarityBadge(item.similarity)}
-                                            >
-                                                <List.Item.Meta
+                                    <Row gutter={[16, 16]}>
+                                        {testResult.results.map((item, index) => (
+                                            <Col key={index} xs={24} md={12} lg={8}>
+                                                <Card 
+                                                    size="small"
                                                     title={
                                                         <div style={{
                                                             display: 'flex',
@@ -256,52 +259,57 @@ const RetrievalTestingPanel: React.FC<RetrievalTestingPanelProps> = ({ knowledge
                                                             flexWrap: 'wrap',
                                                             gap: '8px'
                                                         }}>
-                                                            <Text strong>{t('knowledgeDetail.testing.resultItemTitle', { index: index + 1, fileName: item.fileName })}</Text>
-                                                            {isMobile && renderSimilarityBadge(item.similarity)}
+                                                            <Text strong>{t('knowledgeDetail.testing.resultItemTitle', { index: index + 1, fileName: '' })}</Text>
+                                                            {renderSimilarityBadge(item.similarity)}
                                                         </div>
                                                     }
-                                                />
-                                                <div className="result-content" style={{
-                                                    padding: isMobile ? '8px' : '12px',
-                                                    background: '#f9f9f9',
-                                                    borderRadius: '4px',
-                                                    marginTop: '8px',
-                                                    fontSize: isMobile ? '13px' : '14px',
-                                                    overflowWrap: 'break-word',
-                                                    wordBreak: 'break-word'
-                                                }}>
-                                                    <Paragraph
-                                                        ellipsis={{
-                                                            rows: isMobile ? 3 : 4,
-                                                            expandable: true,
-                                                            symbol: t('knowledgeDetail.testing.expandLabel')
-                                                        }}
-                                                    >
-                                                        {item.content}
-                                                    </Paragraph>
-                                                </div>
+                                                    style={{ height: '100%' }}
+                                                >
+                                                    <div>
+                                                        <Text strong style={{ fontSize: '13px' }}>{item.fileName}</Text>
+                                                    </div>
+                                                    <div className="result-content" style={{
+                                                        padding: isMobile ? '8px' : '12px',
+                                                        background: '#f9f9f9',
+                                                        borderRadius: '4px',
+                                                        marginTop: '8px',
+                                                        fontSize: isMobile ? '13px' : '14px',
+                                                        overflowWrap: 'break-word',
+                                                        wordBreak: 'break-word'
+                                                    }}>
+                                                        <Paragraph
+                                                            ellipsis={{
+                                                                rows: isMobile ? 3 : 4,
+                                                                expandable: true,
+                                                                symbol: t('knowledgeDetail.testing.expandLabel')
+                                                            }}
+                                                        >
+                                                            {item.content}
+                                                        </Paragraph>
+                                                    </div>
 
-                                                {item.metadata && Object.keys(item.metadata).length > 0 && (
-                                                    <Collapse ghost style={{ marginTop: '8px' }}>
-                                                        <Panel header={t('knowledgeDetail.testing.metadataHeader')} key="1">
-                                                            <div style={{
-                                                                maxWidth: '100%',
-                                                                overflowX: 'auto'
-                                                            }}>
-                                                                <pre style={{
-                                                                    fontSize: isMobile ? '11px' : '12px',
-                                                                    whiteSpace: 'pre-wrap',
-                                                                    wordBreak: 'break-word'
+                                                    {item.metadata && Object.keys(item.metadata).length > 0 && (
+                                                        <Collapse ghost style={{ marginTop: '8px' }}>
+                                                            <Panel header={t('knowledgeDetail.testing.metadataHeader')} key="1">
+                                                                <div style={{
+                                                                    maxWidth: '100%',
+                                                                    overflowX: 'auto'
                                                                 }}>
-                                                                    {JSON.stringify(item.metadata, null, 2)}
-                                                                </pre>
-                                                            </div>
-                                                        </Panel>
-                                                    </Collapse>
-                                                )}
-                                            </List.Item>
-                                        )}
-                                    />
+                                                                    <pre style={{
+                                                                        fontSize: isMobile ? '11px' : '12px',
+                                                                        whiteSpace: 'pre-wrap',
+                                                                        wordBreak: 'break-word'
+                                                                    }}>
+                                                                        {JSON.stringify(item.metadata, null, 2)}
+                                                                    </pre>
+                                                                </div>
+                                                            </Panel>
+                                                        </Collapse>
+                                                    )}
+                                                </Card>
+                                            </Col>
+                                        ))}
+                                    </Row>
                                 )}
                             </Space>
                         </div>

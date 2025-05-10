@@ -13,7 +13,6 @@ type PersistConversationStateOptions = {
 };
 export async function saveConversationToDatabase({ agentId, flowState, id, message }: PersistConversationStateOptions): Promise<string> {
   // Serialize flow state to JSON string for storage
-  const flowStateString = JSON.stringify(flowState);
 
   // Create a new conversation if no ID is provided
   if (!id) {
@@ -27,7 +26,7 @@ export async function saveConversationToDatabase({ agentId, flowState, id, messa
         data: {
           title,
           agentId,
-          flowState: flowStateString,
+          flowState: flowState,
         },
       });
 
@@ -54,7 +53,7 @@ export async function saveConversationToDatabase({ agentId, flowState, id, messa
       prisma.conversation.update({
         where: { id },
         data: {
-          flowState: flowStateString,
+          flowState: flowState  as any ,
           updatedAt: new Date(),
           lastMessageAt: new Date(),
         },

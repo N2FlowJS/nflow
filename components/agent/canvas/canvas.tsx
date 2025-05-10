@@ -1,5 +1,20 @@
 import { CommentOutlined, SaveOutlined, ToolOutlined } from '@ant-design/icons';
-import { addEdge, Background, Connection, ConnectionLineType, ControlButton, Controls, EdgeTypes, IsValidConnection, MarkerType, ReactFlow, NodeTypes as ReactFlowNodeTypes, useEdgesState, useNodesState, useReactFlow } from '@xyflow/react';
+import {
+  addEdge,
+  Background,
+  Connection,
+  ConnectionLineType,
+  ControlButton,
+  Controls,
+  EdgeTypes,
+  IsValidConnection,
+  MarkerType,
+  ReactFlow,
+  NodeTypes as ReactFlowNodeTypes,
+  useEdgesState,
+  useNodesState,
+  useReactFlow,
+} from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { Drawer, Form, message } from 'antd';
 import React, { useCallback, useState, useEffect } from 'react';
@@ -52,7 +67,13 @@ interface FlowCanvasComponentProps {
   onSaveFlow: (nodes: FlowNode[], edges: any[]) => Promise<void>;
 }
 
-const FlowCanvasComponent: React.FC<FlowCanvasComponentProps> = ({ initialNodes, initialEdges, onStartConversation, activeConversationId, onSaveFlow }) => {
+const FlowCanvasComponent: React.FC<FlowCanvasComponentProps> = ({
+  initialNodes,
+  initialEdges,
+  onStartConversation,
+  activeConversationId,
+  onSaveFlow,
+}) => {
   const { theme } = useTheme();
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
@@ -71,7 +92,7 @@ const FlowCanvasComponent: React.FC<FlowCanvasComponentProps> = ({ initialNodes,
         console.log({ conversation });
 
         if (conversation && conversation.flowState) {
-          setFlowState(JSON.parse(conversation.flowState) as FlowState);
+          setFlowState(conversation.flowState);
         } else {
           setFlowState(null);
         }
@@ -124,7 +145,9 @@ const FlowCanvasComponent: React.FC<FlowCanvasComponentProps> = ({ initialNodes,
                   if (params.sourceHandle === 'out-default') {
                     form.defaultTarget = params.target;
                   } else {
-                    form.branches = form.branches.map((branch: any) => (branch.name === branchName ? { ...branch, targetNode: params.target } : branch));
+                    form.branches = form.branches.map((branch: any) =>
+                      branch.name === branchName ? { ...branch, targetNode: params.target } : branch
+                    );
                   }
 
                   return {
@@ -140,7 +163,9 @@ const FlowCanvasComponent: React.FC<FlowCanvasComponentProps> = ({ initialNodes,
             );
           }
           if (sourceType === 'categorize' && params.sourceHandle) {
-            const categoryName = params.sourceHandle.startsWith('out-') ? params.sourceHandle.substring(4) : params.sourceHandle;
+            const categoryName = params.sourceHandle.startsWith('out-')
+              ? params.sourceHandle.substring(4)
+              : params.sourceHandle;
 
             setNodes((nds: FlowNode[]) =>
               nds.map((n) => {
@@ -154,7 +179,9 @@ const FlowCanvasComponent: React.FC<FlowCanvasComponentProps> = ({ initialNodes,
                       ...n.data,
                       form: {
                         ...form,
-                        categories: form.categories.map((c) => (c.name === categoryName ? { ...c, targetNode: params.target } : c)),
+                        categories: form.categories.map((c) =>
+                          c.name === categoryName ? { ...c, targetNode: params.target } : c
+                        ),
                       },
                     },
                   } as FlowNode;
@@ -308,7 +335,12 @@ const FlowCanvasComponent: React.FC<FlowCanvasComponentProps> = ({ initialNodes,
             onDelete: onEdgeDelete,
           },
         }}>
-        <Controls orientation="horizontal" position="top-left" showZoom={true} showFitView={true} showInteractive={true}>
+        <Controls
+          orientation="horizontal"
+          position="top-left"
+          showZoom={true}
+          showFitView={true}
+          showInteractive={true}>
           <ControlButton onClick={handleSaveFlow}>
             <SaveOutlined />
           </ControlButton>
@@ -360,7 +392,13 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flowConfig, onStartConversation
 
   return (
     <FlowStateProvider>
-      <FlowCanvasComponent initialNodes={initialFlow.nodes} initialEdges={initialFlow.edges} onStartConversation={onStartConversation} activeConversationId={activeConversationId} onSaveFlow={handleSaveFlow} />
+      <FlowCanvasComponent
+        initialNodes={initialFlow.nodes}
+        initialEdges={initialFlow.edges}
+        onStartConversation={onStartConversation}
+        activeConversationId={activeConversationId}
+        onSaveFlow={handleSaveFlow}
+      />
     </FlowStateProvider>
   );
 };

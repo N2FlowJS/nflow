@@ -4,11 +4,11 @@ import {
   Form,
   message, Popconfirm,
   Space,
-  Table,
   Typography,
   Card,
   Row,
-  Col
+  Col,
+  Empty
 } from 'antd';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
@@ -111,98 +111,55 @@ export default function KnowledgeList() {
     }
   };
 
-  const columns = [
-
-    {
-      title: messages.knowledgeList.name,
-      dataIndex: 'name',
-      key: 'name',
-      width: '20%',
-      render: (text: string, record: IKnowledge) => (
-        <a onClick={() => router.push(`/knowledge/${record.id}`)}>{text}</a>
-      ),
-    },
-    {
-      title: messages.knowledgeList.description,
-      dataIndex: 'description',
-      key: 'description',
-    },
-    {
-      title: messages.knowledgeList.createdBy,
-      dataIndex: 'createdBy',
-      key: 'createdBy',
-      render: (createdBy: { name: string }) => createdBy?.name || 'Unknown',
-    },
-    {
-      title: messages.knowledgeList.actions,
-      key: 'actions',
-      width: '15%',
-      render: (_: any, record: IKnowledge) => (
-        <Space>
-          <Button
-            type="text"
-            icon={<EditOutlined />}
-            onClick={() => showModal(record)}
-          />
-          <Button
-            type="text"
-            icon={<FileOutlined />}
-            onClick={() => router.push(`/knowledge/${record.id}/files`)}
-          />
-          <Popconfirm
-            title={messages.knowledgeList.deleteConfirmation}
-            onConfirm={() => handleDelete(record.id)}
-            okText={messages.knowledgeList.yes}
-            cancelText={messages.knowledgeList.no}
-          >
-            <Button type="text" danger icon={<DeleteOutlined />} />
-          </Popconfirm>
-        </Space>
-      ),
-    },
-  ];
-
-  const renderMobileView = () => (
+  const renderCardView = () => (
     <Row gutter={[16, 16]}>
-      {knowledgeItems.map(item => (
-        <Col xs={24} sm={12} key={item.id}>
-          <Card
-            actions={[
-              <Button
-                type="text"
-                icon={<EditOutlined />}
-                onClick={() => showModal(item)}
-                key="edit"
-              />,
-              <Button
-                type="text"
-                icon={<FileOutlined />}
-                onClick={() => router.push(`/knowledge/${item.id}/files`)}
-                key="files"
-              />,
-              <Popconfirm
-                title={messages.knowledgeList.deleteConfirmation}
-                onConfirm={() => handleDelete(item.id)}
-                okText={messages.knowledgeList.yes}
-                cancelText={messages.knowledgeList.no}
-                key="delete"
-              >
-                <Button type="text" danger icon={<DeleteOutlined />} />
-              </Popconfirm>,
-            ]}
-          >
-            <Card.Meta
-              title={<a onClick={() => router.push(`/knowledge/${item.id}`)}>{item.name}</a>}
-              description={
-                <>
-                  <Paragraph ellipsis={{ rows: 2 }}>{item.description}</Paragraph>
-                  <Text type="secondary">{messages.knowledgeList.createdBy}: {item.createdBy?.name || 'Unknown'}</Text>
-                </>
-              }
-            />
-          </Card>
+      {knowledgeItems.length === 0 && !loading ? (
+        <Col span={24}>
+          <Empty description={messages.knowledgeList.noKnowledgeItems || "No knowledge items found"} />
         </Col>
-      ))}
+      ) : (
+        knowledgeItems.map(item => (
+          <Col xs={24} sm={12} md={8} lg={8} xl={6} key={item.id}>
+            <Card
+              hoverable
+              style={{ height: '100%' }}
+              actions={[
+                <Button
+                  type="text"
+                  icon={<EditOutlined />}
+                  onClick={() => showModal(item)}
+                  key="edit"
+                />,
+                <Button
+                  type="text"
+                  icon={<FileOutlined />}
+                  onClick={() => router.push(`/knowledge/${item.id}/files`)}
+                  key="files"
+                />,
+                <Popconfirm
+                  title={messages.knowledgeList.deleteConfirmation}
+                  onConfirm={() => handleDelete(item.id)}
+                  okText={messages.knowledgeList.yes}
+                  cancelText={messages.knowledgeList.no}
+                  key="delete"
+                >
+                  <Button type="text" danger icon={<DeleteOutlined />} />
+                </Popconfirm>,
+              ]}
+            >
+              <Card.Meta
+                title={<a onClick={() => router.push(`/knowledge/${item.id}`)}>{item.name}</a>}
+                description={
+                  <>
+                    <Paragraph ellipsis={{ rows: 3 }}>{item.description}</Paragraph>
+                    <Text type="secondary">{messages.knowledgeList.createdBy}: {item.createdBy?.name || 'Unknown'}</Text>
+                  </>
+                }
+              />
+            </Card>
+          </Col>
+        ))
+      )}
     </Row>
   );
 
@@ -230,15 +187,15 @@ export default function KnowledgeList() {
             </div>
           )}
 
-          {isMobile ? renderMobileView() : (
-            <Table
-              columns={columns}
-              dataSource={knowledgeItems}
-              rowKey="id"
-              loading={loading}
-              pagination={{ pageSize: 10 }}
-            />
-          )}
+          <div style={{ minHeight: '200px' }}>
+            {loading ? (
+              <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '200px' }}>
+                <div className="loading-spinner" />
+              </div>
+            ) : (
+              renderCardView()
+            )}
+          </div>
 
           <KnowledgeForm
             form={form}

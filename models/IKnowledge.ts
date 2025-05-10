@@ -11,6 +11,7 @@ export interface IKnowledge {
     id: string;
     name: string;
     email?: string;
+    permission?: string;
   };
   users?: any[];
   teams?: any[];

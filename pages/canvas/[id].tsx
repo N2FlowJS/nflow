@@ -1,47 +1,43 @@
-import { ReactFlowProvider } from "@xyflow/react";
-import { Drawer, Skeleton, Spin, message } from "antd";
-import { useRouter } from "next/router";
-import React, { useEffect, useState } from "react";
-import FlowEditor from "../../../components/agent/canvas/canvas";
-import ChatInterface from "../../../components/chat/ChatInterface";
-import MainLayout from "../../../components/layout/MainLayout";
-import { useAuth } from "../../../context/AuthContext";
-import { useMobile } from "../../../hooks/useMobile";
-import { fetchAgent } from "../../../services/agentService";
+import { ReactFlowProvider } from '@xyflow/react';
+import { Drawer, Skeleton, Spin, message } from 'antd';
+import { useRouter } from 'next/router';
+import React, { useEffect, useState } from 'react';
+import FlowEditor from '../../components/agent/canvas/canvas';
+import ChatInterface from '../../components/chat/ChatInterface';
+import MainLayout from '../../components/layout/MainLayout';
+import { useAuth } from '../../context/AuthContext';
+import { useMobile } from '../../hooks/useMobile';
+import { fetchAgent } from '../../services/agentService';
 
 export default function FlowEditorPage() {
   const router = useRouter();
-  const { agentId } = router.query as {
-    agentId: string
+  const { id } = router.query as {
+    id: string;
   };
   const { user } = useAuth();
-  const { isMobile } = useMobile()
+  const { isMobile } = useMobile();
   const [loading, setLoading] = useState<boolean>(false);
   const [agent, setAgent] = useState<any | null>(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [currentConversationId, setCurrentConversationId] = useState<string | undefined>(undefined);
 
   const loadAgentData = React.useCallback(async () => {
-    if (!agentId) return
+    if (!id) return;
     setLoading(true);
     try {
-      const agentData = await fetchAgent(agentId);
+      const agentData = await fetchAgent(id);
       console.log(agentData, 'agentData');
 
       if (agentData) setAgent(agentData);
-
     } catch (error: unknown) {
-      console.error("Error loading data:", error);
-      message.error("Failed to load data");
+      console.error('Error loading data:', error);
+      message.error('Failed to load data');
     } finally {
       setLoading(false);
     }
-  }, [agentId]);
-
-
+  }, [id]);
 
   useEffect(() => {
-
     loadAgentData();
   }, [loadAgentData]);
 
@@ -63,14 +59,14 @@ export default function FlowEditorPage() {
   if (loading) {
     return (
       <MainLayout title="Loading Flow Editor">
-        <div style={{ padding: "24px", textAlign: "center" }}>
+        <div style={{ padding: '24px', textAlign: 'center' }}>
           <Spin size="large" />
         </div>
       </MainLayout>
     );
   }
   if (!agent?.id) {
-    return <Skeleton />
+    return <Skeleton />;
   }
 
   return (
@@ -80,23 +76,15 @@ export default function FlowEditorPage() {
           flowConfig={agent?.flowConfig}
           agentId={agent?.id}
           onStartConversation={() => setIsChatOpen(true)}
-          activeConversationId={isChatOpen ? undefined: currentConversationId}
+          activeConversationId={isChatOpen ? undefined : currentConversationId}
         />
       </ReactFlowProvider>
       <Drawer
         title="Test Chat"
         placement="right"
-        width={isMobile ? '90%' : "50%"}
+        width={isMobile ? '90%' : '50%'}
         open={isChatOpen}
-        onClose={() => setIsChatOpen(false)}
-        contentWrapperStyle={{ height: '100%' }}
-        bodyStyle={{ 
-          padding: 0, 
-          height: '100%', 
-          display: 'flex', 
-          flexDirection: 'column' 
-        }}
-      >
+        onClose={() => setIsChatOpen(false)}>
         <ChatInterface
           agentId={agent?.id}
           flowConfig={agent?.flowConfig}

@@ -4,8 +4,13 @@ import { logApiRequest, logApiResponse, logApiError } from '../utils/logger';
 import { IFile } from '../models/IFile';
 import { getFileChunks as getNbaseFileChunks } from '../lib/services/nbaseService';
 import { IChunk } from '../models/IChunk';
+import { ConfigChunk } from '../components/knowledge/ChunkSeparatorSelect';
 // Upload a single file to knowledge
-export const uploadFile = async (knowledgeId: string, file: File, onProgress?: (percent: number) => void): Promise<KnowledgeFile | null> => {
+export const uploadFile = async (
+  knowledgeId: string,
+  file: File,
+  onProgress?: (percent: number) => void
+): Promise<KnowledgeFile | null> => {
   const formData = new FormData();
   formData.append('file', file);
   formData.append('fileName', file.name);
@@ -68,7 +73,11 @@ export const uploadFile = async (knowledgeId: string, file: File, onProgress?: (
 };
 
 // Upload multiple files one by one
-export async function uploadFiles(knowledgeId: string, files: File[], onOverallProgress?: (percent: number) => void): Promise<(KnowledgeFile | null)[]> {
+export async function uploadFiles(
+  knowledgeId: string,
+  files: File[],
+  onOverallProgress?: (percent: number) => void
+): Promise<(KnowledgeFile | null)[]> {
   console.log('Uploading files:', files);
 
   if (!files || files.length === 0) return [];
@@ -190,7 +199,7 @@ export const getFileContent = async (fileId: string): Promise<{ content: string;
 };
 
 // Update file configuration
-export const updateFileConfig = async (fileId: string, config: string | null): Promise<boolean> => {
+export const updateFileConfig = async (fileId: string, config: ConfigChunk): Promise<boolean> => {
   return apiRequest<boolean>(`/api/files/${fileId}/config`, {
     method: 'PATCH',
     body: JSON.stringify({ config }),
@@ -199,7 +208,6 @@ export const updateFileConfig = async (fileId: string, config: string | null): P
 
 export async function fetchFilesByKnowledgeId(knowledgeId: string) {
   try {
-    
     return apiRequest<IFile[]>(`/api/knowledge/${knowledgeId}/files`, {
       method: 'GET',
       headers: {

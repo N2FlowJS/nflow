@@ -45,7 +45,7 @@ describe('/api/agent API Endpoint', () => {
         userId: 'owner-user-id',
         isActive: true,
         createdById: 'test-user-id',
-        flowConfig: JSON.stringify({ nodes: [], edges: [] }),
+        flowConfig: ({ nodes: [], edges: [] }),
       };
       const expectedAgent = { id: 'agent-1', ...mockAgentData, teamId: null, createdAt: new Date(), updatedAt: new Date() };
 

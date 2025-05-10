@@ -6,48 +6,52 @@ import {
   DeleteOutlined,
   EyeOutlined,
   FileOutlined,
-  MoreOutlined,
   PlayCircleOutlined,
   SelectOutlined,
   SettingOutlined,
   SyncOutlined,
-  UploadOutlined
-} from "@ant-design/icons";
+  UploadOutlined,
+} from '@ant-design/icons';
 import {
   Alert,
   Avatar,
   Badge,
   Button,
   Card,
-  Dropdown,
+  Checkbox,
   Empty,
   Grid,
+  Input,
+  List,
+  message,
   Modal,
+  Pagination,
+  Popconfirm,
   Progress,
+  Select,
   Space,
   Spin,
-  Table,
   Tag,
   Tooltip,
   Typography,
-  message,
-  Popconfirm
-} from "antd";
-import { format } from "date-fns";
-import { useRouter } from "next/router";
-import React, { useEffect, useState } from "react";
-import { Knowledge } from "../../models/knowledge";
-import { deleteFile, parseFile } from "../../services/fileService";
-import { formatFileSize, getTypeFile } from "../../utils/client/formatters";
-import { useLocale } from "../../locale";
-import { IFile } from "../../models/IFile";
-import { useFetchFiles } from "../../hooks/useFetchFiles";
+} from 'antd';
+import { format } from 'date-fns';
+import { useRouter } from 'next/router';
+import React, { useEffect, useState } from 'react';
+import { useFetchFiles } from '../../hooks/useFetchFiles';
+import { useLocale } from '../../locale';
+import { IFile } from '../../models/IFile';
+import { IKnowledge } from '../../models/IKnowledge';
+import { deleteFile, parseFile } from '../../services/fileService';
+import { formatFileSize, getTypeFile } from '../../utils/client/formatters';
 
 const { useBreakpoint } = Grid;
 const { Title, Text } = Typography;
+const { Search } = Input;
+const { Option } = Select;
 
 interface KnowledgeFileListProps {
-  knowledge: Knowledge;
+  knowledge: IKnowledge;
   isAuthenticated: boolean;
   handleOpenUploadModal: () => void;
   openFileConfigModal: (file: any) => void;
@@ -62,10 +66,15 @@ export default function KnowledgeFileList({
   const router = useRouter();
   const [parsingFiles, setParsingFiles] = useState<Record<string, boolean>>({});
   const [files, setFiles] = useState<IFile[]>([]);
+  const [filteredFiles, setFilteredFiles] = useState<IFile[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedFileIds, setSelectedFileIds] = useState<string[]>([]);
   const [batchActionLoading, setBatchActionLoading] = useState(false);
   const [, setEventSource] = useState<EventSource | null>(null);
+  const [searchText, setSearchText] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const screens = useBreakpoint();
   const { t } = useLocale('');
 
@@ -81,9 +90,31 @@ export default function KnowledgeFileList({
     setLoading(fetchFilesLoading);
   }, [fetchFilesLoading]);
 
+  // Filter files based on search text and status filter
+  useEffect(() => {
+    let result = [...files];
+
+    // Apply text search filter
+    if (searchText) {
+      const lowerCaseSearch = searchText.toLowerCase();
+      result = result.filter((file) => file.originalName.toLowerCase().includes(lowerCaseSearch));
+    }
+
+    // Apply status filter
+    if (statusFilter) {
+      if (statusFilter === 'not_parsed') {
+        result = result.filter((file) => !file.parsingStatus);
+      } else {
+        result = result.filter((file) => file.parsingStatus === statusFilter);
+      }
+    }
+
+    setFilteredFiles(result);
+    setCurrentPage(1); // Reset to first page when filters change
+  }, [files, searchText, statusFilter]);
+
   useEffect(() => {
     if (knowledge?.id) {
-
       console.log(`[SSE] Setting up SSE connection for knowledge ID ${knowledge.id}`);
 
       // Set up SSE connection for real-time updates with knowledge ID filter
@@ -107,19 +138,19 @@ export default function KnowledgeFileList({
             console.log(`[SSE] File ${data.fileId} status changed to ${data.status}`);
 
             // Update the specific file in our state
-            setFiles(prevFiles => {
-              const updatedFiles = prevFiles.map(file =>
-                file.id === data.fileId
-                  ? { ...file, parsingStatus: data.status }
-                  : file
+            setFiles((prevFiles) => {
+              const updatedFiles = prevFiles.map((file) =>
+                file.id === data.fileId ? { ...file, parsingStatus: data.status } : file
               );
-              console.log(`[SSE] Updated file state:`,
-                updatedFiles.find(f => f.id === data.fileId));
+              console.log(
+                `[SSE] Updated file state:`,
+                updatedFiles.find((f) => f.id === data.fileId)
+              );
               return updatedFiles;
             });
 
             // Reset parsing indicator for this file
-            setParsingFiles(prev => {
+            setParsingFiles((prev) => {
               const newState = { ...prev, [data.fileId]: false };
               console.log(`[SSE] Updated parsing indicators:`, newState);
               return newState;
@@ -129,7 +160,10 @@ export default function KnowledgeFileList({
             if (data.status === 'completed') {
               message.success(t('tasksMonitor.completed') || `File "${data.fileName}" parsed successfully`);
             } else if (data.status === 'failed') {
-              message.error((t('tasksMonitor.failed') || `File "${data.fileName}" parsing failed`) + (data.errorMessage ? `: ${data.errorMessage}` : ''));
+              message.error(
+                (t('tasksMonitor.failed') || `File "${data.fileName}" parsing failed`) +
+                  (data.errorMessage ? `: ${data.errorMessage}` : '')
+              );
             }
           } else if (data.type === 'connected') {
             console.log('[SSE] Successfully connected to file parsing events');
@@ -137,15 +171,15 @@ export default function KnowledgeFileList({
             console.log('[SSE] Received ping');
           }
         } catch (error: unknown) {
-          console.error("[SSE] Error processing SSE message:", error);
+          console.error('[SSE] Error processing SSE message:', error);
         }
       };
 
       sse.onerror = (error: unknown) => {
-        console.error("[SSE] Connection error:", error);
+        console.error('[SSE] Connection error:', error);
         // Try to reconnect after a short delay
         setTimeout(() => {
-          console.log("[SSE] Attempting to reconnect...");
+          console.log('[SSE] Attempting to reconnect...');
           sse.close();
           const newSSE = new EventSource(sseUrl);
           setEventSource(newSSE);
@@ -165,14 +199,15 @@ export default function KnowledgeFileList({
     return undefined; // Ensure all code paths return a value
   }, [knowledge?.id, t]);
 
-
   React.useEffect(() => {
     fetchFiles();
   }, [fetchFiles]);
 
+  // ... existing code ...
+
   const handleParseFile = async (fileId: string) => {
     if (!isAuthenticated) {
-      message.error(t('knowledgeList.loginRequired') || "You must be logged in to parse files");
+      message.error(t('knowledgeList.loginRequired') || 'You must be logged in to parse files');
       return;
     }
 
@@ -182,17 +217,17 @@ export default function KnowledgeFileList({
       const result = await parseFile(fileId);
 
       if (result.success) {
-        message.success(t('tasksMonitor.retryParsing') || "File parsing task created successfully");
+        message.success(t('tasksMonitor.retryParsing') || 'File parsing task created successfully');
         // Refresh files after a brief delay
         setTimeout(() => {
           fetchFiles();
         }, 1000);
       } else {
-        message.error(result.message || t('tasksMonitor.error') || "Failed to create parsing task");
+        message.error(result.message || t('tasksMonitor.error') || 'Failed to create parsing task');
       }
     } catch (error: unknown) {
-      console.error("Parse file error:", error);
-      message.error(t('tasksMonitor.error') || "An error occurred while setting up file parsing");
+      console.error('Parse file error:', error);
+      message.error(t('tasksMonitor.error') || 'An error occurred while setting up file parsing');
     } finally {
       setParsingFiles((prev) => ({ ...prev, [fileId]: false }));
     }
@@ -203,17 +238,17 @@ export default function KnowledgeFileList({
 
     try {
       await deleteFile(knowledge.id, fileId);
-      message.success(t('tasksMonitor.deleteTask') || "File deleted successfully");
+      message.success(t('tasksMonitor.deleteTask') || 'File deleted successfully');
       fetchFiles();
     } catch (error: unknown) {
-      console.error("Delete file error:", error);
-      message.error(t('tasksMonitor.error') || "Failed to delete file");
+      console.error('Delete file error:', error);
+      message.error(t('tasksMonitor.error') || 'Failed to delete file');
     }
   };
 
   const handleBatchParseFiles = async () => {
     if (!isAuthenticated) {
-      message.error(t('knowledgeList.loginRequired') || "You must be logged in to parse files");
+      message.error(t('knowledgeList.loginRequired') || 'You must be logged in to parse files');
       return;
     }
 
@@ -221,7 +256,7 @@ export default function KnowledgeFileList({
       setBatchActionLoading(true);
       // Start showing parsing status for all selected files
       const updatedParsingFiles = { ...parsingFiles };
-      selectedFileIds.forEach(fileId => {
+      selectedFileIds.forEach((fileId) => {
         updatedParsingFiles[fileId] = true;
       });
       setParsingFiles(updatedParsingFiles);
@@ -233,9 +268,11 @@ export default function KnowledgeFileList({
         completed++;
         // Update progress message
         message.info({
-          content: t('dashboard.processingProgress') ? `${t('dashboard.processingProgress')} ${completed} of ${selectedFileIds.length}` : `Processing file ${completed} of ${selectedFileIds.length}`,
+          content: t('dashboard.processingProgress')
+            ? `${t('dashboard.processingProgress')} ${completed} of ${selectedFileIds.length}`
+            : `Processing file ${completed} of ${selectedFileIds.length}`,
           key: 'batch-progress',
-          duration: 1
+          duration: 1,
         });
       }
 
@@ -247,13 +284,13 @@ export default function KnowledgeFileList({
         fetchFiles();
       }, 1000);
     } catch (error: unknown) {
-      console.error("Batch parse files error:", error);
-      message.error(t('tasksMonitor.error') || "An error occurred while parsing files");
+      console.error('Batch parse files error:', error);
+      message.error(t('tasksMonitor.error') || 'An error occurred while parsing files');
     } finally {
       setBatchActionLoading(false);
       // Clear parsing status
       const clearedParsingFiles = { ...parsingFiles };
-      selectedFileIds.forEach(fileId => {
+      selectedFileIds.forEach((fileId) => {
         clearedParsingFiles[fileId] = false;
       });
       setParsingFiles(clearedParsingFiles);
@@ -262,15 +299,21 @@ export default function KnowledgeFileList({
 
   const handleBatchDeleteFiles = () => {
     Modal.confirm({
-      title: t('tasksMonitor.deleteTask') || "Delete Files",
+      title: t('tasksMonitor.deleteTask') || 'Delete Files',
       content: (
         <div>
-          <p>{t('knowledgeList.deleteConfirmation') ? `${t('knowledgeList.deleteConfirmation').replace('this item', `${selectedFileIds.length} files`)}` : `Are you sure you want to delete ${selectedFileIds.length} files?`}</p>
-          <p style={{ color: '#ff4d4f' }}><b>{t('tasksMonitor.error') || "This action cannot be undone."}</b></p>
+          <p>
+            {t('knowledgeList.deleteConfirmation')
+              ? `${t('knowledgeList.deleteConfirmation').replace('this item', `${selectedFileIds.length} files`)}`
+              : `Are you sure you want to delete ${selectedFileIds.length} files?`}
+          </p>
+          <p style={{ color: '#ff4d4f' }}>
+            <b>{t('tasksMonitor.error') || 'This action cannot be undone.'}</b>
+          </p>
         </div>
       ),
-      okText: t('knowledgeList.yes') || "Delete",
-      okType: "danger",
+      okText: t('knowledgeList.yes') || 'Delete',
+      okType: 'danger',
       onOk: async () => {
         if (!knowledge?.id) return;
 
@@ -284,9 +327,11 @@ export default function KnowledgeFileList({
             // Update progress message
             if (selectedFileIds.length > 3) {
               message.info({
-                content: t('dashboard.processingProgress') ? `${t('dashboard.processingProgress')} ${completed} of ${selectedFileIds.length}` : `Deleted ${completed} of ${selectedFileIds.length} files`,
+                content: t('dashboard.processingProgress')
+                  ? `${t('dashboard.processingProgress')} ${completed} of ${selectedFileIds.length}`
+                  : `Deleted ${completed} of ${selectedFileIds.length} files`,
                 key: 'batch-delete-progress',
-                duration: 1
+                duration: 1,
               });
             }
           }
@@ -295,97 +340,67 @@ export default function KnowledgeFileList({
           setSelectedFileIds([]);
           fetchFiles();
         } catch (error: unknown) {
-          console.error("Batch delete files error:", error);
-          message.error(t('tasksMonitor.error') || "Failed to delete some files");
+          console.error('Batch delete files error:', error);
+          message.error(t('tasksMonitor.error') || 'Failed to delete some files');
         } finally {
           setBatchActionLoading(false);
         }
-      }
+      },
     });
   };
 
   const formatDate = (dateString?: string) => {
-    if (!dateString) return "N/A";
-    return format(new Date(dateString), "MMM dd, yyyy HH:mm:ss");
+    if (!dateString) return 'N/A';
+    return format(new Date(dateString), 'MMM dd, yyyy HH:mm:ss');
   };
 
   // Get status icon for file parsing status
   const getStatusIcon = (status?: string) => {
     switch (status) {
-      case "completed":
-        return <CheckCircleOutlined style={{ color: "#52c41a" }} />;
-      case "pending":
-        return <ClockCircleOutlined style={{ color: "#faad14" }} />;
-      case "processing":
-        return <SyncOutlined spin style={{ color: "#1890ff" }} />;
-      case "failed":
-        return <CloseCircleOutlined style={{ color: "#f5222d" }} />;
+      case 'completed':
+        return <CheckCircleOutlined style={{ color: '#52c41a' }} />;
+      case 'pending':
+        return <ClockCircleOutlined style={{ color: '#faad14' }} />;
+      case 'processing':
+        return <SyncOutlined spin style={{ color: '#1890ff' }} />;
+      case 'failed':
+        return <CloseCircleOutlined style={{ color: '#f5222d' }} />;
       default:
         return <FileOutlined />;
     }
   };
 
-  // Row selection configuration with icons instead of text
-  const rowSelection = {
-    selectedRowKeys: selectedFileIds,
-    onChange: (selectedRowKeys: React.Key[]) => {
-      setSelectedFileIds(selectedRowKeys as string[]);
-    },
-    selections: [
-      {
-        key: 'all-data',
-        text: (
-          <Tooltip title={t('dashboard.overview') || "Select All Files"}>
-            <SelectOutlined /> {t('dashboard.overview') || "Select All"}
-          </Tooltip>
-        ),
-        onSelect: () => {
-          const allIds = files.map(file => file.id);
-          setSelectedFileIds(allIds);
-        },
-      },
-      {
-        key: 'not-parsed',
-        text: (
-          <Tooltip title={t('dashboard.notProcessed') || "Select Not Parsed Files"}>
-            <CloseCircleOutlined /> {t('dashboard.notProcessed') || "Not Parsed"}
-          </Tooltip>
-        ),
-        onSelect: () => {
-          const notParsedIds = files
-            .filter(file => !file.parsingStatus || file.parsingStatus === 'failed')
-            .map(file => file.id);
-          setSelectedFileIds(notParsedIds);
-        },
-      },
-      {
-        key: 'parsed',
-        text: (
-          <Tooltip title={t('tasksMonitor.completed') || "Select Parsed Files"}>
-            <CheckCircleOutlined /> {t('tasksMonitor.completed') || "Parsed"}
-          </Tooltip>
-        ),
-        onSelect: () => {
-          const parsedIds = files
-            .filter(file => file.parsingStatus === 'completed')
-            .map(file => file.id);
-          setSelectedFileIds(parsedIds);
-        },
-      },
-      {
-        key: 'invert',
-        text: (
-          <Tooltip title={t('dashboard.refreshData') || "Invert Current Selection"}>
-            <SyncOutlined /> {t('dashboard.refreshData') || "Invert"}
-          </Tooltip>
-        ),
-        onSelect: () => {
-          const allIds = files.map(file => file.id);
-          const invertedSelection = allIds.filter(id => !selectedFileIds.includes(id));
-          setSelectedFileIds(invertedSelection);
-        },
-      },
-    ],
+  // Toggle selection of a file
+  const toggleFileSelection = (fileId: string) => {
+    setSelectedFileIds((prev) => (prev.includes(fileId) ? prev.filter((id) => id !== fileId) : [...prev, fileId]));
+  };
+
+  // Select all visible files
+  const selectAllFiles = () => {
+    const visibleFileIds = getPaginatedFiles().map((file) => file.id);
+    setSelectedFileIds(visibleFileIds);
+  };
+
+  // Select no files
+  const deselectAllFiles = () => {
+    setSelectedFileIds([]);
+  };
+
+  // Select files based on status
+  const selectFilesByStatus = (status: string) => {
+    let selectedIds;
+    if (status === 'not_parsed') {
+      selectedIds = files
+        .filter((file) => !file.parsingStatus || file.parsingStatus === 'failed')
+        .map((file) => file.id);
+    } else if (status === 'completed') {
+      selectedIds = files.filter((file) => file.parsingStatus === 'completed').map((file) => file.id);
+    } else {
+      // Invert current selection
+      const allIds = files.map((file) => file.id);
+      selectedIds = allIds.filter((id) => !selectedFileIds.includes(id));
+    }
+    setSelectedFileIds(selectedIds);
   };
 
   const renderBatchActions = () => {
@@ -394,39 +409,36 @@ export default function KnowledgeFileList({
     }
 
     const batchActionContent = (
-      <Space direction={screens.sm ? "horizontal" : "vertical"} style={{ width: '100%' }}>
-        <Tooltip title={t('tasksMonitor.retryParsing') || "Process all selected files"}>
+      <Space direction={screens.sm ? 'horizontal' : 'vertical'} style={{ width: '100%' }}>
+        <Tooltip title={t('tasksMonitor.retryParsing') || 'Process all selected files'}>
           <Button
             type="primary"
             icon={<PlayCircleOutlined />}
             onClick={handleBatchParseFiles}
             loading={batchActionLoading}
             disabled={batchActionLoading}
-            size={screens.sm ? "middle" : "small"}
-          >
-            {t('tasksMonitor.retryParsing') || "Parse"}
+            size={screens.sm ? 'middle' : 'small'}>
+            {t('tasksMonitor.retryParsing') || 'Parse'}
           </Button>
         </Tooltip>
-        <Tooltip title={t('tasksMonitor.deleteTask') || "Delete all selected files"}>
+        <Tooltip title={t('tasksMonitor.deleteTask') || 'Delete all selected files'}>
           <Button
             danger
             icon={<DeleteOutlined />}
             onClick={handleBatchDeleteFiles}
             loading={batchActionLoading}
             disabled={batchActionLoading}
-            size={screens.sm ? "middle" : "small"}
-          >
-            {t('tasksMonitor.deleteTask') || "Delete"}
+            size={screens.sm ? 'middle' : 'small'}>
+            {t('tasksMonitor.deleteTask') || 'Delete'}
           </Button>
         </Tooltip>
-        <Tooltip title={t('dashboard.refreshData') || "Clear selection"}>
+        <Tooltip title={t('dashboard.refreshData') || 'Clear selection'}>
           <Button
             icon={<ClearOutlined />}
             onClick={() => setSelectedFileIds([])}
             disabled={batchActionLoading}
-            size={screens.sm ? "middle" : "small"}
-          >
-            {t('dashboard.refreshData') || "Clear"}
+            size={screens.sm ? 'middle' : 'small'}>
+            {t('dashboard.refreshData') || 'Clear'}
           </Button>
         </Tooltip>
       </Space>
@@ -437,16 +449,19 @@ export default function KnowledgeFileList({
         type="info"
         showIcon
         message={
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            flexDirection: screens.sm ? 'row' : 'column',
-            gap: screens.sm ? 0 : '10px'
-          }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexDirection: screens.sm ? 'row' : 'column',
+              gap: screens.sm ? 0 : '10px',
+            }}>
             <Space>
               <Badge count={selectedFileIds.length} overflowCount={999} style={{ backgroundColor: '#1677ff' }} />
-              <span><b>{selectedFileIds.length}</b> {t('dashboard.files') || "files"} selected</span>
+              <span>
+                <b>{selectedFileIds.length}</b> {t('dashboard.files') || 'files'} selected
+              </span>
             </Space>
             {batchActionContent}
           </div>
@@ -456,7 +471,7 @@ export default function KnowledgeFileList({
     );
   };
 
-  // Add status filtering options
+  // Status filter options
   const statusFilters = [
     { text: t('tasksMonitor.completed') || 'Completed', value: 'completed' },
     { text: t('tasksMonitor.processing') || 'Processing', value: 'processing' },
@@ -465,304 +480,173 @@ export default function KnowledgeFileList({
     { text: t('dashboard.notProcessed') || 'Not Parsed', value: 'not_parsed' },
   ];
 
-  // Enhanced columns with filtering
-  const createColumns = () => {
-    const fileColumn = {
-      title: t('dashboard.file') || "File",
-      dataIndex: "originalName",
-      key: "originalName",
-      render: (text: string, record: any) => (
-        <Space>
-          <Avatar
-            icon={getStatusIcon(record.parsingStatus)}
-            style={{
-              backgroundColor:
-                record.parsingStatus === "completed"
-                  ? "#f6ffed"
-                  : record.parsingStatus === "failed"
-                    ? "#fff2f0"
-                    : "#f0f5ff",
-              color:
-                record.parsingStatus === "completed"
-                  ? "#52c41a"
-                  : record.parsingStatus === "failed"
-                    ? "#f5222d"
-                    : "#1890ff",
-            }}
-          />
-          <div>
-            <div>
-              <Text strong style={{ wordBreak: 'break-word' }}>{text}</Text>
-            </div>
-            <div>
-              <Text type="secondary" style={{ fontSize: 12 }}>
-                {formatFileSize(record.size)} • {getTypeFile(record.mimetype)}
-              </Text>
-            </div>
-          </div>
-        </Space>
-      ),
-    };
+  // Render the file selection toolbar
+  const renderSelectionToolbar = () => (
+    <Space wrap style={{ marginBottom: 16 }}>
+      <Button onClick={selectAllFiles} icon={<SelectOutlined />} size={screens.sm ? 'middle' : 'small'}>
+        {t('dashboard.overview') || 'Select All'}
+      </Button>
+      <Button
+        onClick={() => selectFilesByStatus('not_parsed')}
+        icon={<CloseCircleOutlined />}
+        size={screens.sm ? 'middle' : 'small'}>
+        {t('dashboard.notProcessed') || 'Not Parsed'}
+      </Button>
+      <Button
+        onClick={() => selectFilesByStatus('completed')}
+        icon={<CheckCircleOutlined />}
+        size={screens.sm ? 'middle' : 'small'}>
+        {t('tasksMonitor.completed') || 'Parsed'}
+      </Button>
+      <Button
+        onClick={() => selectFilesByStatus('invert')}
+        icon={<SyncOutlined />}
+        size={screens.sm ? 'middle' : 'small'}>
+        {t('dashboard.refreshData') || 'Invert'}
+      </Button>
+      <Button onClick={deselectAllFiles} icon={<ClearOutlined />} size={screens.sm ? 'middle' : 'small'}>
+        {t('dashboard.refreshData') || 'Clear'}
+      </Button>
+    </Space>
+  );
 
-    const statusColumn = {
-      title: t('tasksMonitor.status') || "Status",
-      dataIndex: "parsingStatus",
-      key: "parsingStatus",
-      width: 120,
-      responsive: ['md'],
-      filters: statusFilters,
-      onFilter: (value: any, record: any) => {
-        // Handle null/undefined case separately
-        if (value === 'not_parsed') {
-          return !record.parsingStatus;
-        }
-        return record.parsingStatus === value;
-      },
-      render: (status: string) => (
-        <Tag
-          color={
-            status === "completed"
-              ? "success"
-              : status === "processing"
-                ? "processing"
-                : status === "failed"
-                  ? "error"
-                  : "default"
-          }
-        >
-          {status || t('dashboard.notProcessed') || "Not parsed"}
-        </Tag>
-      ),
-    };
+  // Render the filter toolbar
+  const renderFilterToolbar = () => (
+    <Space wrap style={{ marginBottom: 16 }} align="start">
+      <Search
+        placeholder={t('knowledgeList.search') || 'Search files...'}
+        allowClear
+        onChange={(e) => setSearchText(e.target.value)}
+        style={{ width: screens.sm ? 200 : '100%' }}
+        size={screens.sm ? 'middle' : 'small'}
+      />
+      <Select
+        placeholder={t('tasksMonitor.status') || 'Filter by status'}
+        allowClear
+        style={{ width: screens.sm ? 150 : '100%' }}
+        onChange={(value) => setStatusFilter(value)}
+        size={screens.sm ? 'middle' : 'small'}>
+        {statusFilters.map((filter) => (
+          <Option key={filter.value} value={filter.value}>
+            {filter.text}
+          </Option>
+        ))}
+      </Select>
+    </Space>
+  );
 
-    const parseColumn = {
-      title: t('tasksMonitor.retryParsing') || "Parse",
-      key: "parse",
-      width: 100,
-      render: (_: any, record: any) => {
-        const isParsing =
-          parsingFiles[record.id] || record.parsingStatus === "processing";
-        const isParsed =
-          record.parsingStatus === "completed" ||
-          record.parsingStatus === "failed";
-
-        return (
-          <Button
-            size={screens.sm ? "large" : "middle"}
-            icon={
-              isParsed ? (
-                <SyncOutlined />
-              ) : (
-                <PlayCircleOutlined color="#1677ff" />
-              )
-            }
-            loading={parsingFiles[record.id]}
-            onClick={() => handleParseFile(record.id)}
-            disabled={isParsing && !parsingFiles[record.id]}
-          />
-        );
-      },
-    };
-
-    const uploadedColumn = {
-      title: t('dashboard.updated') || "Uploaded",
-      dataIndex: "createdAt",
-      key: "createdAt",
-      width: 170,
-      responsive: ['lg'],
-      render: (date: string) => (
-        <Text type="secondary">{formatDate(date)}</Text>
-      ),
-    };
-
-    const actionsColumn = {
-      title: t('knowledgeList.actions') || "Actions",
-      key: "actions",
-      width: screens.sm ? 160 : 90,
-      render: (_: any, record: any) => {
-        const actions = [
-          {
-            key: 'view',
-            label: t('home.view') || 'View Details',
-            icon: <EyeOutlined />,
-            onClick: () => router.push(`/files/${record.id}`),
-          },
-          {
-            key: 'configure',
-            label: t('knowledgeDetail.config') || 'Configure Chunking',
-            icon: <SettingOutlined />,
-            onClick: () => openFileConfigModal(record),
-          },
-          {
-            key: 'delete',
-            label: t('tasksMonitor.deleteTask') || 'Delete File',
-            icon: <DeleteOutlined style={{ color: '#ff4d4f' }} />,
-            onClick: () => Modal.confirm({
-              title: t('tasksMonitor.deleteTask') || "Delete File",
-              content: t('knowledgeList.deleteConfirmation') ? t('knowledgeList.deleteConfirmation').replace('this item', 'this file') : "Are you sure you want to delete this file? This action cannot be undone.",
-              okText: t('knowledgeList.yes') || "Delete",
-              okType: "danger",
-              onOk: () => handleDeleteFile(record.id),
-            }),
-          },
-        ];
-
-        if (screens.sm) {
-          return (
-            <Space>
-              <Tooltip title={`${t('home.view') || "View details"} ${record.originalName}`}>
-                <Button
-                  type="text"
-                  icon={<EyeOutlined />}
-                  onClick={() => router.push(`/files/${record.id}`)}
-                />
-              </Tooltip>
-              <Tooltip title={t('knowledgeDetail.config') || "Configure Chunking"}>
-                <Button
-                  type="text"
-                  icon={<SettingOutlined />}
-                  onClick={() => openFileConfigModal(record)}
-                />
-              </Tooltip>
-              <Tooltip title={t('tasksMonitor.deleteTask') || "Delete File"}>
-                <Button
-                  type="text"
-                  danger
-                  icon={<DeleteOutlined />}
-                  onClick={() =>
-                    Modal.confirm({
-                      title: t('tasksMonitor.deleteTask') || "Delete File",
-                      content: t('knowledgeList.deleteConfirmation') ? t('knowledgeList.deleteConfirmation').replace('this item', 'this file') : "Are you sure you want to delete this file? This action cannot be undone.",
-                      okText: t('knowledgeList.yes') || "Delete",
-                      okType: "danger",
-                      onOk: () => handleDeleteFile(record.id),
-                    })
-                  }
-                />
-              </Tooltip>
-            </Space>
-          );
-        } else {
-          // On mobile, use dropdown menu for actions
-          return (
-            <Dropdown
-              menu={{
-                items: actions.map(action => ({
-                  key: action.key,
-                  label: action.label,
-                  icon: action.icon,
-                  onClick: action.onClick,
-                }))
-              }}
-            >
-              <Button type="text" icon={<MoreOutlined />} />
-            </Dropdown>
-          );
-        }
-      },
-    };
-
-    return [
-      fileColumn,
-      statusColumn,
-      parseColumn,
-      uploadedColumn,
-      actionsColumn,
-    ];
+  // Get paginated files for the current page
+  const getPaginatedFiles = () => {
+    const startIndex = (currentPage - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    return filteredFiles.slice(startIndex, endIndex);
   };
 
-  const renderMobileCard = (file: any) => (
-    <Card
-      key={file.id}
-      size="small"
-      style={{ marginBottom: 16 }}
-      actions={[
-        <Tooltip key="parse" title={file.parsingStatus === "completed" ? t('tasksMonitor.retryParsing') : t('tasksMonitor.processing')}>
-          <Button
-            type="text"
-            icon={file.parsingStatus === "completed" ? <SyncOutlined /> : <PlayCircleOutlined />}
-            loading={parsingFiles[file.id]}
-            onClick={() => handleParseFile(file.id)}
-            disabled={file.parsingStatus === "processing" && !parsingFiles[file.id]}
+  // Render a file card that works for both mobile and desktop
+  const renderFileCard = (file: any) => (
+    <List.Item key={file.id}>
+      <Card size="small" bordered className="file-card" style={{ width: '100%' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+          <Checkbox checked={selectedFileIds.includes(file.id)} onChange={() => toggleFileSelection(file.id)} />
+          <Avatar
+            icon={getStatusIcon(file.parsingStatus)}
+            style={{
+              backgroundColor:
+                file.parsingStatus === 'completed'
+                  ? '#f6ffed'
+                  : file.parsingStatus === 'failed'
+                  ? '#fff2f0'
+                  : '#f0f5ff',
+              color:
+                file.parsingStatus === 'completed'
+                  ? '#52c41a'
+                  : file.parsingStatus === 'failed'
+                  ? '#f5222d'
+                  : '#1890ff',
+            }}
           />
-        </Tooltip>,
-        <Tooltip key="view" title={t('home.view')}>
-          <Button
-            type="text"
-            icon={<EyeOutlined />}
-            onClick={() => router.push(`/files/${file.id}`)}
-          />
-        </Tooltip>,
-        <Tooltip key="configure" title={t('knowledgeDetail.config')}>
-          <Button
-            type="text"
-            icon={<SettingOutlined />}
-            onClick={() => openFileConfigModal(file)}
-          />
-        </Tooltip>,
-        <Popconfirm
-          key="delete"
-          title={t('knowledgeList.deleteConfirmation')}
-          onConfirm={() => handleDeleteFile(file.id)}
-          okText={t('knowledgeList.yes')}
-          cancelText={t('knowledgeList.no')}
-        >
-          <Button type="text" danger icon={<DeleteOutlined />} />
-        </Popconfirm>,
-      ]}
-    >
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
-        <Avatar
-          icon={getStatusIcon(file.parsingStatus)}
-          style={{
-            backgroundColor: file.parsingStatus === "completed" ? "#f6ffed" :
-              file.parsingStatus === "failed" ? "#fff2f0" : "#f0f5ff",
-            color: file.parsingStatus === "completed" ? "#52c41a" :
-              file.parsingStatus === "failed" ? "#f5222d" : "#1890ff",
-          }}
-        />
-        <div style={{ flex: 1 }}>
-          <Text strong style={{ display: 'block', wordBreak: 'break-word' }}>
-            {file.originalName}
-          </Text>
-          <Space direction="vertical" size={4} style={{ width: '100%', marginTop: 4 }}>
-            <Text type="secondary" style={{ fontSize: 12 }}>
-              {formatFileSize(file.size)} • {getTypeFile(file.mimetype)}
-            </Text>
-            <Tag
-              color={
-                file.parsingStatus === "completed" ? "success" :
-                  file.parsingStatus === "processing" ? "processing" :
-                    file.parsingStatus === "failed" ? "error" : "default"
-              }
-            >
-              {file.parsingStatus || t('dashboard.notProcessed')}
-            </Tag>
-            <Text type="secondary" style={{ fontSize: 12 }}>
-              {formatDate(file.createdAt)}
-            </Text>
-          </Space>
+          <div style={{ flex: 1 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+              <Text strong style={{ wordBreak: 'break-word' }}>
+                {file.originalName}
+              </Text>
+              <Tag
+                color={
+                  file.parsingStatus === 'completed'
+                    ? 'success'
+                    : file.parsingStatus === 'processing'
+                    ? 'processing'
+                    : file.parsingStatus === 'failed'
+                    ? 'error'
+                    : 'default'
+                }>
+                {file.parsingStatus || t('dashboard.notProcessed') || 'Not parsed'}
+              </Tag>
+            </div>
+            <div
+              style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8, flexWrap: 'wrap', gap: '8px' }}>
+              <Text type="secondary" style={{ fontSize: 12 }}>
+                {formatFileSize(file.size)} • {getTypeFile(file.mimetype)} • {formatDate(file.createdAt)}
+              </Text>
+              <Space>
+                <Tooltip
+                  title={
+                    file.parsingStatus === 'completed' ? t('tasksMonitor.retryParsing') : t('tasksMonitor.processing')
+                  }>
+                  <Button
+                    type="text"
+                    size="small"
+                    icon={file.parsingStatus === 'completed' ? <SyncOutlined /> : <PlayCircleOutlined />}
+                    loading={parsingFiles[file.id]}
+                    onClick={() => handleParseFile(file.id)}
+                    disabled={file.parsingStatus === 'processing' && !parsingFiles[file.id]}
+                  />
+                </Tooltip>
+                <Tooltip title={t('home.view')}>
+                  <Button
+                    type="text"
+                    size="small"
+                    icon={<EyeOutlined />}
+                    onClick={() => router.push(`/files/${file.id}`)}
+                  />
+                </Tooltip>
+                <Tooltip title={t('knowledgeDetail.config')}>
+                  <Button
+                    type="text"
+                    size="small"
+                    icon={<SettingOutlined />}
+                    onClick={() => openFileConfigModal(file)}
+                  />
+                </Tooltip>
+                <Popconfirm
+                  title={t('knowledgeList.deleteConfirmation') || 'Are you sure you want to delete this file?'}
+                  onConfirm={() => handleDeleteFile(file.id)}
+                  okText={t('knowledgeList.yes') || 'Delete'}
+                  cancelText={t('knowledgeList.no') || 'Cancel'}>
+                  <Button type="text" danger size="small" icon={<DeleteOutlined />} />
+                </Popconfirm>
+              </Space>
+            </div>
+          </div>
         </div>
-      </div>
-    </Card>
+      </Card>
+    </List.Item>
   );
 
   return (
     <Card
-      title={<Title level={4}>{t('dashboard.files') || "Files"}</Title>}
+      title={<Title level={4}>{t('dashboard.files') || 'Files'}</Title>}
       extra={
         <Button
           type="primary"
           icon={<UploadOutlined />}
           onClick={handleOpenUploadModal}
           disabled={!isAuthenticated}
-          size={screens.sm ? "middle" : "small"}
-        >
-          {screens.sm ? t('home.uploadFiles') || "Upload Files" : t('home.uploadFiles') || "Upload"}
+          size={screens.sm ? 'middle' : 'small'}>
+          {screens.sm ? t('home.uploadFiles') || 'Upload Files' : t('home.uploadFiles') || 'Upload'}
         </Button>
       }
-      style={{ marginBottom: 24 }}
-    >
+      style={{ marginBottom: 24 }}>
       {loading ? (
         <div style={{ textAlign: 'center', padding: '20px' }}>
           <Spin size="large" />
@@ -772,46 +656,65 @@ export default function KnowledgeFileList({
           {renderBatchActions()}
           {batchActionLoading && (
             <Progress
-              percent={Math.round((Object.values(parsingFiles).filter(v => v).length / selectedFileIds.length) * 100)}
+              percent={Math.round((Object.values(parsingFiles).filter((v) => v).length / selectedFileIds.length) * 100)}
               status="active"
               style={{ marginBottom: 16 }}
             />
           )}
-          {screens.sm ? (
-            <div style={{ overflowX: 'auto' }}>
-              <Table
-                rowSelection={rowSelection}
-                dataSource={files}
-                columns={createColumns()}
-                rowKey="id"
-                pagination={{
-                  pageSize: 10,
-                  showSizeChanger: screens.md,
-                  pageSizeOptions: ["10", "20", "50"],
-                  size: screens.sm ? "default" : "small",
-                }}
-                size={screens.sm ? "middle" : "small"}
-                scroll={{ x: 'max-content' }}
-              />
-            </div>
-          ) : (
-            <div style={{ padding: '0 8px' }}>
-              {files.map(file => renderMobileCard(file))}
-            </div>
-          )}
+
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: screens.md ? 'row' : 'column',
+              justifyContent: 'space-between',
+              alignItems: screens.md ? 'center' : 'flex-start',
+              gap: '16px',
+              marginBottom: '16px',
+            }}>
+            {renderFilterToolbar()}
+            {renderSelectionToolbar()}
+          </div>
+
+          <List
+            dataSource={getPaginatedFiles()}
+            renderItem={renderFileCard}
+            grid={{
+              gutter: 16,
+              xs: 1,
+              sm: 1,
+              md: 1,
+              lg: 1,
+              xl: 1,
+              xxl: 1,
+            }}
+          />
+
+          <div style={{ marginTop: 16, display: 'flex', justifyContent: 'flex-end' }}>
+            <Pagination
+              current={currentPage}
+              pageSize={pageSize}
+              total={filteredFiles.length}
+              onChange={(page) => setCurrentPage(page)}
+              onShowSizeChange={(_, size) => {
+                setCurrentPage(1);
+                setPageSize(size);
+              }}
+              showSizeChanger
+              showTotal={(total) => `${total} ${t('dashboard.files') || 'files'}`}
+              size={screens.sm ? 'default' : 'small'}
+            />
+          </div>
         </>
       ) : (
         <Empty
-          description={t('dashboard.notProcessed') || "No files have been uploaded yet"}
-          image={Empty.PRESENTED_IMAGE_SIMPLE}
-        >
+          description={t('dashboard.notProcessed') || 'No files have been uploaded yet'}
+          image={Empty.PRESENTED_IMAGE_SIMPLE}>
           <Button
             type="primary"
             onClick={handleOpenUploadModal}
             disabled={!isAuthenticated}
-            size={screens.sm ? "middle" : "small"}
-          >
-            {t('home.uploadFiles') || "Upload Now"}
+            size={screens.sm ? 'middle' : 'small'}>
+            {t('home.uploadFiles') || 'Upload Now'}
           </Button>
         </Empty>
       )}
