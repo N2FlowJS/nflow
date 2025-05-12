@@ -76,6 +76,25 @@ model Knowledge {
   files File[]
 }
 
+// New model for API tokens
+model ApiToken {
+  id          String    @id @default(uuid())
+  name        String    // A descriptive name for the token
+  token       String    @unique  // The actual token value
+  description String?   // Optional description of token purpose
+  createdAt   DateTime  @default(now())
+  expiresAt   DateTime? // Optional expiration date
+  lastUsedAt  DateTime? // When the token was last used
+  status      String    @default("active") // "active" or "revoked"
+  
+  // Relation to the user who owns this token
+  user      User   @relation("UserApiTokens", fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+
+  @@index([token])
+  @@index([userId])
+}
+
 model User {
   id          String   @id @default(uuid())
   name        String
@@ -97,6 +116,8 @@ model User {
   FileParsingTask FileParsingTask[] @relation("FileParsingTaskCreatedBy")
   ownedLLMProviders LLMProvider[] @relation("UserOwnedProviders")
   conversations Conversation[] @relation("UserConversations")
+
+  apiTokens ApiToken[] @relation("UserApiTokens")
 
   lmmConfig Json?
 

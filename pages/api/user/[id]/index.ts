@@ -36,7 +36,22 @@ async function getUserById(res: NextApiResponse, id: string) {
             leftAt: null // Only include active memberships
           }
         },
-        ownedAgents: true // Include agents owned by this user
+        ownedAgents: true, // Include agents owned by this user
+        apiTokens: {
+          select: {
+            id: true,
+            name: true,
+            description: true,
+            createdAt: true,
+            expiresAt: true,
+            lastUsedAt: true,
+            status: true,
+            // Don't return token values
+          },
+          where: {
+            status: 'active' // Only include active tokens
+          }
+        }
       }
     });
 

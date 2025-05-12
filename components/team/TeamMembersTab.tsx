@@ -41,7 +41,29 @@ const TeamMembersTab: React.FC<TeamMembersTabProps> = ({
   const formerMembers = members.filter(member => member.leftAt) || [];
 
   return (
-    <>
+    <Card
+      title={
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 4 }}>
+          <Title level={4} style={{ margin: 0, display: 'flex', alignItems: 'center' }}>
+            <UserOutlined style={{ marginRight: 8 }} /> Team Members
+          </Title>
+          <span style={{ fontSize: 14, color: '#888' }}>
+            Your role: <b style={{ textTransform: 'capitalize' }}>{userPermission ? userPermission : 'Guest'}</b>
+          </span>
+        </div>
+      }
+      extra={
+        canManageMembers && (
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => setShowAddForm(true)}
+          >
+            Add Members
+          </Button>
+        )
+      }
+    >
       {showAddForm && (
         <AddMemberForm
           availableUsers={availableUsers}
@@ -89,7 +111,7 @@ const TeamMembersTab: React.FC<TeamMembersTabProps> = ({
           />
         </Card>
       </Space>
-    </>
+    </Card>
   );
 };
 

@@ -1,6 +1,7 @@
 import {
   ApiOutlined,
   ArrowLeftOutlined,
+  KeyOutlined,
   LockOutlined,
   PlusOutlined,
   RobotOutlined,
@@ -35,6 +36,7 @@ import UserProfileTab from '../../components/user/UserProfileTab';
 const UserAgentsTab = lazy(() => import('../../components/user/UserAgentsTab'));
 const UserLLMTab = lazy(() => import('../../components/user/UserLLMTab'));
 const UserTeamsTab = lazy(() => import('../../components/user/UserTeamsTab'));
+const ApiTokensTab = lazy(() => import('../../components/user/ApiTokensTab')); // Add this import
 const AgentCreationModal = lazy(() => import('../../components/user/modals/AgentCreationModal'));
 const LLMProviderModal = lazy(() => import('../../components/user/modals/LLMProviderModal'));
 const TeamCreationModal = lazy(() => import('../../components/user/modals/TeamCreationModal'));
@@ -459,6 +461,7 @@ export default function UserDetail() {
                 </Space>
               }
               hoverable>
+              
               {id && <PasswordChangeForm userId={id as string} />}
             </Card>
           </Col>
@@ -539,6 +542,7 @@ export default function UserDetail() {
                   </Space>
                 }
                 hoverable>
+                
                 <DefaultModelsForm userId={id as string} viewOnly={!isCurrentUser} onRefresh={fetchUserDetail} />
               </Card>
             )}
@@ -583,6 +587,26 @@ export default function UserDetail() {
                   }}
                   onDeleteProvider={handleDeleteLLMProvider}
                   onRefreshProviders={fetchUserProviders}
+                />
+              </Suspense>
+            </Card>
+          </Col>
+          
+          {/* API Tokens Section */}
+          <Col span={24}>
+            <Card
+              id="api-tokens-section"
+              className="dashboard-content-card accent-top accent-color-orange"
+              title={
+                <Space>
+                  <KeyOutlined /> API Tokens
+                </Space>
+              }
+              hoverable>
+              <Suspense fallback={<Skeleton active />}>
+                <ApiTokensTab
+                  userId={id as string}
+                  isCurrentUser={isCurrentUser}
                 />
               </Suspense>
             </Card>
