@@ -11,8 +11,7 @@ import {
   SaveOutlined,
   SettingOutlined,
   TeamOutlined,
-  ThunderboltOutlined,
-  UserOutlined,
+  UserOutlined
 } from '@ant-design/icons';
 import {
   Avatar,
@@ -31,9 +30,8 @@ import {
   Statistic,
   Switch,
   Tag,
-  Tooltip,
   Typography,
-  message,
+  message
 } from 'antd';
 import { useRouter } from 'next/router';
 import React, { useCallback, useEffect, useState } from 'react';
@@ -42,7 +40,7 @@ import MainLayout from '../../../components/layout/MainLayout';
 import { useAuth } from '../../../context/AuthContext';
 import { useLocale } from '../../../locale/index';
 import { IAgent } from '../../../models/IAgent';
-import { deleteAgent, fetchAgent, fetchFlowConfig, updateAgent } from '../../../services/agentService'; // Use the new service
+import { deleteAgent, fetchAgent, updateAgent } from '../../../services/agentService'; // Use the new service
 
 const { Title, Text } = Typography;
 const { useBreakpoint } = Grid;
@@ -53,13 +51,9 @@ export default function AgentDetail() {
   const [agent, setAgent] = useState<IAgent | null>(null);
   const [flowConfig, setFlowConfig] = useState<string>('');
   const [loading, setLoading] = useState(true);
-  const [flowLoading, setFlowLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form] = Form.useForm();
   const { t } = useLocale('agentDetail');
-
-  // Add streaming state
-  const [enableStreaming, setEnableStreaming] = useState(true);
 
   // Add conversation management state
   const [currentConversationId, setCurrentConversationId] = useState<string | undefined>(undefined);
@@ -77,7 +71,11 @@ export default function AgentDetail() {
     setLoading(true);
     try {
       const data = await fetchAgent(id as string); // Use the service
-      if (data) setAgent(data);
+      
+      if (data){
+         setAgent(data);
+         setFlowConfig(data.flowConfig)
+      }
 
       // Initialize form with agent data
       form.setFieldsValue({
@@ -93,30 +91,11 @@ export default function AgentDetail() {
     }
   }, [id, form]);
 
-  // Fetch flow configuration when needed
-  const loadFlowConfig = React.useCallback(async () => {
-    if (!id) return;
-
-    setFlowLoading(true);
-    try {
-      const config = await fetchFlowConfig(id as string);
-      setFlowConfig(config);
-    } catch (error: unknown) {
-      console.error('Error fetching flow config:', error);
-      message.error('Failed to load agent flow configuration');
-    } finally {
-      setFlowLoading(false);
-    }
-  }, [id]);
 
   useEffect(() => {
     fetchAgentData();
   }, [fetchAgentData]);
 
-  // Load flow config only when the chat tab is active and config isn't loaded yet
-  useEffect(() => {
-    loadFlowConfig();
-  }, [loadFlowConfig]); // Added flowLoading dependency
 
   // Handle form submission
   const handleSave = async () => {
@@ -418,18 +397,7 @@ export default function AgentDetail() {
                 </Space>
               }
               className="dashboard-card">
-              {flowLoading ? (
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    padding: '20px',
-                  }}>
-                  <Spin size="large" />
-                  <Typography.Text style={{ marginLeft: 16 }}>{t('loadingAgentFlow')}</Typography.Text>
-                </div>
-              ) : !flowConfig ? (
+              {!flowConfig ? (
                 <div style={{ textAlign: 'center', padding: '20px' }}>
                   <InfoCircleOutlined style={{ fontSize: '48px', color: '#faad14', marginBottom: '16px' }} />
                   <Typography.Title level={4}>{t('noFlowConfigFound')}</Typography.Title>
@@ -481,30 +449,8 @@ export default function AgentDetail() {
             flexDirection: 'column',
             height: '100%',
           },
-        }}
-        extra={
-          <Tooltip title={t('streamingMode')}>
-            <Switch
-              checkedChildren={<ThunderboltOutlined />}
-              unCheckedChildren={<ThunderboltOutlined />}
-              checked={enableStreaming}
-              onChange={setEnableStreaming}
-            />
-          </Tooltip>
-        }>
-        {flowLoading ? (
-          <div
-            style={{
-              flexGrow: 1,
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'center',
-              alignItems: 'center',
-            }}>
-            <Spin size="large" />
-            <Typography.Text style={{ marginTop: 16 }}>{t('loadingAgentFlow')}</Typography.Text>
-          </div>
-        ) : !flowConfig ? (
+        }}>
+        { !flowConfig ? (
           <div
             style={{
               flexGrow: 1,
@@ -528,7 +474,6 @@ export default function AgentDetail() {
             <ChatInterface
               agentId={id as string}
               flowConfig={flowConfig}
-              enableStreaming={enableStreaming}
               id={currentConversationId}
               onConversationCreated={handleConversationCreated}
               onConversationUpdated={handleConversationUpdated}

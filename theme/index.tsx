@@ -28,10 +28,8 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     }
   }, []);
 
-  // Update localStorage when theme changes
   useEffect(() => {
     localStorage.setItem('theme', theme);
-    // Add or remove dark class from document body
     if (theme === 'dark') {
       document.body.classList.add('dark-mode');
     } else {

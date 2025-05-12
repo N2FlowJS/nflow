@@ -148,7 +148,7 @@ model Agent {
   id          String   @id @default(uuid())
   name        String
   description String
-  flowConfig  String // JSON string to store react-flow configuration
+  flowConfig  Json // JSON string to store react-flow configuration
   isActive    Boolean  @default(true)
   ownerType   String // "user" or "team"
   createdAt   DateTime @default(now())

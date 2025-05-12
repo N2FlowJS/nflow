@@ -1,5 +1,5 @@
 import React, { createContext, ReactNode, useContext, useState } from 'react';
-import { FlowState } from '../models/flowExecutionTypes'; // Adjust path as necessary
+import { FlowState } from '../models/flowExecutionTypes';
 
 interface FlowStateContextType {
   flowState: FlowState | null;
@@ -11,11 +11,6 @@ const FlowStateContext = createContext<FlowStateContextType | undefined>(undefin
 export const FlowStateProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [flowState, setFlowState] = useState<FlowState | null>(null);
 
-
-
-  
-
- 
   return <FlowStateContext.Provider value={{ flowState, setFlowState }}>{children}</FlowStateContext.Provider>;
 };
 

@@ -8,6 +8,7 @@ import MainLayout from '../../components/layout/MainLayout';
 import { useAuth } from '../../context/AuthContext';
 import { useMobile } from '../../hooks/useMobile';
 import { fetchAgent } from '../../services/agentService';
+import { FlowStateProvider } from '../../context/FlowStateContext';
 
 export default function FlowEditorPage() {
   const router = useRouter();
@@ -71,34 +72,35 @@ export default function FlowEditorPage() {
 
   return (
     <MainLayout title="Flow Editor">
-      <ReactFlowProvider>
-        <FlowEditor
-          flowConfig={agent?.flowConfig}
-          agentId={agent?.id}
-          onStartConversation={() => setIsChatOpen(true)}
-          activeConversationId={isChatOpen ? undefined : currentConversationId}
-        />
-      </ReactFlowProvider>
-      <Drawer
-        title="Test Chat"
-        placement="right"
-        width={isMobile ? '90%' : '50%'}
-        open={isChatOpen}
-        onClose={() => setIsChatOpen(false)}>
-        <ChatInterface
-          agentId={agent?.id}
-          flowConfig={agent?.flowConfig}
-          enableStreaming={true}
-          id={currentConversationId}
-          onConversationCreated={handleConversationCreated}
-          onConversationUpdated={handleConversationUpdated}
-          onNewChatStarted={handleNewChatStarted}
-          variables={{
-            agentName: agent?.name,
-            userDisplayName: user?.name || 'User',
-          }}
-        />
-      </Drawer>
+      <FlowStateProvider>
+        <ReactFlowProvider>
+          <FlowEditor
+            flowConfig={agent?.flowConfig}
+            agentId={agent?.id}
+            onStartConversation={() => setIsChatOpen(true)}
+            activeConversationId={isChatOpen ? undefined : currentConversationId}
+          />
+        </ReactFlowProvider>
+        <Drawer
+          title="Test Chat"
+          placement="right"
+          width={isMobile ? '90%' : '50%'}
+          open={isChatOpen}
+          onClose={() => setIsChatOpen(false)}>
+          <ChatInterface
+            agentId={agent?.id}
+            flowConfig={agent?.flowConfig}
+            id={currentConversationId}
+            onConversationCreated={handleConversationCreated}
+            onConversationUpdated={handleConversationUpdated}
+            onNewChatStarted={handleNewChatStarted}
+            variables={{
+              agentName: agent?.name,
+              userDisplayName: user?.name || 'User',
+            }}
+          />
+        </Drawer>
+      </FlowStateProvider>
     </MainLayout>
   );
 }

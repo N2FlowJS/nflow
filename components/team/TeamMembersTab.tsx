@@ -1,11 +1,10 @@
+import { PlusOutlined, UserOutlined } from '@ant-design/icons';
+import { Badge, Button, Card, Space, Typography } from 'antd';
 import React, { useState } from 'react';
-import { Card, Button, Typography, Tabs, Badge } from 'antd';
-import { UserOutlined, PlusOutlined } from '@ant-design/icons';
-import MemberList from './MemberList';
 import AddMemberForm from './AddMemberForm';
+import MemberList from './MemberList';
 
 const { Title } = Typography;
-const { TabPane } = Tabs;
 
 interface TeamMember {
   id: string;
@@ -35,7 +34,6 @@ const TeamMembersTab: React.FC<TeamMembersTabProps> = ({
   onRemoveMember,
   onUpdateRole
 }) => {
-  const [memberTab, setMemberTab] = useState<string>("current");
   const [showAddForm, setShowAddForm] = useState(false);
 
   const canManageMembers = userPermission === 'owner' || userPermission === 'admin';
@@ -43,29 +41,7 @@ const TeamMembersTab: React.FC<TeamMembersTabProps> = ({
   const formerMembers = members.filter(member => member.leftAt) || [];
 
   return (
-    <Card
-      title={
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 4 }}>
-          <Title level={4} style={{ margin: 0, display: 'flex', alignItems: 'center' }}>
-            <UserOutlined style={{ marginRight: 8 }} /> Team Members
-          </Title>
-          <span style={{ fontSize: 14, color: '#888' }}>
-            Your role: <b style={{ textTransform: 'capitalize' }}>{userPermission ? userPermission : 'Guest'}</b>
-          </span>
-        </div>
-      }
-      extra={
-        canManageMembers && (
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => setShowAddForm(true)}
-          >
-            Add Members
-          </Button>
-        )
-      }
-    >
+    <>
       {showAddForm && (
         <AddMemberForm
           availableUsers={availableUsers}
@@ -76,19 +52,16 @@ const TeamMembersTab: React.FC<TeamMembersTabProps> = ({
         />
       )}
 
-      <Tabs
-        activeKey={memberTab}
-        onChange={setMemberTab}
-        style={{ marginTop: showAddForm ? 16 : 0 }}
-      >
-        <TabPane
-          tab={
-            <span>
+      <Space direction="vertical" style={{ width: '100%', marginTop: showAddForm ? 16 : 0 }}>
+        <Card 
+          type="inner" 
+          title={
+            <Space>
               Current Members
-              <Badge count={activeMembers.length} style={{ marginLeft: 8 }} />
-            </span>
+              <Badge count={activeMembers.length} />
+            </Space>
           }
-          key="current"
+          style={{ marginBottom: 16 }}
         >
           <MemberList
             members={activeMembers}
@@ -97,15 +70,16 @@ const TeamMembersTab: React.FC<TeamMembersTabProps> = ({
             onUpdateRole={onUpdateRole}
             showActions={canManageMembers}
           />
-        </TabPane>
-        <TabPane
-          tab={
-            <span>
+        </Card>
+        
+        <Card 
+          type="inner" 
+          title={
+            <Space>
               Former Members
-              <Badge count={formerMembers.length} style={{ marginLeft: 8 }} />
-            </span>
+              <Badge count={formerMembers.length} />
+            </Space>
           }
-          key="former"
         >
           <MemberList
             members={formerMembers}
@@ -113,9 +87,9 @@ const TeamMembersTab: React.FC<TeamMembersTabProps> = ({
             isFormerMembers={true}
             showActions={false}
           />
-        </TabPane>
-      </Tabs>
-    </Card>
+        </Card>
+      </Space>
+    </>
   );
 };
 

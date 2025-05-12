@@ -1,95 +1,92 @@
-import React from 'react';
-import { Card, Form, Input, Typography, Space, Descriptions, Tag } from 'antd';
-import { TeamOutlined, UserOutlined, CalendarOutlined } from '@ant-design/icons';
+import { CalendarOutlined, EditOutlined, InfoCircleOutlined, SaveOutlined, UserOutlined } from '@ant-design/icons';
+import { Button, Card, Col, Form, Input, Row, Space, Statistic, Tag, Typography } from 'antd';
 import { format } from 'date-fns';
+import React from 'react';
 
-const { Title, Text } = Typography;
+const { Title } = Typography;
 
 interface TeamDetailsTabProps {
   team: any;
-  isEditing: boolean;
   form: any;
+  onSubmit: () => void;
 }
 
-const TeamDetailsTab: React.FC<TeamDetailsTabProps> = ({
-  team,
-  isEditing,
-  form
-}) => {
+const TeamDetailsTab: React.FC<TeamDetailsTabProps> = ({ team, form, onSubmit }) => {
   const formatDate = (dateString: string) => {
     return dateString ? format(new Date(dateString), 'PPpp') : 'N/A';
   };
 
   return (
-    <Card>
-      <Title level={4}>
-        <Space>
-          <TeamOutlined />
-          Team Details
-        </Space>
-      </Title>
-      
-      {isEditing ? (
-        <Form
-          form={form}
-          layout="vertical"
-        >
-          <Form.Item
-            name="name"
-            label="Name"
-            rules={[{ required: true, message: 'Please enter a name' }]}
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item
-            name="description"
-            label="Description"
-            rules={[{ required: true, message: 'Please enter a description' }]}
-          >
-            <Input.TextArea rows={4} />
-          </Form.Item>
-          {team?.createdBy && (
-            <Form.Item label="Created by">
-              <Input 
-                disabled
-                value={team.createdBy.name}
-                prefix={<UserOutlined />}
-              />
-            </Form.Item>
-          )}
+    <>
+      <Card className="dashboard-card" style={{ marginBottom: '12px' }}>
+        <Title level={4}>
+          <Space>
+            <EditOutlined />
+            Team Details
+          </Space>
+        </Title>
+
+        <Form form={form} layout="vertical" initialValues={team}>
+          <Row gutter={[16, 16]}>
+            <Col xs={24} md={12}>
+              <Form.Item name="name" label="Name" rules={[{ required: true, message: 'Please enter a name' }]}>
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col xs={24} md={12}>
+              <Form.Item label="Status">
+                <Tag color="green">Active</Tag>
+              </Form.Item>
+            </Col>
+            <Col span={24}>
+              <Form.Item
+                name="description"
+                label="Description"
+                rules={[{ required: true, message: 'Please enter a description' }]}>
+                <Input.TextArea rows={4} />
+              </Form.Item>
+            </Col>
+            <Col span={24} style={{ textAlign: 'right' }}>
+              <Button 
+                type="primary" 
+                icon={<SaveOutlined />} 
+                onClick={onSubmit}
+              >
+                Save Changes
+              </Button>
+            </Col>
+          </Row>
         </Form>
-      ) : (
-        <Descriptions bordered column={{ xs: 1, sm: 2 }}>
-          <Descriptions.Item label="Team Name" span={2}>
-            <Text strong>{team?.name}</Text>
-          </Descriptions.Item>
-          <Descriptions.Item label="Created At">
-            <Space>
-              <CalendarOutlined />
-              {formatDate(team?.createdAt)}
-            </Space>
-          </Descriptions.Item>
-          <Descriptions.Item label="Last Updated">
-            <Space>
-              <CalendarOutlined />
-              {formatDate(team?.updatedAt)}
-            </Space>
-          </Descriptions.Item>
-          <Descriptions.Item label="Created By">
-            <Space>
-              <UserOutlined />
-              {team?.createdBy?.name || 'Unknown'}
-            </Space>
-          </Descriptions.Item>
-          <Descriptions.Item label="Status">
-            <Tag color="green">Active</Tag>
-          </Descriptions.Item>
-          <Descriptions.Item label="Description" span={2}>
-            <Text>{team?.description || 'No description provided'}</Text>
-          </Descriptions.Item>
-        </Descriptions>
-      )}
-    </Card>
+      </Card>
+
+      <Card className="dashboard-card" style={{ marginBottom: '12px' }}>
+        <Title level={4}>
+          <Space>
+            <InfoCircleOutlined />
+            Team Information
+          </Space>
+        </Title>
+        <Row gutter={[16, 16]}>
+          <Col xs={12} sm={8}>
+            <Statistic title="Created By" value={team?.createdBy?.name || 'Unknown'} prefix={<UserOutlined />} />
+          </Col>
+          <Col xs={12} sm={8}>
+            <Statistic
+              title="Created At"
+              value={formatDate(team?.createdAt).split(',')[0]}
+              prefix={<CalendarOutlined />}
+            />
+          </Col>
+          <Col xs={12} sm={8}>
+            <Statistic
+              title="Last Updated"
+              value={formatDate(team?.updatedAt).split(',')[0]}
+              prefix={<CalendarOutlined />}
+            />
+          </Col>
+        </Row>
+      </Card>
+    </>
   );
 };
 

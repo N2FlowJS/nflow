@@ -55,7 +55,7 @@
 
 ## 📚 Architecture Overview
 
-![N-Flow Architecture Diagram](/docs/assets/nflow-architecture.png)
+![N-Flow Architecture Diagram](/assets/nflow-architecture.png)
 
 > **Flow of Documents:** Load → Preprocess → Embed → Store  
 > **Flow of Queries:** Embed Query → Retrieve → Respond

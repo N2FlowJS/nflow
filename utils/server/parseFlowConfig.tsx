@@ -1,8 +1,7 @@
 import { Flow } from "../../models/flowTypes";
 
-export function parseFlowConfig(flowConfig: string): Flow {
+export function parseFlowConfig(parsed: any): Flow {
   try {
-    const parsed = JSON.parse(flowConfig);
 
     return {
       nodes: Array.isArray(parsed.nodes) ? parsed.nodes : [],

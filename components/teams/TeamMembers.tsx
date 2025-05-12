@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { 
   Card, 
   Typography, 
-  Table, 
   Button, 
   Space,
   Tag,
@@ -12,13 +11,16 @@ import {
   Select,
   message,
   Popconfirm,
-  Avatar
+  Avatar,
+  List,
+  Divider
 } from 'antd';
 import { 
   UserAddOutlined, 
   EditOutlined, 
   DeleteOutlined, 
-  UserOutlined
+  UserOutlined,
+  CalendarOutlined
 } from '@ant-design/icons';
 import { format } from 'date-fns';
 import { addTeamMember, updateTeamMember, removeTeamMember } from '../../services/teamService';
@@ -152,87 +154,43 @@ export default function TeamMembers({
     }
   };
 
-  const columns = [
-    {
-      title: 'Member',
-      dataIndex: 'user',
-      key: 'user',
-      render: (user: any) => (
-        <Space>
-          <Avatar icon={<UserOutlined />} />
-          <div>
-            <div>
-              <Text strong>{user?.name || 'Unknown User'}</Text>
-            </div>
-            <div>
-              <Text type="secondary" style={{ fontSize: 12 }}>
-                {user?.email || 'No email'}
-              </Text>
-            </div>
-          </div>
-        </Space>
-      ),
-    },
-    {
-      title: 'permission',
-      dataIndex: 'permission',
-      key: 'permission',
-      render: (permission: string) => (
-        <Tag color={getPermissionColor(permission)}>
-          {permission.charAt(0).toUpperCase() + permission.slice(1)}
-        </Tag>
-      ),
-    },
-    {
-      title: 'Joined',
-      dataIndex: 'joinedAt',
-      key: 'joinedAt',
-      render: (date: string) => formatDate(date),
-    },
-    {
-      title: 'Actions',
-      key: 'actions',
-      render: (_: any, record: any) => {
-        // Don't allow editing/removing the owner if you're not the owner
-        const isOwner = record.permission === 'owner';
-        const canEdit = canManageMembers && (!isOwner || currentUserPermission === 'owner');
-        
-        return (
-          <Space>
-            <Tooltip title="Edit permission">
-              <Button
-                type="text"
-                icon={<EditOutlined />}
-                onClick={() => {
-                  setSelectedMember(record);
-                  editForm.setFieldsValue({ permission: record.permission });
-                  setIsEditModalVisible(true);
-                }}
-                disabled={!canEdit}
-              />
-            </Tooltip>
-            <Tooltip title="Remove from Team">
-              <Popconfirm
-                title="Remove member from team?"
-                description="Are you sure you want to remove this member from the team?"
-                onConfirm={() => handleRemoveMember(record.userId)}
-                okText="Yes"
-                cancelText="No"
-                disabled={!canEdit}
-              >
-                <Button
-                  type="text"
-                  danger
-                  icon={<DeleteOutlined />}
-                  disabled={!canEdit}
-                />
-              </Popconfirm>
-            </Tooltip>
-          </Space>
-        );
-      },
-    },
-  ];
+  const renderActions = (record: any) => {
+    // Don't allow editing/removing the owner if you're not the owner
+    const isOwner = record.permission === 'owner';
+    const canEdit = canManageMembers && (!isOwner || currentUserPermission === 'owner');
+    
+    return [
+      <Tooltip title="Edit permission" key="edit">
+        <Button
+          type="text"
+          icon={<EditOutlined />}
+          onClick={() => {
+            setSelectedMember(record);
+            editForm.setFieldsValue({ permission: record.permission });
+            setIsEditModalVisible(true);
+          }}
+          disabled={!canEdit}
+        />
+      </Tooltip>,
+      <Tooltip title="Remove from Team" key="delete">
+        <Popconfirm
+          title="Remove member from team?"
+          description="Are you sure you want to remove this member from the team?"
+          onConfirm={() => handleRemoveMember(record.userId)}
+          okText="Yes"
+          cancelText="No"
+          disabled={!canEdit}
+        >
+          <Button
+            type="text"
+            danger
+            icon={<DeleteOutlined />}
+            disabled={!canEdit}
+          />
+        </Popconfirm>
+      </Tooltip>
+    ];
+  };
 
   return (
     <Card>
@@ -254,11 +212,38 @@ export default function TeamMembers({
         )}
       </div>
 
-      <Table
+      <List
         dataSource={members}
-        columns={columns}
         rowKey={record => record.id || record.userId}
         pagination={{ pageSize: 10 }}
+        renderItem={(item) => (
+          <List.Item
+            key={item.id || item.userId}
+            actions={renderActions(item)}
+          >
+            <List.Item.Meta
+              avatar={<Avatar icon={<UserOutlined />} />}
+              title={
+                <Space>
+                  <Text strong>{item.user?.name || 'Unknown User'}</Text>
+                  <Tag color={getPermissionColor(item.permission)}>
+                    {item.permission.charAt(0).toUpperCase() + item.permission.slice(1)}
+                  </Tag>
+                </Space>
+              }
+              description={
+                <Space>
+                  <Text type="secondary">{item.user?.email || 'No email'}</Text>
+                  <Divider type="vertical" />
+                  <Space>
+                    <CalendarOutlined />
+                    <Text type="secondary">Joined: {formatDate(item.joinedAt)}</Text>
+                  </Space>
+                </Space>
+              }
+            />
+          </List.Item>
+        )}
       />
 
       {/* Add Member Modal */}

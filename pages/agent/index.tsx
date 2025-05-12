@@ -3,6 +3,7 @@ import {
   DeleteOutlined,
   EditOutlined,
   InfoCircleOutlined,
+  MessageFilled,
   PlusOutlined,
   SearchOutlined,
   TeamOutlined,
@@ -23,7 +24,7 @@ import {
   Spin,
   Tag,
   Tooltip, // Keep Breadcrumb import
-  Typography
+  Typography,
 } from 'antd';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -146,6 +147,14 @@ export default function AgentsList() {
         actions={[
           <Tooltip title={t('table.actions.edit')} key="edit">
             <Button icon={<EditOutlined />} onClick={() => router.push(`/agent/${agent.id}`)} type="text" />
+          </Tooltip>,
+          <Tooltip title={t('table.actions.chat')} key="chat">
+            <Button
+              icon={<MessageFilled />}
+              onClick={() => router.push(`/agent/${agent.id}/chat`)}
+              type="text"
+            
+            />
           </Tooltip>,
           <Tooltip title={t('table.actions.delete')} key="delete">
             <Button icon={<DeleteOutlined />} onClick={() => confirmDelete(agent.id)} type="text" danger />

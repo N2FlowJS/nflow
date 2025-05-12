@@ -23,7 +23,7 @@ import { saveFlowConfig } from '../../../services/agentService';
 import NodeForm from '../forms/node-form';
 import NodePalette from './node-palette';
 
-import { FlowStateProvider, useFlowState } from '../../../context/FlowStateContext';
+import { useFlowState } from '../../../context/FlowStateContext';
 import { CategorizeForm, DecisionForm, FlowNode, NodeTypeString } from '../../../models/flowTypes';
 import { conversationService } from '../../../services/conversationService';
 import { useTheme } from '../../../theme';
@@ -58,24 +58,11 @@ interface FlowEditorProps {
   activeConversationId?: string;
 }
 
-interface FlowCanvasComponentProps {
-  initialNodes: FlowNode[];
-  initialEdges: any[];
-  onStartConversation?: () => void;
-  activeConversationId?: string;
-  onSaveFlow: (nodes: FlowNode[], edges: any[]) => Promise<void>;
-}
-
-const FlowCanvasComponent: React.FC<FlowCanvasComponentProps> = ({
-  initialNodes,
-  initialEdges,
-  onStartConversation,
-  activeConversationId,
-  onSaveFlow,
-}) => {
+const FlowEditor: React.FC<FlowEditorProps> = ({ flowConfig, onStartConversation, agentId, activeConversationId }) => {
   const { theme } = useTheme();
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const initialFlow = parseFlowConfig(flowConfig);
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialFlow.nodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initialFlow.edges);
   const [selectedNode, setSelectedNode] = useState<FlowNode | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [nodeForm] = Form.useForm();
@@ -102,11 +89,6 @@ const FlowCanvasComponent: React.FC<FlowCanvasComponentProps> = ({
     loadConversationState();
   }, [activeConversationId, setFlowState]);
 
-  useEffect(() => {
-    setNodes(initialNodes);
-    setEdges(initialEdges);
-  }, [initialNodes, initialEdges, setNodes, setEdges]);
-
   React.useEffect(() => {
     const nodeIds = nodes.map((node) => node.id);
     setEdges((edges) => edges.filter((edge) => nodeIds.includes(edge.source) && nodeIds.includes(edge.target)));
@@ -119,8 +101,19 @@ const FlowCanvasComponent: React.FC<FlowCanvasComponentProps> = ({
     [setEdges]
   );
 
-  const handleSaveFlow = () => {
-    onSaveFlow(nodes, edges);
+  const handleSaveFlow = async () => {
+    if (!agentId) {
+      message.error('Agent ID is missing');
+      return;
+    }
+    try {
+      const flow = { nodes, edges };
+      await saveFlowConfig(agentId, flow);
+      message.success('Flow saved successfully');
+    } catch (error: unknown) {
+      console.error('Error saving flow:', error);
+      message.error('Failed to save flow');
+    }
   };
 
   const onConnect = useCallback(
@@ -368,37 +361,6 @@ const FlowCanvasComponent: React.FC<FlowCanvasComponentProps> = ({
         <NodeForm form={nodeForm} selectedNode={selectedNode} setIsDrawerOpen={setIsDrawerOpen} />
       </Drawer>
     </div>
-  );
-};
-
-const FlowEditor: React.FC<FlowEditorProps> = ({ flowConfig, onStartConversation, agentId, activeConversationId }) => {
-  const initialFlow = parseFlowConfig(flowConfig);
-
-  const handleSaveFlow = async (nodesToSave: FlowNode[], edgesToSave: any[]) => {
-    if (!agentId) {
-      message.error('Agent ID is missing');
-      return;
-    }
-    try {
-      const flow = { nodes: nodesToSave, edges: edgesToSave };
-      await saveFlowConfig(agentId, JSON.stringify(flow));
-      message.success('Flow saved successfully');
-    } catch (error: unknown) {
-      console.error('Error saving flow:', error);
-      message.error('Failed to save flow');
-    }
-  };
-
-  return (
-    <FlowStateProvider>
-      <FlowCanvasComponent
-        initialNodes={initialFlow.nodes}
-        initialEdges={initialFlow.edges}
-        onStartConversation={onStartConversation}
-        activeConversationId={activeConversationId}
-        onSaveFlow={handleSaveFlow}
-      />
-    </FlowStateProvider>
   );
 };
 

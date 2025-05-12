@@ -204,7 +204,7 @@ export default function UserDetail() {
           ...values,
           ownerType: 'user',
           userId: id as string,
-          flowConfig: JSON.stringify({ nodes: [], edges: [] }),
+          flowConfig:{ nodes: [], edges: [] },
         };
 
         const newAgent = await createAgent(agentData);

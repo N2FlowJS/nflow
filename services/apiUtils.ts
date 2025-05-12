@@ -1,8 +1,8 @@
-import { logApiRequest, logApiResponse, logApiError } from "../utils/logger";
+import { logApiRequest, logApiResponse, logApiError } from '../utils/logger';
 
 // Get authorization header with token
-export function getAuthHeader(): Record<string, string> {
-  const token = localStorage.getItem("token") || localStorage.getItem("authToken");
+export function getAuthHeader(apiKey?: string): Record<string, string> {
+  const token = apiKey || localStorage?.getItem('token') || localStorage?.getItem('authToken');
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
@@ -21,26 +21,20 @@ export async function handleApiResponse<T>(response: Response): Promise<T> {
 export function buildQueryString(params: Record<string, any>): string {
   const validParams = Object.entries(params)
     .filter(([_, value]) => value !== undefined && value !== null)
-    .map(
-      ([key, value]) =>
-        `${encodeURIComponent(key)}=${encodeURIComponent(value)}`
-    )
-    .join("&");
+    .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+    .join('&');
 
-  return validParams ? `?${validParams}` : "";
+  return validParams ? `?${validParams}` : '';
 }
 
 // Make API request
-export async function apiRequest<T>(
-  url: string,
-  options: RequestInit = {}
-): Promise<T> {
-  const method = options.method || "GET";
+export async function apiRequest<T>(url: string, options: RequestInit = {}, apiKey?: string): Promise<T> {
+  const method = options.method || 'GET';
   const baseHeaders: Record<string, string> = {
-    "Content-Type": "application/json",
+    'Content-Type': 'application/json',
   };
 
-  const authHeader = getAuthHeader();
+  const authHeader = getAuthHeader(apiKey);
   const finalHeaders = {
     ...baseHeaders,
     ...authHeader,
@@ -52,11 +46,7 @@ export async function apiRequest<T>(
     method,
     url,
     finalHeaders,
-    options.body
-      ? typeof options.body === "string"
-        ? JSON.parse(options.body)
-        : options.body
-      : undefined
+    options.body ? (typeof options.body === 'string' ? JSON.parse(options.body) : options.body) : undefined
   );
 
   const startTime = performance.now();
@@ -82,7 +72,7 @@ export async function apiRequest<T>(
 
     logApiResponse(method, url, response.status, responseData, duration);
     if (response.status === 401) {
-      window.location.href = "/"
+      window.location.href = '/';
     }
     // Process the response
     return handleApiResponse<T>(response);

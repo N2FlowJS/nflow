@@ -1,9 +1,10 @@
 import React from 'react';
-import { Table, Tag, Button, Select, Space, Avatar, Tooltip, Popconfirm } from 'antd';
-import { UserOutlined, DeleteOutlined, CrownOutlined } from '@ant-design/icons';
+import { Card, Tag, Button, Select, Space, Avatar, Tooltip, Popconfirm, Row, Col, Typography, Empty } from 'antd';
+import { UserOutlined, DeleteOutlined, CrownOutlined, CalendarOutlined, LogoutOutlined } from '@ant-design/icons';
 import { format } from 'date-fns';
 
 const { Option } = Select;
+const { Text, Title } = Typography;
 
 interface MemberListProps {
   members: any[];
@@ -40,95 +41,80 @@ const MemberList: React.FC<MemberListProps> = ({
     return <Tag color={getRoleColor(permission)}>{permission?.toUpperCase()}</Tag>;
   };
 
-  const columns = [
-    {
-      title: 'Member',
-      key: 'user',
-      render: (record: any) => (
-        <Space>
-          <Avatar icon={<UserOutlined />} />
-          <div>
-            <div>
-              <strong>{record.user?.name || 'Unknown User'}</strong>
-            </div>
-            <div>
-              <small style={{ color: '#999' }}>{record.user?.email || 'No email'}</small>
-            </div>
-          </div>
-        </Space>
-      ),
-    },
-    {
-      title: 'Permission',
-      dataIndex: 'permission',
-      key: 'permission',
-      render: (permission: string, record: any) => (
-        showActions && !isFormerMembers && currentUserRole === 'owner' && permission !== 'owner' ? (
-          <Select 
-            value={permission} 
-            style={{ width: 120 }}
-            onChange={(newRole) => onUpdateRole && onUpdateRole(record.userId, newRole)}
-          >
-            <Option value="admin">Admin</Option>
-            <Option value="maintainer">Maintainer</Option>
-            <Option value="developer">Developer</Option>
-            <Option value="guest">Guest</Option>
-          </Select>
-        ) : getRoleBadge(permission)
-      ),
-    },
-    {
-      title: 'Joined',
-      dataIndex: 'joinedAt',
-      key: 'joinedAt',
-      render: (date: string) => date ? format(new Date(date), 'MMM dd, yyyy') : 'N/A',
-    },
-    ...(isFormerMembers ? [
-      {
-        title: 'Left',
-        dataIndex: 'leftAt',
-        key: 'leftAt',
-        render: (date: string) => date ? format(new Date(date), 'MMM dd, yyyy') : 'N/A',
-      }
-    ] : []),
-    ...(showActions && !isFormerMembers ? [
-      {
-        title: 'Actions',
-        key: 'actions',
-        render: (record: any) => {
-          // Don't allow removing owner (unless current user is also owner)
-          const canRemove = record.role !== 'owner' || currentUserRole === 'owner';
-          
-          return canRemove ? (
-            <Tooltip title="Remove from team">
-              <Popconfirm
-                title="Remove this member?"
-                description="Are you sure you want to remove this member from the team?"
-                onConfirm={() => onRemove && onRemove(record.userId)}
-                okText="Yes"
-                cancelText="No"
-              >
-                <Button
-                  type="text"
-                  danger
-                  icon={<DeleteOutlined />}
-                />
-              </Popconfirm>
-            </Tooltip>
-          ) : null;
-        },
-      }
-    ] : []),
-  ];
+  if (members.length === 0) {
+    return <Empty description={isFormerMembers ? 'No former members' : 'No team members yet'} />;
+  }
 
   return (
-    <Table
-      dataSource={members}
-      columns={columns}
-      rowKey={record => record.id || record.userId}
-      pagination={{ pageSize: 10 }}
-      locale={{ emptyText: isFormerMembers ? 'No former members' : 'No team members yet' }}
-    />
+    <Row gutter={[16, 16]}>
+      {members.map(member => (
+        <Col xs={24} sm={12} md={8} lg={8} xl={6} key={member.id || member.userId}>
+          <Card 
+            hoverable
+            style={{ height: '100%' }}
+            actions={showActions && !isFormerMembers && member.role !== 'owner' ? [
+              <Tooltip title="Remove from team" key="remove">
+                <Popconfirm
+                  title="Remove this member?"
+                  description="Are you sure you want to remove this member from the team?"
+                  onConfirm={() => onRemove && onRemove(member.userId)}
+                  okText="Yes"
+                  cancelText="No"
+                >
+                  <Button
+                    type="text"
+                    danger
+                    icon={<DeleteOutlined />}
+                  />
+                </Popconfirm>
+              </Tooltip>
+            ] : []}
+          >
+            <Space direction="vertical" style={{ width: '100%' }}>
+              <Space align="center">
+                <Avatar size={64} icon={<UserOutlined />} />
+                <div>
+                  <Title level={5} style={{ margin: 0 }}>
+                    {member.user?.name || 'Unknown User'}
+                  </Title>
+                  <Text type="secondary">
+                    {member.user?.email || 'No email'}
+                  </Text>
+                </div>
+              </Space>
+              
+              <div style={{ marginTop: 16 }}>
+                <Text strong>Permission: </Text>
+                {showActions && !isFormerMembers && currentUserRole === 'owner' && member.permission !== 'owner' ? (
+                  <Select 
+                    value={member.permission} 
+                    style={{ width: 120, marginLeft: 8 }}
+                    onChange={(newRole) => onUpdateRole && onUpdateRole(member.userId, newRole)}
+                  >
+                    <Option value="admin">Admin</Option>
+                    <Option value="maintainer">Maintainer</Option>
+                    <Option value="developer">Developer</Option>
+                    <Option value="guest">Guest</Option>
+                  </Select>
+                ) : getRoleBadge(member.permission)}
+              </div>
+              
+              <Space direction="vertical" style={{ marginTop: 8 }}>
+                <Text>
+                  <CalendarOutlined /> Joined: {member.joinedAt ? format(new Date(member.joinedAt), 'MMM dd, yyyy') : 'N/A'}
+                </Text>
+                
+                {isFormerMembers && (
+                  <Text>
+                    <LogoutOutlined /> Left: {member.leftAt ? format(new Date(member.leftAt), 'MMM dd, yyyy') : 'N/A'}
+                  </Text>
+                )}
+              </Space>
+            </Space>
+          </Card>
+        </Col>
+      ))}
+    </Row>
   );
 };
 

@@ -1,10 +1,10 @@
-import React from 'react';
-import { Card, Button, Typography, Table, Tag, Empty, Alert } from 'antd';
-import { RobotOutlined, PlusOutlined } from '@ant-design/icons';
+import { ClockCircleOutlined } from '@ant-design/icons';
+import { Alert, Button, Card, Col, Row, Space, Tag, Typography } from 'antd';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
+import React from 'react';
 
-const { Title } = Typography;
+const { Title, Text, Paragraph } = Typography;
 
 interface Agent {
   id: string;
@@ -17,86 +17,16 @@ interface Agent {
 }
 
 interface TeamAgentsTabProps {
-  teamId: string;
   agents: Agent[];
   userRole: string | null;
   onCreateAgent: () => void;
 }
 
-const TeamAgentsTab: React.FC<TeamAgentsTabProps> = ({
-  agents,
-  userRole,
-  onCreateAgent
-}) => {
+const TeamAgentsTab: React.FC<TeamAgentsTabProps> = ({ agents }) => {
   const router = useRouter();
-  
-  const canCreateAgents = userRole === 'owner' || userRole === 'admin';
-
-  const agentColumns = [
-    {
-      title: 'Name',
-      dataIndex: 'name',
-      key: 'name',
-      render: (text: string, record: Agent) => (
-        <Link href={`/agent/${record.id}`}>{text}</Link>
-      ),
-    },
-    {
-      title: 'Description',
-      dataIndex: 'description',
-      key: 'description',
-      ellipsis: true,
-    },
-    {
-      title: 'Status',
-      dataIndex: 'isActive',
-      key: 'isActive',
-      render: (isActive: boolean) => (
-        <Tag color={isActive ? 'green' : 'red'}>
-          {isActive ? 'Active' : 'Inactive'}
-        </Tag>
-      ),
-    },
-    {
-      title: 'Last Updated',
-      dataIndex: 'updatedAt',
-      key: 'updatedAt',
-      render: (date: string) => new Date(date).toLocaleString(),
-    },
-    {
-      title: 'Actions',
-      key: 'actions',
-      render: (_: any, record: Agent) => (
-        <Button 
-          type="primary" 
-          size="small"
-          onClick={() => router.push(`/agent/${record.id}`)}
-        >
-          View
-        </Button>
-      ),
-    },
-  ];
 
   return (
-    <Card
-      title={
-        <Title level={4}>
-          <RobotOutlined /> Team Agents
-        </Title>
-      }
-      extra={
-        canCreateAgents && (
-          <Button 
-            type="primary" 
-            icon={<PlusOutlined />}
-            onClick={onCreateAgent}
-          >
-            Create Agent
-          </Button>
-        )
-      }
-    >
+    <>
       {agents.length === 0 ? (
         <Alert
           message="No Agents Found"
@@ -106,15 +36,40 @@ const TeamAgentsTab: React.FC<TeamAgentsTabProps> = ({
           style={{ marginBottom: 16 }}
         />
       ) : (
-        <Table 
-          columns={agentColumns} 
-          dataSource={agents} 
-          rowKey="id"
-          pagination={{ pageSize: 10 }}
-          locale={{ emptyText: <Empty description="No agents found" /> }}
-        />
+        <Row gutter={[16, 16]}>
+          {agents.map((agent) => (
+            <Col xs={24} sm={12} md={8} lg={8} xl={6} key={agent.id}>
+              <Card
+                hoverable
+                style={{ height: '100%' }}
+                actions={[
+                  <Button type="primary" key="view" onClick={() => router.push(`/agent/${agent.id}`)}>
+                    View
+                  </Button>,
+                ]}>
+                <Space direction="vertical" style={{ width: '100%' }}>
+                  <Link href={`/agent/${agent.id}`}>
+                    <Title level={5}>{agent.name}</Title>
+                  </Link>
+
+                  <Tag color={agent.isActive ? 'green' : 'red'}>{agent.isActive ? 'Active' : 'Inactive'}</Tag>
+
+                  <Paragraph
+                    ellipsis={{ rows: 2, expandable: false, tooltip: agent.description }}
+                    style={{ minHeight: '44px' }}>
+                    {agent.description || 'No description available'}
+                  </Paragraph>
+
+                  <Text type="secondary">
+                    <ClockCircleOutlined /> Updated: {new Date(agent.updatedAt).toLocaleString()}
+                  </Text>
+                </Space>
+              </Card>
+            </Col>
+          ))}
+        </Row>
       )}
-    </Card>
+    </>
   );
 };
 

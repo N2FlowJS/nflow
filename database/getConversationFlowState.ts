@@ -8,7 +8,7 @@ export async function getConversationFlowState(conversationId: string): Promise<
       select: { flowState: true },
     });
     if (conversation && conversation.flowState) {
-      return JSON.parse(conversation.flowState as string) as FlowState;
+      return conversation.flowState as any;
     }
   } catch (error: unknown) {
     if (error instanceof Error) {

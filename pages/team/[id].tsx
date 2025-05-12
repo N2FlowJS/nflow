@@ -2,20 +2,10 @@ import {
   ApiOutlined,
   RobotOutlined,
   SettingOutlined,
+  TeamOutlined,
   UserOutlined
 } from '@ant-design/icons';
-import {
-  Alert,
-  Breadcrumb,
-  Button,
-  Form,
-  message,
-  Space,
-  Spin,
-  Tabs,
-  Typography
-} from 'antd';
-import Link from 'next/link';
+import { Alert, Button, Card, Col, Form, message, Row, Space, Spin, Statistic, Typography } from 'antd';
 import { useRouter } from 'next/router';
 import React, { useEffect, useState } from 'react';
 import MainLayout from '../../components/layout/MainLayout';
@@ -28,7 +18,7 @@ import {
   removeTeamMember,
   Team,
   updateTeam,
-  updateTeamMember
+  updateTeamMember,
 } from '../../services/teamService';
 
 // Import our new components
@@ -38,12 +28,10 @@ import TeamDetailsTab from '../../components/team/TeamDetailsTab';
 import TeamMembersTab from '../../components/team/TeamMembersTab';
 import TeamProfileHeader from '../../components/team/TeamProfileHeader';
 import TeamLLMProviders from '../../components/teams/TeamLLMProviders';
-import { createAgent } from '../../services/agentService';
 import { useLocale } from '../../locale/index'; // Import the useLocale hook
 import { User } from '../../models/auth';
-const { Title, } = Typography;
-
-const { TabPane } = Tabs;
+import { createAgent } from '../../services/agentService';
+const { Title } = Typography;
 
 export default function TeamDetail() {
   const router = useRouter();
@@ -51,9 +39,7 @@ export default function TeamDetail() {
   const [team, setTeam] = useState<Team>();
   const [loading, setLoading] = useState(true);
   const [form] = Form.useForm();
-  const [isEditing, setIsEditing] = useState(false);
   const [availableUsers, setAvailableUsers] = useState<User[]>([]);
-  const [mainTab, setMainTab] = useState("details");
   const [agentForm] = Form.useForm();
   const [isAgentModalVisible, setIsAgentModalVisible] = useState(false);
   const [creatingAgent, setCreatingAgent] = useState(false);
@@ -112,14 +98,12 @@ export default function TeamDetail() {
       const auth = await checkAuthentication();
       if (auth) {
         setUserData(auth);
-        const currentUserMember = membersData.find(
-          (member: any) => member.userId === auth.userId
-        );
-        console.log(currentUserMember, "Current user membership:", currentUserMember);
+        const currentUserMember = membersData.find((member: any) => member.userId === auth.userId);
+        console.log(currentUserMember, 'Current user membership:', currentUserMember);
 
         setUserPermission(currentUserMember?.permission || null);
       }
-    } catch  {
+    } catch {
       message.error('Failed to fetch team details');
     } finally {
       setLoading(false);
@@ -130,7 +114,7 @@ export default function TeamDetail() {
     try {
       const users = await fetchAllUsers();
       setAvailableUsers(users);
-    } catch  {
+    } catch {
       message.error('Failed to fetch users');
     }
   };
@@ -161,19 +145,6 @@ export default function TeamDetail() {
     }
   }, [authenticated, router]);
 
-  // Handle edit/save functions
-  const handleEdit = () => {
-    setIsEditing(true);
-  };
-
-  const handleCancel = () => {
-    setIsEditing(false);
-    form.setFieldsValue({
-      name: team?.name,
-      description: team?.description,
-    });
-  };
-
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
@@ -181,7 +152,6 @@ export default function TeamDetail() {
       await updateTeam(id as string, values);
       message.success('Team updated successfully');
       fetchTeamDetail();
-      setIsEditing(false);
     } catch (error: unknown) {
       console.error('Form validation error:', error);
       message.error('Failed to update team');
@@ -229,8 +199,8 @@ export default function TeamDetail() {
   };
 
   // Check if the current user has provider management permissions
-  const canManageProviders = userPermission === 'owner' || userPermission === 'admin' ||
-    userData?.permission === 'owner';
+  const canManageProviders =
+    userPermission === 'owner' || userPermission === 'admin' || userData?.permission === 'owner';
 
   if (authenticated === null || loading) {
     return (
@@ -273,7 +243,6 @@ export default function TeamDetail() {
   }
 
   async function handleCreateAgent() {
-
     try {
       const values = await agentForm.validateFields();
       setCreatingAgent(true);
@@ -283,7 +252,7 @@ export default function TeamDetail() {
           ...values,
           ownerType: 'team',
           teamId: id as string,
-          flowConfig: JSON.stringify({ nodes: [], edges: [] })
+          flowConfig: JSON.stringify({ nodes: [], edges: [] }),
         };
 
         const newAgent = await createAgent(agentData);
@@ -304,44 +273,78 @@ export default function TeamDetail() {
     }
   }
 
-
-
   return (
     <MainLayout title={team?.name || t('teamProfile')}>
-      <div style={{ padding: '24px' }}>
-        <Space direction="vertical" size="large" style={{ width: '100%' }}>
-          <Breadcrumb>
-            <Breadcrumb.Item>
-              <Link href="/team">{t('teams')}</Link>
-            </Breadcrumb.Item>
-            <Breadcrumb.Item>{team?.name || t('detail')}</Breadcrumb.Item>
-          </Breadcrumb>
+      <div style={{ padding: '24px', backgroundColor: '#f0f2f5', minHeight: '100vh' }}>
+        {/* Team Profile Header - As a banner */}
+        <Card
+          style={{
+            marginBottom: '24px',
+            borderRadius: '8px',
+            boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)',
+          }}>
+          <TeamProfileHeader teamName={team?.name || ''} />
+        </Card>
 
-          <TeamProfileHeader
-            teamName={team?.name || ''}
-            isEditing={isEditing}
-            onEdit={handleEdit}
-            onCancel={handleCancel}
-            onSubmit={handleSubmit}
-            canEdit={userPermission === 'owner' || userPermission === 'admin'}
-          />
+        {/* Statistics Summary Row */}
+        <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
+          <Col xs={24} sm={12} md={6}>
+            <Card style={{ borderRadius: '8px', boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)' }}>
+              <Statistic title={t('members')} value={members?.length || 0} prefix={<TeamOutlined />} />
+            </Card>
+          </Col>
+          <Col xs={24} sm={12} md={6}>
+            <Card style={{ borderRadius: '8px', boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)' }}>
+              <Statistic title={t('agents')} value={team?.ownedAgents?.length || 0} prefix={<RobotOutlined />} />
+            </Card>
+          </Col>
+          <Col xs={24} sm={12} md={6}>
+            <Card style={{ borderRadius: '8px', boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)' }}>
+              <Statistic title={t('yourRole')} value={userPermission || t('guest')} prefix={<UserOutlined />} />
+            </Card>
+          </Col>
+        </Row>
 
-          <Tabs activeKey={mainTab} onChange={setMainTab}>
-            <TabPane
-              tab={<span><SettingOutlined /> {t('details')}</span>}
-              key="details"
-            >
-              <TeamDetailsTab
-                team={team}
-                isEditing={isEditing}
-                form={form}
-              />
-            </TabPane>
+        {/* Main Content Section */}
+        <Row gutter={[16, 16]}>
+          {/* Details Section - 1/3 width on desktop */}
+          <Col xs={24} lg={8}>
+            <Card
+              title={
+                <Space>
+                  <SettingOutlined /> {t('details')}
+                </Space>
+              }
+              style={{
+                marginBottom: '16px',
+                height: '100%',
+                borderRadius: '8px',
+                boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)',
+              }}>
+              <TeamDetailsTab team={team} form={form} onSubmit={handleSubmit} />
+            </Card>
+          </Col>
 
-            <TabPane
-              tab={<span><UserOutlined /> {t('members')} {team?.name}</span>}
-              key="members"
-            >
+          {/* Members Section - 2/3 width on desktop */}
+          <Col xs={24} lg={16}>
+            <Card
+              title={
+                <Space>
+                  <UserOutlined /> {t('members')} {team?.name}
+                </Space>
+              }
+              style={{
+                marginBottom: '16px',
+                borderRadius: '8px',
+                boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)',
+              }}
+              extra={
+                (userPermission === 'owner' || userPermission === 'admin') && (
+                  <Button type="primary" size="small">
+                    {t('manageMembers')}
+                  </Button>
+                )
+              }>
               <TeamMembersTab
                 teamId={id as string}
                 members={members}
@@ -351,24 +354,29 @@ export default function TeamDetail() {
                 onRemoveMember={handleRemoveMember}
                 onUpdateRole={handleUpdateRole}
               />
-            </TabPane>
+            </Card>
+          </Col>
 
-            <TabPane
-              tab={<span><RobotOutlined /> {t('agents')}</span>}
-              key="agents"
-            >
-              <div style={{ marginBottom: 16 }}>
-                <Button
-                  type="primary"
-                  icon={<RobotOutlined />}
-                  onClick={() => setIsAgentModalVisible(true)}
-                >
+          {/* Agents Section - Full width */}
+          <Col xs={24}>
+            <Card
+              title={
+                <Space>
+                  <RobotOutlined /> {t('agents')}
+                </Space>
+              }
+              style={{
+                marginBottom: '16px',
+                borderRadius: '8px',
+                boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)',
+              }}
+              extra={
+                <Button type="primary" icon={<RobotOutlined />} onClick={() => setIsAgentModalVisible(true)}>
                   {t('createNewAgent')}
                 </Button>
-              </div>
+              }>
               <TeamAgentsTab
-                teamId={id as string}
-                agents={(team?.ownedAgents || []).map(agent => ({
+                agents={(team?.ownedAgents || []).map((agent) => ({
                   ...agent,
                   createdAt: new Date(agent.createdAt).toLocaleDateString(),
                   updatedAt: new Date(agent.updatedAt).toLocaleDateString(),
@@ -376,29 +384,39 @@ export default function TeamDetail() {
                 userRole={userPermission}
                 onCreateAgent={() => setIsAgentModalVisible(true)}
               />
-            </TabPane>
+            </Card>
+          </Col>
 
-            <TabPane
-              tab={<span><ApiOutlined /> {t('llmProviders')}</span>}
-              key="llm"
-            >
+          {/* LLM Providers Section - Full width */}
+          <Col xs={24}>
+            <Card
+              title={
+                <Space>
+                  <ApiOutlined /> {t('llmProviders')}
+                </Space>
+              }
+              style={{
+                marginBottom: '16px',
+                borderRadius: '8px',
+                boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)',
+              }}>
               <TeamLLMProviders
                 teamId={id as string}
                 userRole={userPermission || ''}
                 canManageProviders={canManageProviders}
               />
-            </TabPane>
-          </Tabs>
+            </Card>
+          </Col>
+        </Row>
 
-          {/* Agent Creation Modal */}
-          <AgentCreationModal
-            isVisible={isAgentModalVisible}
-            isLoading={creatingAgent}
-            form={agentForm}
-            onCancel={() => setIsAgentModalVisible(false)}
-            onSubmit={handleCreateAgent}
-          />
-        </Space>
+        {/* Agent Creation Modal */}
+        <AgentCreationModal
+          isVisible={isAgentModalVisible}
+          isLoading={creatingAgent}
+          form={agentForm}
+          onCancel={() => setIsAgentModalVisible(false)}
+          onSubmit={handleCreateAgent}
+        />
       </div>
     </MainLayout>
   );

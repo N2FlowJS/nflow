@@ -1,7 +1,10 @@
 import { prisma } from '../prisma';
 
 import { chunkText, extractChunkMetadata } from '../utils/textChunker';
-import { deleteFileVectors as deleteNbaseFileVectors, storeVectorsInNbase as storeNbaseChunkVectors } from '../services/nbaseService';
+import {
+  deleteFileVectors as deleteNbaseFileVectors,
+  storeVectorsInNbase as storeNbaseChunkVectors,
+} from '../services/nbaseService';
 import { readFileContent } from './parse-file/readFileContent';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -19,12 +22,12 @@ let isShuttingDown = false;
 const activeWorkers = new Map<number, boolean>();
 let workerIdCounter = 0;
 
-const STATUS_FILE = path.resolve(process.cwd(), "logs", 'file-worker.json');
+const STATUS_FILE = path.resolve(process.cwd(), 'logs', 'file-worker.json');
 
 function writeStatusToFile() {
   const status = {
     enabled: !isShuttingDown,
-    status: activeWorkers.size > 0 && !isShuttingDown ? 'running' : (isShuttingDown ? 'stopping' : 'stopped'),
+    status: activeWorkers.size > 0 && !isShuttingDown ? 'running' : isShuttingDown ? 'stopping' : 'stopped',
     activeWorkers: activeWorkers.size,
     maxWorkers: MAX_WORKERS,
     lastUpdated: new Date().toISOString(),
@@ -67,8 +70,11 @@ function createTaskMessage(action: string, details?: Record<string, any>): strin
   return JSON.stringify(messageObj);
 }
 type ProcessContentIntoVectorsProps = {
-  content: string, fileId: string, knowledgeId: string, config: ConfigChunk
-}
+  content: string;
+  fileId: string;
+  knowledgeId: string;
+  config: ConfigChunk;
+};
 /**
  * Helper function to send event data to the API endpoint
  */
@@ -85,7 +91,9 @@ async function postEventToApi(knowledgeId: string, eventData: any) {
 
     if (!response.ok) {
       const errorBody = await response.text();
-      console.error(`Worker: Failed to post event to API for knowledge ${knowledgeId}. Status: ${response.status}, Body: ${errorBody}`);
+      console.error(
+        `Worker: Failed to post event to API for knowledge ${knowledgeId}. Status: ${response.status}, Body: ${errorBody}`
+      );
     } else {
       console.log(`Worker: Successfully posted event to API for knowledge ${knowledgeId}`);
     }
@@ -210,17 +218,19 @@ class FileParsingWorker {
     }
   }
 
-
-
   /**
    * Process text content into chunks and generate vector embeddings
    */
-  async processContentIntoVectors({ config: { chunkSeparator, tokenChunk }, content, fileId, knowledgeId }: ProcessContentIntoVectorsProps): Promise<void> {
+  async processContentIntoVectors({
+    config: { chunkSeparator, tokenChunk },
+    content,
+    fileId,
+    knowledgeId,
+  }: ProcessContentIntoVectorsProps): Promise<void> {
     try {
       const knowledge = await prisma.knowledge.findUnique({
-        where: { id: knowledgeId }
-
-      })
+        where: { id: knowledgeId },
+      });
 
       if (!knowledge) throw new Error('No knowledge specified in the form');
       if (!knowledge.modelId) throw new Error('No AI model specified in the form');
@@ -234,7 +244,11 @@ class FileParsingWorker {
       if (!model) throw new Error('Model not found in the database');
       if (!model.provider) throw new Error('Provider not found for this model');
 
-      console.log(`Worker ${this.id}: Processing content into chunks with tokenChunk=${tokenChunk}, separator=${JSON.stringify(chunkSeparator)}`);
+      console.log(
+        `Worker ${this.id}: Processing content into chunks with tokenChunk=${tokenChunk}, separator=${JSON.stringify(
+          chunkSeparator
+        )}`
+      );
 
       // Extract text content from parsed result if it's in JSON format
       let textContent = content;
@@ -259,7 +273,12 @@ class FileParsingWorker {
       console.log(`Worker ${this.id}: Split content into ${chunks.length} chunks`);
 
       // Generate embeddings for chunks (in batches to avoid rate limits)
-      const embedding = await generateEmbeddingsInBatches(model.provider.endpointUrl, model.provider.apiKey, model.name, chunks); // Changed variable name for clarity
+      const embedding = await generateEmbeddingsInBatches(
+        model.provider.endpointUrl,
+        model.provider.apiKey,
+        model.name,
+        chunks
+      ); // Changed variable name for clarity
 
       // Determine which vector storage to use
       const vectorDBType = process.env.VECTOR_DB_TYPE || 'local';
@@ -284,10 +303,12 @@ class FileParsingWorker {
       }
       console.log(`Worker ${this.id}: Existing vectors deleted for file ${fileId}`);
 
-      const STORAGE_BATCH_SIZE = 5 // Default: 100 chunks per batch
+      const STORAGE_BATCH_SIZE = 5; // Default: 100 chunks per batch
 
       // Store new vectors in batches
-      console.log(`Worker ${this.id}: Storing ${vectorChunks.length} vectors in batches of ${STORAGE_BATCH_SIZE} using ${vectorDBType}`);
+      console.log(
+        `Worker ${this.id}: Storing ${vectorChunks.length} vectors in batches of ${STORAGE_BATCH_SIZE} using ${vectorDBType}`
+      );
 
       for (let i = 0; i < vectorChunks.length; i += STORAGE_BATCH_SIZE) {
         const batch = vectorChunks.slice(i, i + STORAGE_BATCH_SIZE);
@@ -305,7 +326,6 @@ class FileParsingWorker {
         // Optional: Add a small delay between batches if needed for rate limiting the storage service
         // await new Promise(resolve => setTimeout(resolve, 200));
       }
-
 
       console.log(`Worker ${this.id}: Successfully stored ${vectorChunks.length} text chunks with embeddings`);
     } catch (error: unknown) {
@@ -348,26 +368,20 @@ class FileParsingWorker {
       select: { config: true, knowledgeId: true, originalName: true },
     });
 
-
     // Process into vectors if possible
     try {
       if (file && file.knowledgeId) {
         console.log(`config chunk`, JSON.stringify(file.config, null, 2));
-        let config: ConfigChunk = {
-          chunkSeparator: [`\n`],
-          tokenChunk: 128,
-          modelId: ""
-        }
-        try {
-          config = JSON.parse(`${file.config}`)
-        }
-        catch {
-          console.log('JSON parsing with error');
 
-        }
         await this.processContentIntoVectors({
-          content, fileId, knowledgeId: file.knowledgeId, config: config
-
+          content,
+          fileId,
+          knowledgeId: file.knowledgeId,
+          config: (file.config as ConfigChunk) || {
+            chunkSeparator: [`\n`],
+            tokenChunk: 128,
+            modelId: '',
+          },
         });
 
         // Add vector processing success to message
@@ -394,7 +408,9 @@ class FileParsingWorker {
         });
 
         // Send SSE event via API endpoint
-        console.log(`Worker ${this.id}: Preparing to send completed event via API for file ${updatedFile.filename} in knowledge ${file.knowledgeId}`);
+        console.log(
+          `Worker ${this.id}: Preparing to send completed event via API for file ${updatedFile.filename} in knowledge ${file.knowledgeId}`
+        );
         const eventData = {
           type: 'status-change',
           fileId,
@@ -404,7 +420,6 @@ class FileParsingWorker {
           timestamp: new Date().toISOString(),
         };
         await postEventToApi(file.knowledgeId, eventData); // Use the helper function
-
       } else {
         throw new Error('File not found or has no knowledge ID');
       }
@@ -437,7 +452,9 @@ class FileParsingWorker {
 
       // Send SSE event even in case of partial failure via API endpoint
       if (file && file.knowledgeId) {
-        console.log(`Worker ${this.id}: Preparing to send completed (with errors) event via API for file ${fileId} in knowledge ${file.knowledgeId}`);
+        console.log(
+          `Worker ${this.id}: Preparing to send completed (with errors) event via API for file ${fileId} in knowledge ${file.knowledgeId}`
+        );
         const eventData = {
           type: 'status-change',
           fileId,
@@ -478,7 +495,6 @@ class FileParsingWorker {
     } catch (e) {
       // Ignore errors when fetching file info
       console.log(`Worker ${this.id}: Error fetching file info for failure message:`, e);
-
     }
 
     await prisma.$transaction([
@@ -501,7 +517,9 @@ class FileParsingWorker {
 
     // Send SSE event for file failure via API endpoint
     if (knowledgeId) {
-      console.log(`Worker ${this.id}: Preparing to send failed event via API for file ${fileId} in knowledge ${knowledgeId}`);
+      console.log(
+        `Worker ${this.id}: Preparing to send failed event via API for file ${fileId} in knowledge ${knowledgeId}`
+      );
       const eventData = {
         type: 'status-change',
         fileId,

@@ -7,13 +7,13 @@ import {
 import {
   Button,
   Card,
+  Col,
   Empty,
   message,
   Modal,
   Popconfirm,
-  Space,
+  Row,
   Spin,
-  Table,
   Tag,
   Typography
 } from 'antd';
@@ -59,8 +59,6 @@ const TeamLLMProviders: React.FC<TeamLLMProvidersProps> = ({
   useEffect(() => {
     fetchProviders();
   }, [fetchProviders]);
-
-
 
   const handleDelete = async (providerId: string) => {
     try {
@@ -143,70 +141,59 @@ const TeamLLMProviders: React.FC<TeamLLMProvidersProps> = ({
     return null;
   };
 
-  const columns = [
-   
-    {
-      title: 'Type',
-      dataIndex: 'providerType',
-      key: 'providerType',
-      render: (type: string) => getProviderTypeTag(type),
-    },
-    {
-      title: 'Ownership',
-      key: 'ownership',
-      render: (record: LLMProvider) => getOwnershipTag(record),
-    },
-    {
-      title: 'Models',
-      dataIndex: 'models',
-      key: 'models',
-      render: (models: any[]) => (
-        <span>{models?.length || 0} models</span>
-      ),
-    },
-    {
-      title: 'Actions',
-      key: 'actions',
-      render: (record: LLMProvider) => (
-        <Space>
+  // Provider Card Component
+  const ProviderCard = ({ provider }: { provider: LLMProvider }) => (
+    <Card
+      hoverable
+      style={{ height: '100%' }}
+      actions={[
+        <Button
+          key="manage"
+          icon={<ApiOutlined />}
+          type="link"
+          onClick={() => setSelectedProvider(provider)}
+        >
+          Manage Models
+        </Button>,
+        ...(canManageProviders && provider.teamOwnerId === teamId ? [
           <Button
-            icon={<ApiOutlined />}
-            type="primary"
-            size="small"
-            onClick={() => setSelectedProvider(record)}
+            key="edit"
+            icon={<EditOutlined />}
+            type="link"
+            onClick={() => {
+              setEditingProvider(provider);
+              setIsEditModalVisible(true);
+            }}
+          />,
+          <Popconfirm
+            key="delete"
+            title="Delete this provider?"
+            description="This will delete the provider and all associated models. This action cannot be undone."
+            onConfirm={() => handleDelete(provider.id)}
+            okText="Delete"
+            cancelText="Cancel"
+            okButtonProps={{ danger: true }}
           >
-            Manage Models
-          </Button>
+            <Button type="link" danger icon={<DeleteOutlined />} />
+          </Popconfirm>
+        ] : [])
+      ]}
+    >
+      <div style={{ marginBottom: 16 }}>
+        {getProviderTypeTag(provider.providerType)}
+        {getOwnershipTag(provider)}
+      </div>
+      
+      <div style={{ marginBottom: 8 }}>
+        <Text strong>{provider.name || provider.providerType}</Text>
+      </div>
+      
+      <div>
+        <Text type="secondary">{provider.models?.length || 0} models available</Text>
+      </div>
+    </Card>
+  );
 
-          {canManageProviders && record.teamOwnerId === teamId && (
-            <>
-              <Button
-                icon={<EditOutlined />}
-                type="text"
-                onClick={() => {
-                  setEditingProvider(record);
-                  setIsEditModalVisible(true);
-                }}
-              />
-              <Popconfirm
-                title="Delete this provider?"
-                description="This will delete the provider and all associated models. This action cannot be undone."
-                onConfirm={() => handleDelete(record.id)}
-                okText="Delete"
-                cancelText="Cancel"
-                okButtonProps={{ danger: true }}
-              >
-                <Button type="text" danger icon={<DeleteOutlined />} />
-              </Popconfirm>
-            </>
-          )}
-        </Space>
-      ),
-    },
-  ];
-
-  const teamProviders = providers.filter(p => p.teamOwnerId === teamId);
-  const systemProviders = providers.filter(p => p.ownerType === 'system');
 
   if (loading) {
     return (
@@ -252,32 +239,20 @@ const TeamLLMProviders: React.FC<TeamLLMProvidersProps> = ({
           These LLM providers are specific to this team and can be used by all team members.
         </Text>
 
-        <Table
-          dataSource={teamProviders}
-          columns={columns}
-          rowKey="id"
-          pagination={false}
-          locale={{ emptyText: <Empty description="No team LLM providers configured" /> }}
-        />
+        {providers.length > 0 ? (
+          <Row gutter={[16, 16]}>
+            {providers.map(provider => (
+              <Col xs={24} sm={12} md={8} lg={6} key={provider.id}>
+                <ProviderCard provider={provider} />
+              </Col>
+            ))}
+          </Row>
+        ) : (
+          <Empty description="No team LLM providers configured" />
+        )}
       </Card>
 
-      <Card
-        title={<Title level={4} style={{ marginTop: 24 }}>System LLM Providers</Title>}
-        style={{ marginTop: 24 }}
-      >
-        <Text style={{ marginBottom: 16, display: 'block' }}>
-          These system-wide LLM providers are available to all users.
-        </Text>
-
-        <Table
-          dataSource={systemProviders}
-          columns={columns}
-          rowKey="id"
-          pagination={false}
-          locale={{ emptyText: <Empty description="No system LLM providers available" /> }}
-        />
-      </Card>
-
+     
       {/* Add Provider Modal */}
       <Modal
         title="Add Team LLM Provider"

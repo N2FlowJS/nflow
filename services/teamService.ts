@@ -1,34 +1,33 @@
 import { User } from '../models/auth';
 import { CreateLLMModelRequest, LLMModel, LLMProvider, UpdateLLMModelRequest } from '../models/llm';
 import { apiRequest } from './apiUtils';
- export  type Agent= {
-  id: string
-  name: string
-  description: string
-  flowConfig: string
-  isActive: boolean
-  ownerType: string
-  createdAt: Date
-  updatedAt: Date
-  createdById: string
-  userId: string | null
-  teamId: string | null
- }
-export type MemberTeam ={
-  id: string
-  permission: string
-  joinedAt: Date
-  leftAt: Date | null
-  teamId: string
-  userId: string
-}
+export type Agent = {
+  id: string;
+  name: string;
+  description: string;
+  flowConfig: string;
+  isActive: boolean;
+  ownerType: string;
+  createdAt: Date;
+  updatedAt: Date;
+  createdById: string;
+  userId: string | null;
+  teamId: string | null;
+};
+export type MemberTeam = {
+  id: string;
+  permission: string;
+  joinedAt: Date;
+  leftAt: Date | null;
+  teamId: string;
+  userId: string;
+};
 export interface Team {
   id: string;
   name: string;
   description: string;
   createdAt: string;
   updatedAt: string;
-
   createdById: string;
   createdBy: User;
   users: User[];
@@ -68,10 +67,10 @@ export const fetchTeamMembers = async (teamId: string) => {
   return apiRequest<any[]>(`/api/team/${teamId}/members`);
 };
 
-export const addTeamMember = async (teamId: string, data: { userId: string; permission: string }[] ) => {
+export const addTeamMember = async (teamId: string, data: { userId: string; permission: string }[]) => {
   return apiRequest<any>(`/api/team/${teamId}/members`, {
     method: 'POST',
-    body: JSON.stringify({members: data}),
+    body: JSON.stringify({ members: data }),
   });
 };
 
@@ -149,7 +148,12 @@ export const createTeamProviderModel = async (teamId: string, providerId: string
   });
 };
 
-export const updateTeamProviderModel = async (teamId: string, providerId: string, modelId: string, data: UpdateLLMModelRequest) => {
+export const updateTeamProviderModel = async (
+  teamId: string,
+  providerId: string,
+  modelId: string,
+  data: UpdateLLMModelRequest
+) => {
   return apiRequest<LLMModel>(`/api/team/${teamId}/llm-providers/${providerId}/models/${modelId}`, {
     method: 'PUT',
     body: JSON.stringify(data),
