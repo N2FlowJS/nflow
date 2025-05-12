@@ -21,7 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
   
   // Verify token
-  const payload = verifyToken(token);
+  const payload = await verifyToken(token);
   if (!payload) {
     return res.status(401).json({ error: 'Invalid token' });
   }

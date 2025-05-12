@@ -24,7 +24,7 @@ export default async function handler(
     }
     
     // Verify token and extract user ID using the existing verifyToken function
-    const payload = verifyToken(token);
+    const payload = await verifyToken(token);
     
     if (!payload || !payload.userId) {
       return res.status(401).json({

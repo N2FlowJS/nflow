@@ -22,7 +22,7 @@ async function getTeams(req: NextApiRequest, res: NextApiResponse) {
   }
 
   // Verify token
-  const payload = verifyToken(token);
+  const payload = await verifyToken(token);
   if (!payload) {
     return res.status(401).json({ error: 'Invalid token' });
   }
@@ -69,7 +69,7 @@ async function createTeam(req: NextApiRequest, res: NextApiResponse) {
     }
 
     // Verify token
-    const payload = verifyToken(token);
+    const payload = await verifyToken(token);
     if (!payload) {
       return res.status(401).json({ error: 'Invalid token' });
     }

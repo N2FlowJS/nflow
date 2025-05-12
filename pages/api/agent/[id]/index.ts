@@ -31,7 +31,7 @@ async function getAgentById(req: NextApiRequest, res: NextApiResponse, id: strin
       return res.status(401).json({ error: 'Authentication required' });
     }
 
-    const payload = verifyToken(token);
+    const payload = await verifyToken(token);
     if (!payload) {
       return res.status(401).json({ error: 'Invalid token' });
     }
@@ -80,7 +80,7 @@ async function updateAgent(req: NextApiRequest, res: NextApiResponse, id: string
     }
 
     // Verify token
-    const payload = verifyToken(token);
+    const payload = await verifyToken(token);
     if (!payload) {
       return res.status(401).json({ error: 'Invalid token' });
     }
@@ -147,7 +147,7 @@ async function deleteAgent(req: NextApiRequest, res: NextApiResponse, id: string
     }
 
     // Verify token
-    const payload = verifyToken(token);
+    const payload = await verifyToken(token);
     if (!payload) {
       return res.status(401).json({ error: 'Invalid token' });
     }

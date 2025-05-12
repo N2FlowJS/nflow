@@ -1,6 +1,20 @@
 import { DeleteOutlined, ExclamationCircleOutlined, KeyOutlined, PlusOutlined } from '@ant-design/icons';
-import { Alert, Button, Card, Col, Divider, Empty, List, Modal, Popconfirm, Row, Space, Tag, Typography, message } from 'antd';
-import { useState, useEffect } from 'react';
+import {
+    Alert,
+    Button,
+    Card,
+    Col,
+    Empty,
+    List,
+    Modal,
+    Popconfirm,
+    Row,
+    Space,
+    Tag,
+    Typography,
+    message
+} from 'antd';
+import React, { useEffect, useState } from 'react';
 import { createApiToken, fetchUserApiTokens, revokeApiToken } from '../../services/authUtils';
 import ApiTokenForm from './ApiTokenForm';
 
@@ -28,14 +42,7 @@ const ApiTokensTab: React.FC<ApiTokensTabProps> = ({ userId, isCurrentUser }) =>
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [creatingToken, setCreatingToken] = useState(false);
   const [newToken, setNewToken] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (userId) {
-      loadTokens();
-    }
-  }, [userId]);
-
-  const loadTokens = async () => {
+  const loadTokens = React.useCallback(async () => {
     setLoading(true);
     try {
       const fetchedTokens = await fetchUserApiTokens(userId);
@@ -46,7 +53,13 @@ const ApiTokensTab: React.FC<ApiTokensTabProps> = ({ userId, isCurrentUser }) =>
     } finally {
       setLoading(false);
     }
-  };
+  }, [userId]);
+
+  useEffect(() => {
+    if (userId) {
+      loadTokens();
+    }
+  }, [loadTokens, userId]);
 
   const handleCreateToken = async (values: any) => {
     setCreatingToken(true);
@@ -102,7 +115,8 @@ const ApiTokensTab: React.FC<ApiTokensTabProps> = ({ userId, isCurrentUser }) =>
   };
 
   const copyToken = (token: string) => {
-    navigator.clipboard.writeText(token)
+    navigator.clipboard
+      .writeText(token)
       .then(() => message.success('Token copied to clipboard'))
       .catch(() => message.error('Failed to copy token'));
   };
@@ -124,7 +138,7 @@ const ApiTokensTab: React.FC<ApiTokensTabProps> = ({ userId, isCurrentUser }) =>
           description={
             <div>
               <p>
-                <strong>Make sure to copy your new API token now. You won't be able to see it again!</strong>
+                <strong>Make sure to copy your new API token now. You won&apos;t be able to see it again!</strong>
               </p>
               <div className="token-display">
                 <Text code copyable style={{ wordBreak: 'break-all' }}>
@@ -143,7 +157,7 @@ const ApiTokensTab: React.FC<ApiTokensTabProps> = ({ userId, isCurrentUser }) =>
           style={{ marginBottom: 16 }}
         />
       )}
-      
+
       <div className="api-tokens-header" style={{ marginBottom: 16 }}>
         <Row justify="space-between" align="middle">
           <Col>
@@ -153,12 +167,11 @@ const ApiTokensTab: React.FC<ApiTokensTabProps> = ({ userId, isCurrentUser }) =>
             </Paragraph>
           </Col>
           <Col>
-            <Button 
-              type="primary" 
-              icon={<PlusOutlined />} 
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
               onClick={() => setShowCreateForm(true)}
-              disabled={showCreateForm}
-            >
+              disabled={showCreateForm}>
               Create Token
             </Button>
           </Col>
@@ -166,15 +179,15 @@ const ApiTokensTab: React.FC<ApiTokensTabProps> = ({ userId, isCurrentUser }) =>
       </div>
 
       {showCreateForm && (
-        <Card 
-          title="Create New API Token" 
+        <Card
+          title="Create New API Token"
           style={{ marginBottom: 16 }}
-          extra={<Button size="small" onClick={() => setShowCreateForm(false)}>Cancel</Button>}
-        >
-          <ApiTokenForm 
-            onSubmit={handleCreateToken} 
-            loading={creatingToken} 
-          />
+          extra={
+            <Button size="small" onClick={() => setShowCreateForm(false)}>
+              Cancel
+            </Button>
+          }>
+          <ApiTokenForm onSubmit={handleCreateToken} loading={creatingToken} />
         </Card>
       )}
 
@@ -182,7 +195,7 @@ const ApiTokensTab: React.FC<ApiTokensTabProps> = ({ userId, isCurrentUser }) =>
         loading={loading}
         dataSource={tokens}
         locale={{ emptyText: 'No API tokens found' }}
-        renderItem={item => (
+        renderItem={(item) => (
           <List.Item
             key={item.id}
             actions={[
@@ -191,31 +204,19 @@ const ApiTokensTab: React.FC<ApiTokensTabProps> = ({ userId, isCurrentUser }) =>
                 title="Are you sure you want to revoke this token?"
                 onConfirm={() => confirmRevoke(item.id, item.name)}
                 okText="Yes"
-                cancelText="No"
-              >
-                <Button 
-                  danger 
-                  icon={<DeleteOutlined />} 
-                  disabled={item.status !== 'active'}
-                >
+                cancelText="No">
+                <Button danger icon={<DeleteOutlined />} disabled={item.status !== 'active'}>
                   Revoke
                 </Button>
-              </Popconfirm>
-            ]}
-          >
+              </Popconfirm>,
+            ]}>
             <List.Item.Meta
               avatar={<KeyOutlined style={{ fontSize: 24 }} />}
               title={
                 <Space>
                   {item.name}
-                  {item.status === 'active' ? (
-                    <Tag color="green">Active</Tag>
-                  ) : (
-                    <Tag color="red">Revoked</Tag>
-                  )}
-                  {item.expiresAt && new Date(item.expiresAt) < new Date() && (
-                    <Tag color="orange">Expired</Tag>
-                  )}
+                  {item.status === 'active' ? <Tag color="green">Active</Tag> : <Tag color="red">Revoked</Tag>}
+                  {item.expiresAt && new Date(item.expiresAt) < new Date() && <Tag color="orange">Expired</Tag>}
                 </Space>
               }
               description={
@@ -226,16 +227,12 @@ const ApiTokensTab: React.FC<ApiTokensTabProps> = ({ userId, isCurrentUser }) =>
                   </div>
                   {item.expiresAt && (
                     <div>
-                      <Text type="secondary">
-                        Expires: {new Date(item.expiresAt).toLocaleString()}
-                      </Text>
+                      <Text type="secondary">Expires: {new Date(item.expiresAt).toLocaleString()}</Text>
                     </div>
                   )}
                   {item.lastUsedAt && (
                     <div>
-                      <Text type="secondary">
-                        Last used: {new Date(item.lastUsedAt).toLocaleString()}
-                      </Text>
+                      <Text type="secondary">Last used: {new Date(item.lastUsedAt).toLocaleString()}</Text>
                     </div>
                   )}
                 </div>
