@@ -26,7 +26,6 @@ import {
 } from '../../services/llmService';
 import { createTeam } from '../../services/teamService';
 import { fetchUserById, updateUser } from '../../services/userService';
-import { useTheme } from '../../theme';
 
 // Regular imports for immediately needed components
 import DefaultModelsForm from '../../components/user/ModelsFormConfig';
