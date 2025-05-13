@@ -1,20 +1,9 @@
-import {
-  CopyOutlined,
-} from "@ant-design/icons";
-import {
-  Button,
-  Divider,
-  Empty,
-  List,
-  Skeleton,
-  Tooltip,
-  Typography,
-  message
-} from "antd";
-import { useEffect, useState } from "react";
-import { getFileChunks } from "../../services/fileService";
+import { CopyOutlined } from '@ant-design/icons';
+import { Button, Card, Divider, Empty, List, Skeleton, Tooltip, Typography, message } from 'antd';
+import { useEffect, useState } from 'react';
+import { getFileChunks } from '../../services/fileService';
 
-const { Paragraph, } = Typography;
+const { Paragraph } = Typography;
 
 interface FileChunk {
   id: string;
@@ -43,31 +32,30 @@ export default function FileChunks({ fileId }: FileChunksProps) {
     setChunksLoading(true);
     try {
       const data = await getFileChunks(fileId);
-      const sortedChunks = [...data].sort((a, b) =>
-        (a.chunkIndex || 0) - (b.chunkIndex || 0)
-      );
+      const sortedChunks = [...data].sort((a, b) => (a.chunkIndex || 0) - (b.chunkIndex || 0));
       setChunks(sortedChunks);
     } catch (error: unknown) {
-      console.error("Error loading file chunks:", error);
-      message.error("Failed to load file chunks");
+      console.error('Error loading file chunks:', error);
+      message.error('Failed to load file chunks');
     } finally {
       setChunksLoading(false);
     }
   };
 
   const handleCopyChunk = (content: string) => {
-    navigator.clipboard.writeText(content)
-      .then(() => message.success("Chunk content copied"))
-      .catch(err => {
-        console.error("Failed to copy chunk content: ", err);
-        message.error("Failed to copy");
+    navigator.clipboard
+      .writeText(content)
+      .then(() => message.success('Chunk content copied'))
+      .catch((err) => {
+        console.error('Failed to copy chunk content: ', err);
+        message.error('Failed to copy');
       });
   };
 
   return (
     <div style={{ padding: '16px 24px' }}>
       {chunksLoading ? (
-        <div style={{ padding: "20px 0" }}>
+        <div style={{ padding: '20px 0' }}>
           <Skeleton active paragraph={{ rows: 4 }} />
           <Divider style={{ margin: '16px 0' }} />
           <Skeleton active paragraph={{ rows: 4 }} />
@@ -81,12 +69,15 @@ export default function FileChunks({ fileId }: FileChunksProps) {
               style={{
                 padding: '16px',
                 marginBottom: '16px',
-                background: '#fafafa',
                 borderRadius: '8px',
-                border: '1px solid #f0f0f0'
-              }}
-            >
-              <div style={{ marginBottom: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              }}>
+              <div
+                style={{
+                  marginBottom: '12px',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                }}>
                 <Typography.Title level={5} style={{ margin: 0 }}>
                   Chunk {chunk.chunkIndex ?? index + 1}
                 </Typography.Title>
@@ -96,15 +87,16 @@ export default function FileChunks({ fileId }: FileChunksProps) {
                     ghost
                     icon={<CopyOutlined />}
                     onClick={() => handleCopyChunk(chunk.content)}
-                    size="small"
-                  >
+                    size="small">
                     Copy
                   </Button>
                 </Tooltip>
               </div>
 
-              <div style={{ marginBottom: '8px', background: '#f0f0f0', padding: '4px 8px', borderRadius: '4px' }}>
-                <Typography.Text type="secondary" style={{ fontSize: '12px' }}>Vector ID: </Typography.Text>
+              <div style={{ marginBottom: '8px', padding: '4px 8px', borderRadius: '4px' }}>
+                <Typography.Text type="secondary" style={{ fontSize: '12px' }}>
+                  Vector ID:{' '}
+                </Typography.Text>
                 <Typography.Text copyable={{ text: chunk.id }} style={{ fontSize: '12px' }}>
                   {chunk.id}
                 </Typography.Text>
@@ -112,45 +104,39 @@ export default function FileChunks({ fileId }: FileChunksProps) {
 
               <div
                 style={{
-                  background: "#fff",
-                  padding: "12px",
-                  borderRadius: "4px",
-                  border: "1px solid #e8e8e8",
-                  marginBottom: '8px'
-                }}
-              >
+                  padding: '12px',
+                  borderRadius: '4px',
+                  marginBottom: '8px',
+                }}>
                 <Paragraph
                   ellipsis={{ rows: 4, expandable: true, symbol: 'more' }}
                   style={{
-                    whiteSpace: "pre-wrap",
-                    wordBreak: "break-word",
+                    whiteSpace: 'pre-wrap',
+                    wordBreak: 'break-word',
                     fontSize: '13px',
-                    margin: 0
-                  }}
-                >
+                    margin: 0,
+                  }}>
                   {chunk.content}
                 </Paragraph>
               </div>
 
               {chunk.metadata && Object.keys(chunk.metadata).length > 0 && (
-                <div>
+                <Card>
                   <Typography.Text strong style={{ fontSize: '12px', display: 'block', marginBottom: '4px' }}>
                     Metadata:
                   </Typography.Text>
                   <pre
                     style={{
-                      background: "#f5f5f5",
-                      padding: "8px",
-                      borderRadius: "4px",
-                      fontSize: "11px",
-                      overflow: "auto",
-                      maxHeight: "100px",
-                      margin: 0
-                    }}
-                  >
+                      padding: '8px',
+                      borderRadius: '4px',
+                      fontSize: '11px',
+                      overflow: 'auto',
+                      maxHeight: '100px',
+                      margin: 0,
+                    }}>
                     {JSON.stringify(chunk.metadata, null, 2)}
                   </pre>
-                </div>
+                </Card>
               )}
             </List.Item>
           )}
