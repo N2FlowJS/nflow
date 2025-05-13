@@ -1,7 +1,6 @@
 import { Edge, Node } from '@xyflow/react';
 import React from 'react';
 
-
 // Node types mapping
 export const NODE_TYPES = {
   begin: 'begin',
@@ -18,8 +17,6 @@ export interface InputReference {
   sourceNodeId: string;
   id: string;
 }
-
-
 
 // Generic Base Node Data with form type parameter
 export type BaseNodeData<TForm = unknown> = {
@@ -69,7 +66,6 @@ export interface ICategory {
   targetNode?: string; // Add target node field
 }
 
-
 export interface CategorizeForm extends BaseForm {
   categories: ICategory[];
   defaultCategory: string;
@@ -84,7 +80,6 @@ export interface RetrievalForm extends BaseForm {
   knowledgeIds: string[];
   maxResults: number;
   threshold: number;
-
 }
 
 // Specialized node data types
@@ -130,7 +125,13 @@ export interface DecisionBranch {
 }
 
 // Union type for all node data
-export type NodeData = BeginNodeData | InterfaceNodeData | GenerateNodeData | CategorizeNodeData | RetrievalNodeData | DecisionNodeData;
+export type NodeData =
+  | BeginNodeData
+  | InterfaceNodeData
+  | GenerateNodeData
+  | CategorizeNodeData
+  | RetrievalNodeData
+  | DecisionNodeData;
 
 // Typed node instances
 export type BeginNode = Node<BeginNodeData>;
@@ -143,7 +144,6 @@ export type DecisionNode = Node<DecisionNodeData>;
 // Union type for all flow nodes
 export type FlowNode = {
   type: NodeTypeString;
-
 } & (BeginNode | InterfaceNode | GenerateNode | CategorizeNode | RetrievalNode | DecisionNode);
 
 // Type for a complete flow
@@ -164,7 +164,6 @@ export interface NodeFormField {
   rows?: number;
 }
 
-
 // Node configuration
 export interface NodeConfig {
   type: NodeTypeString;
@@ -176,7 +175,6 @@ export interface NodeConfig {
   };
   input: string; // Description of what input the node accepts
   output: string; // Description of what output the node produces
-  references?: InputReference[]; // Optional references for input/output  
+  references?: InputReference[]; // Optional references for input/output
   data: Partial<NodeData>;
 }
-

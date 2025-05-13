@@ -7,9 +7,7 @@ const nextConfig: NextConfig = {
   turbopack:{},
   reactStrictMode: true,
   pageExtensions: ['js', 'jsx', 'md', 'mdx', 'ts', 'tsx', 'css'],
-  devIndicators: {
-    position: 'bottom-left',
-  },
+  devIndicators: false,
   output: 'standalone',
   experimental: {
     webpackBuildWorker: true,
