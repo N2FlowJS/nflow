@@ -10,6 +10,7 @@ type InitialFlowStateProps = {
 };
 
 export function createInitialFlowState({ beginNode, variables, flowConfig }: InitialFlowStateProps): FlowState {
+  const now = Date.now();
   const components: FlowState['components'] = {};
   flowConfig.nodes.forEach((node) => {
     components[`${node.id}`] = {
@@ -17,7 +18,7 @@ export function createInitialFlowState({ beginNode, variables, flowConfig }: Ini
       output: '',
       inputFlow: [],
       inputRefs: node.data.form.inputRefs,
-      executionTime: Date.now(),
+      executionTime: now,
     };
   });
   flowConfig.edges.forEach((edge) => {
@@ -35,6 +36,6 @@ export function createInitialFlowState({ beginNode, variables, flowConfig }: Ini
     variables: variables || {},
     components: components,
     history: [],
-    executionTime: components[`${beginNode.id}`].executionTime - 1,
+    executionTime: now - 1000,
   };
 }

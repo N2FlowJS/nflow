@@ -1,19 +1,20 @@
 import { getInputs, getQueryFromSource } from '../../../../hooks/useInputReferences';
+import { searchSimilarContent } from '../../../../lib/services/vectorSearchService';
 import { ExecutionResult, FlowExecutionContext } from '../../../../models/flowExecutionTypes';
 import { FlowNode, RetrievalNodeData } from '../../../../models/flowTypes';
-import { retrieveFromKnowledgeBase } from '../../../../services/knowledgeService';
 import { findNextNodes } from '../../../../utils/server/findNextNode';
 
 /**
  * Handler for executing Retrieval nodes
  */
-export async function executeRetrievalNode(node: FlowNode, { flow, flowState, input }: FlowExecutionContext): Promise<ExecutionResult> {
+export async function executeRetrievalNode(
+  node: FlowNode,
+  { flow, flowState, input }: FlowExecutionContext
+): Promise<ExecutionResult> {
   const data = node.data as RetrievalNodeData;
   const startTime = new Date().toISOString();
   // Ensure form exists with a default empty object to prevent TypeScript errors
   const form = data.form || {};
-
-
 
   const inputs = getInputs(node.id, flowState, []);
 
@@ -21,30 +22,36 @@ export async function executeRetrievalNode(node: FlowNode, { flow, flowState, in
   const query = getQueryFromSource(inputs, flowState) || input.content;
   if (!query) throw new Error('No query available for retrieval');
 
-
   try {
     const knowledgeIds = form.knowledgeIds || [];
     const maxResults = form.maxResults || 3;
 
     if (knowledgeIds.length === 0) throw new Error('No knowledge base IDs provided for retrieval');
 
-
+    // Search for similar content
 
     // Retrieve information from knowledge bases
     const retrievalResults = await Promise.all(
       knowledgeIds.map((knowledgeId) =>
-        retrieveFromKnowledgeBase(knowledgeId, query!, {
-          maxResults,
-          threshold: form.threshold || 0.7,
+        searchSimilarContent(query, {
+          limit: maxResults || 5,
+          similarityThreshold: form.threshold || 0.7,
+          knowledgeId: knowledgeId,
+        }).then((result) => {
+          return result.results.map((item) => ({
+            text: item.content || '',
+            source: item.knowledgeId || 'Unknown source',
+            relevance: item.similarity || 0,
+          }));
         })
       )
     );
 
     const allResults = retrievalResults.flat().slice(0, maxResults);
 
-
-    const formattedResults = allResults.map((result, index) => `[${index + 1}] ${result.text}\nSource: ${result.source}`).join('\n\n');
-
+    const formattedResults = allResults
+      .map((result, index) => `[${index + 1}] ${result.text}\nSource: ${result.source}`)
+      .join('\n\n');
 
     flowState.components[node.id]['output'] = formattedResults;
     flowState.components[node.id]['type'] = 'retrieval';
