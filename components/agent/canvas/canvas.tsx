@@ -1,4 +1,4 @@
-import { CommentOutlined, SaveOutlined, ToolOutlined } from '@ant-design/icons';
+import { CommentOutlined, SaveOutlined } from '@ant-design/icons';
 import {
   addEdge,
   Background,
@@ -16,7 +16,7 @@ import {
   useReactFlow,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { Drawer, Form, message } from 'antd';
+import { Drawer, Form, Layout, message } from 'antd';
 import React, { useCallback, useEffect, useState } from 'react';
 
 import { saveFlowConfig } from '../../../services/agentService';
@@ -58,6 +58,8 @@ interface FlowEditorProps {
   activeConversationId?: string;
 }
 
+const { Content } = Layout;
+
 const FlowEditor: React.FC<FlowEditorProps> = ({ flowConfig, onStartConversation, agentId, activeConversationId }) => {
   const { theme } = useTheme();
   const initialFlow = parseFlowConfig(flowConfig);
@@ -67,7 +69,7 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flowConfig, onStartConversation
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [nodeForm] = Form.useForm();
   const { screenToFlowPosition } = useReactFlow();
-  const [isPaletteOpen, setIsPaletteOpen] = useState(false);
+  const [isPaletteCollapsed, setIsPaletteCollapsed] = useState(false);
 
   const { setFlowState } = useFlowState();
 
@@ -256,7 +258,6 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flowConfig, onStartConversation
       };
 
       setNodes((nds) => [...nds, newNode]);
-      setIsPaletteOpen(false);
     },
     [screenToFlowPosition, setNodes, nodes]
   );
@@ -284,67 +285,59 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flowConfig, onStartConversation
   }, [onEdgeDelete, setEdges]);
 
   return (
-    <div style={{ height: '100%', width: '100%' }}>
-      <Drawer
-        title="Node Palette"
-        placement="left"
-        onClose={() => setIsPaletteOpen(false)}
-        open={isPaletteOpen}
-        width={window.innerWidth > 768 ? '22%' : '60%'}
-        styles={{
-          body: {
-            paddingTop: 12,
-            paddingBottom: 12,
-          },
-        }}
-        mask={false}
-        maskClosable={false}
-        closable={true}
-        keyboard={true}
-        push={true}>
-        <NodePalette nodes={nodes} />
-      </Drawer>
+    <Layout style={{ height: '100%', position: 'relative' }}>
+      <NodePalette 
+        nodes={nodes} 
+        isCollapsed={isPaletteCollapsed} 
+        onCollapsedChange={setIsPaletteCollapsed} 
+      />
 
-      <ReactFlow
-        colorMode={theme}
-        nodes={nodes}
-        title=""
-        edges={edges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        onConnect={onConnect}
-        onDrop={onDrop}
-        onDragOver={onDragOver}
-        onNodeClick={onNodeClick}
-        connectionLineType={ConnectionLineType.Bezier}
-        isValidConnection={isValidConnection}
-        fitView
-        nodeTypes={nodeTypes}
-        edgeTypes={edgeTypes}
-        defaultEdgeOptions={{
-          type: 'default',
-          data: {
-            onDelete: onEdgeDelete,
-          },
-        }}>
-        <Controls
-          orientation="horizontal"
-          position="top-left"
-          showZoom={true}
-          showFitView={true}
-          showInteractive={true}>
-          <ControlButton onClick={handleSaveFlow}>
-            <SaveOutlined />
-          </ControlButton>
-          <ControlButton onClick={onStartConversation}>
-            <CommentOutlined />
-          </ControlButton>
-          <ControlButton onClick={() => setIsPaletteOpen(true)}>
-            <ToolOutlined />
-          </ControlButton>
-        </Controls>
-        <Background />
-      </ReactFlow>
+      <Content
+        style={{
+          marginLeft: isPaletteCollapsed ? 50 : 250,
+          transition: 'margin-left 0.2s',
+          height: '100%',
+          position: 'relative'
+        }}
+      >
+        <ReactFlow
+          colorMode={theme}
+          nodes={nodes}
+          title=""
+          edges={edges}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          onConnect={onConnect}
+          onDrop={onDrop}
+          onDragOver={onDragOver}
+          onNodeClick={onNodeClick}
+          connectionLineType={ConnectionLineType.Bezier}
+          isValidConnection={isValidConnection}
+          fitView
+          nodeTypes={nodeTypes}
+          edgeTypes={edgeTypes}
+          defaultEdgeOptions={{
+            type: 'default',
+            data: {
+              onDelete: onEdgeDelete,
+            },
+          }}>
+          <Controls
+            orientation="horizontal"
+            position="top-left"
+            showZoom={true}
+            showFitView={true}
+            showInteractive={true}>
+            <ControlButton onClick={handleSaveFlow}>
+              <SaveOutlined />
+            </ControlButton>
+            <ControlButton onClick={onStartConversation}>
+              <CommentOutlined />
+            </ControlButton>
+          </Controls>
+          <Background />
+        </ReactFlow>
+      </Content>
 
       <Drawer
         title="Node Configuration"
@@ -360,7 +353,7 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flowConfig, onStartConversation
         }}>
         <NodeForm form={nodeForm} selectedNode={selectedNode} setIsDrawerOpen={setIsDrawerOpen} />
       </Drawer>
-    </div>
+    </Layout>
   );
 };
 
