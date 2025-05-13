@@ -64,9 +64,9 @@ model Knowledge {
   // Creator relationship - always required
   createdBy User   @relation(fields: [userId], references: [id], name: "CreatedKnowledge")
   userId    String
-  
+
   llmModel LLMModel? @relation(fields: [modelId], references: [id], name: "ModelKnowledge")
-  modelId String?
+  modelId  String?
 
   // Optional associations
   users User[] @relation("UserKnowledge")
@@ -79,17 +79,17 @@ model Knowledge {
 // New model for API tokens
 model ApiToken {
   id          String    @id @default(uuid())
-  name        String    // A descriptive name for the token
-  token       String    @unique  // The actual token value
-  description String?   // Optional description of token purpose
+  name        String // A descriptive name for the token
+  token       String    @unique // The actual token value
+  description String? // Optional description of token purpose
   createdAt   DateTime  @default(now())
   expiresAt   DateTime? // Optional expiration date
   lastUsedAt  DateTime? // When the token was last used
   status      String    @default("active") // "active" or "revoked"
-  
+
   // Relation to the user who owns this token
-  user      User   @relation("UserApiTokens", fields: [userId], references: [id], onDelete: Cascade)
-  userId    String
+  user   User   @relation("UserApiTokens", fields: [userId], references: [id], onDelete: Cascade)
+  userId String
 
   @@index([token])
   @@index([userId])
@@ -106,21 +106,20 @@ model User {
   updatedAt   DateTime @updatedAt
   permission  String   @default("guest") // "owner", "maintainer", "developer", "guest"
 
-  createdTeams Team[] @relation("CreatedTeams")
-  teamMemberships MemberTeam[]
-  teams Team[] @relation("TeamToUser")
-  createdKnowledge Knowledge[] @relation("CreatedKnowledge")
-  knowledge Knowledge[] @relation("UserKnowledge")
-  ownedAgents Agent[] @relation("UserOwnedAgents")
-  createdAgents Agent[] @relation("AgentCreatedBy")
-  FileParsingTask FileParsingTask[] @relation("FileParsingTaskCreatedBy")
-  ownedLLMProviders LLMProvider[] @relation("UserOwnedProviders")
-  conversations Conversation[] @relation("UserConversations")
+  createdTeams      Team[]            @relation("CreatedTeams")
+  teamMemberships   MemberTeam[]
+  teams             Team[]            @relation("TeamToUser")
+  createdKnowledge  Knowledge[]       @relation("CreatedKnowledge")
+  knowledge         Knowledge[]       @relation("UserKnowledge")
+  ownedAgents       Agent[]           @relation("UserOwnedAgents")
+  createdAgents     Agent[]           @relation("AgentCreatedBy")
+  FileParsingTask   FileParsingTask[] @relation("FileParsingTaskCreatedBy")
+  ownedLLMProviders LLMProvider[]     @relation("UserOwnedProviders")
+  conversations     Conversation[]    @relation("UserConversations")
 
   apiTokens ApiToken[] @relation("UserApiTokens")
 
   lmmConfig Json?
-
 }
 
 // Update the File model to include parsing status
@@ -221,10 +220,8 @@ model LLMProvider {
   // Ownership type - "user" or "team"
   ownerType String @default("user")
 
-
   // Models available from this provider
   models LLMModel[]
-
 
   // User ownership relation (optional)
   userOwner   User?   @relation("UserOwnedProviders", fields: [userOwnerId], references: [id])
@@ -233,7 +230,6 @@ model LLMProvider {
   // Team ownership relation (optional)
   teamOwner   Team?   @relation("TeamOwnedProviders", fields: [teamOwnerId], references: [id])
   teamOwnerId String?
-
 }
 
 // LLM Model details
@@ -245,13 +241,11 @@ model LLMModel {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @default(now())
 
-
   // Relation to provider
   provider   LLMProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
   providerId String
 
   knowledges Knowledge[] @relation("ModelKnowledge")
-
 }
 
 // New model for storing conversation data
