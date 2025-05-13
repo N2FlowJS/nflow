@@ -1,11 +1,11 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { prisma } from "../../../../lib/prisma";
+import { prisma } from '../../../../lib/prisma';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { id } = req.query;
 
-  if (!id || typeof id !== "string") {
-    return res.status(400).json({ error: "Valid ID is required" });
+  if (!id || typeof id !== 'string') {
+    return res.status(400).json({ error: 'Valid ID is required' });
   }
 
   switch (req.method) {
@@ -30,11 +30,11 @@ async function getUserById(res: NextApiResponse, id: string) {
         teams: true,
         teamMemberships: {
           include: {
-            team: true
+            team: true,
           },
           where: {
-            leftAt: null // Only include active memberships
-          }
+            leftAt: null, // Only include active memberships
+          },
         },
         ownedAgents: true, // Include agents owned by this user
         apiTokens: {
@@ -46,13 +46,14 @@ async function getUserById(res: NextApiResponse, id: string) {
             expiresAt: true,
             lastUsedAt: true,
             status: true,
+            
             // Don't return token values
           },
           where: {
-            status: 'active' // Only include active tokens
-          }
-        }
-      }
+            status: 'active', // Only include active tokens
+          },
+        },
+      },
     });
 
     if (!user) {
@@ -65,35 +66,33 @@ async function getUserById(res: NextApiResponse, id: string) {
       name: membership.team.name,
       description: membership.team.description,
       role: membership.permission,
-      joinedAt: membership.joinedAt
+      joinedAt: membership.joinedAt,
     }));
 
     // Return user with enhanced team information
     const enhancedUser = {
       ...user,
-      teamsWithRoles
+      teamsWithRoles,
     };
 
     return res.status(200).json(enhancedUser);
   } catch (error: unknown) {
-    console.error("Request error", error);
-    return res.status(500).json({ error: "Error fetching user" });
+    console.error('Request error', error);
+    return res.status(500).json({ error: 'Error fetching user' });
   }
 }
 
 // Update user
 async function updateUser(req: NextApiRequest, res: NextApiResponse, id: string) {
   try {
-    const { name, description } = req.body;
+    const { name, description, lmmConfig } = req.body;
 
-    if (!name && !description) {
-      return res.status(400).json({ message: 'Name or description is required' });
-    }
-
+   
     // Prepare the update data
     const updateData: any = {};
     if (name) updateData.name = name;
     if (description) updateData.description = description;
+    if (lmmConfig) updateData.lmmConfig = lmmConfig;
 
     const user = await prisma.user.update({
       where: { id },
@@ -116,7 +115,7 @@ async function deleteUser(res: NextApiResponse, id: string) {
 
     return res.status(204).end();
   } catch (error: unknown) {
-    console.error("Request error", error);
-    return res.status(500).json({ error: "Error deleting user" });
+    console.error('Request error', error);
+    return res.status(500).json({ error: 'Error deleting user' });
   }
 }

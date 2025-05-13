@@ -212,7 +212,7 @@ export default function AgentDetail() {
                 <Title level={isMobile ? 3 : 2} style={{ margin: 0 }}>
                   {agent?.name}
                 </Title>
-                <Space size={[0, 8]} wrap style={{ marginTop: 8 }}>
+                <Space size={[0, 8]} wrap style={{ marginTop: 8, justifyContent:'space-between' }}>
                   {renderStatusTag()}
                   {renderOwnerTag()}
                 </Space>

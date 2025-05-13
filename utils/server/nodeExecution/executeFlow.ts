@@ -5,7 +5,6 @@ import { MessagePart } from '../../../models/MessagePart';
 import { prepareFlowState } from './prepareFlowState';
 import { executeCurrentNode } from './executeCurrentNode';
 
-
 export async function executeFlow(
   flow: Flow,
   flowState: FlowState,
@@ -13,7 +12,7 @@ export async function executeFlow(
   callback: (result: ExecutionResult) => void
 ): Promise<void> {
   try {
-    const preparedState = await prepareFlowState(flowState);
+    const preparedState = prepareFlowState(flowState);
     const result = await executeCurrentNode(flow, preparedState, input, callback);
     callback(result);
     const status: ExecutionStatus[] = ['in_progress', 'completed', 'error'];
@@ -22,5 +21,3 @@ export async function executeFlow(
     throw new Error(`Error in continueFlow: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
-
-

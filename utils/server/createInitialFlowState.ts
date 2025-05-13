@@ -36,6 +36,6 @@ export function createInitialFlowState({ beginNode, variables, flowConfig }: Ini
     variables: variables || {},
     components: components,
     history: [],
-    executionTime: now - 1000,
+    executionTime: now - 10,
   };
 }

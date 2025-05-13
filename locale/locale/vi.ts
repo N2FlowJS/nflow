@@ -1,4 +1,4 @@
-export default {
+const vi = {
   name: 'Tiếng Việt',
   title: 'Ant Design',
   form: {
@@ -355,3 +355,5 @@ export default {
     }
   }
 };
+
+export default vi;

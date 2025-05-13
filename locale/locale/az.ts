@@ -1,5 +1,5 @@
-export default {
-  name: "Azərbaycan dili",
+const az = {
+  name: 'Azərbaycan dili',
   title: 'Ant Design',
   form: {
     title: 'Form',
@@ -13,7 +13,7 @@ export default {
     dateRangePicker: 'Date Range Picker',
     rate: 'Rating',
     submit: 'Submit',
-    cancel: 'Cancel'
+    cancel: 'Cancel',
   },
   login: {
     title: 'Login',
@@ -91,7 +91,7 @@ export default {
     completed: 'Completed',
     failed: 'Failed',
     error: 'Error',
-    information: 'Information'
+    information: 'Information',
   },
   mainLayout: {
     home: 'Home',
@@ -109,7 +109,8 @@ export default {
   },
   home: {
     welcomeToNFlow: 'Welcome to N-Flow',
-    heroDescription: 'Your comprehensive platform for knowledge management and AI agents. Organize files, build smart systems, and leverage AI to boost your productivity.',
+    heroDescription:
+      'Your comprehensive platform for knowledge management and AI agents. Organize files, build smart systems, and leverage AI to boost your productivity.',
     signIn: 'Sign In',
     createAccount: 'Create Account',
     goToDashboard: 'Go to Dashboard',
@@ -144,7 +145,7 @@ export default {
     uploadFiles: 'Upload Files',
     stepsCreateAiAgents: 'Step 4: Create AI Agents',
     stepsCreateAiAgentsDescription: 'Build AI agents that leverage your knowledge base',
-    createAgent: 'Create Agent'
+    createAgent: 'Create Agent',
   },
   dashboard: {
     systemDashboard: 'System Dashboard',
@@ -179,7 +180,7 @@ export default {
     unknownFile: 'Unknown file',
     yes: 'Yes',
     no: 'No',
-    systemOverview: 'System Overview'
+    systemOverview: 'System Overview',
   },
   knowledgeList: {
     knowledgeManagement: 'Knowledge Management',
@@ -191,7 +192,7 @@ export default {
     yes: 'Yes',
     no: 'No',
     addKnowledge: 'Add Knowledge',
-    loginRequired: 'Please log in to create new knowledge items.'
+    loginRequired: 'Please log in to create new knowledge items.',
   },
   knowledgeDetail: {
     loadingKnowledge: 'Loading Knowledge',
@@ -204,8 +205,8 @@ export default {
     users: 'Users',
     teams: 'Teams',
     dates: 'Dates',
-    created: 'Created:',
-    lastUpdated: 'Last Updated:',
+    created: 'Created',
+    lastUpdated: 'Last Updated',
     associatedUsers: 'Associated Users',
     noUsersAssociated: 'No users associated',
     associatedTeams: 'Associated Teams',
@@ -222,10 +223,10 @@ export default {
     fileConfigUpdateFailed: 'Failed to update file configuration',
     knowledgeDetail: 'Knowledge Detail',
     chunkSeparator: {
-      label: "Chunk Separator",
+      label: 'Chunk Separator',
       tooltip: "Characters used to divide text into chunks (e.g., ['\\n','\\r'] for paragraphs)",
-      description: "Please enter chunk separator" ,
-      placeholder: "Enter or select chunk separators"
+      description: 'Please enter chunk separator',
+      placeholder: 'Enter or select chunk separators',
     },
     testing: {
       testing: 'Testing',
@@ -245,7 +246,8 @@ export default {
       noResultsFound: 'No results found. Try adjusting your query or lowering the similarity threshold.',
       resultItemTitle: '{index}. From: {fileName}',
       expandLabel: 'more',
-      metadataHeader: 'Metadata'
-    }
-  }
+      metadataHeader: 'Metadata',
+    },
+  },
 };
+export default az;

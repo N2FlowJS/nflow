@@ -1,4 +1,4 @@
-export default {
+const en = {
   name: 'English',
   title: 'Ant Design',
   form: {
@@ -13,7 +13,7 @@ export default {
     dateRangePicker: 'Date Range Picker',
     rate: 'Rating',
     submit: 'Submit',
-    cancel: 'Cancel'
+    cancel: 'Cancel',
   },
   login: {
     title: 'Login',
@@ -115,7 +115,7 @@ export default {
     completed: 'Completed',
     failed: 'Failed',
     error: 'Error',
-    information: 'Information'
+    information: 'Information',
   },
   mainLayout: {
     home: 'Home',
@@ -133,7 +133,8 @@ export default {
   },
   home: {
     welcomeToNFlow: 'Welcome to N-Flow',
-    heroDescription: 'Your comprehensive platform for knowledge management and AI agents. Organize files, build smart systems, and leverage AI to boost your productivity.',
+    heroDescription:
+      'Your comprehensive platform for knowledge management and AI agents. Organize files, build smart systems, and leverage AI to boost your productivity.',
     signIn: 'Sign In',
     createAccount: 'Create Account',
     goToDashboard: 'Go to Dashboard',
@@ -168,7 +169,7 @@ export default {
     uploadFiles: 'Upload Files',
     stepsCreateAiAgents: 'Step 4: Create AI Agents',
     stepsCreateAiAgentsDescription: 'Build AI agents that leverage your knowledge base',
-    createAgent: 'Create Agent'
+    createAgent: 'Create Agent',
   },
   dashboard: {
     systemDashboard: 'System Dashboard',
@@ -203,7 +204,7 @@ export default {
     unknownFile: 'Unknown file',
     yes: 'Yes',
     no: 'No',
-    systemOverview: 'System Overview'
+    systemOverview: 'System Overview',
   },
   knowledgeList: {
     knowledgeManagement: 'Knowledge Management',
@@ -215,10 +216,11 @@ export default {
     yes: 'Yes',
     no: 'No',
     addKnowledge: 'Add Knowledge',
-    loginRequired: 'Please log in to create new knowledge items.'
+    loginRequired: 'Please log in to create new knowledge items.',
+    search: 'Search', 
   },
   knowledgeDetail: {
-    name:"Name knowledge",
+    name: 'Name knowledge',
     loadingKnowledge: 'Loading Knowledge',
     knowledgeNotFound: 'Knowledge Not Found',
     backToKnowledgeList: 'Back to Knowledge List',
@@ -229,8 +231,8 @@ export default {
     users: 'Users',
     teams: 'Teams',
     dates: 'Dates',
-    created: 'Created:',
-    lastUpdated: 'Last Updated:',
+    created: 'Created',
+    lastUpdated: 'Last Updated',
     associatedUsers: 'Associated Users',
     noUsersAssociated: 'No users associated',
     associatedTeams: 'Associated Teams',
@@ -247,10 +249,10 @@ export default {
     fileConfigUpdateFailed: 'Failed to update file configuration',
     knowledgeDetail: 'Knowledge Detail',
     chunkSeparator: {
-      label: "Chunk Separator",
+      label: 'Chunk Separator',
       tooltip: "Characters used to divide text into chunks (e.g., ['\\n','\\r'] for paragraphs)",
-      description: "Please enter chunk separator" ,
-      placeholder: "Enter or select chunk separators"
+      description: 'Please enter chunk separator',
+      placeholder: 'Enter or select chunk separators',
     },
     testing: {
       testing: 'Testing',
@@ -271,8 +273,11 @@ export default {
       noResultsFound: 'No results found. Try adjusting your query or lowering the similarity threshold.',
       resultItemTitle: '{index}. From: {fileName}',
       expandLabel: 'more',
-      metadataHeader: 'Metadata'
-    }
+      metadataHeader: 'Metadata',
+      similarityLow: 'Similarity too low',
+      similarityHigh: 'Similarity too high',
+    
+    },
   },
   teamDetail: {
     loadingTeam: 'Loading Team',
@@ -280,7 +285,7 @@ export default {
     authenticationRequired: 'Authentication Required',
     authenticationDescription: 'You need to be logged in to view this page.',
     teamNotFound: 'Team Not Found',
-    teamNotFoundDescription: 'The requested team does not exist or you don\'t have permission to view it.',
+    teamNotFoundDescription: "The requested team does not exist or you don't have permission to view it.",
     backToTeamList: 'Back to Team List',
     teamProfile: 'Team Profile',
     teams: 'Teams',
@@ -289,7 +294,7 @@ export default {
     members: 'Members',
     agents: 'Agents',
     createNewAgent: 'Create New Agent',
-    llmProviders: 'LLM Providers'
+    llmProviders: 'LLM Providers',
   },
   agentList: {
     title: 'Agents',
@@ -302,7 +307,7 @@ export default {
     active: 'Active',
     inactive: 'Inactive',
     breadcrumb: {
-      agents: 'Agents'
+      agents: 'Agents',
     },
     table: {
       name: 'Name',
@@ -311,14 +316,14 @@ export default {
       status: 'Status',
       createdBy: 'Created By',
       lastUpdated: 'Last Updated',
-      actions: 'Actions'
+      actions: 'Actions',
     },
     deleteConfirmation: {
       title: 'Are you sure you want to delete this agent?',
       content: 'This action cannot be undone.',
       okText: 'Yes, delete it',
-      cancelText: 'Cancel'
-    }
+      cancelText: 'Cancel',
+    },
   },
   agentDetail: {
     loadingAgent: 'Loading Agent',
@@ -332,7 +337,7 @@ export default {
     form: {
       name: 'Name',
       description: 'Description',
-      status: 'Status'
+      status: 'Status',
     },
     createdBy: 'Created By',
     createdAt: 'Created At',
@@ -342,7 +347,7 @@ export default {
       title: 'Are you sure you want to delete this agent?',
       content: 'This action cannot be undone.',
       okText: 'Yes, delete it',
-      cancelText: 'Cancel'
+      cancelText: 'Cancel',
     },
     deleteSuccess: 'Agent deleted successfully',
     deleteFailed: 'Failed to delete agent',
@@ -351,9 +356,21 @@ export default {
     loadingAgentFlow: 'Loading agent flow...',
     noFlowConfigFound: 'No Flow Configuration Found',
     flowConfigNeeded: 'This agent needs a flow defined before you can chat with it.',
-    goToFlowEditor: 'Go to Flow Editor'
+    goToFlowEditor: 'Go to Flow Editor',
+    agentSettings: 'Agent Settings',
+    owner: 'Owner',
+    status: 'Status',
+    flowConfiguration: 'Flow Configuration',
+    flowConfigPresent: 'Flow configuration present',
+    testChat: 'Test Chat',
+    editFlowConfig: 'Edit Flow Configuration',
+    creationInfo: 'Creation Information',
+  
   },
   greetingSection: {
-    greetingLabel: 'Greeting'
-  }
+    greetingLabel: 'Greeting',
+  },
 };
+
+export default en;
+export type LocaleKey = typeof en;

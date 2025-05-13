@@ -1,8 +1,6 @@
-import { FlowState } from "../../../models/flowExecutionTypes";
+import { FlowState } from '../../../models/flowExecutionTypes';
 
-
-export async function prepareFlowState(flowState: FlowState): Promise<FlowState> {
-  flowState.executionTime = Date.now();
- 
+export function prepareFlowState(flowState: FlowState): FlowState {
+  flowState.executionTime = Date.now() - 10;
   return flowState;
 }

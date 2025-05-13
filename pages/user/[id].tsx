@@ -5,6 +5,7 @@ import {
   LockOutlined,
   PlusOutlined,
   RobotOutlined,
+  SaveOutlined,
   TeamOutlined,
   UserOutlined,
 } from '@ant-design/icons';
@@ -28,8 +29,7 @@ import { fetchUserById, updateUser } from '../../services/userService';
 import { useTheme } from '../../theme';
 
 // Regular imports for immediately needed components
-import DefaultModelsForm from '../../components/llm/DefaultModelsForm';
-import UserProfileHeader from '../../components/user/UserProfileHeader';
+import DefaultModelsForm from '../../components/user/ModelsFormConfig';
 import UserProfileTab from '../../components/user/UserProfileTab';
 
 // Lazy load components that aren't needed immediately
@@ -49,13 +49,10 @@ export default function UserDetail() {
   const [form] = Form.useForm();
   const [teamForm] = Form.useForm();
   const [agentForm] = Form.useForm();
-  const [isEditing, setIsEditing] = useState(false);
   const [isTeamModalVisible, setIsTeamModalVisible] = useState(false);
   const [isAgentModalVisible, setIsAgentModalVisible] = useState(false);
   const [creatingTeam, setCreatingTeam] = useState(false);
   const [creatingAgent, setCreatingAgent] = useState(false);
-  const { theme } = useTheme();
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [isCurrentUser, setIsCurrentUser] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [isLLMProviderModalVisible, setIsLLMProviderModalVisible] = useState(false);
@@ -76,8 +73,6 @@ export default function UserDetail() {
         redirectToLogin(window.location.pathname);
         return null;
       }
-
-      setCurrentUserId(authData.userId);
 
       // Check if viewing own profile
       if (id && authData.userId === id) {
@@ -105,6 +100,7 @@ export default function UserDetail() {
       form.setFieldsValue({
         name: data.name,
         description: data.description,
+        lmmConfig: data.lmmConfig,
       });
     } catch (error: unknown) {
       message.error('Failed to fetch user details');
@@ -142,18 +138,6 @@ export default function UserDetail() {
     initialize();
   }, [id, fetchUserProviders, fetchUserDetail, validateAuthentication]);
 
-  const handleEdit = () => {
-    setIsEditing(true);
-  };
-
-  const handleCancel = () => {
-    setIsEditing(false);
-    form.setFieldsValue({
-      name: user?.name,
-      description: user?.description,
-    });
-  };
-
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
@@ -162,7 +146,6 @@ export default function UserDetail() {
       if (updatedUser) {
         message.success('User updated successfully');
         fetchUserDetail();
-        setIsEditing(false);
       } else {
         message.error('Failed to update user');
       }
@@ -206,7 +189,7 @@ export default function UserDetail() {
           ...values,
           ownerType: 'user',
           userId: id as string,
-          flowConfig:{ nodes: [], edges: [] },
+          flowConfig: { nodes: [], edges: [] },
         };
 
         const newAgent = await createAgent(agentData);
@@ -341,24 +324,6 @@ export default function UserDetail() {
   return (
     <MainLayout title={isCurrentUser ? 'My Profile' : `${user?.name}'s Profile`}>
       <div className="dashboard-container" style={{ padding: '24px' }}>
-        {/* User Profile Header with accent color */}
-        <Row gutter={[24, 24]}>
-          <Col span={24}>
-            <Card className="profile-header-card accent-top accent-color-blue">
-              <UserProfileHeader
-                user={user as IUser}
-                isCurrentUser={isCurrentUser}
-                isEditing={isEditing}
-                currentUserId={currentUserId}
-                theme={theme}
-                onEdit={handleEdit}
-                onCancel={handleCancel}
-                onSubmit={handleSubmit}
-              />
-            </Card>
-          </Col>
-        </Row>
-
         <Row gutter={[24, 24]} style={{ marginTop: '16px' }}>
           <Col xs={24} sm={8}>
             <Card className="dashboard-stat-card accent-left accent-color-purple" hoverable>
@@ -449,7 +414,11 @@ export default function UserDetail() {
               }
               style={{ marginBottom: '24px' }}
               hoverable>
-              <UserProfileTab user={user as IUser} isEditing={isEditing} form={form} />
+              <UserProfileTab user={user as IUser} form={form} />
+              <DefaultModelsForm form={form} user={user} />
+              <Button type="primary" icon={<SaveOutlined />} onClick={handleSubmit}>
+                Save
+              </Button>
             </Card>
 
             {/* Security Section */}
@@ -461,7 +430,6 @@ export default function UserDetail() {
                 </Space>
               }
               hoverable>
-              
               {id && <PasswordChangeForm userId={id as string} />}
             </Card>
           </Col>
@@ -532,20 +500,20 @@ export default function UserDetail() {
                 />
               </Suspense>
             </Card>
-            {isCurrentUser && (
-              <Card
-                id="default-models-section"
-                className="dashboard-content-card accent-top accent-color-teal"
-                title={
-                  <Space>
-                    <ApiOutlined /> Default LLM Models
-                  </Space>
-                }
-                hoverable>
-                
-                <DefaultModelsForm userId={id as string} viewOnly={!isCurrentUser} onRefresh={fetchUserDetail} />
-              </Card>
-            )}
+
+            <Card
+              id="api-tokens-section"
+              className="dashboard-content-card accent-top accent-color-orange"
+              title={
+                <Space>
+                  <KeyOutlined /> API Tokens
+                </Space>
+              }
+              hoverable>
+              <Suspense fallback={<Skeleton active />}>
+                <ApiTokensTab userId={id as string} isCurrentUser={isCurrentUser} />
+              </Suspense>
+            </Card>
           </Col>
 
           {/* Full width for LLM Settings */}
@@ -587,26 +555,6 @@ export default function UserDetail() {
                   }}
                   onDeleteProvider={handleDeleteLLMProvider}
                   onRefreshProviders={fetchUserProviders}
-                />
-              </Suspense>
-            </Card>
-          </Col>
-          
-          {/* API Tokens Section */}
-          <Col span={24}>
-            <Card
-              id="api-tokens-section"
-              className="dashboard-content-card accent-top accent-color-orange"
-              title={
-                <Space>
-                  <KeyOutlined /> API Tokens
-                </Space>
-              }
-              hoverable>
-              <Suspense fallback={<Skeleton active />}>
-                <ApiTokensTab
-                  userId={id as string}
-                  isCurrentUser={isCurrentUser}
                 />
               </Suspense>
             </Card>

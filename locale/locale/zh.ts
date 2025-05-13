@@ -1,5 +1,5 @@
-export default {
-  name: "中文",
+const zh = {
+  name: '中文',
   title: 'Ant Design',
   form: {
     title: '表单',
@@ -13,7 +13,7 @@ export default {
     dateRangePicker: '日期范围选择',
     rate: '评分',
     submit: '提交',
-    cancel: '取消'
+    cancel: '取消',
   },
   login: {
     title: '登录',
@@ -91,7 +91,7 @@ export default {
     completed: '已完成',
     failed: '失败',
     error: '错误',
-    information: '信息'
+    information: '信息',
   },
   mainLayout: {
     home: '首页',
@@ -144,7 +144,7 @@ export default {
     uploadFiles: '上传文件',
     stepsCreateAiAgents: '步骤4：创建AI Agent',
     stepsCreateAiAgentsDescription: '构建利用您的知识库的AI Agent',
-    createAgent: '创建Agent'
+    createAgent: '创建Agent',
   },
   dashboard: {
     systemDashboard: '系统仪表板',
@@ -179,7 +179,7 @@ export default {
     unknownFile: '未知文件',
     yes: '是',
     no: '否',
-    systemOverview: '系统概述'
+    systemOverview: '系统概述',
   },
   knowledgeList: {
     knowledgeManagement: '知识管理',
@@ -191,7 +191,7 @@ export default {
     yes: '是',
     no: '否',
     addKnowledge: '添加知识',
-    loginRequired: '请登录以创建新的知识项目。'
+    loginRequired: '请登录以创建新的知识项目。',
   },
   knowledgeDetail: {
     loadingKnowledge: '加载知识',
@@ -217,15 +217,15 @@ export default {
     description: '描述',
     saveChanges: '保存更改',
     info: '信息',
-     fetchKnowledgeFailed: '无法获取知识详情',
+    fetchKnowledgeFailed: '无法获取知识详情',
     fileConfigUpdated: '文件配置更新成功',
     fileConfigUpdateFailed: '无法更新文件配置',
     knowledgeDetail: '知识详情',
     chunkSeparator: {
-      label: "分块符",
+      label: '分块符',
       tooltip: "用于将文本分成块的字符（例如，段落使用 ['\\n','\\r']）",
-      description: "请输入分块符",
-      placeholder: "输入或选择分块符"
+      description: '请输入分块符',
+      placeholder: '输入或选择分块符',
     },
     testing: {
       testing: '测试',
@@ -245,7 +245,9 @@ export default {
       noResultsFound: '未找到结果。尝试调整您的查询或降低相似度阈值。',
       resultItemTitle: '{index}. 来自: {fileName}',
       expandLabel: '更多',
-      metadataHeader: '元数据'
-    }
-  }
+      metadataHeader: '元数据',
+    },
+  },
 };
+
+export default zh;
