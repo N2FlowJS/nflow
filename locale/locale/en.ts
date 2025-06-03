@@ -316,7 +316,11 @@ const en = {
       status: 'Status',
       createdBy: 'Created By',
       lastUpdated: 'Last Updated',
-      actions: 'Actions',
+      actions: {
+        chat: 'Chat',
+        edit:"Edit",
+        delete: 'Delete',
+      },
     },
     deleteConfirmation: {
       title: 'Are you sure you want to delete this agent?',
