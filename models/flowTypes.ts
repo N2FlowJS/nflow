@@ -9,6 +9,7 @@ export const NODE_TYPES = {
   categorize: 'categorize',
   retrieval: 'retrieval',
   decision: 'decision',
+  keywords: 'keywords',
 } as const;
 export type NodeTypeString = keyof typeof NODE_TYPES;
 
@@ -55,8 +56,11 @@ export interface InterfaceForm extends BaseForm {
 export interface GenerateForm extends BaseForm {
   prompt: string;
   model: string;
-  // No input references here, only template variables
-  templateVariables?: Record<string, string>;
+}
+export interface KeywordsForm extends BaseForm {
+  model: string;
+  prompt: string;
+  maxResults: number;
 }
 
 export interface ICategory {
@@ -105,6 +109,9 @@ export type DecisionNodeData = BaseNodeData<DecisionForm> & {
 export type RetrievalNodeData = BaseNodeData<RetrievalForm> & {
   type: 'retrieval';
 };
+export type KeywordsNodeData = BaseNodeData<KeywordsForm> & {
+  type: 'keywords';
+};
 
 export interface DecisionCondition {
   input: string;
@@ -131,7 +138,8 @@ export type NodeData =
   | GenerateNodeData
   | CategorizeNodeData
   | RetrievalNodeData
-  | DecisionNodeData;
+  | DecisionNodeData
+  | KeywordsNodeData;
 
 // Typed node instances
 export type BeginNode = Node<BeginNodeData>;
@@ -140,11 +148,12 @@ export type GenerateNode = Node<GenerateNodeData>;
 export type CategorizeNode = Node<CategorizeNodeData>;
 export type RetrievalNode = Node<RetrievalNodeData>;
 export type DecisionNode = Node<DecisionNodeData>;
+export type KeywordsNode = Node<KeywordsNodeData>;
 
 // Union type for all flow nodes
 export type FlowNode = {
   type: NodeTypeString;
-} & (BeginNode | InterfaceNode | GenerateNode | CategorizeNode | RetrievalNode | DecisionNode);
+} & (BeginNode | InterfaceNode | GenerateNode | CategorizeNode | RetrievalNode | DecisionNode | KeywordsNode);
 
 // Type for a complete flow
 export interface Flow {

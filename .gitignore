@@ -42,3 +42,4 @@ uploads/knowledge
 dist
 nbase/node_modules
 nbase-data
+/logs

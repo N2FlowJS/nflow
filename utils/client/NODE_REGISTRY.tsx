@@ -1,5 +1,23 @@
-import { NodeTypeString, NodeConfig, BeginNodeData, InterfaceNodeData, GenerateNodeData, CategorizeNodeData, RetrievalNodeData, DecisionNodeData } from '../../models/flowTypes';
-import { BranchesOutlined, DatabaseOutlined, PlayCircleOutlined, QuestionOutlined, RobotOutlined, SendOutlined } from '@ant-design/icons';
+import {
+  NodeTypeString,
+  NodeConfig,
+  BeginNodeData,
+  InterfaceNodeData,
+  GenerateNodeData,
+  CategorizeNodeData,
+  RetrievalNodeData,
+  DecisionNodeData,
+  KeywordsNodeData,
+} from '../../models/flowTypes';
+import {
+  BranchesOutlined,
+  DatabaseOutlined,
+  PlayCircleOutlined,
+  QuestionOutlined,
+  RobotOutlined,
+  SendOutlined,
+  TagsOutlined,
+} from '@ant-design/icons';
 
 // Central registry of all node types
 export const NODE_REGISTRY: Record<NodeTypeString, NodeConfig> = {
@@ -72,12 +90,11 @@ export const NODE_REGISTRY: Record<NodeTypeString, NodeConfig> = {
         output: '', // Required by BaseForm
       },
     } as Partial<GenerateNodeData>,
-
   },
 
   categorize: {
     type: 'categorize',
-    icon: <BranchesOutlined style={{ color: "#eb2f96" }} />,
+    icon: <BranchesOutlined style={{ color: '#eb2f96' }} />,
     color: {
       background: 'rgba(255, 214, 231,.45)',
       border: '#ffadd2',
@@ -113,7 +130,6 @@ export const NODE_REGISTRY: Record<NodeTypeString, NodeConfig> = {
       },
     } as Partial<CategorizeNodeData>,
   },
-
   retrieval: {
     type: 'retrieval',
     icon: <DatabaseOutlined style={{ color: '#595959' }} />,
@@ -154,22 +170,54 @@ export const NODE_REGISTRY: Record<NodeTypeString, NodeConfig> = {
         name: 'Decision',
         description: 'Route flow based on conditional logic',
         role: 'developer',
-        branches: [{
-          name: 'Branch 1',
-          groups: [{
-            conditions: [{ input: '', operator: 'equals', value: '' }],
-            logicalOperator: 'AND'
-          }],
-          groupOperator: 'OR',
-          targetNode: ''
-        }],
+        branches: [
+          {
+            name: 'Branch 1',
+            groups: [
+              {
+                conditions: [{ input: '', operator: 'equals', value: '' }],
+                logicalOperator: 'AND',
+              },
+            ],
+            groupOperator: 'OR',
+            targetNode: '',
+          },
+        ],
         defaultTarget: '',
-        inputRefs: []
+        inputRefs: [],
       },
     } as Partial<DecisionNodeData>,
-  }
+  },
+  keywords: {
+    type: 'keywords',
+    icon: <TagsOutlined style={{ color: '#722ed1' }} />,
+    color: {
+      background: 'rgba(212, 230, 249, .45)',
+      border: '#91caff',
+      handle: '#722ed1',
+    },
+    input: 'Text to extract keywords from',
+    output: 'Extracted keywords',
+    data: {
+      type: 'keywords',
+      form: {
+        role: 'developer',
+        name: 'Keywords',
+        description: 'Extract keywords from input text',
+        model: '',
+        prompt: `Extract keywords from conversation:
+        The conversation below is between a user and an AI assistant.
+        {{conversation}}
+        {{extraInfo}}
+        Extract the most relevant keywords from the conversation above.
+        Keywords should be separated by commas.`,
+        maxResults: 10,
+        inputRefs: [],
+        output: '',
+      },
+    } as Partial<KeywordsNodeData>,
+  },
 };
-
 
 // Get available input sources for the query - specifically for nodes that support input references
 export function getQueryInputSources(): Array<{ id: string; name: string; description: string }> {
@@ -192,10 +240,7 @@ export function getQueryInputSources(): Array<{ id: string; name: string; descri
   ];
 }
 
-
-
 // Get input/output info for a node type
 export function getNodeInputInfo(nodeType: NodeTypeString) {
   return NODE_REGISTRY[nodeType]?.input ?? undefined;
 }
-

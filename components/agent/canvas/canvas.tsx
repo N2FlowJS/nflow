@@ -35,6 +35,7 @@ import DecisionNode from '../nodes/decision-node';
 import GenerateNode from '../nodes/generate-node';
 import InterfaceNode from '../nodes/interface-node';
 import RetrievalNode from '../nodes/retrieval-node';
+import KeywordsNode from '../nodes/keywords-node';
 
 const nodeTypes: ReactFlowNodeTypes = {
   begin: BeginNode,
@@ -43,6 +44,7 @@ const nodeTypes: ReactFlowNodeTypes = {
   categorize: CategorizeNode,
   retrieval: RetrievalNode,
   decision: DecisionNode,
+  keywords: KeywordsNode,
 };
 
 const edgeTypes: EdgeTypes = {
@@ -286,20 +288,15 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flowConfig, onStartConversation
 
   return (
     <Layout style={{ height: '100%', position: 'relative' }}>
-      <NodePalette 
-        nodes={nodes} 
-        isCollapsed={isPaletteCollapsed} 
-        onCollapsedChange={setIsPaletteCollapsed} 
-      />
+      <NodePalette nodes={nodes} isCollapsed={isPaletteCollapsed} onCollapsedChange={setIsPaletteCollapsed} />
 
       <Content
         style={{
           marginLeft: isPaletteCollapsed ? 50 : 250,
           transition: 'margin-left 0.2s',
           height: '100%',
-          position: 'relative'
-        }}
-      >
+          position: 'relative',
+        }}>
         <ReactFlow
           colorMode={theme}
           nodes={nodes}
