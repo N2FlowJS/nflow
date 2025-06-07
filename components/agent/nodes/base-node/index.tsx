@@ -1,7 +1,7 @@
 import { Handle, Position } from '@xyflow/react';
 import { Card } from 'antd';
-import React, { memo } from 'react'; // Added useEffect
-import { useFlowState } from '../../../../context/FlowStateContext'; // Import the context hook
+import React, { memo, useMemo } from 'react';
+import { useFlowState } from '../../../../context/FlowStateContext';
 import { NodeData } from '../../../../models/flowTypes';
 import { NODE_REGISTRY } from '../../../../utils/client';
 import { getHandleStyle } from './handle-icon';
@@ -22,18 +22,28 @@ interface BaseNodeProps {
 
 const BaseNode: React.FC<BaseNodeProps> = ({ data, id, selected, handlePositions, children, icon, role }) => {
   const nodeConfig = NODE_REGISTRY[data.type];
-  const { flowState } = useFlowState(); // Consume the context
+  const { flowState } = useFlowState();
 
-  const isExecutedNode = React.useMemo(() => {
-    return flowState && flowState.components && Object.keys(flowState.components).find((p) => flowState.components[p].executionTime > flowState.executionTime && p == id) != null;
-  }, [flowState, id]);
+  // Properly memoize the execution check to prevent infinite loops
+  const isExecutedNode = useMemo(() => {
+    if (!flowState?.components) return false;
+
+    const component = flowState.components[id];
+    if (!component) return false;
+
+    return component.executionTime > flowState.executionTime;
+  }, [flowState?.components, flowState?.executionTime, id]);
+
+  const borderColor = selected ? 'red' : isExecutedNode ? '#52c41a' : nodeConfig?.color.border || '#888888';
+  const borderWidth = selected || isExecutedNode ? '3px' : '3px';
+  const boxShadow = isExecutedNode ? '0 0 32px #52c41a' : undefined;
 
   return (
     <Card
       style={{
-        borderColor: selected ? 'red' : isExecutedNode ? '#52c41a' : nodeConfig?.color.border || '#888888', // Highlight executed node
-        borderWidth: selected || isExecutedNode ? '3px' : '3px',
-        boxShadow: isExecutedNode ? '0 0 32px #52c41a' : undefined,
+        borderColor,
+        borderWidth,
+        boxShadow,
       }}>
       <NodeHeader id={id} name={data.form?.name} type={data.type} icon={icon} role={role} />
       {children && <div style={{ padding: '10px 0' }}>{children}</div>}

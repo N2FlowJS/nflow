@@ -3,13 +3,16 @@ import { searchSimilarContent } from '../../../../lib/services/vectorSearchServi
 import { ExecutionResult, FlowExecutionContext } from '../../../../models/flowExecutionTypes';
 import { FlowNode, RetrievalNodeData } from '../../../../models/flowTypes';
 import { findNextNodes } from '../../../../utils/server/findNextNode';
+import { flowStateReducer } from '../flowStateReducer';
+import { FlowStateDispatcher } from '../flowStateDispatcher';
 
 /**
  * Handler for executing Retrieval nodes
  */
 export async function executeRetrievalNode(
   node: FlowNode,
-  { flow, flowState, input }: FlowExecutionContext
+  { flow, flowState, input }: FlowExecutionContext,
+  dispatcher?: FlowStateDispatcher
 ): Promise<ExecutionResult> {
   const data = node.data as RetrievalNodeData;
   const startTime = new Date().toISOString();
@@ -53,10 +56,27 @@ export async function executeRetrievalNode(
       .map((result, index) => `[${index + 1}] ${result.text}\nSource: ${result.source}`)
       .join('\n\n');
 
-    flowState.components[node.id]['output'] = formattedResults;
-    flowState.components[node.id]['type'] = 'retrieval';
-    flowState.components[node.id]['executionTime'] = Date.now();
-    flowState.currentNode = node;
+    // Use shared dispatcher if available, otherwise create local state
+    let finalState = flowState;
+
+    if (dispatcher) {
+      dispatcher.setNodeOutput(node.id, formattedResults, 'retrieval');
+      dispatcher.setCurrentNode(node);
+      finalState = dispatcher.getState();
+    } else {
+      // Fallback to local state update
+      let updatedState = flowStateReducer(flowState, {
+        type: 'SET_NODE_OUTPUT',
+        payload: { nodeId: node.id, output: formattedResults, nodeType: 'retrieval' },
+      });
+
+      updatedState = flowStateReducer(updatedState, {
+        type: 'SET_CURRENT_NODE',
+        payload: { node },
+      });
+
+      finalState = updatedState;
+    }
 
     const nextNodes = findNextNodes(flow, node.id);
 
@@ -65,7 +85,7 @@ export async function executeRetrievalNode(
     return {
       status: 'in_progress',
       nextNodes,
-      flowState,
+      flowState: finalState,
       nodeInfo: {
         id: node.id,
         name: node.data?.label || node.id,

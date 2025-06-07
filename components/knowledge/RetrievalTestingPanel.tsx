@@ -270,7 +270,6 @@ const RetrievalTestingPanel: React.FC<RetrievalTestingPanelProps> = ({ knowledge
                                                     </div>
                                                     <div className="result-content" style={{
                                                         padding: isMobile ? '8px' : '12px',
-                                                        background: '#f9f9f9',
                                                         borderRadius: '4px',
                                                         marginTop: '8px',
                                                         fontSize: isMobile ? '13px' : '14px',

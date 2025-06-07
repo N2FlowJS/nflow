@@ -2,11 +2,12 @@ import { getInputs, getQueryFromSource } from '../../../../hooks/useInputReferen
 import { prisma } from '../../../../lib/prisma';
 import { ExecutionResult, FlowExecutionContext } from '../../../../models/flowExecutionTypes';
 import { CategorizeNodeData, FlowNode, ICategory } from '../../../../models/flowTypes';
+import { FlowStateDispatcher } from '../flowStateDispatcher';
 
 /**
  * Handler for executing Categorize nodes
  */
-export async function executeCategorizeNode(node: FlowNode, { flowState }: FlowExecutionContext): Promise<ExecutionResult> {
+export async function executeCategorizeNode(node: FlowNode, { flowState }: FlowExecutionContext, dispatcher?: FlowStateDispatcher): Promise<ExecutionResult> {
   const data = node.data as CategorizeNodeData;
   const form = data.form || {};
 
@@ -136,27 +137,39 @@ Analyze the text and determine which category it belongs to. Respond with ONLY t
 
     if (categoryObj && categoryObj.targetNode) {
       nextNodeId = categoryObj.targetNode;
-      flowState.components[node.id]['output'] = categoryToUse;
     } else {
-      flowState.components[node.id]['output'] = defaultCategory;
       nextNodeId = categories.find((cat: ICategory) => cat.name === defaultCategory)?.targetNode || null;
     }
 
-
-    flowState.components[node.id]['type'] = 'categorize';
-    flowState.components[node.id]['executionTime'] = Date.now();
-    flowState.currentNode = node;
-
+    // Use shared dispatcher if available, otherwise update local state
+    let finalState = flowState;
+    
+    if (dispatcher) {
+      const outputValue = categoryObj && categoryObj.targetNode ? categoryToUse : defaultCategory;
+      dispatcher.setNodeOutput(node.id, outputValue, 'categorize');
+      dispatcher.setCurrentNode(node);
+      finalState = dispatcher.getState();
+    } else {
+      // Fallback to local state update
+      if (categoryObj && categoryObj.targetNode) {
+        flowState.components[node.id]['output'] = categoryToUse;
+      } else {
+        flowState.components[node.id]['output'] = defaultCategory;
+      }
+      flowState.components[node.id]['type'] = 'categorize';
+      flowState.components[node.id]['executionTime'] = Date.now();
+      flowState.currentNode = node;
+      finalState = flowState;
+    }
 
     if (!nextNodeId) {
       throw new Error(`At the Node ${node.data.label} next node found in the flow`);
     }
 
-
     return {
       status: 'in_progress',
       nextNodes: [nextNodeId],
-      flowState,
+      flowState: finalState,
       nodeInfo: {
         id: node.id,
         name: node.data?.label || node.id,

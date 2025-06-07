@@ -1,5 +1,6 @@
 import { ExecutionResult, FlowExecutionContext } from '../../../../models/flowExecutionTypes';
 import { ConditionGroup, DecisionBranch, DecisionCondition, DecisionNodeData, FlowNode } from '../../../../models/flowTypes';
+import { FlowStateDispatcher } from '../flowStateDispatcher';
 
 function getInputFromBranch(branchs: DecisionBranch[]): string[] {
   const inputs: string[] = [];
@@ -91,7 +92,7 @@ function evaluateBranch(branch: DecisionBranch, inputs: Record<string, any>): bo
 /**
  * Handler for executing Decision nodes
  */
-export async function executeDecisionNode(node: FlowNode, { flowState }: FlowExecutionContext): Promise<ExecutionResult> {
+export async function executeDecisionNode(node: FlowNode, { flowState }: FlowExecutionContext, dispatcher?: FlowStateDispatcher): Promise<ExecutionResult> {
   const data = node.data as DecisionNodeData;
   const form = data.form || {};
   const nodeLabel = node.data?.label || node.id;
@@ -112,7 +113,6 @@ export async function executeDecisionNode(node: FlowNode, { flowState }: FlowExe
     for (const branch of branches) {
       if (evaluateBranch(branch, vars)) {
         nextNodeId = branch.targetNode || null;
-        flowState.components[node.id]['output'] = branch.name;
         branchToUse = branch.name;
         break; // Stop at the first matching branch
       }
@@ -121,21 +121,33 @@ export async function executeDecisionNode(node: FlowNode, { flowState }: FlowExe
     // If no branch matched, use the default target
     if (!nextNodeId) {
       nextNodeId = form.defaultTarget;
-      flowState.components[node.id]['output'] = 'default';
+      branchToUse = 'default';
     }
 
-    flowState.components[node.id]['type'] = 'decision';
-    flowState.components[node.id]['executionTime'] = Date.now();
-    flowState.currentNode = node;
+    // Use shared dispatcher if available, otherwise update local state
+    let finalState = flowState;
+    
+    if (dispatcher) {
+      dispatcher.setNodeOutput(node.id, branchToUse, 'decision');
+      dispatcher.setCurrentNode(node);
+      finalState = dispatcher.getState();
+    } else {
+      // Fallback to local state update
+      flowState.components[node.id]['output'] = branchToUse;
+      flowState.components[node.id]['type'] = 'decision';
+      flowState.components[node.id]['executionTime'] = Date.now();
+      flowState.currentNode = node;
+      finalState = flowState;
+    }
 
     if (!nextNodeId) {
       throw new Error(`At the Node ${node.data.label} next node found in the flow`);
     }
 
     return {
-      status: 'in_progress', // Or 'completed' if this is the final step for this node
+      status: 'in_progress',
       nextNodes: [nextNodeId],
-      flowState,
+      flowState: finalState,
       nodeInfo: { id: node.id, name: nodeLabel, type: 'decision', role: 'developer' },
       execution: { output: branchToUse, nodeId: node.id, nodeName: nodeLabel, startTime: new Date().toISOString() },
     };

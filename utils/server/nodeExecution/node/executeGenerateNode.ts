@@ -6,11 +6,12 @@ import { prisma } from '../../../../lib/prisma';
 import { isNodeReady } from '../../isNodeReady';
 import { MessagePart } from '../../../../models/MessagePart';
 import { llmOpenAI } from '../../../../llm/openai';
+import { FlowStateDispatcher } from '../flowStateDispatcher';
 
 /**
  * Handler for executing Generate nodes
  */
-export async function executeGenerateNode(node: FlowNode, { flow, flowState }: FlowExecutionContext, callback?: (result: ExecutionResult) => void): Promise<ExecutionResult> {
+export async function executeGenerateNode(node: FlowNode, { flow, flowState }: FlowExecutionContext, callback?: (result: ExecutionResult) => void, dispatcher?: FlowStateDispatcher): Promise<ExecutionResult> {
   const data = node.data as GenerateNodeData;
   const form = data.form || {};
   const inputs: string[] = getInputFromTemplate(form.prompt);
@@ -37,8 +38,6 @@ export async function executeGenerateNode(node: FlowNode, { flow, flowState }: F
     };
   }
 
-
-
   const vars: Record<string, string> = {};
   inputs.forEach((key) => {
     if (flowState.components[key] !== undefined) {
@@ -47,7 +46,6 @@ export async function executeGenerateNode(node: FlowNode, { flow, flowState }: F
   });
 
   try {
-
     const prompt = processTemplate(form.prompt || '', vars);
     const message: MessagePart[] = [
       {
@@ -75,7 +73,6 @@ export async function executeGenerateNode(node: FlowNode, { flow, flowState }: F
     if (!model.provider) throw new Error('Provider not found for this model');
 
     let aiResponse = '';
-    // Tạo callback cho stream (nếu có)
     const streamCallback = callback
       ? (partial: string) => {
         callback({
@@ -126,12 +123,15 @@ export async function executeGenerateNode(node: FlowNode, { flow, flowState }: F
         };
     }
 
-    flowState.components[node.id]['output'] = aiResponse;
-    flowState.components[node.id]['type'] = 'generate';
-    flowState.components[node.id]['executionTime'] = Date.now();
-    flowState.currentNode = node;
+    // Use shared dispatcher if available
+    let finalState = flowState;
+    
+    if (dispatcher) {
+      dispatcher.setNodeOutput(node.id, aiResponse, 'generate');
+      dispatcher.setCurrentNode(node);
+      finalState = dispatcher.getState();
+    }
 
-    // Find the next node
     const nextNodes = findNextNodes(flow, node.id);
 
     if (nextNodes.length === 0) throw new Error(`At the Node ${node.data.label} next node found in the flow`);
@@ -139,7 +139,7 @@ export async function executeGenerateNode(node: FlowNode, { flow, flowState }: F
     return {
       status: 'in_progress',
       nextNodes,
-      flowState,
+      flowState: finalState,
       nodeInfo: {
         id: node.id,
         name: node.data?.label || node.id,
