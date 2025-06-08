@@ -9,7 +9,6 @@ import { FormInstance } from 'antd/lib';
 import RoleSelector from './shared/RoleSelector';
 
 const { Text } = Typography;
-const { Panel } = Collapse;
 
 const OPERATORS = [
   { value: 'equals', label: '=' },
@@ -153,131 +152,142 @@ const DecisionNodeForm: React.FC<DecisionNodeFormProps> = ({ form, selectedNode,
     <BaseNodeForm form={form} selectedNode={selectedNode} setIsDrawerOpen={setIsDrawerOpen} onSaveSuccess={syncEdgesWithBranches}>
       <RoleSelector />
 
-      <Collapse defaultActiveKey={['branches', 'defaultTarget']} bordered={false} expandIconPosition="end" className="form-collapse">
-        <Panel
-          header={
-            <div>
-              <Text type="secondary" style={{ display: 'block', marginBottom: 4 }}>
-                <LinkOutlined /> Default Target Node (when no branches match):
-              </Text>
-            </div>
-          }
-          key="defaultTarget">
-          <Form.Item key={'defaultTarget'} name="defaultTarget" initialValue={defaultTarget}>
-            <Select
-              allowClear
-              placeholder="Select default target node"
-              style={{ width: '100%' }}
-              options={flowNodes.map((node) => ({
-                value: node.id,
-                label: (node.data?.form as NodeData)?.name || node.id,
-              }))}
-              optionFilterProp="label"
-              showSearch
-            />
-          </Form.Item>
-        </Panel>
-        <Panel header="Branches" key="branches">
-          <Form.List name="branches" initialValue={branches}>
-            {(branchFields, { add: addBranch, remove: removeBranch }) => (
-              <Space direction="vertical" style={{ width: '100%' }}>
-                {branchFields.map((branchField,) => (
-                  <Card
-                    key={branchField.key}
-                    title={
-                      <Space>
-                        <Form.Item {...branchField} name={[branchField.name, 'name']} noStyle>
-                          <Input placeholder="Branch name" style={{ width: 200 }} />
+      <Collapse
+        defaultActiveKey={['branches', 'defaultTarget']}
+        bordered={false}
+        expandIconPosition="end"
+        className="form-collapse"
+        items={[
+          {
+            key: 'defaultTarget',
+            label: (
+              <div>
+                <Text type="secondary" style={{ display: 'block', marginBottom: 4 }}>
+                  <LinkOutlined /> Default Target Node (when no branches match):
+                </Text>
+              </div>
+            ),
+            children: (
+              <Form.Item key={'defaultTarget'} name="defaultTarget" initialValue={defaultTarget}>
+                <Select
+                  allowClear
+                  placeholder="Select default target node"
+                  style={{ width: '100%' }}
+                  options={flowNodes.map((node) => ({
+                    value: node.id,
+                    label: (node.data?.form as NodeData)?.name || node.id,
+                  }))}
+                  optionFilterProp="label"
+                  showSearch
+                />
+              </Form.Item>
+            )
+          },
+          {
+            key: 'branches',
+            label: 'Branches',
+            children: (
+              <Form.List name="branches" initialValue={branches}>
+                {(branchFields, { add: addBranch, remove: removeBranch }) => (
+                  <Space direction="vertical" style={{ width: '100%' }}>
+                    {branchFields.map((branchField,) => (
+                      <Card
+                        key={branchField.key}
+                        title={
+                          <Space>
+                            <Form.Item {...branchField} name={[branchField.name, 'name']} noStyle>
+                              <Input placeholder="Branch name" style={{ width: 200 }} />
+                            </Form.Item>
+                            <Tooltip title="Give this branch a meaningful name">
+                              <QuestionCircleOutlined />
+                            </Tooltip>
+                          </Space>
+                        }
+                        extra={branchFields.length > 1 && <Button type="text" danger icon={<DeleteOutlined />} onClick={() => removeBranch(branchField.name)} />}>
+                        <Form.Item name={[branchField.name, 'groupOperator']} initialValue="OR">
+                          <Radio.Group buttonStyle="solid" size="small">
+                            <Radio.Button value="AND">Match ALL groups (AND)</Radio.Button>
+                            <Radio.Button value="OR">Match ANY group (OR)</Radio.Button>
+                          </Radio.Group>
                         </Form.Item>
-                        <Tooltip title="Give this branch a meaningful name">
-                          <QuestionCircleOutlined />
-                        </Tooltip>
-                      </Space>
-                    }
-                    extra={branchFields.length > 1 && <Button type="text" danger icon={<DeleteOutlined />} onClick={() => removeBranch(branchField.name)} />}>
-                    <Form.Item name={[branchField.name, 'groupOperator']} initialValue="OR">
-                      <Radio.Group buttonStyle="solid" size="small">
-                        <Radio.Button value="AND">Match ALL groups (AND)</Radio.Button>
-                        <Radio.Button value="OR">Match ANY group (OR)</Radio.Button>
-                      </Radio.Group>
-                    </Form.Item>
 
-                    <Form.List name={[branchField.name, 'groups']}>
-                      {(groupFields, { add: addGroup, remove: removeGroup }) => (
-                        <Space direction="vertical" style={{ width: '100%' }}>
-                          {groupFields.map((groupField, groupIndex) => (
-                            <Card key={groupField.key} size="small" title={`Group ${groupIndex + 1}`} extra={groupFields.length > 1 && <Button type="text" danger icon={<DeleteOutlined />} onClick={() => removeGroup(groupField.name)} />}>
-                              <Form.Item name={[groupField.name, 'logicalOperator']} initialValue="AND">
-                                <Radio.Group buttonStyle="solid" size="small">
-                                  <Radio.Button value="AND">ALL conditions (AND)</Radio.Button>
-                                  <Radio.Button value="OR">ANY condition (OR)</Radio.Button>
-                                </Radio.Group>
-                              </Form.Item>
+                        <Form.List name={[branchField.name, 'groups']}>
+                          {(groupFields, { add: addGroup, remove: removeGroup }) => (
+                            <Space direction="vertical" style={{ width: '100%' }}>
+                              {groupFields.map((groupField, groupIndex) => (
+                                <Card key={groupField.key} size="small" title={`Group ${groupIndex + 1}`} extra={groupFields.length > 1 && <Button type="text" danger icon={<DeleteOutlined />} onClick={() => removeGroup(groupField.name)} />}>
+                                  <Form.Item name={[groupField.name, 'logicalOperator']} initialValue="AND">
+                                    <Radio.Group buttonStyle="solid" size="small">
+                                      <Radio.Button value="AND">ALL conditions (AND)</Radio.Button>
+                                      <Radio.Button value="OR">ANY condition (OR)</Radio.Button>
+                                    </Radio.Group>
+                                  </Form.Item>
 
-                              <Form.List name={[groupField.name, 'conditions']}>
-                                {(conditionFields, { add: addCondition, remove: removeCondition }) => (
-                                  <Space direction="vertical" style={{ width: '100%' }}>
-                                    {conditionFields.map((condField,) => (
-                                      <Card key={condField.key} size="small" bordered={false}>
-                                        <Space align="baseline">
-                                          <Form.Item {...condField} name={[condField.name, 'input']} rules={[{ required: true }]}>
-                                            <Select showSearch placeholder="Select variable" style={{ width: 200 }} options={availableVariables} optionFilterProp="label" />
-                                          </Form.Item>
-                                          <Form.Item {...condField} name={[condField.name, 'operator']} rules={[{ required: true }]}>
-                                            <Select options={OPERATORS} style={{ width: 100 }} />
-                                          </Form.Item>
-                                          <Form.Item {...condField} name={[condField.name, 'value']} rules={[{ required: true }]}>
-                                            <Input placeholder="Value" style={{ width: 120 }} />
-                                          </Form.Item>
-                                          <Button type="text" danger icon={<DeleteOutlined />} onClick={() => removeCondition(condField.name)} />
-                                        </Space>
-                                      </Card>
-                                    ))}
-                                    <Button type="dashed" onClick={() => addCondition()} icon={<PlusOutlined />}>
-                                      Add Condition
-                                    </Button>
-                                  </Space>
-                                )}
-                              </Form.List>
-                            </Card>
-                          ))}
-                          <Button type="dashed" onClick={() => addGroup()} icon={<PlusOutlined />}>
-                            Add Condition Group
-                          </Button>
-                        </Space>
-                      )}
-                    </Form.List>
+                                  <Form.List name={[groupField.name, 'conditions']}>
+                                    {(conditionFields, { add: addCondition, remove: removeCondition }) => (
+                                      <Space direction="vertical" style={{ width: '100%' }}>
+                                        {conditionFields.map((condField,) => (
+                                          <Card key={condField.key} size="small" bordered={false}>
+                                            <Space align="baseline">
+                                              <Form.Item {...condField} name={[condField.name, 'input']} rules={[{ required: true }]}>
+                                                <Select showSearch placeholder="Select variable" style={{ width: 200 }} options={availableVariables} optionFilterProp="label" />
+                                              </Form.Item>
+                                              <Form.Item {...condField} name={[condField.name, 'operator']} rules={[{ required: true }]}>
+                                                <Select options={OPERATORS} style={{ width: 100 }} />
+                                              </Form.Item>
+                                              <Form.Item {...condField} name={[condField.name, 'value']} rules={[{ required: true }]}>
+                                                <Input placeholder="Value" style={{ width: 120 }} />
+                                              </Form.Item>
+                                              <Button type="text" danger icon={<DeleteOutlined />} onClick={() => removeCondition(condField.name)} />
+                                            </Space>
+                                          </Card>
+                                        ))}
+                                        <Button type="dashed" onClick={() => addCondition()} icon={<PlusOutlined />}>
+                                          Add Condition
+                                        </Button>
+                                      </Space>
+                                    )}
+                                  </Form.List>
+                                </Card>
+                              ))}
+                              <Button type="dashed" onClick={() => addGroup()} icon={<PlusOutlined />}>
+                                Add Condition Group
+                              </Button>
+                            </Space>
+                          )}
+                        </Form.List>
 
-                    <Form.Item label={<div>
-                      <Text type="secondary" style={{ display: 'block', marginBottom: 4 }}>
-                        <LinkOutlined /> Target Node:
-                      </Text>
-                    </div>} name={[branchField.name, 'targetNode']} style={{ marginTop: 16 }}>
+                        <Form.Item label={<div>
+                          <Text type="secondary" style={{ display: 'block', marginBottom: 4 }}>
+                            <LinkOutlined /> Target Node:
+                          </Text>
+                        </div>} name={[branchField.name, 'targetNode']} style={{ marginTop: 16 }}>
 
+                          <Select
+                            allowClear
+                            placeholder="Select target node"
+                            style={{ width: '100%' }}
+                            options={flowNodes.map((node) => ({
+                              value: node.id,
+                              label: (node.data?.form as NodeData)?.name || node.id,
+                            }))}
+                            optionFilterProp="label"
+                            showSearch
+                          />
+                        </Form.Item>
+                      </Card>
+                    ))}
 
-                      <Select
-                        allowClear
-                        placeholder="Select target node"
-                        style={{ width: '100%' }}
-                        options={flowNodes.map((node) => ({
-                          value: node.id,
-                          label: (node.data?.form as NodeData)?.name || node.id,
-                        }))}
-                        optionFilterProp="label"
-                        showSearch
-                      />
-                    </Form.Item>
-                  </Card>
-                ))}
-
-                <Button type="dashed" onClick={() => addBranch({ name: `Branch ${branchFields.length + 1}`, conditions: [] })} block icon={<PlusOutlined />}>
-                  Add Branch
-                </Button>
-              </Space>
-            )}
-          </Form.List>
-        </Panel>
-      </Collapse>
+                    <Button type="dashed" onClick={() => addBranch({ name: `Branch ${branchFields.length + 1}`, conditions: [] })} block icon={<PlusOutlined />}>
+                      Add Branch
+                    </Button>
+                  </Space>
+                )}
+              </Form.List>
+            )
+          }
+        ]}
+      />
     </BaseNodeForm>
   );
 };

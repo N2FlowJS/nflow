@@ -13,6 +13,7 @@ import { getFlowConfig } from '../../../../../../../database/getFlowConfig';
 import {
   AddMessageToDatabase,
   saveConversationToDatabase,
+  getConversationMessages,
 } from '../../../../../../../database/persistConversationState';
 import { transformToOpenAIFormat } from '../../../../../../../utils/server/transformToOpenAIFormat';
 import { FlowNode } from '../../../../../../../models/flowTypes';
@@ -56,12 +57,16 @@ export default async function handler(
       message.role = 'system';
       if (newId !== conversationId) conversationId = newId;
     }
+
     const userInput = extractUserInputFromMessages(messages);
     if (userInput) {
       message.content = userInput;
       message.role = 'user';
       await AddMessageToDatabase({ conversationId, message });
     }
+
+    // Get conversation message history
+    const history = conversationId ? await getConversationMessages(conversationId) : [];
 
     if (stream === true && 'writeHead' in res) {
       res.writeHead(200, {
@@ -72,7 +77,7 @@ export default async function handler(
     }
     const encoder = new TextEncoder();
 
-    await executeFlow(flowConfig, flowState, message, async function (result: ExecutionResult) {
+    await executeFlow(flowConfig, flowState, message, history, async function (result: ExecutionResult) {
       if (stream && 'write' in res && result) {
         res.write(encoder.encode(`data: ${JSON.stringify(transformToOpenAIFormat(result, conversationId))}\n\n`));
       }

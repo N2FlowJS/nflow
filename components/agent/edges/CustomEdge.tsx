@@ -41,7 +41,13 @@ const CustomEdge: React.FC<EdgeProps<CustomEdgeData>> = ({
     if (!flowState) return false;
     let ac: boolean = false;
     Object.keys(flowState?.components).forEach((e: string) => {
-      if (e != target && e == source && flowState.components[target].executionTime > flowState.executionTime && flowState.components[source].executionTime > flowState.executionTime && flowState.components[e].executionTime > flowState.executionTime) {
+      if (
+        e != target &&
+        e == source &&
+        flowState.components[target].executionTime > flowState.executionTime &&
+        flowState.components[source].executionTime > flowState.executionTime &&
+        flowState.components[e].executionTime > flowState.executionTime
+      ) {
         ac = true;
         return;
       }

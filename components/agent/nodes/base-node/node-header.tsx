@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo } from "react";
 import { Typography, Tooltip, Flex } from "antd";
 import { NodeTypeString } from "../../../../models/flowTypes";
 import RoleIndicator from "../shared/RoleIndicator";
@@ -11,7 +11,7 @@ interface NodeHeaderProps {
   role?: 'developer' | 'assistant' | 'system' | 'user';
 }
 
-const NodeHeader: React.FC<NodeHeaderProps> = ({ id, name, icon, role }) => {
+const NodeHeader: React.FC<NodeHeaderProps> = memo(({ id, name, icon, role }) => {
   return (
     <Flex align="center" gap={8} justify="space-between">
       <Flex align="center" gap={8}>
@@ -28,6 +28,8 @@ const NodeHeader: React.FC<NodeHeaderProps> = ({ id, name, icon, role }) => {
       {role && <RoleIndicator role={role} />}
     </Flex>
   );
-};
+});
+
+NodeHeader.displayName = 'NodeHeader';
 
 export default NodeHeader;

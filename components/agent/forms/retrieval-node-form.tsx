@@ -56,7 +56,7 @@ const RetrievalNodeForm: React.FC<RetrievalNodeFormProps> = (props) => {
           disabled={loading}
           notFoundContent={
             loading ? (
-              <Spin size="small" indicator={<LoadingOutlined spin />} />
+              <Spin size="small" />
             ) : error ? (
               <Typography.Text type="danger">{error}</Typography.Text>
             ) : (

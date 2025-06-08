@@ -9,9 +9,10 @@ export async function executeFlow(
   flow: Flow,
   flowState: FlowState,
   input: MessagePart,
+  history: MessagePart[],
   callback: (result: ExecutionResult) => void
 ): Promise<void> {
-  try {
+  try {     
     // Create shared dispatcher for entire flow execution
     const dispatcher = new FlowStateDispatcher(flowState);
     
@@ -35,7 +36,7 @@ export async function executeFlow(
     callback(result);
     const status: ExecutionStatus[] = ['in_progress', 'completed', 'error'];
     if (status.includes(result.status)) {
-      await continueExecution(flow, result, callback, dispatcher);
+      await continueExecution(flow, result, callback, history, dispatcher);
     }
   } catch (error: unknown) {
     throw new Error(`Error in executeFlow: ${error instanceof Error ? error.message : String(error)}`);

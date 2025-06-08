@@ -10,7 +10,6 @@ import RoleSelector from "./shared/RoleSelector";
 import { FormInstance } from "antd/lib";
 
 const { Text } = Typography;
-const { Panel } = Collapse;
 
 // Basic styling to integrate better with Ant Design
 const mentionsInputStyle = {
@@ -145,7 +144,8 @@ const GenerateNodeForm: React.FC<GenerateNodeFormProps> = (props) => {
       >
         {loading ? (
           <div style={{ textAlign: 'center', padding: '20px 0' }}>
-            <Spin tip="Loading available models..." />
+            <Spin />
+            <div style={{ marginTop: 8 }}>Loading available models...</div>
           </div>
         ) : error ? (
           <div style={{ color: 'red' }}>
@@ -182,66 +182,68 @@ const GenerateNodeForm: React.FC<GenerateNodeFormProps> = (props) => {
         defaultActiveKey={['prompt', 'output']}
         bordered={false}
         expandIconPosition="end"
-      >
-        <Panel
-          header={
-            <Space>
-              <FileTextOutlined />
-              <span>Prompt Template</span>
-            </Space>
+        items={[
+          {
+            key: 'prompt',
+            label: (
+              <Space>
+                <FileTextOutlined />
+                <span>Prompt Template</span>
+              </Space>
+            ),
+            children: (
+              <>
+                <Form.Item
+                  name="prompt"
+                  // No label needed as it's in the Panel header
+                  rules={[{ required: true, message: 'Please enter a prompt template' }]}
+                  // Use getValueFromEvent to correctly handle MentionsInput onChange
+                  getValueFromEvent={(event) => event.target.value}
+                >
+                  <MentionsInput
+                    style={mentionsInputStyle} // Apply custom styles
+                    placeholder="Enter prompt template... Use @ to mention variables."
+                    a11ySuggestionsListLabel={"Suggested variables"}
+                    allowSpaceInQuery={true} // Allows searching for multi-word variables if needed
+                    // Control the component value
+                    onChange={(event: unknown, value: string) => {
+                      console.log(event);
+
+                      props.form.setFieldsValue({ prompt: value })
+                    }} // Update form on change
+                  >
+                    <Mention
+                      trigger="@" // Use @ to trigger suggestions
+                      data={allVariables} // Provide the variable data
+                      markup="{{__id__}}" // Define how the mention is inserted (using Ant Design variable style)
+                      displayTransform={(id: string) => {
+                        // Find the variable with this id to get its display name
+                        const variable = allVariables.find(v => v.id === id);
+                        return `@${variable ? variable.display : id}`;
+                      }} // Show display name in mentions
+                      style={{ backgroundColor: '#e6f7ff' }} // Style for the highlighted mention
+                      appendSpaceOnAdd={true} // Add a space after inserting a mention
+                      renderSuggestion={(suggestion: SuggestionDataItem) => (
+                        <div style={mentionItemStyle}>
+                          <div>
+                            <b>{suggestion.display}</b>
+                          </div>
+                          <div style={{ color: '#8c8c8c', fontSize: '0.85em', marginLeft: '8px' }}>
+                            {suggestion.id}
+                          </div>
+                        </div>
+                      )}
+                    />
+                  </MentionsInput>
+                </Form.Item>
+                <div style={{ fontSize: '0.9em', color: '#888', marginTop: 8 }}>
+                  Use <code>@</code> to insert available variables like <code>@userInput</code> or <code>@retrievalResults</code>. They will be converted to <code>{'{{variableName}}'}</code> format.
+                </div>
+              </>
+            )
           }
-          key="prompt"
-        >
-          <Form.Item
-            name="prompt"
-            // No label needed as it's in the Panel header
-            rules={[{ required: true, message: 'Please enter a prompt template' }]}
-            // Use getValueFromEvent to correctly handle MentionsInput onChange
-            getValueFromEvent={(event) => event.target.value}
-          >
-            <MentionsInput
-              style={mentionsInputStyle} // Apply custom styles
-              placeholder="Enter prompt template... Use @ to mention variables."
-              a11ySuggestionsListLabel={"Suggested variables"}
-              allowSpaceInQuery={true} // Allows searching for multi-word variables if needed
-              // Control the component value
-              onChange={(event: unknown, value: string) => {
-                console.log(event);
-
-                props.form.setFieldsValue({ prompt: value })
-              }} // Update form on change
-            >
-              <Mention
-                trigger="@" // Use @ to trigger suggestions
-                data={allVariables} // Provide the variable data
-                markup="{{__id__}}" // Define how the mention is inserted (using Ant Design variable style)
-                displayTransform={(id: string) => {
-                  // Find the variable with this id to get its display name
-                  const variable = allVariables.find(v => v.id === id);
-                  return `@${variable ? variable.display : id}`;
-                }} // Show display name in mentions
-                style={{ backgroundColor: '#e6f7ff' }} // Style for the highlighted mention
-                appendSpaceOnAdd={true} // Add a space after inserting a mention
-                renderSuggestion={(suggestion: SuggestionDataItem) => (
-                  <div style={mentionItemStyle}>
-                    <div>
-                      <b>{suggestion.display}</b>
-                    </div>
-                    <div style={{ color: '#8c8c8c', fontSize: '0.85em', marginLeft: '8px' }}>
-                      {suggestion.id}
-                    </div>
-                  </div>
-                )}
-              />
-            </MentionsInput>
-          </Form.Item>
-          <div style={{ fontSize: '0.9em', color: '#888', marginTop: 8 }}>
-            Use <code>@</code> to insert available variables like <code>@userInput</code> or <code>@retrievalResults</code>. They will be converted to <code>{'{{variableName}}'}</code> format.
-          </div>
-        </Panel>
-
-
-      </Collapse>
+        ]}
+      />
     </BaseNodeForm>
   );
 };

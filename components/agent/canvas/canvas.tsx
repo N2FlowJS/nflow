@@ -300,7 +300,6 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flowConfig, onStartConversation
         <ReactFlow
           colorMode={theme}
           nodes={nodes}
-          title=""
           edges={edges}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
@@ -313,6 +312,10 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flowConfig, onStartConversation
           fitView
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
+          snapToGrid={true}
+          snapGrid={[10, 10]}
+          panOnDrag={[1, 2]}
+          deleteKeyCode="Delete"
           defaultEdgeOptions={{
             type: 'default',
             data: {

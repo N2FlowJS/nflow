@@ -11,7 +11,6 @@ import InputReferences from "./shared/InputReferences";
 import { FormInstance } from "antd/lib";
 
 const { Text } = Typography;
-const { Panel } = Collapse;
 
 // Basic styling to integrate better with Ant Design
 const mentionsInputStyle = {
@@ -140,7 +139,8 @@ const KeywordsNodeForm: React.FC<KeywordsNodeFormProps> = (props) => {
       >
         {loading ? (
           <div style={{ textAlign: 'center', padding: '20px 0' }}>
-            <Spin tip="Loading available models..." />
+            <Spin />
+            <div style={{ marginTop: 8 }}>Loading available models...</div>
           </div>
         ) : error ? (
           <div style={{ color: 'red' }}>
@@ -205,59 +205,63 @@ const KeywordsNodeForm: React.FC<KeywordsNodeFormProps> = (props) => {
         defaultActiveKey={['prompt']}
         bordered={false}
         expandIconPosition="end"
-      >
-        <Panel
-          header={
-            <Space>
-              <TagsOutlined />
-              <span>Keywords Extraction Prompt</span>
-            </Space>
+        items={[
+          {
+            key: 'prompt',
+            label: (
+              <Space>
+                <TagsOutlined />
+                <span>Keywords Extraction Prompt</span>
+              </Space>
+            ),
+            children: (
+              <>
+                <Form.Item
+                  name="prompt"
+                  rules={[{ required: true, message: 'Please enter a prompt template for keyword extraction' }]}
+                  getValueFromEvent={(event) => event.target.value}
+                >
+                  <MentionsInput
+                    style={mentionsInputStyle}
+                    placeholder="Enter prompt for keyword extraction... Use @ to mention variables. Example: Extract keywords from: {{@userInput}}"
+                    a11ySuggestionsListLabel={"Suggested variables"}
+                    allowSpaceInQuery={true}
+                    onChange={(event: unknown, value: string) => {
+                      console.log(event);
+                      props.form.setFieldsValue({ prompt: value })
+                    }}
+                  >
+                    <Mention
+                      trigger="@"
+                      data={allVariables}
+                      markup="{{__id__}}"
+                      displayTransform={(id: string) => {
+                        const variable = allVariables.find(v => v.id === id);
+                        return `@${variable ? variable.display : id}`;
+                      }}
+                      style={{ backgroundColor: '#f6ffed' }}
+                      appendSpaceOnAdd={true}
+                      renderSuggestion={(suggestion: SuggestionDataItem) => (
+                        <div style={mentionItemStyle}>
+                          <div>
+                            <b>{suggestion.display}</b>
+                          </div>
+                          <div style={{ color: '#8c8c8c', fontSize: '0.85em', marginLeft: '8px' }}>
+                            {suggestion.id}
+                          </div>
+                        </div>
+                      )}
+                    />
+                  </MentionsInput>
+                </Form.Item>
+                <div style={{ fontSize: '0.9em', color: '#888', marginTop: 8 }}>
+                  Use <code>@</code> to insert available variables. Example: "Extract the most important keywords from: <code>{'{{@userInput}}'}</code>". The model will return a list of keywords.
+                </div>
+              </>
+            )
           }
-          key="prompt"
-        >
-          <Form.Item
-            name="prompt"
-            rules={[{ required: true, message: 'Please enter a prompt template for keyword extraction' }]}
-            getValueFromEvent={(event) => event.target.value}
-          >
-            <MentionsInput
-              style={mentionsInputStyle}
-              placeholder="Enter prompt for keyword extraction... Use @ to mention variables. Example: Extract keywords from: {{@userInput}}"
-              a11ySuggestionsListLabel={"Suggested variables"}
-              allowSpaceInQuery={true}
-              onChange={(event: unknown, value: string) => {
-                console.log(event);
-                props.form.setFieldsValue({ prompt: value })
-              }}
-            >
-              <Mention
-                trigger="@"
-                data={allVariables}
-                markup="{{__id__}}"
-                displayTransform={(id: string) => {
-                  const variable = allVariables.find(v => v.id === id);
-                  return `@${variable ? variable.display : id}`;
-                }}
-                style={{ backgroundColor: '#f6ffed' }}
-                appendSpaceOnAdd={true}
-                renderSuggestion={(suggestion: SuggestionDataItem) => (
-                  <div style={mentionItemStyle}>
-                    <div>
-                      <b>{suggestion.display}</b>
-                    </div>
-                    <div style={{ color: '#8c8c8c', fontSize: '0.85em', marginLeft: '8px' }}>
-                      {suggestion.id}
-                    </div>
-                  </div>
-                )}
-              />
-            </MentionsInput>
-          </Form.Item>
-          <div style={{ fontSize: '0.9em', color: '#888', marginTop: 8 }}>
-            Use <code>@</code> to insert available variables. Example: "Extract the most important keywords from: <code>{'{{@userInput}}'}</code>". The model will return a list of keywords.
-          </div>
-        </Panel>
-      </Collapse>
+        ]}
+      />
 
       <InputReferences
         form={props.form}

@@ -228,7 +228,8 @@ const LLMModelsTable: React.FC<LLMModelsTableProps> = ({ models, provider, loadi
       <Modal title={quickAddModalTitle} open={isQuickAddModalVisible} onCancel={() => setIsQuickAddModalVisible(false)} okText="Add Selected Models" okButtonProps={{ disabled: selectedModels.length === 0, loading: actionLoading }} onOk={handleQuickAddModels} width={700}>
         {fetchingModels ? (
           <div style={{ textAlign: 'center', padding: '30px' }}>
-            <Spin tip="Fetching available models..." />
+            <Spin size="large" />
+            <div style={{ marginTop: 16 }}>Fetching available models...</div>
           </div>
         ) : (
           <>

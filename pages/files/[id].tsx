@@ -28,7 +28,6 @@ import {
   Skeleton,
   Space,
   Spin,
-  // Tabs, // Removed Tabs import
   Tag,
   Typography,
 } from 'antd';

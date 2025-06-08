@@ -3,12 +3,14 @@ import { EXECUTION_STATUS } from '../EXECUTION_STATUS';
 import { Flow } from '../../../models/flowTypes';
 import { ExecutionResult } from '../../../models/flowExecutionTypes';
 import { FlowStateDispatcher } from './flowStateDispatcher';
+import { MessagePart } from '../../../models/MessagePart';
 
 export async function processNode(
   flow: Flow,
   nodeId: string,
   prevResult: ExecutionResult,
   callback: (result: ExecutionResult) => void,
+  history: MessagePart[] = [],
   dispatcher?: FlowStateDispatcher
 ): Promise<ExecutionResult> {
   const nextNode = flow.nodes.find((node) => node.id === nodeId);
@@ -23,6 +25,7 @@ export async function processNode(
         content: prevResult.execution.output,
         role: prevResult.nodeInfo.role,
       },
+      history: history,
     },
     callback,
     dispatcher

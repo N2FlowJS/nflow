@@ -58,7 +58,8 @@ const KnowledgeModelForm: React.FC = () => {
       >
         {loadingLLM ? (
           <div style={{ textAlign: 'center', padding: '20px 0' }}>
-            <Spin tip="Loading available models..." />
+            <Spin />
+            <div style={{ marginTop: 8 }}>Loading available models...</div>
           </div>
         ) : error ? (
           <div style={{ color: 'red' }}>

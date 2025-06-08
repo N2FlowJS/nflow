@@ -20,7 +20,6 @@ import {
 import { ICategory } from "../../../../models/flowTypes";
 import { Node } from "@xyflow/react";
 
-const { Panel } = Collapse;
 const { Text } = Typography;
 
 interface CategoryListItemProps {
@@ -93,115 +92,117 @@ const CategoryListItem: React.FC<CategoryListItemProps> = ({
       className="category-collapse"
       bordered={false}
       style={{ marginBottom: 8, background: '#f5f5f5', borderRadius: 4 }}
-    >
-      <Panel
-        key={category.name}
-        header={
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-            <Text strong>{category.name}</Text>
-            <Space>
-              <Tooltip title="Remove Category">
-                <Button
-                  type="text"
-                  danger
-                  icon={<DeleteOutlined />}
-                  size="small"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    removeCategory(category.name);
-                  }}
+      items={[
+        {
+          key: category.name,
+          label: (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+              <Text strong>{category.name}</Text>
+              <Space>
+                <Tooltip title="Remove Category">
+                  <Button
+                    type="text"
+                    danger
+                    icon={<DeleteOutlined />}
+                    size="small"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removeCategory(category.name);
+                    }}
+                  />
+                </Tooltip>
+              </Space>
+            </div>
+          ),
+          children: (
+            <Space direction="vertical" style={{ width: "100%" }}>
+              {/* Description */}
+              <Input
+                placeholder="Category description"
+                value={category.description || ""}
+                onChange={(e) => updateDescription(e.target.value)}
+              />
+
+              {/* Target node selection */}
+              <div style={{ marginTop: 8 }}>
+                <Text type="secondary" style={{ display: 'block', marginBottom: 4 }}>
+                  <LinkOutlined /> Target Node:
+                </Text>
+                <Select
+                  allowClear
+                  placeholder="Select target node"
+                  style={{ width: '100%' }}
+                  value={category.targetNode}
+                  onChange={updateTargetNode}
+                  options={nodes.map(node => ({
+                    value: node.id,
+                    label: (node.data?.form as any)?.name || node.id
+                  }))}
+                  optionFilterProp="label"
+                  showSearch
                 />
-              </Tooltip>
-            </Space>
-          </div>
-        }
-      >
-        <Space direction="vertical" style={{ width: "100%" }}>
-          {/* Description */}
-          <Input
-            placeholder="Category description"
-            value={category.description || ""}
-            onChange={(e) => updateDescription(e.target.value)}
-          />
+              </div>
 
-          {/* Target node selection */}
-          <div style={{ marginTop: 8 }}>
-            <Text type="secondary" style={{ display: 'block', marginBottom: 4 }}>
-              <LinkOutlined /> Target Node:
-            </Text>
-            <Select
-              allowClear
-              placeholder="Select target node"
-              style={{ width: '100%' }}
-              value={category.targetNode}
-              onChange={updateTargetNode}
-              options={nodes.map(node => ({
-                value: node.id,
-                label: (node.data?.form as any)?.name || node.id
-              }))}
-              optionFilterProp="label"
-              showSearch
-            />
-          </div>
+              {/* Examples section */}
+              <Divider orientation="left" style={{ margin: '12px 0 8px' }}>
+                <Space>
+                  <FileTextOutlined />
+                  <span>Examples</span>
+                </Space>
+              </Divider>
 
-          {/* Examples section */}
-          <Divider orientation="left" style={{ margin: '12px 0 8px' }}>
-            <Space>
-              <FileTextOutlined />
-              <span>Examples</span>
-            </Space>
-          </Divider>
-
-          <Space.Compact style={{ width: "100%" }}>
-            <Input
-              placeholder="Add example for this category"
-              value={newExample}
-              onChange={(e) => setNewExample(e.target.value)}
-              onPressEnter={addExample}
-            />
-            <Button
-              icon={<PlusOutlined />}
-              onClick={addExample}
-              disabled={!newExample}
-            >
-              Add
-            </Button>
-          </Space.Compact>
-
-          {/* Examples list */}
-          {category.examples && category.examples.length > 0 ? (
-            <List
-              size="small"
-              bordered
-              style={{ marginTop: 8 }}
-              dataSource={category.examples}
-              renderItem={(example) => (
-                <List.Item
-                  actions={[
-                    <Button
-                      key="delete"
-                      type="text"
-                      danger
-                      icon={<DeleteOutlined />}
-                      size="small"
-                      onClick={() => removeExample(example)}
-                    />
-                  ]}
+              <Space.Compact style={{ width: "100%" }}>
+                <Input
+                  placeholder="Add example for this category"
+                  value={newExample}
+                  onChange={(e) => setNewExample(e.target.value)}
+                  onPressEnter={addExample}
+                />
+                <Button
+                  icon={<PlusOutlined />}
+                  onClick={addExample}
+                  disabled={!newExample}
                 >
-                  <Text>{example}</Text>
-                </List.Item>
+                  Add
+                </Button>
+              </Space.Compact>
+
+              {/* Examples list */}
+              {category.examples && category.examples.length > 0 ? (
+                <List
+                  size="small"
+                  bordered
+                  style={{ marginTop: 8 }}
+                  dataSource={category.examples}
+                  renderItem={(example) => (
+                    <List.Item
+                      actions={[
+                        <Button
+                          key="delete"
+                          type="text"
+                          danger
+                          icon={<DeleteOutlined />}
+                          size="small"
+                          onClick={() => removeExample(example)}
+                        />
+                      ]}
+                    >
+                      <Text>{example}</Text>
+                    </List.Item>
+                  )}
+                />
+              ) : (
+                <Empty
+                  image={Empty.PRESENTED_IMAGE_SIMPLE}
+                  description="No examples added"
+                  style={{ margin: '8px 0' }}
+                />
               )}
-            />
-          ) : (
-            <Empty
-              image={Empty.PRESENTED_IMAGE_SIMPLE}
-              description="No examples added"
-              style={{ margin: '8px 0' }}
-            />
-          )}
-        </Space>
-      </Panel>
-    </Collapse>
+            </Space>
+          )
+        }
+      ]}
+    />
   );
 };
 

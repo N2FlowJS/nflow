@@ -93,6 +93,8 @@ export interface FlowExecutionContext {
 
   // Optional user input for the current execution step
   input: MessagePart;
+
+  history?: MessagePart[]; // Optional history of messages for the current execution step
 }
 
 /**

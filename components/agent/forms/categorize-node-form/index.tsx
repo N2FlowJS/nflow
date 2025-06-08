@@ -20,7 +20,6 @@ import CategoryListItem from "./category-list-item";
 import DefaultCategorySelector from "./default-category-selector";
 import { FormInstance } from "antd/lib";
 
-const { Panel } = Collapse;
 
 interface CategorizeNodeFormProps {
   form:  FormInstance<CategorizeForm>;
@@ -174,75 +173,77 @@ const CategorizeNodeForm: React.FC<CategorizeNodeFormProps> = ({ form, selectedN
         bordered={false}
         expandIconPosition="end"
         className="form-collapse"
-      >
-        <Panel
-          header={
-            <Space>
-              <AppstoreOutlined />
-              <span>Categories</span>
-              {categories.length > 0 && (
-                <Tag color="pink">{categories.length}</Tag>
-              )}
-            </Space>
-          }
-          key="categoryManager"
-        >
-          <Space direction="vertical" style={{ width: "100%" }}>
-            {/* Category creator component */}
-            <CategoryCreator
-              categories={categories}
-              defaultCategory={defaultCategory}
-              onAddCategory={addCategory}
-            />
+        items={[
+          {
+            key: "categoryManager",
+            label: (
+              <Space>
+                <AppstoreOutlined />
+                <span>Categories</span>
+                {categories.length > 0 && (
+                  <Tag color="pink">{categories.length}</Tag>
+                )}
+              </Space>
+            ),
+            children: (
+              <Space direction="vertical" style={{ width: "100%" }}>
+                {/* Category creator component */}
+                <CategoryCreator
+                  categories={categories}
+                  defaultCategory={defaultCategory}
+                  onAddCategory={addCategory}
+                />
 
-            {/* Categories list */}
-            {categories.length > 0 ? (
-              <List
-                size="small"
-                dataSource={categories}
-                renderItem={(category: ICategory) => (
-                  <CategoryListItem
-                    key={category.name}
-                    category={category}
-                    categories={categories}
-                    nodes={flowNodes}
-                    updateCategories={updateCategories}
-                    removeCategory={removeCategory}
+                {/* Categories list */}
+                {categories.length > 0 ? (
+                  <List
+                    size="small"
+                    dataSource={categories}
+                    renderItem={(category: ICategory) => (
+                      <CategoryListItem
+                        key={category.name}
+                        category={category}
+                        categories={categories}
+                        nodes={flowNodes}
+                        updateCategories={updateCategories}
+                        removeCategory={removeCategory}
+                      />
+                    )}
+                  />
+                ) : (
+                  <Empty
+                    image={Empty.PRESENTED_IMAGE_SIMPLE}
+                    description="No categories defined"
+                    style={{ margin: "12px 0" }}
                   />
                 )}
-              />
-            ) : (
-              <Empty
-                image={Empty.PRESENTED_IMAGE_SIMPLE}
-                description="No categories defined"
-                style={{ margin: "12px 0" }}
-              />
-            )}
-          </Space>
-        </Panel>
-
-        <Panel
-          header={<DefaultCategorySelector categories={categories} />}
-          key="defaultCategory"
-        >
-          <Form.Item
-            name="defaultCategory"
-            help="This category will be used when no other categories match"
-            noStyle
-          >
-            <Select
-              placeholder="Select default category"
-              style={{ width: "100%" }}
-            >
-              {categories.map((category: ICategory) => (
-                <Select.Option key={category.name} value={category.name}>
-                  {category.name}
-                </Select.Option>
-              ))}
-            </Select>
-          </Form.Item>
-        </Panel>
-      </Collapse>
+              </Space>
+            )
+          },
+          {
+            key: "defaultCategory",
+            label: <DefaultCategorySelector categories={categories} />,
+            children: (
+              <Form.Item
+                name="defaultCategory"
+                help="This category will be used when no other categories match"
+                noStyle
+              >
+                <Select
+                  placeholder="Select default category"
+                  style={{ width: "100%" }}
+                >
+                  {categories.map((category: ICategory) => (
+                    <Select.Option key={category.name} value={category.name}>
+                      {category.name}
+                    </Select.Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            )
+          }
+        ]}
+      />
     </BaseNodeForm>
   );
 };
