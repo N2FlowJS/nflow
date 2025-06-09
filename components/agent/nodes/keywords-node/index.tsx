@@ -1,13 +1,14 @@
-import React, { useEffect, useState } from "react";
-import { Position, NodeProps, Node } from "@xyflow/react";
-import { KeywordsNodeData } from "../../../../models/flowTypes";
+import React, { useEffect, useState } from 'react';
+import { Position, NodeProps, Node } from '@xyflow/react';
+import { KeywordsNodeData } from '../../../../models/flowTypes';
 import BaseNode from '../base-node';
 import { Flex, Tooltip, Spin } from 'antd';
-import { TagsOutlined, InfoCircleOutlined } from "@ant-design/icons";
-import ModelInfo from "../generate-node/ModelInfo";
-import PromptInfo from "../generate-node/PromptInfo";
-import KeywordsInfo from "./KeywordsInfo";
-import { fetchLLMModelById } from "../../../../services/llmService";
+import { TagsOutlined, InfoCircleOutlined } from '@ant-design/icons';
+import ModelInfo from '../generate-node/ModelInfo';
+import PromptInfo from '../generate-node/PromptInfo';
+import KeywordsInfo from './KeywordsInfo';
+import { fetchLLMModelById } from '../../../../services/llmService';
+import HistoryChatSize from './history-chat-size';
 
 const KeywordsNode = ({ data, id, selected }: NodeProps<Node<KeywordsNodeData>>) => {
   const { form } = data;
@@ -23,12 +24,12 @@ const KeywordsNode = ({ data, id, selected }: NodeProps<Node<KeywordsNodeData>>)
       setError(null);
 
       fetchLLMModelById(form.model)
-        .then(modelData => {
+        .then((modelData) => {
           setModelDetails(modelData);
         })
-        .catch(err => {
-          console.error("Error fetching model details:", err);
-          setError("Failed to load model information");
+        .catch((err) => {
+          console.error('Error fetching model details:', err);
+          setError('Failed to load model information');
         })
         .finally(() => {
           setLoading(false);
@@ -38,9 +39,9 @@ const KeywordsNode = ({ data, id, selected }: NodeProps<Node<KeywordsNodeData>>)
 
   // Get an appropriate model display name
   const getModelDisplayName = () => {
-    if (loading) return "Loading...";
-    if (error) return "Error loading model";
-    if (!form?.model) return "No model selected";
+    if (loading) return 'Loading...';
+    if (error) return 'Error loading model';
+    if (!form?.model) return 'No model selected';
 
     if (modelDetails?.name) return modelDetails.name;
 
@@ -65,8 +66,7 @@ const KeywordsNode = ({ data, id, selected }: NodeProps<Node<KeywordsNodeData>>)
         output: [Position.Left, Position.Right],
       }}
       icon={<TagsOutlined style={{ color: '#722ed1' }} />}
-      role={form?.role}
-    >
+      role={form?.role}>
       <Flex vertical gap={8}>
         <Flex align="center" justify="space-between">
           {loading ? (
@@ -86,8 +86,9 @@ const KeywordsNode = ({ data, id, selected }: NodeProps<Node<KeywordsNodeData>>)
           )}
         </Flex>
 
-        <PromptInfo prompt={form?.prompt || ""} />
-        
+        <PromptInfo prompt={form?.prompt || ''} />
+        <HistoryChatSize numberHistory={form?.numberHistory || 0} />
+
         <KeywordsInfo maxResults={form?.maxResults || 10} />
       </Flex>
     </BaseNode>

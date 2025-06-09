@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Position, NodeProps, Node } from "@xyflow/react";
 import { GenerateNodeData } from "../../../../models/flowTypes";
 import BaseNode from '../base-node';
@@ -6,53 +6,18 @@ import { Flex, Tooltip, Spin } from 'antd';
 import { RobotOutlined, InfoCircleOutlined } from "@ant-design/icons";
 import ModelInfo from "./ModelInfo";
 import PromptInfo from "./PromptInfo";
-import { fetchLLMModelById } from "../../../../services/llmService";
+import { useModelDetails } from "../../../../hooks/useModelDetails";
+import HistoryChatSize from "../keywords-node/history-chat-size";
 
 const GenerateNode = ({ data, id, selected }: NodeProps<Node<GenerateNodeData>>) => {
   const { form } = data;
-  const [modelDetails, setModelDetails] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  // Fetch model details when the model ID changes
-  useEffect(() => {
-    if (form?.model && typeof form.model === 'string' && form.model.length > 10) {
-      // Assume we have a model ID if string is longer than 10 chars
-      setLoading(true);
-      setError(null);
-
-      fetchLLMModelById(form.model)
-        .then(modelData => {
-          setModelDetails(modelData);
-        })
-        .catch(err => {
-          console.error("Error fetching model details:", err);
-          setError("Failed to load model information");
-        })
-        .finally(() => {
-          setLoading(false);
-        });
-    }
-  }, [form?.model]);
-
-  // Get an appropriate model display name
-  const getModelDisplayName = () => {
-    if (loading) return "Loading...";
-    if (error) return "Error loading model";
-    if (!form?.model) return "No model selected";
-
-    if (modelDetails?.name) return modelDetails.name;
-
-    // Fall back to the model ID or name from the form
-    return form.model;
-  };
-
-  const getProviderName = () => {
-    if (modelDetails?.provider?.name) {
-      return modelDetails.provider.name;
-    }
-    return null;
-  };
+  const {
+    loading,
+    error,
+    getModelDisplayName,
+    getProviderName,
+    modelDetails
+  } = useModelDetails(form?.model);
 
   return (
     <BaseNode
@@ -86,6 +51,8 @@ const GenerateNode = ({ data, id, selected }: NodeProps<Node<GenerateNodeData>>)
         </Flex>
 
         <PromptInfo prompt={form?.prompt || ""} />
+                <HistoryChatSize numberHistory={form?.numberHistory || 0} />
+
       </Flex>
     </BaseNode>
   );

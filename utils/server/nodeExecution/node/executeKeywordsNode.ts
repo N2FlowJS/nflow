@@ -9,21 +9,28 @@ import { isNodeReady } from '../../isNodeReady';
 import { MessagePart } from '../../../../models/MessagePart';
 import { llmOpenAI } from '../../../../llm/openai';
 import { prisma } from '../../../../lib/prisma';
+import { log } from 'console';
 
 /**
  * Handler for executing Keywords nodes
  */
 export async function executeKeywordsNode(
   node: FlowNode,
-  { flow, flowState, input }: FlowExecutionContext,
+  { flow, flowState, input, history }: FlowExecutionContext,
   callback?: (result: ExecutionResult) => void,
   dispatcher?: FlowStateDispatcher
 ): Promise<ExecutionResult> {
   const data = node.data as KeywordsNodeData;
   const startTime = new Date().toISOString();
   const form = data.form || {};
+  const historyMessages = (history || [])
+    .slice(form.numberHistory || 0)
+    .flatMap((msg: MessagePart) => `${msg.role}: ${msg.content}\n`)
+    .join('- ');
 
   const inputs: string[] = getInputFromTemplate(form.prompt || '');
+  console.log(`Executing Keywords node: ${node.id} with inputs: ${JSON.stringify(inputs, null, 2)}`);
+
   const ready = isNodeReady(inputs, flowState);
 
   if (!ready) {
@@ -46,27 +53,28 @@ export async function executeKeywordsNode(
       },
     };
   }
+  console.log(`Node ${node.id} is ready to execute with inputs: ${JSON.stringify(inputs, null, 2)}`);
 
   const vars: Record<string, string> = {};
   inputs.forEach((key) => {
-    if (flowState.components[key] !== undefined) {
-      vars[key] = flowState.components[key].output || "";
-    }
+    vars[key] = flowState.components[key]?.output || '';
   });
-
+  vars['conversation'] = historyMessages;
+  console.log(`Executing Keywords node: ${node.id} with inputs: ${JSON.stringify(vars, null, 2)}`);
   // Get the input text for keyword extraction
   const nodeInputs = getInputs(node.id, flowState, []);
   const inputText = getQueryFromSource(nodeInputs, flowState) || input.content;
-  
+
   if (!inputText) {
     throw new Error('No input text available for keyword extraction');
   }
 
   // Add input text to variables
-  vars['input_text'] = inputText;
+  vars['conversation'] = historyMessages;
 
   try {
     const prompt = processTemplate(form.prompt || '', vars);
+    console.log(`Executing Keywords node: ${node.id} with prompt: ${prompt}`);
     const message: MessagePart[] = [
       {
         role: 'system',
@@ -75,7 +83,7 @@ export async function executeKeywordsNode(
       {
         role: 'user',
         content: inputText,
-      }
+      },
     ];
 
     // Get model ID
@@ -94,32 +102,46 @@ export async function executeKeywordsNode(
     let aiResponse = '';
     const streamCallback = callback
       ? (partial: string) => {
-        callback({
-          status: 'waiting',
-          nextNodes: [],
-          flowState,
-          nodeInfo: {
-            id: node.id,
-            name: node.data?.label || node.id,
-            type: 'keywords',
-            role: 'assistant',
-          },
-          execution: {
-            output: partial,
-            nodeId: node.id,
-            nodeName: node.data?.label || node.id,
-            startTime: startTime,
-          },
-        });
-      }
+          callback({
+            status: 'waiting',
+            nextNodes: [],
+            flowState,
+            nodeInfo: {
+              id: node.id,
+              name: node.data?.label || node.id,
+              type: 'keywords',
+              role: 'assistant',
+            },
+            execution: {
+              output: partial,
+              nodeId: node.id,
+              nodeName: node.data?.label || node.id,
+              startTime: startTime,
+            },
+          });
+        }
       : undefined;
 
     switch (model.provider.providerType) {
       case 'openai':
-        aiResponse = await llmOpenAI.completions(model.provider.endpointUrl, model.provider.apiKey, model.name, message, undefined, streamCallback);
+        aiResponse = await llmOpenAI.completions(
+          model.provider.endpointUrl,
+          model.provider.apiKey,
+          model.name,
+          message,
+          undefined,
+          streamCallback
+        );
         break;
       case 'openai-compatible':
-        aiResponse = await llmOpenAI.completions(model.provider.endpointUrl, model.provider.apiKey, model.name, message, undefined, streamCallback);
+        aiResponse = await llmOpenAI.completions(
+          model.provider.endpointUrl,
+          model.provider.apiKey,
+          model.name,
+          message,
+          undefined,
+          streamCallback
+        );
         break;
       default:
         return {
@@ -141,10 +163,13 @@ export async function executeKeywordsNode(
           },
         };
     }
-
+   log(`AI response for Keywords node ${node.id}: ${aiResponse}`);
     // Process keywords response - limit to maxResults
     const maxResults = form.maxResults || 10;
-    let keywords = aiResponse.split(',').map(k => k.trim()).filter(k => k.length > 0);
+    let keywords = aiResponse
+      .split(',')
+      .map((k) => k.trim())
+      .filter((k) => k.length > 0);
     if (keywords.length > maxResults) {
       keywords = keywords.slice(0, maxResults);
     }
@@ -152,7 +177,7 @@ export async function executeKeywordsNode(
 
     // Use shared dispatcher if available
     let finalState = flowState;
-    
+
     if (dispatcher) {
       dispatcher.setNodeOutput(node.id, formattedKeywords, 'keywords');
       dispatcher.setCurrentNode(node);

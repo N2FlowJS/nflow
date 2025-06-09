@@ -28,5 +28,9 @@ export function isDecisionNodeData(data: NodeData): data is RetrievalNodeData {
   return data.type === 'decision';
 }
 
+export function isKeywordsNodeData(data: NodeData): data is RetrievalNodeData {
+  return data.type === 'keywords';
+}
+
 
 export { findNextNodes } from '../server/findNextNode'

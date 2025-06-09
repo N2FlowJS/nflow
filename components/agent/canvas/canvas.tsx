@@ -17,7 +17,7 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { Drawer, Form, Layout, message } from 'antd';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { memo, useCallback, useEffect, useState } from 'react';
 
 import { saveFlowConfig } from '../../../services/agentService';
 import NodeForm from '../forms/node-form';
@@ -288,7 +288,11 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flowConfig, onStartConversation
 
   return (
     <Layout style={{ height: '100%', position: 'relative' }}>
-      <NodePalette nodes={nodes} isCollapsed={isPaletteCollapsed} onCollapsedChange={setIsPaletteCollapsed} />
+      <NodePalette
+        hasBeginNode={nodes.some((node) => node.type === 'begin')}
+        isCollapsed={isPaletteCollapsed}
+        onCollapsedChange={setIsPaletteCollapsed}
+      />
 
       <Content
         style={{
@@ -313,15 +317,14 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flowConfig, onStartConversation
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
           snapToGrid={true}
-          snapGrid={[10, 10]}
-          panOnDrag={[1, 2]}
-          deleteKeyCode="Delete"
           defaultEdgeOptions={{
             type: 'default',
             data: {
               onDelete: onEdgeDelete,
             },
-          }}>
+          }}
+          // end Marker for edges
+        >
           <Controls
             orientation="horizontal"
             position="top-left"
@@ -357,4 +360,4 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flowConfig, onStartConversation
   );
 };
 
-export default FlowEditor;
+export default memo(FlowEditor);

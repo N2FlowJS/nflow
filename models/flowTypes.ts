@@ -55,12 +55,14 @@ export interface InterfaceForm extends BaseForm {
 
 export interface GenerateForm extends BaseForm {
   prompt: string;
+  numberHistory: number;
   model: string;
 }
 export interface KeywordsForm extends BaseForm {
   model: string;
   prompt: string;
   maxResults: number;
+  numberHistory: number;
 }
 
 export interface ICategory {

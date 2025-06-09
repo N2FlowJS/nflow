@@ -88,6 +88,7 @@ export const NODE_REGISTRY: Record<NodeTypeString, NodeConfig> = {
         model: '',
         outputVariable: 'generatedText',
         output: '', // Required by BaseForm
+        numberHistory: 8, // Default to 8, can be set by user
       },
     } as Partial<GenerateNodeData>,
   },
@@ -214,6 +215,7 @@ export const NODE_REGISTRY: Record<NodeTypeString, NodeConfig> = {
         maxResults: 10,
         inputRefs: [],
         output: '',
+        numberHistory: 8, // Default to 8, can be set by user
       },
     } as Partial<KeywordsNodeData>,
   },

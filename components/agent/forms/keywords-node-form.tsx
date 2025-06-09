@@ -1,14 +1,14 @@
-import { TagsOutlined } from "@ant-design/icons";
-import { FlowNode, KeywordsForm } from "../../../models/flowTypes";
-import { fetchAllLLMProviders } from "../../../services/llmService";
-import { Collapse, Form, InputNumber, Select, Slider, Space, Spin, Typography } from "antd";
-import React, { useEffect, useMemo, useState } from "react";
+import { TagsOutlined } from '@ant-design/icons';
+import { FlowNode, KeywordsForm } from '../../../models/flowTypes';
+import { fetchAllLLMProviders } from '../../../services/llmService';
+import { Collapse, Form, InputNumber, Select, Slider, Space, Spin, Typography } from 'antd';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Mention, MentionsInput, SuggestionDataItem } from 'react-mentions';
-import { usePredecessorNodes } from "../hooks/usePredecessorNodes";
-import BaseNodeForm from "./base-node-form";
-import RoleSelector from "./shared/RoleSelector";
-import InputReferences from "./shared/InputReferences";
-import { FormInstance } from "antd/lib";
+import { usePredecessorNodes } from '../hooks/usePredecessorNodes';
+import BaseNodeForm from './base-node-form';
+import RoleSelector from './shared/RoleSelector';
+import InputReferences from './shared/InputReferences';
+import { FormInstance } from 'antd/lib';
 
 const { Text } = Typography;
 
@@ -76,8 +76,8 @@ const KeywordsNodeForm: React.FC<KeywordsNodeFormProps> = (props) => {
   const { selectedNode } = props;
 
   const [loading, setLoading] = useState(false);
-  const [models, setModels] = useState<{ id: string, name: string, providerId: string }[]>([]);
-  const [providers, setProviders] = useState<{ id: string, providerType: string, models: unknown[] }[]>([]);
+  const [models, setModels] = useState<{ id: string; name: string; providerId: string }[]>([]);
+  const [providers, setProviders] = useState<{ id: string; providerType: string; models: unknown[] }[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   // Use our hook to get variables
@@ -96,21 +96,21 @@ const KeywordsNodeForm: React.FC<KeywordsNodeFormProps> = (props) => {
       const providersData = await fetchAllLLMProviders();
       setProviders(providersData);
 
-      const allModels = providersData.flatMap(provider =>
+      const allModels = providersData.flatMap((provider) =>
         (provider.models || [])
-          .filter(model => model.modelType === 'chat')
-          .map(model => ({
+          .filter((model) => model.modelType === 'chat')
+          .map((model) => ({
             id: model.id,
             name: model.name,
             providerId: provider.id,
-            providerName: provider.providerType
+            providerName: provider.providerType,
           }))
       );
 
       setModels(allModels);
     } catch (err) {
-      console.error("Failed to load models:", err);
-      setError("Failed to load available models. Please try again.");
+      console.error('Failed to load models:', err);
+      setError('Failed to load available models. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -121,13 +121,15 @@ const KeywordsNodeForm: React.FC<KeywordsNodeFormProps> = (props) => {
   }, []);
 
   // Group models by provider for better organization
-  const groupedModels = providers.map(provider => {
-    const providerModels = models.filter(model => model.providerId === provider.id);
-    return {
-      provider,
-      models: providerModels
-    };
-  }).filter(group => group.models.length > 0);
+  const groupedModels = providers
+    .map((provider) => {
+      const providerModels = models.filter((model) => model.providerId === provider.id);
+      return {
+        provider,
+        models: providerModels,
+      };
+    })
+    .filter((group) => group.models.length > 0);
 
   return (
     <BaseNodeForm {...props}>
@@ -135,8 +137,7 @@ const KeywordsNodeForm: React.FC<KeywordsNodeFormProps> = (props) => {
         name="model"
         label="Model"
         extra="Select the AI model to use for keyword extraction"
-        rules={[{ required: true, message: 'Please select a model' }]}
-      >
+        rules={[{ required: true, message: 'Please select a model' }]}>
         {loading ? (
           <div style={{ textAlign: 'center', padding: '20px 0' }}>
             <Spin />
@@ -147,15 +148,10 @@ const KeywordsNodeForm: React.FC<KeywordsNodeFormProps> = (props) => {
             <Text type="danger">{error}</Text>
           </div>
         ) : (
-          <Select
-            placeholder="Select a model"
-            showSearch
-            optionFilterProp="children"
-            loading={loading}
-          >
-            {groupedModels.map(group => (
+          <Select placeholder="Select a model" showSearch optionFilterProp="children" loading={loading}>
+            {groupedModels.map((group) => (
               <Select.OptGroup key={group.provider.id} label={group.provider.providerType}>
-                {group.models.map(model => (
+                {group.models.map((model) => (
                   <Select.Option key={model.id} value={model.id}>
                     {model.name}
                   </Select.Option>
@@ -171,11 +167,7 @@ const KeywordsNodeForm: React.FC<KeywordsNodeFormProps> = (props) => {
         )}
       </Form.Item>
 
-      <Form.Item
-        name="maxResults"
-        label="Max Keywords"
-        rules={[{ required: true }]}
-      >
+      <Form.Item name="maxResults" label="Max Keywords" rules={[{ required: true }]}>
         <Form.Item shouldUpdate>
           {({ getFieldValue, setFieldsValue }) => (
             <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
@@ -184,14 +176,37 @@ const KeywordsNodeForm: React.FC<KeywordsNodeFormProps> = (props) => {
                 max={50}
                 style={{ flex: 1 }}
                 value={getFieldValue('maxResults')}
-                onChange={value => setFieldsValue({ maxResults: value })}
+                onChange={(value) => setFieldsValue({ maxResults: value })}
                 marks={{ 1: '1', 25: '25', 50: '50' }}
               />
               <InputNumber
                 min={1}
                 max={50}
                 value={getFieldValue('maxResults')}
-                onChange={value => setFieldsValue({ maxResults: value })}
+                onChange={(value) => setFieldsValue({ maxResults: value })}
+                style={{ width: 70 }}
+              />
+            </div>
+          )}
+        </Form.Item>
+      </Form.Item>
+      <Form.Item name="numberHistory" label="Number of History Items" rules={[{ required: true }]}>
+        <Form.Item shouldUpdate>
+          {({ getFieldValue, setFieldsValue }) => (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+              <Slider
+                min={1}
+                max={50}
+                style={{ flex: 1 }}
+                value={getFieldValue('numberHistory')}
+                onChange={(value) => setFieldsValue({ numberHistory: value })}
+                marks={{ 1: '1', 25: '25', 50: '50' }}
+              />
+              <InputNumber
+                min={1}
+                max={50}
+                value={getFieldValue('numberHistory')}
+                onChange={(value) => setFieldsValue({ numberHistory: value })}
                 style={{ width: 70 }}
               />
             </div>
@@ -219,24 +234,22 @@ const KeywordsNodeForm: React.FC<KeywordsNodeFormProps> = (props) => {
                 <Form.Item
                   name="prompt"
                   rules={[{ required: true, message: 'Please enter a prompt template for keyword extraction' }]}
-                  getValueFromEvent={(event) => event.target.value}
-                >
+                  getValueFromEvent={(event) => event.target.value}>
                   <MentionsInput
                     style={mentionsInputStyle}
                     placeholder="Enter prompt for keyword extraction... Use @ to mention variables. Example: Extract keywords from: {{@userInput}}"
-                    a11ySuggestionsListLabel={"Suggested variables"}
+                    a11ySuggestionsListLabel={'Suggested variables'}
                     allowSpaceInQuery={true}
                     onChange={(event: unknown, value: string) => {
                       console.log(event);
-                      props.form.setFieldsValue({ prompt: value })
-                    }}
-                  >
+                      props.form.setFieldsValue({ prompt: value });
+                    }}>
                     <Mention
                       trigger="@"
                       data={allVariables}
                       markup="{{__id__}}"
                       displayTransform={(id: string) => {
-                        const variable = allVariables.find(v => v.id === id);
+                        const variable = allVariables.find((v) => v.id === id);
                         return `@${variable ? variable.display : id}`;
                       }}
                       style={{ backgroundColor: '#f6ffed' }}
@@ -246,27 +259,23 @@ const KeywordsNodeForm: React.FC<KeywordsNodeFormProps> = (props) => {
                           <div>
                             <b>{suggestion.display}</b>
                           </div>
-                          <div style={{ color: '#8c8c8c', fontSize: '0.85em', marginLeft: '8px' }}>
-                            {suggestion.id}
-                          </div>
+                          <div style={{ color: '#8c8c8c', fontSize: '0.85em', marginLeft: '8px' }}>{suggestion.id}</div>
                         </div>
                       )}
                     />
                   </MentionsInput>
                 </Form.Item>
                 <div style={{ fontSize: '0.9em', color: '#888', marginTop: 8 }}>
-                  Use <code>@</code> to insert available variables. Example: "Extract the most important keywords from: <code>{'{{@userInput}}'}</code>". The model will return a list of keywords.
+                  Use <code>@</code> to insert available variables. Example: "Extract the most important keywords from:{' '}
+                  <code>{'{{@userInput}}'}</code>". The model will return a list of keywords.
                 </div>
               </>
-            )
-          }
+            ),
+          },
         ]}
       />
 
-      <InputReferences
-        form={props.form}
-        nodeid={selectedNode.id}
-      />
+      <InputReferences form={props.form} nodeid={selectedNode.id} />
     </BaseNodeForm>
   );
 };

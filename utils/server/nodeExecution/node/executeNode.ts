@@ -1,4 +1,12 @@
-import { isBeginNodeData, isInterfaceNodeData, isGenerateNodeData, isCategorizeNodeData, isDecisionNodeData, isRetrievalNodeData } from '../../../../utils/client';
+import {
+  isBeginNodeData,
+  isInterfaceNodeData,
+  isGenerateNodeData,
+  isCategorizeNodeData,
+  isDecisionNodeData,
+  isRetrievalNodeData,
+  isKeywordsNodeData,
+} from '../../../../utils/client';
 import { FlowExecutionContext, ExecutionResult } from '../../../../models/flowExecutionTypes';
 import { executeBeginNode } from './executeBeginNode';
 import { executeInterfaceNode } from './executeInterfaceNode';
@@ -7,8 +15,14 @@ import { executeCategorizeNode } from './executeCategorizeNode';
 import { executeRetrievalNode } from './executeRetrievalNode';
 import { executeDecisionNode } from './executeDecisionNode';
 import { FlowStateDispatcher } from '../flowStateDispatcher';
+import { executeKeywordsNode } from './executeKeywordsNode';
 
-export async function executeNode(node: any, context: FlowExecutionContext, callback?: (result: ExecutionResult) => void, dispatcher?: FlowStateDispatcher): Promise<ExecutionResult> {
+export async function executeNode(
+  node: any,
+  context: FlowExecutionContext,
+  callback?: (result: ExecutionResult) => void,
+  dispatcher?: FlowStateDispatcher
+): Promise<ExecutionResult> {
   if (isBeginNodeData(node.data)) {
     return await executeBeginNode(node, context, dispatcher);
   } else if (isInterfaceNodeData(node.data)) {
@@ -21,6 +35,8 @@ export async function executeNode(node: any, context: FlowExecutionContext, call
     return await executeRetrievalNode(node, context, dispatcher);
   } else if (isDecisionNodeData(node.data)) {
     return await executeDecisionNode(node, context, dispatcher);
+  } else if (isKeywordsNodeData(node.data)) {
+    return await executeKeywordsNode(node, context, callback, dispatcher);
   }
   throw new Error(`Unsupported node type: ${node.type}`);
 }

@@ -1,4 +1,4 @@
-import { DatabaseOutlined, LoadingOutlined } from "@ant-design/icons";
+import { DatabaseOutlined } from "@ant-design/icons";
 import { FlowNode } from "../../../models/flowTypes";
 import { IKnowledge } from "../../../models/IKnowledge";
 import { fetchAllKnowledge, } from "../../../services/knowledgeService";

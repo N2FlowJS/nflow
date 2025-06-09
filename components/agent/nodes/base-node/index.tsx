@@ -24,7 +24,7 @@ const BaseNode: React.FC<BaseNodeProps> = ({ data, id, selected, handlePositions
   const nodeConfig = NODE_REGISTRY[data.type];
   const { flowState } = useFlowState();
 
-  // Properly memoize the execution check to prevent infinite loops
+  // // Properly memoize the execution check to prevent infinite loops
   const isExecutedNode = useMemo(() => {
     if (!flowState?.components) return false;
 
@@ -46,9 +46,10 @@ const BaseNode: React.FC<BaseNodeProps> = ({ data, id, selected, handlePositions
     };
   }, [selected, isExecutedNode, nodeConfig?.color.border]);
 
-  const childrenSection = useMemo(() => (children ? <div style={{ padding: '10px 0' }}>{children}</div> : null), [
-    children,
-  ]);
+  const childrenSection = useMemo(
+    () => (children ? <div style={{ padding: '10px 0' }}>{children}</div> : null),
+    [children]
+  );
 
   const inputHandles = useMemo(
     () =>
