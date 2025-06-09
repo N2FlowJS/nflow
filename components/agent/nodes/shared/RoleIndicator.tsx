@@ -6,9 +6,6 @@ interface RoleIndicatorProps {
   role: 'developer' | 'assistant' | 'system' | 'user';
   showLabel?: boolean;
 }
-
-const RoleIndicator: React.FC<RoleIndicatorProps> = ({ role, showLabel = false }) => {
-  // Define role configurations
   const roleConfigs = {
     system: {
       color: 'purple',
@@ -35,6 +32,9 @@ const RoleIndicator: React.FC<RoleIndicatorProps> = ({ role, showLabel = false }
       tooltip: 'Developer message (technical context)'
     }
   };
+
+const RoleIndicator: React.FC<RoleIndicatorProps> = ({ role, showLabel = false }) => {
+  // Define role configurations
 
   const config = roleConfigs[role];
 

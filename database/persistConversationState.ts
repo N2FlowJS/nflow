@@ -96,3 +96,22 @@ export async function AddMessageToDatabase({ conversationId, message }: AddMessa
     },
   });
 }
+
+export async function getConversationMessages(conversationId: string): Promise<MessagePart[]> {
+  const messages = await prisma.conversationMessage.findMany({
+    where: { conversationId },
+    orderBy: { timestamp: 'asc' },
+    select: {
+      content: true,
+      role: true,
+      nodeId: true,
+      nodeType: true,
+      timestamp: true,
+    },
+  });
+
+  return messages.map(msg => ({
+    content: msg.content,
+    role: msg.role as 'user' | 'assistant' | 'system',
+  }));
+}

@@ -6,6 +6,7 @@ import GenerateNodeForm from "./generate-node-form";
 import CategorizeNodeForm from "./categorize-node-form";
 import RetrievalNodeForm from "./retrieval-node-form";
 import DecisionNodeForm from "./decision-node-form";
+import KeywordsNodeForm from "./keywords-node-form";
 
 interface NodeFormProps {
   form: any;
@@ -31,6 +32,8 @@ const NodeForm: React.FC<NodeFormProps> = (props) => {
       return <RetrievalNodeForm {...props} selectedNode={selectedNode} />;
     case "decision":
       return <DecisionNodeForm {...props} selectedNode={selectedNode} />;
+    case "keywords":
+      return <KeywordsNodeForm {...props} selectedNode={selectedNode} />;
     default:
       return null;
   }

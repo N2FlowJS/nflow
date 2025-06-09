@@ -1,4 +1,4 @@
-import { DatabaseOutlined, LoadingOutlined } from "@ant-design/icons";
+import { DatabaseOutlined } from "@ant-design/icons";
 import { FlowNode } from "../../../models/flowTypes";
 import { IKnowledge } from "../../../models/IKnowledge";
 import { fetchAllKnowledge, } from "../../../services/knowledgeService";
@@ -7,6 +7,7 @@ import React, { useEffect, useState } from "react";
 import BaseNodeForm from "./base-node-form";
 import InputReferences from "./shared/InputReferences";
 import RoleSelector from "./shared/RoleSelector";
+import { useLocale } from "../../../locale";
 
 
 interface RetrievalNodeFormProps {
@@ -20,6 +21,7 @@ const RetrievalNodeForm: React.FC<RetrievalNodeFormProps> = (props) => {
   const [knowledgeBases, setKnowledgeBases] = useState<IKnowledge[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const { t } = useLocale('form.nodeForm');
 
 
   useEffect(() => {
@@ -32,7 +34,7 @@ const RetrievalNodeForm: React.FC<RetrievalNodeFormProps> = (props) => {
         setKnowledgeBases(data);
       } catch (err) {
         console.error("Failed to load knowledge bases:", err);
-        setError("Failed to load knowledge bases");
+        setError(t('knowledgeBasesLoadingError'));
       } finally {
         setLoading(false);
       }
@@ -45,22 +47,22 @@ const RetrievalNodeForm: React.FC<RetrievalNodeFormProps> = (props) => {
     <BaseNodeForm {...props}>
       <Form.Item
         name="knowledgeIds"
-        label="Knowledge Bases"
-        help="Select one or more knowledge bases to retrieve information from"
-        rules={[{ required: true, message: 'Please select at least one knowledge base' }]}
+        label={t('knowledgeBasesLabel')}
+        help={t('knowledgeBasesHelp')}
+        rules={[{ required: true, message: t('knowledgeBasesRequired') }]}
       >
         <Select
           mode="multiple"
-          placeholder="Select knowledge bases"
+          placeholder={t('knowledgeBasesPlaceholder')}
           loading={loading}
           disabled={loading}
           notFoundContent={
             loading ? (
-              <Spin size="small" indicator={<LoadingOutlined spin />} />
+              <Spin size="small" />
             ) : error ? (
               <Typography.Text type="danger">{error}</Typography.Text>
             ) : (
-              "No knowledge bases found"
+              t('noKnowledgeBasesFound')
             )
           }
           optionLabelProp="label"
@@ -78,7 +80,7 @@ const RetrievalNodeForm: React.FC<RetrievalNodeFormProps> = (props) => {
 
       <Form.Item
         name="maxResults"
-        label="Max Results"
+        label={t('maxResultsLabel')}
         rules={[{ required: true }]}
       >
         <Form.Item  shouldUpdate>

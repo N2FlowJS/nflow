@@ -2,6 +2,7 @@ import React from "react";
 import { Form, Select, Space } from "antd";
 import { EditOutlined } from "@ant-design/icons";
 import { ICategory } from "../../../../models/flowTypes";
+import { useLocale } from "../../../../locale";
 
 interface DefaultCategorySelectorProps {
   categories: ICategory[];
@@ -10,17 +11,18 @@ interface DefaultCategorySelectorProps {
 const DefaultCategorySelector: React.FC<DefaultCategorySelectorProps> = ({
   categories
 }) => {
+  const { t } = useLocale('form.nodeForm');
   return (
     <Space>
       <EditOutlined />
-      <span>Default Category</span>
+      <span>{t('defaultCategoryLabel')}</span>
       <Form.Item 
         name="defaultCategory" 
-        help="This category will be used when no other categories match"
+        help={t('defaultCategoryHelp')}
         noStyle
       >
         <Select 
-          placeholder="Select default category" 
+          placeholder={t('defaultCategoryPlaceholder')}
           style={{ width: '100%' }}
           disabled={categories.length === 0}
         >

@@ -36,9 +36,11 @@ export default function AuthGuard({ children }: AuthGuardProps) {
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
-        height: '100vh'
+        height: '100vh',
+        flexDirection: 'column'
       }}>
-        <Spin size="large" tip="Authenticating..." />
+        <Spin size="large" />
+        <div style={{ marginTop: 16 }}>Authenticating...</div>
       </div>
     );
   }

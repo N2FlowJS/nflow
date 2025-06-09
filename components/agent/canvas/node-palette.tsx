@@ -1,23 +1,21 @@
 import { Empty, Layout, Tooltip } from 'antd';
 import React from 'react';
-import { FlowNode } from '../../../models/flowTypes';
 import { NODE_REGISTRY } from '../../../utils/client';
 
 const { Sider } = Layout;
 
 interface NodePaletteProps {
-  nodes: FlowNode[];
+  hasBeginNode: boolean;
   isCollapsed?: boolean;
   onCollapsedChange?: (collapsed: boolean) => void;
 }
 
 const NodePalette: React.FC<NodePaletteProps> = ({ 
-  nodes, 
+  hasBeginNode, 
   isCollapsed = false, 
   onCollapsedChange 
 }) => {
-  const beginNodeExists = nodes.some((node) => node.type === 'begin');
-  const availableNodes = Object.entries(NODE_REGISTRY).filter(([type]) => !(type === 'begin' && beginNodeExists));
+  const availableNodes = Object.entries(NODE_REGISTRY).filter(([type]) => !(type === 'begin' && hasBeginNode));
 
   return (
     <Sider

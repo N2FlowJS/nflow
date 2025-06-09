@@ -11,7 +11,7 @@ import {
   SaveOutlined,
   SettingOutlined,
   TeamOutlined,
-  UserOutlined
+  UserOutlined,
 } from '@ant-design/icons';
 import {
   Avatar,
@@ -31,7 +31,7 @@ import {
   Switch,
   Tag,
   Typography,
-  message
+  message,
 } from 'antd';
 import { useRouter } from 'next/router';
 import React, { useCallback, useEffect, useState } from 'react';
@@ -71,10 +71,10 @@ export default function AgentDetail() {
     setLoading(true);
     try {
       const data = await fetchAgent(id as string); // Use the service
-      
-      if (data){
-         setAgent(data);
-         setFlowConfig(data.flowConfig)
+
+      if (data) {
+        setAgent(data);
+        setFlowConfig(data.flowConfig);
       }
 
       // Initialize form with agent data
@@ -91,11 +91,9 @@ export default function AgentDetail() {
     }
   }, [id, form]);
 
-
   useEffect(() => {
     fetchAgentData();
   }, [fetchAgentData]);
-
 
   // Handle form submission
   const handleSave = async () => {
@@ -158,7 +156,7 @@ export default function AgentDetail() {
 
   // Get the status tag with appropriate color
   const renderStatusTag = () => (
-    <Tag color={agent?.isActive ? 'success' : 'error'} style={{ margin: 0 }}>
+    <Tag color={agent?.isActive ? 'success' : 'error'} style={{ marginLeft: 4 }}>
       {agent?.isActive ? t('active') : t('inactive')}
     </Tag>
   );
@@ -167,13 +165,13 @@ export default function AgentDetail() {
   const renderOwnerTag = () => {
     if (agent?.ownerType === 'user') {
       return (
-        <Tag icon={<UserOutlined />} color="blue">
+        <Tag style={{ marginLeft: 4 }} icon={<UserOutlined />} color="blue">
           {agent?.user?.name || t('personalAgent')}
         </Tag>
       );
     }
     return (
-      <Tag icon={<TeamOutlined />} color="gold">
+      <Tag style={{ marginLeft: 4 }} icon={<TeamOutlined />} color="gold">
         {agent?.team?.name || t('teamAgent')}
       </Tag>
     );
@@ -212,7 +210,7 @@ export default function AgentDetail() {
                 <Title level={isMobile ? 3 : 2} style={{ margin: 0 }}>
                   {agent?.name}
                 </Title>
-                <Space size={[0, 8]} wrap style={{ marginTop: 8, justifyContent:'space-between' }}>
+                <Space size={[0, 8]} wrap style={{ marginTop: 8, justifyContent: 'space-between' }}>
                   {renderStatusTag()}
                   {renderOwnerTag()}
                 </Space>
@@ -450,7 +448,7 @@ export default function AgentDetail() {
             height: '100%',
           },
         }}>
-        { !flowConfig ? (
+        {!flowConfig ? (
           <div
             style={{
               flexGrow: 1,

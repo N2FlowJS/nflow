@@ -17,7 +17,7 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { Drawer, Form, Layout, message } from 'antd';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { memo, useCallback, useEffect, useState } from 'react';
 
 import { saveFlowConfig } from '../../../services/agentService';
 import NodeForm from '../forms/node-form';
@@ -35,6 +35,7 @@ import DecisionNode from '../nodes/decision-node';
 import GenerateNode from '../nodes/generate-node';
 import InterfaceNode from '../nodes/interface-node';
 import RetrievalNode from '../nodes/retrieval-node';
+import KeywordsNode from '../nodes/keywords-node';
 
 const nodeTypes: ReactFlowNodeTypes = {
   begin: BeginNode,
@@ -43,6 +44,7 @@ const nodeTypes: ReactFlowNodeTypes = {
   categorize: CategorizeNode,
   retrieval: RetrievalNode,
   decision: DecisionNode,
+  keywords: KeywordsNode,
 };
 
 const edgeTypes: EdgeTypes = {
@@ -286,10 +288,10 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flowConfig, onStartConversation
 
   return (
     <Layout style={{ height: '100%', position: 'relative' }}>
-      <NodePalette 
-        nodes={nodes} 
-        isCollapsed={isPaletteCollapsed} 
-        onCollapsedChange={setIsPaletteCollapsed} 
+      <NodePalette
+        hasBeginNode={nodes.some((node) => node.type === 'begin')}
+        isCollapsed={isPaletteCollapsed}
+        onCollapsedChange={setIsPaletteCollapsed}
       />
 
       <Content
@@ -297,13 +299,11 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flowConfig, onStartConversation
           marginLeft: isPaletteCollapsed ? 50 : 250,
           transition: 'margin-left 0.2s',
           height: '100%',
-          position: 'relative'
-        }}
-      >
+          position: 'relative',
+        }}>
         <ReactFlow
           colorMode={theme}
           nodes={nodes}
-          title=""
           edges={edges}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
@@ -316,12 +316,15 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flowConfig, onStartConversation
           fitView
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
+          snapToGrid={true}
           defaultEdgeOptions={{
             type: 'default',
             data: {
               onDelete: onEdgeDelete,
             },
-          }}>
+          }}
+          // end Marker for edges
+        >
           <Controls
             orientation="horizontal"
             position="top-left"
@@ -357,4 +360,4 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flowConfig, onStartConversation
   );
 };
 
-export default FlowEditor;
+export default memo(FlowEditor);

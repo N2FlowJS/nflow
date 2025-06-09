@@ -36,18 +36,22 @@ const CustomEdge: React.FC<EdgeProps<CustomEdgeData>> = ({
   const { flowState } = useFlowState(); // Consume the context
 
   // Determine if the edge is connected to the active node
-
   const isExecutedEdge = useMemo(() => {
-    if (!flowState) return false;
-    let ac: boolean = false;
-    Object.keys(flowState?.components).forEach((e: string) => {
-      if (e != target && e == source && flowState.components[target].executionTime > flowState.executionTime && flowState.components[source].executionTime > flowState.executionTime && flowState.components[e].executionTime > flowState.executionTime) {
-        ac = true;
-        return;
-      }
-    });
+    if (!flowState || !flowState.components || typeof flowState.executionTime !== 'number') {
+      return false;
+    }
 
-    return ac;
+    const sourceComponent = flowState.components[source];
+    const targetComponent = flowState.components[target];
+
+    if (!sourceComponent || !targetComponent) {
+      return false;
+    }
+
+    return (
+      sourceComponent.executionTime > flowState.executionTime &&
+      targetComponent.executionTime > flowState.executionTime
+    );
   }, [flowState, source, target]);
 
   // Example: Log flowState when an edge is rendered or updated

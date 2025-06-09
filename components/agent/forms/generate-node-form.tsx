@@ -1,16 +1,16 @@
-import { FileTextOutlined } from "@ant-design/icons";
-import { FlowNode, GenerateForm, } from "../../../models/flowTypes"; // Import Edge type
-import { fetchAllLLMProviders } from "../../../services/llmService";
-import { Collapse, Form, Select, Space, Spin, Typography } from "antd";
-import React, { useEffect, useMemo, useState } from "react"; // Import useMemo
+import { FileTextOutlined } from '@ant-design/icons';
+import { FlowNode, GenerateForm } from '../../../models/flowTypes'; // Import Edge type
+import { fetchAllLLMProviders } from '../../../services/llmService';
+import { Collapse, Form, InputNumber, Select, Slider, Space, Spin, Typography } from 'antd';
+import React, { useEffect, useMemo, useState } from 'react'; // Import useMemo
 import { Mention, MentionsInput, SuggestionDataItem } from 'react-mentions';
-import { usePredecessorNodes } from "../hooks/usePredecessorNodes";
-import BaseNodeForm from "./base-node-form";
-import RoleSelector from "./shared/RoleSelector";
-import { FormInstance } from "antd/lib";
+import { usePredecessorNodes } from '../hooks/usePredecessorNodes';
+import BaseNodeForm from './base-node-form';
+import RoleSelector from './shared/RoleSelector';
+import { FormInstance } from 'antd/lib';
+import { useLocale } from '../../../locale';
 
 const { Text } = Typography;
-const { Panel } = Collapse;
 
 // Basic styling to integrate better with Ant Design
 const mentionsInputStyle = {
@@ -75,10 +75,11 @@ interface GenerateNodeFormProps {
 
 const GenerateNodeForm: React.FC<GenerateNodeFormProps> = (props) => {
   const { selectedNode } = props;
+  const { t } = useLocale('form.nodeForm');
 
   const [loading, setLoading] = useState(false);
-  const [models, setModels] = useState<{ id: string, name: string, providerId: string }[]>([]);
-  const [providers, setProviders] = useState<{ id: string, providerType: string, models: unknown[] }[]>([]);
+  const [models, setModels] = useState<{ id: string; name: string; providerId: string }[]>([]);
+  const [providers, setProviders] = useState<{ id: string; providerType: string; models: unknown[] }[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   // Use our new hook to get variables
@@ -90,7 +91,6 @@ const GenerateNodeForm: React.FC<GenerateNodeFormProps> = (props) => {
     display: string;
   }[] = useMemo(() => [...predecessorVariables], [predecessorVariables]);
 
-
   const loadModels = async () => {
     setLoading(true);
     setError(null);
@@ -101,66 +101,62 @@ const GenerateNodeForm: React.FC<GenerateNodeFormProps> = (props) => {
       setProviders(providersData);
 
       // Collect all chat models from all providers
-      const allModels = providersData.flatMap(provider =>
+      const allModels = providersData.flatMap((provider) =>
         (provider.models || [])
-          .filter(model => model.modelType === 'chat')
-          .map(model => ({
+          .filter((model) => model.modelType === 'chat')
+          .map((model) => ({
             id: model.id,
             name: model.name,
             providerId: provider.id,
-            providerName: provider.providerType
+            providerName: provider.providerType,
           }))
       );
 
       setModels(allModels);
     } catch (err) {
-      console.error("Failed to load models:", err);
-      setError("Failed to load available models. Please try again.");
+      console.error('Failed to load models:', err);
+      setError(t('modelsError'));
     } finally {
       setLoading(false);
     }
   };
   useEffect(() => {
-
-
     loadModels();
   }, []);
 
   // Group models by provider for better organization
-  const groupedModels = providers.map(provider => {
-    const providerModels = models.filter(model => model.providerId === provider.id);
-    return {
-      provider,
-      models: providerModels
-    };
-  }).filter(group => group.models.length > 0);
+  const groupedModels = providers
+    .map((provider) => {
+      const providerModels = models.filter((model) => model.providerId === provider.id);
+      return {
+        provider,
+        models: providerModels,
+      };
+    })
+    .filter((group) => group.models.length > 0);
 
   return (
     <BaseNodeForm {...props}>
       <Form.Item
         name="model"
-        label="Model"
-        extra="Select the AI model to use for text generation"
-        rules={[{ required: true, message: 'Please select a model' }]}
+        label={t('modelLabel')}
+        extra={t('modelExtraGenerate')}
+        rules={[{ required: true, message: t('modelRequired') }]}
       >
         {loading ? (
           <div style={{ textAlign: 'center', padding: '20px 0' }}>
-            <Spin tip="Loading available models..." />
+            <Spin />
+            <div style={{ marginTop: 8 }}>{t('loadingModels')}</div>
           </div>
         ) : error ? (
           <div style={{ color: 'red' }}>
             <Text type="danger">{error}</Text>
           </div>
         ) : (
-          <Select
-            placeholder="Select a model"
-            showSearch
-            optionFilterProp="children"
-            loading={loading}
-          >
-            {groupedModels.map(group => (
+          <Select placeholder={t('modelPlaceholder')} showSearch optionFilterProp="children" loading={loading}>
+            {groupedModels.map((group) => (
               <Select.OptGroup key={group.provider.id} label={group.provider.providerType}>
-                {group.models.map(model => (
+                {group.models.map((model) => (
                   <Select.Option key={model.id} value={model.id}>
                     {model.name}
                   </Select.Option>
@@ -169,79 +165,101 @@ const GenerateNodeForm: React.FC<GenerateNodeFormProps> = (props) => {
             ))}
             {models.length === 0 && !loading && !error && (
               <Select.Option disabled value="no-models">
-                No models available
+                {t('noModelsAvailable')}
               </Select.Option>
             )}
           </Select>
         )}
       </Form.Item>
-
+      <Form.Item name="numberHistory" label={t('numberHistoryLabel')} rules={[{ required: true }]}>
+        <Form.Item shouldUpdate>
+          {({ getFieldValue, setFieldsValue }) => (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+              <Slider
+                min={1}
+                max={50}
+                style={{ flex: 1 }}
+                value={getFieldValue('numberHistory')}
+                onChange={(value) => setFieldsValue({ numberHistory: value })}
+                marks={{ 1: '1', 25: '25', 50: '50' }}
+              />
+              <InputNumber
+                min={1}
+                max={50}
+                value={getFieldValue('numberHistory')}
+                onChange={(value) => setFieldsValue({ numberHistory: value })}
+                style={{ width: 70 }}
+              />
+            </div>
+          )}
+        </Form.Item>
+      </Form.Item>
       <RoleSelector />
 
       <Collapse
         defaultActiveKey={['prompt', 'output']}
         bordered={false}
         expandIconPosition="end"
-      >
-        <Panel
-          header={
-            <Space>
-              <FileTextOutlined />
-              <span>Prompt Template</span>
-            </Space>
-          }
-          key="prompt"
-        >
-          <Form.Item
-            name="prompt"
-            // No label needed as it's in the Panel header
-            rules={[{ required: true, message: 'Please enter a prompt template' }]}
-            // Use getValueFromEvent to correctly handle MentionsInput onChange
-            getValueFromEvent={(event) => event.target.value}
-          >
-            <MentionsInput
-              style={mentionsInputStyle} // Apply custom styles
-              placeholder="Enter prompt template... Use @ to mention variables."
-              a11ySuggestionsListLabel={"Suggested variables"}
-              allowSpaceInQuery={true} // Allows searching for multi-word variables if needed
-              // Control the component value
-              onChange={(event: unknown, value: string) => {
-                console.log(event);
+        items={[
+          {
+            key: 'prompt',
+            label: (
+              <Space>
+                <FileTextOutlined />
+                <span>{t('promptLabel')}</span>
+              </Space>
+            ),
+            children: (
+              <>
+                <Form.Item
+                  name="prompt"
+                  // No label needed as it's in the Panel header
+                  rules={[{ required: true, message: t('promptRequired') }]}
+                  // Use getValueFromEvent to correctly handle MentionsInput onChange
+                  getValueFromEvent={(event) => event.target.value}
+                >
+                  <MentionsInput
+                    style={mentionsInputStyle} // Apply custom styles
+                    placeholder={t('promptPlaceholder')}
+                    a11ySuggestionsListLabel={'Suggested variables'}
+                    allowSpaceInQuery={true} // Allows searching for multi-word variables if needed
+                    // Control the component value
+                    onChange={(event: unknown, value: string) => {
+                      console.log(event);
 
-                props.form.setFieldsValue({ prompt: value })
-              }} // Update form on change
-            >
-              <Mention
-                trigger="@" // Use @ to trigger suggestions
-                data={allVariables} // Provide the variable data
-                markup="{{__id__}}" // Define how the mention is inserted (using Ant Design variable style)
-                displayTransform={(id: string) => {
-                  // Find the variable with this id to get its display name
-                  const variable = allVariables.find(v => v.id === id);
-                  return `@${variable ? variable.display : id}`;
-                }} // Show display name in mentions
-                style={{ backgroundColor: '#e6f7ff' }} // Style for the highlighted mention
-                appendSpaceOnAdd={true} // Add a space after inserting a mention
-                renderSuggestion={(suggestion: SuggestionDataItem) => (
-                  <div style={mentionItemStyle}>
-                    <div>
-                      <b>{suggestion.display}</b>
-                    </div>
-                    <div style={{ color: '#8c8c8c', fontSize: '0.85em', marginLeft: '8px' }}>
-                      {suggestion.id}
-                    </div>
-                  </div>
-                )}
-              />
-            </MentionsInput>
-          </Form.Item>
-          <div style={{ fontSize: '0.9em', color: '#888', marginTop: 8 }}>
-            Use <code>@</code> to insert available variables like <code>@userInput</code> or <code>@retrievalResults</code>. They will be converted to <code>{'{{variableName}}'}</code> format.
-          </div>
-        </Panel>
-
-
-      </Collapse>
+                      props.form.setFieldsValue({ prompt: value });
+                    }} // Update form on change
+                  >
+                    <Mention
+                      trigger="@" // Use @ to trigger suggestions
+                      data={allVariables} // Provide the variable data
+                      markup="{{__id__}}" // Define how the mention is inserted (using Ant Design variable style)
+                      displayTransform={(id: string) => {
+                        // Find the variable with this id to get its display name
+                        const variable = allVariables.find((v) => v.id === id);
+                        return `@${variable ? variable.display : id}`;
+                      }} // Show display name in mentions
+                      style={{ backgroundColor: '#e6f7ff' }} // Style for the highlighted mention
+                      appendSpaceOnAdd={true} // Add a space after inserting a mention
+                      renderSuggestion={(suggestion: SuggestionDataItem) => (
+                        <div style={mentionItemStyle}>
+                          <div>
+                            <b>{suggestion.display}</b>
+                          </div>
+                          <div style={{ color: '#8c8c8c', fontSize: '0.85em', marginLeft: '8px' }}>{suggestion.id}</div>
+                        </div>
+                      )}
+                    />
+                  </MentionsInput>
+                </Form.Item>
+                <div style={{ fontSize: '0.9em', color: '#888', marginTop: 8 }}>
+                  {t('variablesHelpTextGenerate')}
+                </div>
+              </>
+            ),
+          },
+        ]}
+      />
     </BaseNodeForm>
   );
 };

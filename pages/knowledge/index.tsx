@@ -1,5 +1,5 @@
 import { DeleteOutlined, EditOutlined, FileOutlined, PlusOutlined, SearchOutlined } from '@ant-design/icons';
-import { Button, Card, Col, Empty, Form, Input, message, Popconfirm, Row, Select, Space, Typography } from 'antd';
+import { Button, Card, Col, Empty, Form, Input, message, Popconfirm, Row, Select, Space, Spin, Typography } from 'antd';
 import { useRouter } from 'next/router';
 import React, { useEffect, useState } from 'react';
 import KnowledgeForm from '../../components/knowledge/KnowledgeForm';
@@ -220,7 +220,7 @@ export default function KnowledgeList() {
           <div style={{ minHeight: '200px' }}>
             {loading ? (
               <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '200px' }}>
-                <div className="loading-spinner" />
+                <Spin size="large" />
               </div>
             ) : (
               renderCardView()
