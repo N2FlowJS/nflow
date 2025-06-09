@@ -266,8 +266,8 @@ const KeywordsNodeForm: React.FC<KeywordsNodeFormProps> = (props) => {
                   </MentionsInput>
                 </Form.Item>
                 <div style={{ fontSize: '0.9em', color: '#888', marginTop: 8 }}>
-                  Use <code>@</code> to insert available variables. Example: "Extract the most important keywords from:{' '}
-                  <code>{'{{@userInput}}'}</code>". The model will return a list of keywords.
+                  Use <code>@</code> to insert available variables. Example: &quot;Extract the most important keywords from:{' '}
+                  <code>{'{{@userInput}}'}</code>&quot;. The model will return a list of keywords.
                 </div>
               </>
             ),
