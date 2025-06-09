@@ -7,6 +7,7 @@ import React from 'react';
 import BaseNodeForm from './base-node-form';
 import { FormInstance } from 'antd/lib';
 import RoleSelector from './shared/RoleSelector';
+import { useLocale } from '../../../locale';
 
 const { Text } = Typography;
 
@@ -30,6 +31,7 @@ const DecisionNodeForm: React.FC<DecisionNodeFormProps> = ({ form, selectedNode,
   const { getNodes, getEdges, setEdges } = useReactFlow();
   const flowNodes = getNodes().filter((node) => node.id !== selectedNode.id);
   const { predecessorNodes } = usePredecessorNodes(selectedNode.id);
+  const { t } = useLocale('form.nodeForm');
 
   // Use Form.useWatch for form fields
   const defaultTarget = Form.useWatch('defaultTarget', form);
@@ -163,7 +165,7 @@ const DecisionNodeForm: React.FC<DecisionNodeFormProps> = ({ form, selectedNode,
             label: (
               <div>
                 <Text type="secondary" style={{ display: 'block', marginBottom: 4 }}>
-                  <LinkOutlined /> Default Target Node (when no branches match):
+                  <LinkOutlined /> {t('defaultTargetNodeLabel')}
                 </Text>
               </div>
             ),
@@ -171,7 +173,7 @@ const DecisionNodeForm: React.FC<DecisionNodeFormProps> = ({ form, selectedNode,
               <Form.Item key={'defaultTarget'} name="defaultTarget" initialValue={defaultTarget}>
                 <Select
                   allowClear
-                  placeholder="Select default target node"
+                  placeholder={t('defaultTargetNodePlaceholder')}
                   style={{ width: '100%' }}
                   options={flowNodes.map((node) => ({
                     value: node.id,
@@ -185,7 +187,7 @@ const DecisionNodeForm: React.FC<DecisionNodeFormProps> = ({ form, selectedNode,
           },
           {
             key: 'branches',
-            label: 'Branches',
+            label: t('branchesLabel'),
             children: (
               <Form.List name="branches" initialValue={branches}>
                 {(branchFields, { add: addBranch, remove: removeBranch }) => (
@@ -196,9 +198,9 @@ const DecisionNodeForm: React.FC<DecisionNodeFormProps> = ({ form, selectedNode,
                         title={
                           <Space>
                             <Form.Item {...branchField} name={[branchField.name, 'name']} noStyle>
-                              <Input placeholder="Branch name" style={{ width: 200 }} />
+                              <Input placeholder={t('branchNamePlaceholder')} style={{ width: 200 }} />
                             </Form.Item>
-                            <Tooltip title="Give this branch a meaningful name">
+                            <Tooltip title={t('branchNameTooltip')}>
                               <QuestionCircleOutlined />
                             </Tooltip>
                           </Space>
@@ -206,8 +208,8 @@ const DecisionNodeForm: React.FC<DecisionNodeFormProps> = ({ form, selectedNode,
                         extra={branchFields.length > 1 && <Button type="text" danger icon={<DeleteOutlined />} onClick={() => removeBranch(branchField.name)} />}>
                         <Form.Item name={[branchField.name, 'groupOperator']} initialValue="OR">
                           <Radio.Group buttonStyle="solid" size="small">
-                            <Radio.Button value="AND">Match ALL groups (AND)</Radio.Button>
-                            <Radio.Button value="OR">Match ANY group (OR)</Radio.Button>
+                            <Radio.Button value="AND">{t('matchAllGroups')}</Radio.Button>
+                            <Radio.Button value="OR">{t('matchAnyGroup')}</Radio.Button>
                           </Radio.Group>
                         </Form.Item>
 
@@ -215,11 +217,11 @@ const DecisionNodeForm: React.FC<DecisionNodeFormProps> = ({ form, selectedNode,
                           {(groupFields, { add: addGroup, remove: removeGroup }) => (
                             <Space direction="vertical" style={{ width: '100%' }}>
                               {groupFields.map((groupField, groupIndex) => (
-                                <Card key={groupField.key} size="small" title={`Group ${groupIndex + 1}`} extra={groupFields.length > 1 && <Button type="text" danger icon={<DeleteOutlined />} onClick={() => removeGroup(groupField.name)} />}>
+                                <Card key={groupField.key} size="small" title={t('groupLabel', { groupIndex: groupIndex + 1 })} extra={groupFields.length > 1 && <Button type="text" danger icon={<DeleteOutlined />} onClick={() => removeGroup(groupField.name)} />}>
                                   <Form.Item name={[groupField.name, 'logicalOperator']} initialValue="AND">
                                     <Radio.Group buttonStyle="solid" size="small">
-                                      <Radio.Button value="AND">ALL conditions (AND)</Radio.Button>
-                                      <Radio.Button value="OR">ANY condition (OR)</Radio.Button>
+                                      <Radio.Button value="AND">{t('allConditions')}</Radio.Button>
+                                      <Radio.Button value="OR">{t('anyCondition')}</Radio.Button>
                                     </Radio.Group>
                                   </Form.Item>
 
@@ -230,20 +232,20 @@ const DecisionNodeForm: React.FC<DecisionNodeFormProps> = ({ form, selectedNode,
                                           <Card key={condField.key} size="small" bordered={false}>
                                             <Space align="baseline">
                                               <Form.Item {...condField} name={[condField.name, 'input']} rules={[{ required: true }]}>
-                                                <Select showSearch placeholder="Select variable" style={{ width: 200 }} options={availableVariables} optionFilterProp="label" />
+                                                <Select showSearch placeholder={t('selectVariablePlaceholder')} style={{ width: 200 }} options={availableVariables} optionFilterProp="label" />
                                               </Form.Item>
                                               <Form.Item {...condField} name={[condField.name, 'operator']} rules={[{ required: true }]}>
                                                 <Select options={OPERATORS} style={{ width: 100 }} />
                                               </Form.Item>
                                               <Form.Item {...condField} name={[condField.name, 'value']} rules={[{ required: true }]}>
-                                                <Input placeholder="Value" style={{ width: 120 }} />
+                                                <Input placeholder={t('valuePlaceholder')} style={{ width: 120 }} />
                                               </Form.Item>
                                               <Button type="text" danger icon={<DeleteOutlined />} onClick={() => removeCondition(condField.name)} />
                                             </Space>
                                           </Card>
                                         ))}
                                         <Button type="dashed" onClick={() => addCondition()} icon={<PlusOutlined />}>
-                                          Add Condition
+                                          {t('addConditionButton')}
                                         </Button>
                                       </Space>
                                     )}
@@ -251,7 +253,7 @@ const DecisionNodeForm: React.FC<DecisionNodeFormProps> = ({ form, selectedNode,
                                 </Card>
                               ))}
                               <Button type="dashed" onClick={() => addGroup()} icon={<PlusOutlined />}>
-                                Add Condition Group
+                                {t('addConditionGroupButton')}
                               </Button>
                             </Space>
                           )}
@@ -259,13 +261,13 @@ const DecisionNodeForm: React.FC<DecisionNodeFormProps> = ({ form, selectedNode,
 
                         <Form.Item label={<div>
                           <Text type="secondary" style={{ display: 'block', marginBottom: 4 }}>
-                            <LinkOutlined /> Target Node:
+                            <LinkOutlined /> {t('targetNodeLabel')}
                           </Text>
                         </div>} name={[branchField.name, 'targetNode']} style={{ marginTop: 16 }}>
 
                           <Select
                             allowClear
-                            placeholder="Select target node"
+                            placeholder={t('targetNodePlaceholder')}
                             style={{ width: '100%' }}
                             options={flowNodes.map((node) => ({
                               value: node.id,
@@ -279,7 +281,7 @@ const DecisionNodeForm: React.FC<DecisionNodeFormProps> = ({ form, selectedNode,
                     ))}
 
                     <Button type="dashed" onClick={() => addBranch({ name: `Branch ${branchFields.length + 1}`, conditions: [] })} block icon={<PlusOutlined />}>
-                      Add Branch
+                      {t('addBranchButton')}
                     </Button>
                   </Space>
                 )}

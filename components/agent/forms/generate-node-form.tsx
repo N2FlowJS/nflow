@@ -8,6 +8,7 @@ import { usePredecessorNodes } from '../hooks/usePredecessorNodes';
 import BaseNodeForm from './base-node-form';
 import RoleSelector from './shared/RoleSelector';
 import { FormInstance } from 'antd/lib';
+import { useLocale } from '../../../locale';
 
 const { Text } = Typography;
 
@@ -74,6 +75,7 @@ interface GenerateNodeFormProps {
 
 const GenerateNodeForm: React.FC<GenerateNodeFormProps> = (props) => {
   const { selectedNode } = props;
+  const { t } = useLocale('form.nodeForm');
 
   const [loading, setLoading] = useState(false);
   const [models, setModels] = useState<{ id: string; name: string; providerId: string }[]>([]);
@@ -113,7 +115,7 @@ const GenerateNodeForm: React.FC<GenerateNodeFormProps> = (props) => {
       setModels(allModels);
     } catch (err) {
       console.error('Failed to load models:', err);
-      setError('Failed to load available models. Please try again.');
+      setError(t('modelsError'));
     } finally {
       setLoading(false);
     }
@@ -137,20 +139,21 @@ const GenerateNodeForm: React.FC<GenerateNodeFormProps> = (props) => {
     <BaseNodeForm {...props}>
       <Form.Item
         name="model"
-        label="Model"
-        extra="Select the AI model to use for text generation"
-        rules={[{ required: true, message: 'Please select a model' }]}>
+        label={t('modelLabel')}
+        extra={t('modelExtraGenerate')}
+        rules={[{ required: true, message: t('modelRequired') }]}
+      >
         {loading ? (
           <div style={{ textAlign: 'center', padding: '20px 0' }}>
             <Spin />
-            <div style={{ marginTop: 8 }}>Loading available models...</div>
+            <div style={{ marginTop: 8 }}>{t('loadingModels')}</div>
           </div>
         ) : error ? (
           <div style={{ color: 'red' }}>
             <Text type="danger">{error}</Text>
           </div>
         ) : (
-          <Select placeholder="Select a model" showSearch optionFilterProp="children" loading={loading}>
+          <Select placeholder={t('modelPlaceholder')} showSearch optionFilterProp="children" loading={loading}>
             {groupedModels.map((group) => (
               <Select.OptGroup key={group.provider.id} label={group.provider.providerType}>
                 {group.models.map((model) => (
@@ -162,13 +165,13 @@ const GenerateNodeForm: React.FC<GenerateNodeFormProps> = (props) => {
             ))}
             {models.length === 0 && !loading && !error && (
               <Select.Option disabled value="no-models">
-                No models available
+                {t('noModelsAvailable')}
               </Select.Option>
             )}
           </Select>
         )}
       </Form.Item>
-      <Form.Item name="numberHistory" label="Number of History Items" rules={[{ required: true }]}>
+      <Form.Item name="numberHistory" label={t('numberHistoryLabel')} rules={[{ required: true }]}>
         <Form.Item shouldUpdate>
           {({ getFieldValue, setFieldsValue }) => (
             <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
@@ -203,7 +206,7 @@ const GenerateNodeForm: React.FC<GenerateNodeFormProps> = (props) => {
             label: (
               <Space>
                 <FileTextOutlined />
-                <span>Prompt Template</span>
+                <span>{t('promptLabel')}</span>
               </Space>
             ),
             children: (
@@ -211,12 +214,13 @@ const GenerateNodeForm: React.FC<GenerateNodeFormProps> = (props) => {
                 <Form.Item
                   name="prompt"
                   // No label needed as it's in the Panel header
-                  rules={[{ required: true, message: 'Please enter a prompt template' }]}
+                  rules={[{ required: true, message: t('promptRequired') }]}
                   // Use getValueFromEvent to correctly handle MentionsInput onChange
-                  getValueFromEvent={(event) => event.target.value}>
+                  getValueFromEvent={(event) => event.target.value}
+                >
                   <MentionsInput
                     style={mentionsInputStyle} // Apply custom styles
-                    placeholder="Enter prompt template... Use @ to mention variables."
+                    placeholder={t('promptPlaceholder')}
                     a11ySuggestionsListLabel={'Suggested variables'}
                     allowSpaceInQuery={true} // Allows searching for multi-word variables if needed
                     // Control the component value
@@ -249,8 +253,7 @@ const GenerateNodeForm: React.FC<GenerateNodeFormProps> = (props) => {
                   </MentionsInput>
                 </Form.Item>
                 <div style={{ fontSize: '0.9em', color: '#888', marginTop: 8 }}>
-                  Use <code>@</code> to insert available variables like <code>@userInput</code> or{' '}
-                  <code>@retrievalResults</code>. They will be converted to <code>{'{{variableName}}'}</code> format.
+                  {t('variablesHelpTextGenerate')}
                 </div>
               </>
             ),

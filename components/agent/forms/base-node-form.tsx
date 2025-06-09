@@ -6,6 +6,7 @@ import { FlowNode } from "../../../models/flowTypes";
 import { useReactFlow } from "@xyflow/react";
 import { Button, Form, Input, Modal, Space, Typography } from "antd";
 import React, { useEffect } from "react"; // Import useEffect
+import { useLocale } from "../../../locale";
 const { Text } = Typography
 interface BaseNodeFormProps {
   form: any;
@@ -25,6 +26,7 @@ const BaseNodeForm: React.FC<BaseNodeFormProps> = ({
   onSaveSuccess, // Destructure onSaveSuccess
 }) => {
   const { setNodes, deleteElements } = useReactFlow(); // Use the hook
+  const { t } = useLocale('form.nodeForm');
 
   // Add useEffect to reset form fields when selectedNode changes
   useEffect(() => {
@@ -53,13 +55,12 @@ const BaseNodeForm: React.FC<BaseNodeFormProps> = ({
 
   const showDeleteConfirm = () => {
     Modal.confirm({
-      title: "Are you sure you want to delete this node?",
+      title: t('deleteNodeConfirmTitle'),
       icon: <ExclamationCircleOutlined />,
-      content:
-        "This action cannot be undone. All connections to this node will also be removed.",
-      okText: "Delete",
+      content: t('deleteNodeConfirmContent'),
+      okText: t('deleteButton'),
       okType: "danger",
-      cancelText: "Cancel",
+      cancelText: t('cancel'),
       onOk() {
         deleteNodeAndEdges(); // Call the updated delete function
       },
@@ -83,9 +84,9 @@ const BaseNodeForm: React.FC<BaseNodeFormProps> = ({
       onFinish={handleSave}
       className="node-form"
     >
-      <Text>Node ID: {selectedNode.id}</Text>
-      <Form.Item name="name" label="Name">
-        <Input placeholder="Enter name" />
+      <Text>{t('nodeIdLabel', { nodeId: selectedNode.id })}</Text>
+      <Form.Item name="name" label={t('nameLabel')}>
+        <Input placeholder={t('namePlaceholder')} />
       </Form.Item>
 
       {children}
@@ -98,7 +99,7 @@ const BaseNodeForm: React.FC<BaseNodeFormProps> = ({
         }}
       >
         <Button danger icon={<DeleteOutlined />} onClick={showDeleteConfirm}>
-          Delete Node
+          {t('deleteNodeButton')}
         </Button>
 
       </Space>

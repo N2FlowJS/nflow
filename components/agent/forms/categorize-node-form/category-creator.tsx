@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Input, Button, Space } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import { ICategory } from "../../../../models/flowTypes";
+import { useLocale } from "../../../../locale";
 
 interface CategoryCreatorProps {
   categories: ICategory[];
@@ -15,6 +16,7 @@ const CategoryCreator: React.FC<CategoryCreatorProps> = ({
 }) => {
   const [categoryName, setCategoryName] = useState("");
   const [categoryDescription, setCategoryDescription] = useState("");
+  const { t } = useLocale('form.nodeForm');
   
   const resetInputs = () => {
     setCategoryName("");
@@ -40,13 +42,13 @@ const CategoryCreator: React.FC<CategoryCreatorProps> = ({
       <Input
         value={categoryName}
         onChange={(e) => setCategoryName(e.target.value)}
-        placeholder="Category name"
+        placeholder={t('categoryNamePlaceholder')}
         style={{ width: "40%" }}
       />
       <Input
         value={categoryDescription}
         onChange={(e) => setCategoryDescription(e.target.value)}
-        placeholder="Description (optional)"
+        placeholder={t('categoryDescriptionPlaceholder')}
         style={{ width: "40%" }}
       />
       <Button
@@ -55,7 +57,7 @@ const CategoryCreator: React.FC<CategoryCreatorProps> = ({
         onClick={handleAddCategory}
         disabled={!categoryName}
       >
-        Add
+        {t('addCategoryButton')}
       </Button>
     </Space.Compact>
   );

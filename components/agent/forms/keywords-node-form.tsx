@@ -9,6 +9,7 @@ import BaseNodeForm from './base-node-form';
 import RoleSelector from './shared/RoleSelector';
 import InputReferences from './shared/InputReferences';
 import { FormInstance } from 'antd/lib';
+import { useLocale } from '../../../locale';
 
 const { Text } = Typography;
 
@@ -74,6 +75,7 @@ interface KeywordsNodeFormProps {
 
 const KeywordsNodeForm: React.FC<KeywordsNodeFormProps> = (props) => {
   const { selectedNode } = props;
+  const { t } = useLocale('form.nodeForm');
 
   const [loading, setLoading] = useState(false);
   const [models, setModels] = useState<{ id: string; name: string; providerId: string }[]>([]);
@@ -110,7 +112,7 @@ const KeywordsNodeForm: React.FC<KeywordsNodeFormProps> = (props) => {
       setModels(allModels);
     } catch (err) {
       console.error('Failed to load models:', err);
-      setError('Failed to load available models. Please try again.');
+      setError(t('modelsError'));
     } finally {
       setLoading(false);
     }
@@ -135,20 +137,20 @@ const KeywordsNodeForm: React.FC<KeywordsNodeFormProps> = (props) => {
     <BaseNodeForm {...props}>
       <Form.Item
         name="model"
-        label="Model"
-        extra="Select the AI model to use for keyword extraction"
-        rules={[{ required: true, message: 'Please select a model' }]}>
+        label={t('modelLabel')}
+        extra={t('modelExtraKeywords')}
+        rules={[{ required: true, message: t('modelRequired') }]}>
         {loading ? (
           <div style={{ textAlign: 'center', padding: '20px 0' }}>
             <Spin />
-            <div style={{ marginTop: 8 }}>Loading available models...</div>
+            <div style={{ marginTop: 8 }}>{t('loadingModels')}</div>
           </div>
         ) : error ? (
           <div style={{ color: 'red' }}>
             <Text type="danger">{error}</Text>
           </div>
         ) : (
-          <Select placeholder="Select a model" showSearch optionFilterProp="children" loading={loading}>
+          <Select placeholder={t('modelPlaceholder')} showSearch optionFilterProp="children" loading={loading}>
             {groupedModels.map((group) => (
               <Select.OptGroup key={group.provider.id} label={group.provider.providerType}>
                 {group.models.map((model) => (
@@ -160,14 +162,14 @@ const KeywordsNodeForm: React.FC<KeywordsNodeFormProps> = (props) => {
             ))}
             {models.length === 0 && !loading && !error && (
               <Select.Option disabled value="no-models">
-                No models available
+                {t('noModelsAvailable')}
               </Select.Option>
             )}
           </Select>
         )}
       </Form.Item>
 
-      <Form.Item name="maxResults" label="Max Keywords" rules={[{ required: true }]}>
+      <Form.Item name="maxResults" label={t('maxKeywordsLabel')} rules={[{ required: true }]}>
         <Form.Item shouldUpdate>
           {({ getFieldValue, setFieldsValue }) => (
             <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
@@ -190,7 +192,7 @@ const KeywordsNodeForm: React.FC<KeywordsNodeFormProps> = (props) => {
           )}
         </Form.Item>
       </Form.Item>
-      <Form.Item name="numberHistory" label="Number of History Items" rules={[{ required: true }]}>
+      <Form.Item name="numberHistory" label={t('numberHistoryLabel')} rules={[{ required: true }]}>
         <Form.Item shouldUpdate>
           {({ getFieldValue, setFieldsValue }) => (
             <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
@@ -226,18 +228,18 @@ const KeywordsNodeForm: React.FC<KeywordsNodeFormProps> = (props) => {
             label: (
               <Space>
                 <TagsOutlined />
-                <span>Keywords Extraction Prompt</span>
+                <span>{t('keywordsPromptLabel')}</span>
               </Space>
             ),
             children: (
               <>
                 <Form.Item
                   name="prompt"
-                  rules={[{ required: true, message: 'Please enter a prompt template for keyword extraction' }]}
+                  rules={[{ required: true, message: t('keywordsPromptRequired') }]}
                   getValueFromEvent={(event) => event.target.value}>
                   <MentionsInput
                     style={mentionsInputStyle}
-                    placeholder="Enter prompt for keyword extraction... Use @ to mention variables. Example: Extract keywords from: {{@userInput}}"
+                    placeholder={t('keywordsPromptPlaceholder')}
                     a11ySuggestionsListLabel={'Suggested variables'}
                     allowSpaceInQuery={true}
                     onChange={(event: unknown, value: string) => {
@@ -266,8 +268,7 @@ const KeywordsNodeForm: React.FC<KeywordsNodeFormProps> = (props) => {
                   </MentionsInput>
                 </Form.Item>
                 <div style={{ fontSize: '0.9em', color: '#888', marginTop: 8 }}>
-                  Use <code>@</code> to insert available variables. Example: &quot;Extract the most important keywords from:{' '}
-                  <code>{'{{@userInput}}'}</code>&quot;. The model will return a list of keywords.
+                  {t('variablesHelpTextKeywords')}
                 </div>
               </>
             ),

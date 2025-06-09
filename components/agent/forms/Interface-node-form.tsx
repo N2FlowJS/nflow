@@ -3,6 +3,7 @@ import { FlowNode } from "../../../models/flowTypes";
 import { Alert, Card, Space, Typography } from "antd";
 import React from "react";
 import BaseNodeForm from "./base-node-form";
+import { useLocale } from "../../../locale";
 
 const { Text } = Typography;
 
@@ -13,11 +14,12 @@ interface InterfaceNodeFormProps {
 }
 
 const InterfaceNodeForm: React.FC<InterfaceNodeFormProps> = (props) => {
+  const { t } = useLocale('form.nodeForm');
   return (
     <BaseNodeForm {...props}>
       <Alert
-        message="Display Node"
-        description="This node automatically displays the output from the previous node. No configuration is needed."
+        message={t('displayNodeMessage')}
+        description={t('displayNodeDescription')}
         type="info"
         showIcon
         icon={<CommentOutlined />}
@@ -28,29 +30,29 @@ const InterfaceNodeForm: React.FC<InterfaceNodeFormProps> = (props) => {
         title={
           <Text strong>
             <InfoCircleOutlined style={{ marginRight: 8 }} />
-            How It Works
+            {t('howItWorksTitle')}
           </Text>
         }
       >
         <Space direction="vertical" style={{ width: '100%' }}>
           <div>
             <ArrowUpOutlined style={{ marginRight: 8 }} />
-            <Text>Automatically displays the output from the previous node.</Text>
+            <Text>{t('displayNodeHowItWorksText1')}</Text>
           </div>
           
           <div>
             <Text type="secondary">
-              This node will display content in the following priority:
+              {t('displayNodeHowItWorksText2')}
             </Text>
             <ol style={{ marginTop: 8, paddingLeft: 24 }}>
-              <li>Generated content from AI models</li>
-              <li>User input</li>
-              <li>The most recent response in flow history</li>
+              <li>{t('displayNodePriorityItem1')}</li>
+              <li>{t('displayNodePriorityItem2')}</li>
+              <li>{t('displayNodePriorityItem3')}</li>
             </ol>
           </div>
           
           <Text type="secondary">
-            If this node has no outgoing connections, it will display as the final output.
+            {t('displayNodeHowItWorksText3')}
           </Text>
         </Space>
       </Card>

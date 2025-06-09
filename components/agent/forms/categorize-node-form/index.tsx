@@ -19,6 +19,7 @@ import CategoryCreator from "./category-creator";
 import CategoryListItem from "./category-list-item";
 import DefaultCategorySelector from "./default-category-selector";
 import { FormInstance } from "antd/lib";
+import { useLocale } from "../../../../locale";
 
 
 interface CategorizeNodeFormProps {
@@ -39,6 +40,7 @@ const CategorizeNodeForm: React.FC<CategorizeNodeFormProps> = ({ form, selectedN
   const flowNodes = getNodes().filter(
     (node) => node.id !== selectedNode.id
   );
+  const { t } = useLocale('form.nodeForm');
 
   // Update the categories in the form using the hook instance
   const updateCategories = (updatedCategories: ICategory[]) => {
@@ -179,7 +181,7 @@ const CategorizeNodeForm: React.FC<CategorizeNodeFormProps> = ({ form, selectedN
             label: (
               <Space>
                 <AppstoreOutlined />
-                <span>Categories</span>
+                <span>{t('categoriesLabel')}</span>
                 {categories.length > 0 && (
                   <Tag color="pink">{categories.length}</Tag>
                 )}
@@ -213,7 +215,7 @@ const CategorizeNodeForm: React.FC<CategorizeNodeFormProps> = ({ form, selectedN
                 ) : (
                   <Empty
                     image={Empty.PRESENTED_IMAGE_SIMPLE}
-                    description="No categories defined"
+                    description={t('noVariablesDefined')} // Assuming this was a typo and meant no categories
                     style={{ margin: "12px 0" }}
                   />
                 )}
@@ -226,11 +228,11 @@ const CategorizeNodeForm: React.FC<CategorizeNodeFormProps> = ({ form, selectedN
             children: (
               <Form.Item
                 name="defaultCategory"
-                help="This category will be used when no other categories match"
+                help={t('defaultCategoryHelp')}
                 noStyle
               >
                 <Select
-                  placeholder="Select default category"
+                  placeholder={t('defaultCategoryPlaceholder')}
                   style={{ width: "100%" }}
                 >
                   {categories.map((category: ICategory) => (

@@ -19,6 +19,7 @@ import {
 } from "@ant-design/icons";
 import { ICategory } from "../../../../models/flowTypes";
 import { Node } from "@xyflow/react";
+import { useLocale } from "../../../../locale";
 
 const { Text } = Typography;
 
@@ -38,6 +39,7 @@ const CategoryListItem: React.FC<CategoryListItemProps> = ({
   removeCategory
 }) => {
   const [newExample, setNewExample] = useState("");
+  const { t } = useLocale('form.nodeForm');
 
   // Update category description
   const updateDescription = (value: string) => {
@@ -99,7 +101,7 @@ const CategoryListItem: React.FC<CategoryListItemProps> = ({
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
               <Text strong>{category.name}</Text>
               <Space>
-                <Tooltip title="Remove Category">
+                <Tooltip title={t('removeTooltip')}>
                   <Button
                     type="text"
                     danger
@@ -118,7 +120,7 @@ const CategoryListItem: React.FC<CategoryListItemProps> = ({
             <Space direction="vertical" style={{ width: "100%" }}>
               {/* Description */}
               <Input
-                placeholder="Category description"
+                placeholder={t('categoryDescriptionInputPlaceholder')}
                 value={category.description || ""}
                 onChange={(e) => updateDescription(e.target.value)}
               />
@@ -126,11 +128,11 @@ const CategoryListItem: React.FC<CategoryListItemProps> = ({
               {/* Target node selection */}
               <div style={{ marginTop: 8 }}>
                 <Text type="secondary" style={{ display: 'block', marginBottom: 4 }}>
-                  <LinkOutlined /> Target Node:
+                  <LinkOutlined /> {t('targetNodeLabel')}
                 </Text>
                 <Select
                   allowClear
-                  placeholder="Select target node"
+                  placeholder={t('targetNodePlaceholder')}
                   style={{ width: '100%' }}
                   value={category.targetNode}
                   onChange={updateTargetNode}
@@ -147,13 +149,13 @@ const CategoryListItem: React.FC<CategoryListItemProps> = ({
               <Divider orientation="left" style={{ margin: '12px 0 8px' }}>
                 <Space>
                   <FileTextOutlined />
-                  <span>Examples</span>
+                  <span>{t('examplesLabel')}</span>
                 </Space>
               </Divider>
 
               <Space.Compact style={{ width: "100%" }}>
                 <Input
-                  placeholder="Add example for this category"
+                  placeholder={t('addExamplePlaceholder')}
                   value={newExample}
                   onChange={(e) => setNewExample(e.target.value)}
                   onPressEnter={addExample}
@@ -163,7 +165,7 @@ const CategoryListItem: React.FC<CategoryListItemProps> = ({
                   onClick={addExample}
                   disabled={!newExample}
                 >
-                  Add
+                  {t('addCategoryButton')} {/* Assuming 'Add' is generic enough */}
                 </Button>
               </Space.Compact>
 
@@ -194,7 +196,7 @@ const CategoryListItem: React.FC<CategoryListItemProps> = ({
               ) : (
                 <Empty
                   image={Empty.PRESENTED_IMAGE_SIMPLE}
-                  description="No examples added"
+                  description={t('noExamplesAdded')}
                   style={{ margin: '8px 0' }}
                 />
               )}

@@ -21,6 +21,7 @@ import {
 import React, { useState } from "react";
 import BaseNodeForm from "./base-node-form";
 import RoleSelector from "./shared/RoleSelector";
+import { useLocale } from "../../../locale";
 
 const { TextArea } = Input;
 const { Text } = Typography;
@@ -35,6 +36,7 @@ const BeginNodeForm: React.FC<BeginNodeFormProps> = (props) => {
   const [newVarName, setNewVarName] = useState("");
   const [newVarValue, setNewVarValue] = useState("");
   const variables = Form.useWatch("variables", props.form) || [];
+  const { t } = useLocale('form.nodeForm');
 
   const addVariable = () => {
     if (newVarName && !variables.some((v: any) => v.name === newVarName)) {
@@ -67,14 +69,14 @@ const BeginNodeForm: React.FC<BeginNodeFormProps> = (props) => {
             label: (
               <Space>
                 <EditOutlined />
-                <span>Description</span>
+                <span>{t('descriptionLabel')}</span>
               </Space>
             ),
             children: (
               <Form.Item name="description" noStyle>
                 <TextArea
                   rows={2}
-                  placeholder="Describe what this flow does..."
+                  placeholder={t('descriptionPlaceholderBegin')}
                   style={{ resize: "none" }}
                 />
               </Form.Item>
@@ -85,14 +87,14 @@ const BeginNodeForm: React.FC<BeginNodeFormProps> = (props) => {
             label: (
               <Space>
                 <MessageOutlined />
-                <span>Greeting Message</span>
+                <span>{t('greetingMessageLabel')}</span>
               </Space>
             ),
             children: (
               <Form.Item name="greeting" noStyle>
                 <TextArea
                   rows={2}
-                  placeholder="Enter a greeting message to start the conversation..."
+                  placeholder={t('greetingMessagePlaceholder')}
                   style={{ resize: "none" }}
                 />
               </Form.Item>
@@ -103,7 +105,7 @@ const BeginNodeForm: React.FC<BeginNodeFormProps> = (props) => {
             label: (
               <Space>
                 <CodeOutlined />
-                <span>Variables</span>
+                <span>{t('variablesLabel')}</span>
                 {variables.length > 0 && (
                   <Tag color="blue">{variables.length}</Tag>
                 )}
@@ -123,7 +125,7 @@ const BeginNodeForm: React.FC<BeginNodeFormProps> = (props) => {
                       renderItem={(variable: any) => (
                         <List.Item
                           actions={[
-                            <Tooltip key={'remove'} title="Remove">
+                            <Tooltip key={'remove'} title={t('removeTooltip')}>
                               <Button
                                 type="text"
                                 danger
@@ -145,7 +147,7 @@ const BeginNodeForm: React.FC<BeginNodeFormProps> = (props) => {
                   ) : (
                     <Empty
                       image={Empty.PRESENTED_IMAGE_SIMPLE}
-                      description="No variables defined"
+                      description={t('noVariablesDefined')}
                       style={{ margin: "12px 0" }}
                     />
                   )}
@@ -154,14 +156,14 @@ const BeginNodeForm: React.FC<BeginNodeFormProps> = (props) => {
                     <Input
                       value={newVarName}
                       onChange={(e) => setNewVarName(e.target.value)}
-                      placeholder="Variable name"
+                      placeholder={t('variableNamePlaceholder')}
                       style={{ width: "40%" }}
                       prefix="@"
                     />
                     <Input
                       value={newVarValue}
                       onChange={(e) => setNewVarValue(e.target.value)}
-                      placeholder="Default value"
+                      placeholder={t('defaultValuePlaceholder')}
                       style={{ width: "40%" }}
                     />
                     <Button
@@ -170,7 +172,7 @@ const BeginNodeForm: React.FC<BeginNodeFormProps> = (props) => {
                       onClick={addVariable}
                       disabled={!newVarName}
                     >
-                      Add
+                      {t('addVariableButton')}
                     </Button>
                   </Space.Compact>
                 </Space>
