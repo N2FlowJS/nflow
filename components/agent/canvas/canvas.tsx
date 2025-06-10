@@ -14,6 +14,7 @@ import {
   useEdgesState,
   useNodesState,
   useReactFlow,
+  Edge, // Import Edge type
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { Drawer, Form, Layout, message } from 'antd';
@@ -62,19 +63,7 @@ interface FlowEditorProps {
 
 const { Content } = Layout;
 
-const FlowEditor: React.FC<FlowEditorProps> = ({ flowConfig, onStartConversation, agentId, activeConversationId }) => {
-  const { theme } = useTheme();
-  const initialFlow = parseFlowConfig(flowConfig);
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialFlow.nodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialFlow.edges);
-  const [selectedNode, setSelectedNode] = useState<FlowNode | null>(null);
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [nodeForm] = Form.useForm();
-  const { screenToFlowPosition } = useReactFlow();
-  const [isPaletteCollapsed, setIsPaletteCollapsed] = useState(false);
-
-  const { setFlowState } = useFlowState();
-
+const useConversationStateLoader = (activeConversationId: string | undefined, setFlowState: (state: any) => void) => {
   useEffect(() => {
     const loadConversationState = async () => {
       if (activeConversationId) {
@@ -92,35 +81,30 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flowConfig, onStartConversation
     };
     loadConversationState();
   }, [activeConversationId, setFlowState]);
+};
 
+const useEdgeCleanup = (nodes: FlowNode[], setEdges: React.Dispatch<React.SetStateAction<any[]>>) => {
   React.useEffect(() => {
     const nodeIds = nodes.map((node) => node.id);
     setEdges((edges) => edges.filter((edge) => nodeIds.includes(edge.source) && nodeIds.includes(edge.target)));
   }, [nodes, setEdges]);
+};
 
-  const onEdgeDelete = useCallback(
+const useEdgeDeletion = (setEdges: React.Dispatch<React.SetStateAction<any[]>>) => {
+  return useCallback(
     (edgeId: string) => {
       setEdges((eds) => eds.filter((edge) => edge.id !== edgeId));
     },
     [setEdges]
   );
+};
 
-  const handleSaveFlow = async () => {
-    if (!agentId) {
-      message.error('Agent ID is missing');
-      return;
-    }
-    try {
-      const flow = { nodes, edges };
-      await saveFlowConfig(agentId, flow);
-      message.success('Flow saved successfully');
-    } catch (error: unknown) {
-      console.error('Error saving flow:', error);
-      message.error('Failed to save flow');
-    }
-  };
-
-  const onConnect = useCallback(
+const useNodeConnection = (
+  nodes: FlowNode[],
+  setNodes: React.Dispatch<React.SetStateAction<FlowNode[]>>,
+  setEdges: React.Dispatch<React.SetStateAction<any[]>>
+) => {
+  return useCallback(
     (params: Connection) => {
       const sourceNode = nodes.find((node) => node.id === params.source);
       const targetNode = nodes.find((node) => node.id === params.target);
@@ -206,9 +190,28 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flowConfig, onStartConversation
     },
     [nodes, setEdges, setNodes]
   );
+};
 
-  const isValidConnection: IsValidConnection = useCallback(
-    (params) => {
+const useFlowSaver = (agentId: string | undefined, nodes: FlowNode[], edges: any[]) => {
+  return async () => {
+    if (!agentId) {
+      message.error('Agent ID is missing');
+      return;
+    }
+    try {
+      const flow = { nodes, edges };
+      await saveFlowConfig(agentId, flow);
+      message.success('Flow saved successfully');
+    } catch (error: unknown) {
+      console.error('Error saving flow:', error);
+      message.error('Failed to save flow');
+    }
+  };
+};
+
+const useValidConnection = (nodes: FlowNode[]) => {
+  return useCallback(
+    (params: Connection | Edge) => { // Changed Connection to Connection | Edge
       const sourceNode = nodes.find((node) => node.id === params.source);
       const targetNode = nodes.find((node) => node.id === params.target);
 
@@ -222,8 +225,14 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flowConfig, onStartConversation
     },
     [nodes]
   );
+};
 
-  const onDrop = useCallback(
+const useNodeDropper = (
+  screenToFlowPosition: (position: { x: number; y: number }) => { x: number; y: number },
+  setNodes: React.Dispatch<React.SetStateAction<FlowNode[]>>,
+  nodes: FlowNode[]
+) => {
+  return useCallback(
     (event: React.DragEvent) => {
       event.preventDefault();
       const nodeType = event.dataTransfer.getData('nflow.application.reactflow') as NodeTypeString;
@@ -263,19 +272,51 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flowConfig, onStartConversation
     },
     [screenToFlowPosition, setNodes, nodes]
   );
+};
 
-  const onDragOver = useCallback((event: React.DragEvent) => {
+const useDragOverHandler = () => {
+  return useCallback((event: React.DragEvent) => {
     event.preventDefault();
     event.dataTransfer.dropEffect = 'move';
   }, []);
+};
 
-  const onNodeClick = useCallback(
+const useNodeClickHandler = (
+  setSelectedNode: React.Dispatch<React.SetStateAction<FlowNode | null>>,
+  setIsDrawerOpen: React.Dispatch<React.SetStateAction<boolean>>
+) => {
+  return useCallback(
     (_: React.MouseEvent, node: FlowNode) => {
       setSelectedNode(node);
       setIsDrawerOpen(true);
     },
     [setSelectedNode, setIsDrawerOpen]
   );
+};
+
+const FlowEditor: React.FC<FlowEditorProps> = ({ flowConfig, onStartConversation, agentId, activeConversationId }) => {
+  const { theme } = useTheme();
+  const initialFlow = parseFlowConfig(flowConfig);
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialFlow.nodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initialFlow.edges);
+  const [selectedNode, setSelectedNode] = useState<FlowNode | null>(null);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [nodeForm] = Form.useForm();
+  const { screenToFlowPosition } = useReactFlow();
+  const [isPaletteCollapsed, setIsPaletteCollapsed] = useState(false);
+
+  const { setFlowState } = useFlowState();
+
+  useConversationStateLoader(activeConversationId, setFlowState);
+  useEdgeCleanup(nodes, setEdges);
+
+  const onEdgeDelete = useEdgeDeletion(setEdges);
+  const onConnect = useNodeConnection(nodes, setNodes, setEdges);
+  const handleSaveFlow = useFlowSaver(agentId, nodes, edges);
+  const isValidConnection = useValidConnection(nodes);
+  const onDrop = useNodeDropper(screenToFlowPosition, setNodes, nodes);
+  const onDragOver = useDragOverHandler();
+  const onNodeClick = useNodeClickHandler(setSelectedNode, setIsDrawerOpen);
 
   React.useEffect(() => {
     setEdges((currentEdges) =>
@@ -314,6 +355,7 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flowConfig, onStartConversation
           connectionLineType={ConnectionLineType.Bezier}
           isValidConnection={isValidConnection}
           fitView
+          nodeOrigin={[0.5, 0]}
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
           snapToGrid={true}
