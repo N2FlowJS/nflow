@@ -122,7 +122,7 @@ const GenerateNodeForm: React.FC<GenerateNodeFormProps> = (props) => {
   };
   useEffect(() => {
     loadModels();
-  }, []);
+  }, [loadModels]);
 
   // Group models by provider for better organization
   const groupedModels = providers
@@ -141,8 +141,7 @@ const GenerateNodeForm: React.FC<GenerateNodeFormProps> = (props) => {
         name="model"
         label={t('modelLabel')}
         extra={t('modelExtraGenerate')}
-        rules={[{ required: true, message: t('modelRequired') }]}
-      >
+        rules={[{ required: true, message: t('modelRequired') }]}>
         {loading ? (
           <div style={{ textAlign: 'center', padding: '20px 0' }}>
             <Spin />
@@ -216,8 +215,7 @@ const GenerateNodeForm: React.FC<GenerateNodeFormProps> = (props) => {
                   // No label needed as it's in the Panel header
                   rules={[{ required: true, message: t('promptRequired') }]}
                   // Use getValueFromEvent to correctly handle MentionsInput onChange
-                  getValueFromEvent={(event) => event.target.value}
-                >
+                  getValueFromEvent={(event) => event.target.value}>
                   <MentionsInput
                     style={mentionsInputStyle} // Apply custom styles
                     placeholder={t('promptPlaceholder')}
@@ -252,9 +250,7 @@ const GenerateNodeForm: React.FC<GenerateNodeFormProps> = (props) => {
                     />
                   </MentionsInput>
                 </Form.Item>
-                <div style={{ fontSize: '0.9em', color: '#888', marginTop: 8 }}>
-                  {t('variablesHelpTextGenerate')}
-                </div>
+                <div style={{ fontSize: '0.9em', color: '#888', marginTop: 8 }}>{t('variablesHelpTextGenerate')}</div>
               </>
             ),
           },

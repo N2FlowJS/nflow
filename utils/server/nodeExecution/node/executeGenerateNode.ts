@@ -11,11 +11,19 @@ import { FlowStateDispatcher } from '../flowStateDispatcher';
 /**
  * Handler for executing Generate nodes
  */
-export async function executeGenerateNode(node: FlowNode, { flow, flowState }: FlowExecutionContext, callback?: (result: ExecutionResult) => void, dispatcher?: FlowStateDispatcher): Promise<ExecutionResult> {
+export async function executeGenerateNode(
+  node: FlowNode,
+  { flow, flowState, history }: FlowExecutionContext,
+  callback?: (result: ExecutionResult) => void,
+  dispatcher?: FlowStateDispatcher
+): Promise<ExecutionResult> {
   const data = node.data as GenerateNodeData;
   const form = data.form || {};
   const inputs: string[] = getInputFromTemplate(form.prompt);
-
+  const historyMessages: MessagePart[] = (history || []).slice(form.numberHistory || 0).map((msg: MessagePart) => ({
+    role: msg.role == 'user' ? 'user' : 'assistant',
+    content: msg.content || '',
+  }));
   const ready = isNodeReady(inputs, flowState);
   if (!ready) {
     return {
@@ -41,7 +49,7 @@ export async function executeGenerateNode(node: FlowNode, { flow, flowState }: F
   const vars: Record<string, string> = {};
   inputs.forEach((key) => {
     if (flowState.components[key] !== undefined) {
-      vars[key] = flowState.components[key].output || "";
+      vars[key] = flowState.components[key].output || '';
     }
   });
 
@@ -49,14 +57,21 @@ export async function executeGenerateNode(node: FlowNode, { flow, flowState }: F
     const prompt = processTemplate(form.prompt || '', vars);
     const message: MessagePart[] = [
       {
-        role: 'system',
+        role: 'system' as const,
         content: prompt,
       },
+      ...historyMessages,
       {
-        role: 'user',
-        content: flowState.variables.userInput.content || 'nothing',
-      }
+        role: 'user' as const,
+        content: flowState.variables.userInput.content || '',
+      },
     ]
+      .filter((msg: MessagePart) => msg.content && msg.content.trim() !== '')
+      .map((msg: MessagePart) => ({
+        role: msg.role,
+        content: msg.content,
+      }));
+    console.log(`Executing Generate node: ${node.id} with message: ${JSON.stringify(message, null, 2)}`);
 
     // Get model ID
     const modelId = form.model;
@@ -75,32 +90,46 @@ export async function executeGenerateNode(node: FlowNode, { flow, flowState }: F
     let aiResponse = '';
     const streamCallback = callback
       ? (partial: string) => {
-        callback({
-          status: 'waiting',
-          nextNodes: [],
-          flowState,
-          nodeInfo: {
-            id: node.id,
-            name: node.data?.label || node.id,
-            type: 'generate',
-            role: 'assistant',
-          },
-          execution: {
-            output: partial,
-            nodeId: node.id,
-            nodeName: node.data?.label || node.id,
-            startTime: new Date().toISOString(),
-          },
-        });
-      }
+          callback({
+            status: 'waiting',
+            nextNodes: [],
+            flowState,
+            nodeInfo: {
+              id: node.id,
+              name: node.data?.label || node.id,
+              type: 'generate',
+              role: 'assistant',
+            },
+            execution: {
+              output: partial,
+              nodeId: node.id,
+              nodeName: node.data?.label || node.id,
+              startTime: new Date().toISOString(),
+            },
+          });
+        }
       : undefined;
 
     switch (model.provider.providerType) {
       case 'openai':
-        aiResponse = await llmOpenAI.completions(model.provider.endpointUrl, model.provider.apiKey, model.name, message, undefined, streamCallback);
+        aiResponse = await llmOpenAI.completions(
+          model.provider.endpointUrl,
+          model.provider.apiKey,
+          model.name,
+          message,
+          undefined,
+          streamCallback
+        );
         break;
       case 'openai-compatible':
-        aiResponse = await llmOpenAI.completions(model.provider.endpointUrl, model.provider.apiKey, model.name, message, undefined, streamCallback);
+        aiResponse = await llmOpenAI.completions(
+          model.provider.endpointUrl,
+          model.provider.apiKey,
+          model.name,
+          message,
+          undefined,
+          streamCallback
+        );
         break;
       default:
         return {
@@ -125,7 +154,7 @@ export async function executeGenerateNode(node: FlowNode, { flow, flowState }: F
 
     // Use shared dispatcher if available
     let finalState = flowState;
-    
+
     if (dispatcher) {
       dispatcher.setNodeOutput(node.id, aiResponse, 'generate');
       dispatcher.setCurrentNode(node);
@@ -157,17 +186,14 @@ export async function executeGenerateNode(node: FlowNode, { flow, flowState }: F
     throw new Error(`Error generating content: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
-export type LLMProvider =
-  {
-    id: string;
-    createdAt: Date;
-    updatedAt: Date;
-    ownerType: string;
-    providerType: string;
-    endpointUrl: string;
-    apiKey: string;
-    userOwnerId: string | null;
-    teamOwnerId: string | null;
-  }
-
-
+export type LLMProvider = {
+  id: string;
+  createdAt: Date;
+  updatedAt: Date;
+  ownerType: string;
+  providerType: string;
+  endpointUrl: string;
+  apiKey: string;
+  userOwnerId: string | null;
+  teamOwnerId: string | null;
+};
