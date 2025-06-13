@@ -91,7 +91,7 @@ const GenerateNodeForm: React.FC<GenerateNodeFormProps> = (props) => {
     display: string;
   }[] = useMemo(() => [...predecessorVariables], [predecessorVariables]);
 
-  const loadModels = async () => {
+  const loadModels = React.useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -119,7 +119,7 @@ const GenerateNodeForm: React.FC<GenerateNodeFormProps> = (props) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]);
   useEffect(() => {
     loadModels();
   }, [loadModels]);

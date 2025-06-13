@@ -1,14 +1,13 @@
-import { DatabaseOutlined } from "@ant-design/icons";
-import { FlowNode } from "../../../models/flowTypes";
-import { IKnowledge } from "../../../models/IKnowledge";
-import { fetchAllKnowledge, } from "../../../services/knowledgeService";
-import { Form, InputNumber, Select, Slider, Spin, Typography } from "antd";
-import React, { useEffect, useState } from "react";
-import BaseNodeForm from "./base-node-form";
-import InputReferences from "./shared/InputReferences";
-import RoleSelector from "./shared/RoleSelector";
-import { useLocale } from "../../../locale";
-
+import { DatabaseOutlined } from '@ant-design/icons';
+import { FlowNode } from '../../../models/flowTypes';
+import { IKnowledge } from '../../../models/IKnowledge';
+import { fetchAllKnowledge } from '../../../services/knowledgeService';
+import { Form, InputNumber, Select, Slider, Spin, Typography } from 'antd';
+import React, { useEffect, useState } from 'react';
+import BaseNodeForm from './base-node-form';
+import InputReferences from './shared/InputReferences';
+import RoleSelector from './shared/RoleSelector';
+import { useLocale } from '../../../locale';
 
 interface RetrievalNodeFormProps {
   form: any;
@@ -20,28 +19,26 @@ const RetrievalNodeForm: React.FC<RetrievalNodeFormProps> = (props) => {
   const { selectedNode } = props;
   const [knowledgeBases, setKnowledgeBases] = useState<IKnowledge[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
   const { t } = useLocale('form.nodeForm');
+  const loadKnowledgeBases = React.useCallback(async () => {
+    setLoading(true);
+    setError('');
 
+    try {
+      const data = await fetchAllKnowledge();
+      setKnowledgeBases(data);
+    } catch (err) {
+      console.error('Failed to load knowledge bases:', err);
+      setError(t('knowledgeBasesLoadingError'));
+    } finally {
+      setLoading(false);
+    }
+  }, [t]);
 
   useEffect(() => {
-    const loadKnowledgeBases = async () => {
-      setLoading(true);
-      setError("");
-
-      try {
-        const data = await fetchAllKnowledge();
-        setKnowledgeBases(data);
-      } catch (err) {
-        console.error("Failed to load knowledge bases:", err);
-        setError(t('knowledgeBasesLoadingError'));
-      } finally {
-        setLoading(false);
-      }
-    };
-
     loadKnowledgeBases();
-  }, []);
+  }, [loadKnowledgeBases]);
 
   return (
     <BaseNodeForm {...props}>
@@ -49,8 +46,7 @@ const RetrievalNodeForm: React.FC<RetrievalNodeFormProps> = (props) => {
         name="knowledgeIds"
         label={t('knowledgeBasesLabel')}
         help={t('knowledgeBasesHelp')}
-        rules={[{ required: true, message: t('knowledgeBasesRequired') }]}
-      >
+        rules={[{ required: true, message: t('knowledgeBasesRequired') }]}>
         <Select
           mode="multiple"
           placeholder={t('knowledgeBasesPlaceholder')}
@@ -65,8 +61,7 @@ const RetrievalNodeForm: React.FC<RetrievalNodeFormProps> = (props) => {
               t('noKnowledgeBasesFound')
             )
           }
-          optionLabelProp="label"
-        >
+          optionLabelProp="label">
           {knowledgeBases.map((kb) => (
             <Select.Option key={kb.id} value={kb.id} label={kb.name}>
               <div style={{ display: 'flex', alignItems: 'center' }}>
@@ -78,12 +73,8 @@ const RetrievalNodeForm: React.FC<RetrievalNodeFormProps> = (props) => {
         </Select>
       </Form.Item>
 
-      <Form.Item
-        name="maxResults"
-        label={t('maxResultsLabel')}
-        rules={[{ required: true }]}
-      >
-        <Form.Item  shouldUpdate>
+      <Form.Item name="maxResults" label={t('maxResultsLabel')} rules={[{ required: true }]}>
+        <Form.Item shouldUpdate>
           {({ getFieldValue, setFieldsValue }) => (
             <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
               <Slider
@@ -91,14 +82,14 @@ const RetrievalNodeForm: React.FC<RetrievalNodeFormProps> = (props) => {
                 max={20}
                 style={{ flex: 1 }}
                 value={getFieldValue('maxResults')}
-                onChange={value => setFieldsValue({ maxResults: value })}
+                onChange={(value) => setFieldsValue({ maxResults: value })}
                 marks={{ 1: '1', 20: '20' }}
               />
               <InputNumber
                 min={1}
                 max={20}
                 value={getFieldValue('maxResults')}
-                onChange={value => setFieldsValue({ maxResults: value })}
+                onChange={(value) => setFieldsValue({ maxResults: value })}
                 style={{ width: 70 }}
               />
             </div>
@@ -107,10 +98,7 @@ const RetrievalNodeForm: React.FC<RetrievalNodeFormProps> = (props) => {
       </Form.Item>
       <RoleSelector />
 
-      <InputReferences
-        form={props.form}
-        nodeid={selectedNode.id}
-      />
+      <InputReferences form={props.form} nodeid={selectedNode.id} />
     </BaseNodeForm>
   );
 };

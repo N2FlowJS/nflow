@@ -91,7 +91,7 @@ const KeywordsNodeForm: React.FC<KeywordsNodeFormProps> = (props) => {
     display: string;
   }[] = useMemo(() => [...predecessorVariables], [predecessorVariables]);
 
-  const loadModels = async () => {
+  const loadModels = React.useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -116,11 +116,11 @@ const KeywordsNodeForm: React.FC<KeywordsNodeFormProps> = (props) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]);
 
   useEffect(() => {
     loadModels();
-  }, []);
+  }, [loadModels]);
 
   // Group models by provider for better organization
   const groupedModels = providers
@@ -267,9 +267,7 @@ const KeywordsNodeForm: React.FC<KeywordsNodeFormProps> = (props) => {
                     />
                   </MentionsInput>
                 </Form.Item>
-                <div style={{ fontSize: '0.9em', color: '#888', marginTop: 8 }}>
-                  {t('variablesHelpTextKeywords')}
-                </div>
+                <div style={{ fontSize: '0.9em', color: '#888', marginTop: 8 }}>{t('variablesHelpTextKeywords')}</div>
               </>
             ),
           },
