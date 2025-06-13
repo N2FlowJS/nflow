@@ -7,7 +7,6 @@ import {
   ControlButton,
   Controls,
   EdgeTypes,
-  IsValidConnection,
   MarkerType,
   ReactFlow,
   NodeTypes as ReactFlowNodeTypes,
@@ -211,7 +210,8 @@ const useFlowSaver = (agentId: string | undefined, nodes: FlowNode[], edges: any
 
 const useValidConnection = (nodes: FlowNode[]) => {
   return useCallback(
-    (params: Connection | Edge) => { // Changed Connection to Connection | Edge
+    (params: Connection | Edge) => {
+      // Changed Connection to Connection | Edge
       const sourceNode = nodes.find((node) => node.id === params.source);
       const targetNode = nodes.find((node) => node.id === params.target);
 
