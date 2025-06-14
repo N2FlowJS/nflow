@@ -123,4 +123,10 @@ export function isGitLabNodeData(data: NodeData): data is RetrievalNodeData {
 export function isConfluenceNodeData(data: NodeData): data is RetrievalNodeData {
   return data.type === 'confluence';
 }
+export function isGitHubNodeData(data: NodeData): data is RetrievalNodeData {
+  return data.type === 'github';
+}
+export function isFacebookNodeData(data: NodeData): data is RetrievalNodeData {
+  return data.type === 'facebook';
+}
 export { findNextNodes } from '../server/findNextNode';

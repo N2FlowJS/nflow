@@ -29,6 +29,8 @@ import SlackNodeForm from './slack-node-form';
 import JiraNodeForm from './jira-node-form';
 import GitLabNodeForm from './gitlab-node-form';
 import ConfluenceNodeForm from './confluence-node-form';
+import GitHubNodeForm from './github-node-form';
+import FacebookNodeForm from './facebook-node-form';
 
 interface NodeFormProps {
   form: any;
@@ -107,6 +109,10 @@ const NodeForm: React.FC<NodeFormProps> = (props) => {
         return <GitLabNodeForm {...commonProps} />;
       case 'confluence':
         return <ConfluenceNodeForm {...commonProps} />;
+      case 'github':
+        return <GitHubNodeForm {...commonProps} />;
+      case 'facebook':
+        return <FacebookNodeForm {...commonProps} />;
       default:
         return <div>Unsupported node type: {selectedNode.type}</div>;
     }

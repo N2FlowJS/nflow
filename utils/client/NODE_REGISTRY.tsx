@@ -32,6 +32,8 @@ import {
   JiraNodeData,
   GitLabNodeData,
   ConfluenceNodeData,
+  GitHubNodeData,
+  FacebookNodeData,
 } from '../../models/flowTypes';
 import {
   BranchesOutlined,
@@ -62,6 +64,8 @@ import {
   SlackOutlined,
   BugOutlined,
   GitlabOutlined,
+  GithubOutlined,
+  FacebookOutlined,
 } from '@ant-design/icons';
 
 // Central registry of all node types
@@ -889,6 +893,56 @@ Rewritten question:`,
         output: '',
       },
     } as Partial<ConfluenceNodeData>,
+  },
+  github: {
+    type: 'github',
+    icon: <GithubOutlined style={{ color: '#24292f' }} />,
+    color: {
+      background: 'rgba(36, 41, 47, .1)',
+      border: '#24292f',
+      handle: '#24292f',
+    },
+    input: 'Repository details and operation data',
+    output: 'GitHub operation result',
+    data: {
+      type: 'github',
+      form: {
+        role: 'developer',
+        name: 'GitHub',
+        description: 'Interact with GitHub for repository and project management',
+        action: 'create_issue',
+        token: '',
+        owner: '',
+        repository: '',
+        title: '{{issueTitle}}',
+        inputRefs: [],
+        output: '',
+      },
+    } as Partial<GitHubNodeData>,
+  },
+  facebook: {
+    type: 'facebook',
+    icon: <FacebookOutlined style={{ color: '#1877F2' }} />,
+    color: {
+      background: 'rgba(24, 119, 242, .1)',
+      border: '#1877F2',
+      handle: '#1877F2',
+    },
+    input: 'Post content and page information',
+    output: 'Facebook operation result',
+    data: {
+      type: 'facebook',
+      form: {
+        role: 'developer',
+        name: 'Facebook',
+        description: 'Interact with Facebook for social media management',
+        action: 'create_post',
+        accessToken: '',
+        message: '{{postContent}}',
+        inputRefs: [],
+        output: '',
+      },
+    } as Partial<FacebookNodeData>,
   },
 };
 

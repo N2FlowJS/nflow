@@ -34,6 +34,8 @@ export const NODE_TYPES = {
   jira: 'jira',
   gitlab: 'gitlab',
   confluence: 'confluence',
+  github: 'github',
+  facebook: 'facebook',
 } as const;
 export type NodeTypeString = keyof typeof NODE_TYPES;
 
@@ -411,6 +413,12 @@ export type GitLabNodeData = BaseNodeData<GitLabForm> & {
 export type ConfluenceNodeData = BaseNodeData<ConfluenceForm> & {
   type: 'confluence';
 };
+export type GitHubNodeData = BaseNodeData<GitHubForm> & {
+  type: 'github';
+};
+export type FacebookNodeData = BaseNodeData<FacebookForm> & {
+  type: 'facebook';
+};
 
 export type NodeDataWithForm<TForm> = BaseNodeData<TForm> & {
   type: NodeTypeString;
@@ -466,7 +474,9 @@ export type NodeData =
   | SlackNodeData
   | JiraNodeData
   | GitLabNodeData
-  | ConfluenceNodeData;
+  | ConfluenceNodeData
+  | GitHubNodeData
+  | FacebookNodeData;
 
 // Typed node instances
 export type BeginNode = Node<BeginNodeData>;
@@ -500,6 +510,8 @@ export type SlackNode = Node<SlackNodeData>;
 export type JiraNode = Node<JiraNodeData>;
 export type GitLabNode = Node<GitLabNodeData>;
 export type ConfluenceNode = Node<ConfluenceNodeData>;
+export type GitHubNode = Node<GitHubNodeData>;
+export type FacebookNode = Node<FacebookNodeData>;
 
 // Union type for all flow nodes
 export type FlowNode = Node<
@@ -534,6 +546,8 @@ export type FlowNode = Node<
   | JiraNodeData
   | GitLabNodeData
   | ConfluenceNodeData
+  | GitHubNodeData
+  | FacebookNodeData
 >;
 
 // Type for a complete flow
@@ -642,4 +656,37 @@ export interface ConfluenceForm extends BaseForm {
   content?: string;
   searchQuery?: string;
   comment?: string;
+}
+
+export interface GitHubForm extends BaseForm {
+  name: string;
+  description?: string;
+  action: 'create_issue' | 'create_pull_request' | 'get_repository' | 'get_issues' | 'add_comment' | 'get_pull_requests' | 'merge_pull_request';
+  token: string;
+  owner: string;
+  repository: string;
+  issueNumber?: string;
+  pullNumber?: string;
+  title?: string;
+  body?: string;
+  head?: string;
+  base?: string;
+  comment?: string;
+  labels?: string[];
+  assignees?: string[];
+}
+
+export interface FacebookForm extends BaseForm {
+  name: string;
+  description?: string;
+  action: 'create_post' | 'get_page_info' | 'get_posts' | 'create_comment' | 'get_page_insights' | 'upload_photo';
+  accessToken: string;
+  pageId?: string;
+  postId?: string;
+  message?: string;
+  photoUrl?: string;
+  comment?: string;
+  link?: string;
+  scheduled?: boolean;
+  scheduledTime?: string;
 }
