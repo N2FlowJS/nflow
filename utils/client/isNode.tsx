@@ -129,4 +129,7 @@ export function isGitHubNodeData(data: NodeData): data is RetrievalNodeData {
 export function isFacebookNodeData(data: NodeData): data is RetrievalNodeData {
   return data.type === 'facebook';
 }
+export function isGoogleMapNodeData(data: NodeData): data is RetrievalNodeData {
+  return data.type === 'googlemap';
+}
 export { findNextNodes } from '../server/findNextNode';

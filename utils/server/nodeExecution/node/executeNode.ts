@@ -30,6 +30,7 @@ import {
   isConfluenceNodeData,
   isGitHubNodeData,
   isFacebookNodeData,
+  isGoogleMapNodeData,
 } from '../../../client/isNode';
 import { FlowExecutionContext, ExecutionResult } from '../../../../models/flowExecutionTypes';
 import { executeBeginNode } from './executeBeginNode';
@@ -64,6 +65,7 @@ import { executeGitLabNode } from './executeGitLabNode';
 import { executeConfluenceNode } from './executeConfluenceNode';
 import { executeGitHubNode } from './executeGitHubNode';
 import { executeFacebookNode } from './executeFacebookNode';
+import { executeGoogleMapNode } from './executeGoogleMapNode';
 
 export async function executeNode(
   node: any,
@@ -133,6 +135,8 @@ export async function executeNode(
     return await executeGitHubNode(node, context, dispatcher);
   } else if (isFacebookNodeData(node.data)) {
     return await executeFacebookNode(node, context, dispatcher);
+  } else if (isGoogleMapNodeData(node.data)) {
+    return await executeGoogleMapNode(node, context, dispatcher);
   }
   throw new Error(`Unsupported node type: ${node.type}`);
 }

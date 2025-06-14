@@ -31,6 +31,7 @@ import GitLabNodeForm from './gitlab-node-form';
 import ConfluenceNodeForm from './confluence-node-form';
 import GitHubNodeForm from './github-node-form';
 import FacebookNodeForm from './facebook-node-form';
+import GoogleMapNodeForm from './googlemap-node-form';
 
 interface NodeFormProps {
   form: any;
@@ -113,6 +114,8 @@ const NodeForm: React.FC<NodeFormProps> = (props) => {
         return <GitHubNodeForm {...commonProps} />;
       case 'facebook':
         return <FacebookNodeForm {...commonProps} />;
+      case 'googlemap':
+        return <GoogleMapNodeForm {...commonProps} />;
       default:
         return <div>Unsupported node type: {selectedNode.type}</div>;
     }

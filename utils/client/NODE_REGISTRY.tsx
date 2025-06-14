@@ -34,6 +34,7 @@ import {
   ConfluenceNodeData,
   GitHubNodeData,
   FacebookNodeData,
+  GoogleMapNodeData,
 } from '../../models/flowTypes';
 import {
   BranchesOutlined,
@@ -66,6 +67,7 @@ import {
   GitlabOutlined,
   GithubOutlined,
   FacebookOutlined,
+  EnvironmentOutlined,
 } from '@ant-design/icons';
 
 // Central registry of all node types
@@ -943,6 +945,30 @@ Rewritten question:`,
         output: '',
       },
     } as Partial<FacebookNodeData>,
+  },
+  googlemap: {
+    type: 'googlemap',
+    icon: <EnvironmentOutlined style={{ color: '#4285F4' }} />,
+    color: {
+      background: 'rgba(66, 133, 244, .1)',
+      border: '#4285F4',
+      handle: '#4285F4',
+    },
+    input: 'Location data and search parameters',
+    output: 'Google Maps API result',
+    data: {
+      type: 'googlemap',
+      form: {
+        role: 'developer',
+        name: 'Google Map',
+        description: 'Interact with Google Maps for location services',
+        action: 'geocode',
+        apiKey: '',
+        address: '{{locationQuery}}',
+        inputRefs: [],
+        output: '',
+      },
+    } as Partial<GoogleMapNodeData>,
   },
 };
 

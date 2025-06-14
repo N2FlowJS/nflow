@@ -58,6 +58,7 @@ import GitLabNode from '../nodes/gitlab-node';
 import ConfluenceNode from '../nodes/confluence-node';
 import GitHubNode from '../nodes/github-node';
 import FacebookNode from '../nodes/facebook-node';
+import GoogleMapNode from '../nodes/googlemap-node';
 
 import { isConnectionAllowed } from '../../../utils/client/connectionRules';
 import { NODE_REGISTRY } from '../../../utils/client/NODE_REGISTRY';
@@ -94,6 +95,7 @@ const nodeTypes: ReactFlowNodeTypes = {
   confluence: ConfluenceNode,
   github: GitHubNode,
   facebook: FacebookNode,
+  googlemap: GoogleMapNode,
 };
 
 const edgeTypes: EdgeTypes = {
