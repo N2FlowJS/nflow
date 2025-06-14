@@ -29,7 +29,7 @@ async function getAgents(req: NextApiRequest, res: NextApiResponse) {
     }
 
 
-    const { userId: queryUserId, teamId, isActive } = req.query;
+    const { userId: queryUserId, teamId, isActive, excludeId } = req.query;
 
     const where: any = {};
 
@@ -47,6 +47,13 @@ async function getAgents(req: NextApiRequest, res: NextApiResponse) {
     // Filter by active status
     if (isActive !== undefined) {
       where.isActive = isActive === 'true';
+    }
+
+    // Add excludeId filter to prevent circular references in sub-agent selection
+    if (excludeId && typeof excludeId === 'string') {
+      where.id = {
+        not: excludeId,
+      };
     }
 
     const agents = await prisma.agent.findMany({

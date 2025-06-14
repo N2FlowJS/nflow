@@ -5,7 +5,7 @@ import { DecisionNodeData } from "../../../../models/flowTypes";
 import BaseNode from "../base-node";
 import DecisionBranches from "./DecisionBranches";
 import DefaultBranch from "./DefaultBranch";
-import { NODE_REGISTRY } from "../../../../utils/client";
+import { NODE_REGISTRY } from "../../../../utils/client/NODE_REGISTRY";
 import { sourceColor } from "../base-node/handle-icon";
 
 const DecisionNode = ({
