@@ -27,6 +27,7 @@ import {
   isSlackNodeData,
   isJiraNodeData,
   isGitLabNodeData,
+  isConfluenceNodeData,
 } from '../../../client/isNode';
 import { FlowExecutionContext, ExecutionResult } from '../../../../models/flowExecutionTypes';
 import { executeBeginNode } from './executeBeginNode';
@@ -58,6 +59,7 @@ import { executeMattermostNode } from './executeMattermostNode';
 import { executeSlackNode } from './executeSlackNode';
 import { executeJiraNode } from './executeJiraNode';
 import { executeGitLabNode } from './executeGitLabNode';
+import { executeConfluenceNode } from './executeConfluenceNode';
 
 export async function executeNode(
   node: any,
@@ -121,6 +123,8 @@ export async function executeNode(
     return await executeJiraNode(node, context, dispatcher);
   } else if (isGitLabNodeData(node.data)) {
     return await executeGitLabNode(node, context, dispatcher);
+  } else if (isConfluenceNodeData(node.data)) {
+    return await executeConfluenceNode(node, context, dispatcher);
   }
   throw new Error(`Unsupported node type: ${node.type}`);
 }

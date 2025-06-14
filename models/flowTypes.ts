@@ -33,6 +33,7 @@ export const NODE_TYPES = {
   slack: 'slack',
   jira: 'jira',
   gitlab: 'gitlab',
+  confluence: 'confluence',
 } as const;
 export type NodeTypeString = keyof typeof NODE_TYPES;
 
@@ -407,6 +408,9 @@ export type JiraNodeData = BaseNodeData<JiraForm> & {
 export type GitLabNodeData = BaseNodeData<GitLabForm> & {
   type: 'gitlab';
 };
+export type ConfluenceNodeData = BaseNodeData<ConfluenceForm> & {
+  type: 'confluence';
+};
 
 export type NodeDataWithForm<TForm> = BaseNodeData<TForm> & {
   type: NodeTypeString;
@@ -461,7 +465,8 @@ export type NodeData =
   | MattermostNodeData
   | SlackNodeData
   | JiraNodeData
-  | GitLabNodeData;
+  | GitLabNodeData
+  | ConfluenceNodeData;
 
 // Typed node instances
 export type BeginNode = Node<BeginNodeData>;
@@ -494,6 +499,7 @@ export type MattermostNode = Node<MattermostNodeData>;
 export type SlackNode = Node<SlackNodeData>;
 export type JiraNode = Node<JiraNodeData>;
 export type GitLabNode = Node<GitLabNodeData>;
+export type ConfluenceNode = Node<ConfluenceNodeData>;
 
 // Union type for all flow nodes
 export type FlowNode = Node<
@@ -527,6 +533,7 @@ export type FlowNode = Node<
   | SlackNodeData
   | JiraNodeData
   | GitLabNodeData
+  | ConfluenceNodeData
 >;
 
 // Type for a complete flow
@@ -618,5 +625,21 @@ export interface GitLabForm extends BaseForm {
   targetBranch?: string;
   assigneeId?: string;
   labels?: string[];
+  comment?: string;
+}
+
+export interface ConfluenceForm extends BaseForm {
+  name: string;
+  description?: string;
+  action: 'create_page' | 'update_page' | 'get_page' | 'search_pages' | 'add_comment' | 'get_spaces';
+  serverUrl: string;
+  username: string;
+  apiToken: string;
+  spaceKey?: string;
+  pageId?: string;
+  parentPageId?: string;
+  title?: string;
+  content?: string;
+  searchQuery?: string;
   comment?: string;
 }

@@ -28,6 +28,7 @@ import MattermostNodeForm from './mattermost-node-form';
 import SlackNodeForm from './slack-node-form';
 import JiraNodeForm from './jira-node-form';
 import GitLabNodeForm from './gitlab-node-form';
+import ConfluenceNodeForm from './confluence-node-form';
 
 interface NodeFormProps {
   form: any;
@@ -104,6 +105,8 @@ const NodeForm: React.FC<NodeFormProps> = (props) => {
         return <JiraNodeForm {...commonProps} />;
       case 'gitlab':
         return <GitLabNodeForm {...commonProps} />;
+      case 'confluence':
+        return <ConfluenceNodeForm {...commonProps} />;
       default:
         return <div>Unsupported node type: {selectedNode.type}</div>;
     }

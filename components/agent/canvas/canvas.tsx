@@ -55,6 +55,7 @@ import MattermostNode from '../nodes/mattermost-node';
 import SlackNode from '../nodes/slack-node';
 import JiraNode from '../nodes/jira-node';
 import GitLabNode from '../nodes/gitlab-node';
+import ConfluenceNode from '../nodes/confluence-node';
 import { isConnectionAllowed } from '../../../utils/client/connectionRules';
 import { NODE_REGISTRY } from '../../../utils/client/NODE_REGISTRY';
 import { parseFlowConfig } from '../../../utils/server/parseFlowConfig';
@@ -87,6 +88,7 @@ const nodeTypes: ReactFlowNodeTypes = {
   slack: SlackNode,
   jira: JiraNode,
   gitlab: GitLabNode,
+  confluence: ConfluenceNode,
 };
 
 const edgeTypes: EdgeTypes = {

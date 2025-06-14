@@ -120,4 +120,7 @@ export function isJiraNodeData(data: NodeData): data is RetrievalNodeData {
 export function isGitLabNodeData(data: NodeData): data is RetrievalNodeData {
   return data.type === 'gitlab';
 }
+export function isConfluenceNodeData(data: NodeData): data is RetrievalNodeData {
+  return data.type === 'confluence';
+}
 export { findNextNodes } from '../server/findNextNode';

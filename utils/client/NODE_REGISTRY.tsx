@@ -31,6 +31,7 @@ import {
   SlackNodeData,
   JiraNodeData,
   GitLabNodeData,
+  ConfluenceNodeData,
 } from '../../models/flowTypes';
 import {
   BranchesOutlined,
@@ -862,6 +863,32 @@ Rewritten question:`,
         output: '',
       },
     } as Partial<GitLabNodeData>,
+  },
+  confluence: {
+    type: 'confluence',
+    icon: <FileTextOutlined style={{ color: '#172B4D' }} />,
+    color: {
+      background: 'rgba(23, 43, 77, .1)',
+      border: '#172B4D',
+      handle: '#172B4D',
+    },
+    input: 'Page content and space information',
+    output: 'Confluence operation result',
+    data: {
+      type: 'confluence',
+      form: {
+        role: 'developer',
+        name: 'Confluence',
+        description: 'Interact with Confluence for content management',
+        action: 'create_page',
+        serverUrl: 'https://your-domain.atlassian.net',
+        username: '',
+        apiToken: '',
+        title: '{{pageTitle}}',
+        inputRefs: [],
+        output: '',
+      },
+    } as Partial<ConfluenceNodeData>,
   },
 };
 
