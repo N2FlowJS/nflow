@@ -100,15 +100,21 @@ const FileReadNodeForm: React.FC<FileReadNodeFormProps> = (props) => {
                     return `${num}B`;
                   }}
                   parser={(value) => {
-                    if (!value) return 0;
+                    if (!value) return 1024;
                     const cleanValue = value.toString().replace(/[^\d.]/g, '');
                     const num = parseFloat(cleanValue);
+                    let result = 1024;
                     if (value.includes('MB')) {
-                      return Math.round(num * 1048576);
+                      result = Math.round(num * 1048576);
                     } else if (value.includes('KB')) {
-                      return Math.round(num * 1024);
+                      result = Math.round(num * 1024);
+                    } else {
+                      result = Math.round(num);
                     }
-                    return Math.round(num);
+                    // Constrain to allowed values
+                    if (result <= 1024) return 1024;
+                    if (result >= 10485760) return 10485760;
+                    return result as 1024 | 10485760;
                   }}
                 />
               </Form.Item>

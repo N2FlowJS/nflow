@@ -24,6 +24,10 @@ import FileWriteNodeForm from './filewrite-node-form';
 import FileReadNodeForm from './fileread-node-form';
 import WebhookNodeForm from './webhook-node-form';
 import JsonParseNodeForm from './jsonparse-node-form';
+import MattermostNodeForm from './mattermost-node-form';
+import SlackNodeForm from './slack-node-form';
+import JiraNodeForm from './jira-node-form';
+import GitLabNodeForm from './gitlab-node-form';
 
 interface NodeFormProps {
   form: any;
@@ -92,6 +96,14 @@ const NodeForm: React.FC<NodeFormProps> = (props) => {
         return <WebhookNodeForm {...commonProps} />;
       case 'jsonparse':
         return <JsonParseNodeForm {...commonProps} />;
+      case 'mattermost':
+        return <MattermostNodeForm {...commonProps} />;
+      case 'slack':
+        return <SlackNodeForm {...commonProps} />;
+      case 'jira':
+        return <JiraNodeForm {...commonProps} />;
+      case 'gitlab':
+        return <GitLabNodeForm {...commonProps} />;
       default:
         return <div>Unsupported node type: {selectedNode.type}</div>;
     }

@@ -105,4 +105,19 @@ export function isDateTimeNodeData(data: NodeData): data is RetrievalNodeData {
 export function isConditionNodeData(data: NodeData): data is RetrievalNodeData {
   return data.type === 'condition';
 }
+export function isMattermostNodeData(data: NodeData): data is RetrievalNodeData {
+  return data.type === 'mattermost';
+}
+
+export function isSlackNodeData(data: NodeData): data is RetrievalNodeData {
+  return data.type === 'slack';
+}
+
+export function isJiraNodeData(data: NodeData): data is RetrievalNodeData {
+  return data.type === 'jira';
+}
+
+export function isGitLabNodeData(data: NodeData): data is RetrievalNodeData {
+  return data.type === 'gitlab';
+}
 export { findNextNodes } from '../server/findNextNode';

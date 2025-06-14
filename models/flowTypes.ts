@@ -29,6 +29,10 @@ export const NODE_TYPES = {
   math: 'math',
   datetime: 'datetime',
   condition: 'condition',
+  mattermost: 'mattermost',
+  slack: 'slack',
+  jira: 'jira',
+  gitlab: 'gitlab',
 } as const;
 export type NodeTypeString = keyof typeof NODE_TYPES;
 
@@ -391,6 +395,18 @@ export type DateTimeNodeData = BaseNodeData<DateTimeForm> & {
 export type ConditionNodeData = BaseNodeData<ConditionForm> & {
   type: 'condition';
 };
+export type MattermostNodeData = BaseNodeData<MattermostForm> & {
+  type: 'mattermost';
+};
+export type SlackNodeData = BaseNodeData<SlackForm> & {
+  type: 'slack';
+};
+export type JiraNodeData = BaseNodeData<JiraForm> & {
+  type: 'jira';
+};
+export type GitLabNodeData = BaseNodeData<GitLabForm> & {
+  type: 'gitlab';
+};
 
 export type NodeDataWithForm<TForm> = BaseNodeData<TForm> & {
   type: NodeTypeString;
@@ -441,7 +457,11 @@ export type NodeData =
   | ValidateNodeData
   | MathNodeData
   | DateTimeNodeData
-  | ConditionNodeData;
+  | ConditionNodeData
+  | MattermostNodeData
+  | SlackNodeData
+  | JiraNodeData
+  | GitLabNodeData;
 
 // Typed node instances
 export type BeginNode = Node<BeginNodeData>;
@@ -470,6 +490,10 @@ export type ValidateNode = Node<ValidateNodeData>;
 export type MathNode = Node<MathNodeData>;
 export type DateTimeNode = Node<DateTimeNodeData>;
 export type ConditionNode = Node<ConditionNodeData>;
+export type MattermostNode = Node<MattermostNodeData>;
+export type SlackNode = Node<SlackNodeData>;
+export type JiraNode = Node<JiraNodeData>;
+export type GitLabNode = Node<GitLabNodeData>;
 
 // Union type for all flow nodes
 export type FlowNode = Node<
@@ -499,6 +523,10 @@ export type FlowNode = Node<
   | MathNodeData
   | DateTimeNodeData
   | ConditionNodeData
+  | MattermostNodeData
+  | SlackNodeData
+  | JiraNodeData
+  | GitLabNodeData
 >;
 
 // Type for a complete flow
@@ -532,4 +560,63 @@ export interface NodeConfig {
   output: string; // Description of what output the node produces
   references?: InputReference[]; // Optional references for input/output
   data: Partial<NodeData>;
+}
+
+export interface MattermostForm extends BaseForm {
+  name: string;
+  description?: string;
+  action: 'send_message' | 'create_channel' | 'get_channels' | 'get_users';
+  serverUrl: string;
+  accessToken: string;
+  channelId?: string;
+  channelName?: string;
+  message?: string;
+  username?: string;
+  teamId?: string;
+}
+
+export interface SlackForm extends BaseForm {
+  name: string;
+  description?: string;
+  action: 'send_message' | 'create_channel' | 'get_channels' | 'get_users' | 'upload_file';
+  botToken: string;
+  channelId?: string;
+  channelName?: string;
+  message?: string;
+  username?: string;
+  filePath?: string;
+  fileName?: string;
+}
+
+export interface JiraForm extends BaseForm {
+  name: string;
+  description?: string;
+  action: 'create_issue' | 'update_issue' | 'get_issue' | 'search_issues' | 'add_comment';
+  serverUrl: string;
+  username: string;
+  apiToken: string;
+  projectKey?: string;
+  issueType?: string;
+  summary?: string;
+  issueKey?: string;
+  jql?: string;
+  assignee?: string;
+  priority?: string;
+  comment?: string;
+}
+
+export interface GitLabForm extends BaseForm {
+  name: string;
+  description?: string;
+  action: 'create_issue' | 'create_merge_request' | 'get_project' | 'get_issues' | 'create_comment';
+  serverUrl: string;
+  accessToken: string;
+  projectId?: string;
+  title?: string;
+  issueIid?: string;
+  sourceBranch?: string;
+  targetBranch?: string;
+  assigneeId?: string;
+  labels?: string[];
+  comment?: string;
 }

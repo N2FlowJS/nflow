@@ -51,7 +51,10 @@ import FileReadNode from '../nodes/fileread-node';
 import FileWriteNode from '../nodes/filewrite-node';
 import DelayNode from '../nodes/delay-node';
 import JsonParseNode from '../nodes/jsonparse-node';
-
+import MattermostNode from '../nodes/mattermost-node';
+import SlackNode from '../nodes/slack-node';
+import JiraNode from '../nodes/jira-node';
+import GitLabNode from '../nodes/gitlab-node';
 import { isConnectionAllowed } from '../../../utils/client/connectionRules';
 import { NODE_REGISTRY } from '../../../utils/client/NODE_REGISTRY';
 import { parseFlowConfig } from '../../../utils/server/parseFlowConfig';
@@ -80,6 +83,10 @@ const nodeTypes: ReactFlowNodeTypes = {
   filewrite: FileWriteNode,
   delay: DelayNode,
   jsonparse: JsonParseNode,
+  mattermost: MattermostNode,
+  slack: SlackNode,
+  jira: JiraNode,
+  gitlab: GitLabNode,
 };
 
 const edgeTypes: EdgeTypes = {

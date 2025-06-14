@@ -23,6 +23,10 @@ import {
   isValidateNodeData,
   isTextProcessNodeData,
   isConditionNodeData,
+  isMattermostNodeData,
+  isSlackNodeData,
+  isJiraNodeData,
+  isGitLabNodeData,
 } from '../../../client/isNode';
 import { FlowExecutionContext, ExecutionResult } from '../../../../models/flowExecutionTypes';
 import { executeBeginNode } from './executeBeginNode';
@@ -50,6 +54,10 @@ import { executeMathNode } from './executeMathNode';
 import { executeValidateNode } from './executeValidateNode';
 import { executeTextProcessNode } from './executeTextProcessNode';
 import { executeConditionNode } from './executeConditionNode';
+import { executeMattermostNode } from './executeMattermostNode';
+import { executeSlackNode } from './executeSlackNode';
+import { executeJiraNode } from './executeJiraNode';
+import { executeGitLabNode } from './executeGitLabNode';
 
 export async function executeNode(
   node: any,
@@ -105,6 +113,14 @@ export async function executeNode(
     return await executeTextProcessNode(node, context, dispatcher);
   } else if (isConditionNodeData(node.data)) {
     return await executeConditionNode(node, context, dispatcher);
+  } else if (isMattermostNodeData(node.data)) {
+    return await executeMattermostNode(node, context, dispatcher);
+  } else if (isSlackNodeData(node.data)) {
+    return await executeSlackNode(node, context, dispatcher);
+  } else if (isJiraNodeData(node.data)) {
+    return await executeJiraNode(node, context, dispatcher);
+  } else if (isGitLabNodeData(node.data)) {
+    return await executeGitLabNode(node, context, dispatcher);
   }
   throw new Error(`Unsupported node type: ${node.type}`);
 }

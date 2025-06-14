@@ -27,6 +27,10 @@ import {
   MathNodeData,
   DateTimeNodeData,
   ConditionNodeData,
+  MattermostNodeData,
+  SlackNodeData,
+  JiraNodeData,
+  GitLabNodeData,
 } from '../../models/flowTypes';
 import {
   BranchesOutlined,
@@ -53,6 +57,10 @@ import {
   CalculatorOutlined,
   FieldTimeOutlined,
   BranchesOutlined as ConditionOutlined,
+  MessageOutlined,
+  SlackOutlined,
+  BugOutlined,
+  GitlabOutlined,
 } from '@ant-design/icons';
 
 // Central registry of all node types
@@ -754,6 +762,106 @@ Rewritten question:`,
         output: '',
       },
     } as Partial<ConditionNodeData>,
+  },
+  mattermost: {
+    type: 'mattermost',
+    icon: <MessageOutlined style={{ color: '#0072C6' }} />,
+    color: {
+      background: 'rgba(0, 114, 198, .1)',
+      border: '#0072C6',
+      handle: '#0072C6',
+    },
+    input: 'Message content and channel information',
+    output: 'Mattermost operation result',
+    data: {
+      type: 'mattermost',
+      form: {
+        role: 'developer',
+        name: 'Mattermost',
+        description: 'Interact with Mattermost for team communication',
+        action: 'send_message',
+        serverUrl: 'https://your-mattermost.com',
+        accessToken: '',
+        message: '{{messageContent}}',
+        inputRefs: [],
+        output: '',
+      },
+    } as Partial<MattermostNodeData>,
+  },
+  slack: {
+    type: 'slack',
+    icon: <SlackOutlined style={{ color: '#4A154B' }} />,
+    color: {
+      background: 'rgba(74, 21, 75, .1)',
+      border: '#4A154B',
+      handle: '#4A154B',
+    },
+    input: 'Message content and channel information',
+    output: 'Slack operation result',
+    data: {
+      type: 'slack',
+      form: {
+        role: 'developer',
+        name: 'Slack',
+        description: 'Interact with Slack for team communication',
+        action: 'send_message',
+        botToken: '',
+        message: '{{messageContent}}',
+        inputRefs: [],
+        output: '',
+      },
+    } as Partial<SlackNodeData>,
+  },
+  jira: {
+    type: 'jira',
+    icon: <BugOutlined style={{ color: '#0052CC' }} />,
+    color: {
+      background: 'rgba(0, 82, 204, .1)',
+      border: '#0052CC',
+      handle: '#0052CC',
+    },
+    input: 'Issue details and project information',
+    output: 'Jira operation result',
+    data: {
+      type: 'jira',
+      form: {
+        role: 'developer',
+        name: 'Jira',
+        description: 'Interact with Jira for issue management',
+        action: 'create_issue',
+        serverUrl: 'https://your-domain.atlassian.net',
+        username: '',
+        apiToken: '',
+        summary: '{{issueTitle}}',
+        inputRefs: [],
+        output: '',
+      },
+    } as Partial<JiraNodeData>,
+  },
+  gitlab: {
+    type: 'gitlab',
+    icon: <GitlabOutlined style={{ color: '#FC6D26' }} />,
+    color: {
+      background: 'rgba(252, 109, 38, .1)',
+      border: '#FC6D26',
+      handle: '#FC6D26',
+    },
+    input: 'Project details and operation data',
+    output: 'GitLab operation result',
+    data: {
+      type: 'gitlab',
+      form: {
+        role: 'developer',
+        name: 'GitLab',
+        description: 'Interact with GitLab for project management',
+        action: 'create_issue',
+        serverUrl: 'https://gitlab.com',
+        accessToken: '',
+        title: '{{issueTitle}}',
+        inputRefs: [],
+        output: '',
+      },
+    } as Partial<GitLabNodeData>,
   },
 };
 
