@@ -27,7 +27,6 @@ import { useFlowState } from '../../../context/FlowStateContext';
 import { CategorizeForm, DecisionForm, FlowNode, NodeTypeString } from '../../../models/flowTypes';
 import { conversationService } from '../../../services/conversationService';
 import { useTheme } from '../../../theme';
-import { isConnectionAllowed, NODE_REGISTRY, parseFlowConfig } from '../../../utils/client';
 import CustomEdge from '../edges/CustomEdge';
 import BeginNode from '../nodes/begin-node';
 import CategorizeNode from '../nodes/categorize-node';
@@ -36,6 +35,22 @@ import GenerateNode from '../nodes/generate-node';
 import InterfaceNode from '../nodes/interface-node';
 import RetrievalNode from '../nodes/retrieval-node';
 import KeywordsNode from '../nodes/keywords-node';
+import ExecMysqlNode from '../nodes/execmysql-node';
+import ExecMssqlNode from '../nodes/execmssql-node';
+import SubAgentNode from '../nodes/subagent-node';
+import SendMailNode from '../nodes/sendmail-node';
+import GoogleSearchNode from '../nodes/googlesearch-node';
+import WikipediaSearchNode from '../nodes/wikipediasearch-node';
+import RewriteNode from '../nodes/rewrite-node';
+import HttpRequestNode from '../nodes/httprequest-node';
+import ValidateNode from '../nodes/validate-node';
+import ConditionNode from '../nodes/condition-node'; // Import ConditionNode
+import TextProcessNode from '../nodes/textprocess-node';
+import TransformNode from '../nodes/transform-node';
+
+import { isConnectionAllowed } from '../../../utils/client/connectionRules';
+import { NODE_REGISTRY } from '../../../utils/client/NODE_REGISTRY';
+import { parseFlowConfig } from '../../../utils/server/parseFlowConfig';
 
 const nodeTypes: ReactFlowNodeTypes = {
   begin: BeginNode,
@@ -45,6 +60,18 @@ const nodeTypes: ReactFlowNodeTypes = {
   retrieval: RetrievalNode,
   decision: DecisionNode,
   keywords: KeywordsNode,
+  execmysql: ExecMysqlNode,
+  execmssql: ExecMssqlNode,
+  subagent: SubAgentNode,
+  sendmail: SendMailNode,
+  googlesearch: GoogleSearchNode,
+  wikipediasearch: WikipediaSearchNode,
+  rewrite: RewriteNode,
+  httprequest: HttpRequestNode,
+  validate: ValidateNode,
+  condition: ConditionNode,
+  textprocess: TextProcessNode,
+  transform: TransformNode,
 };
 
 const edgeTypes: EdgeTypes = {

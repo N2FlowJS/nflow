@@ -7,6 +7,19 @@ import CategorizeNodeForm from "./categorize-node-form";
 import RetrievalNodeForm from "./retrieval-node-form";
 import DecisionNodeForm from "./decision-node-form";
 import KeywordsNodeForm from "./keywords-node-form";
+import ExecMysqlNodeForm from "./execmysql-node-form";
+import ExecMssqlNodeForm from "./execmssql-node-form";
+import SubAgentNodeForm from "./subagent-node-form";
+import SendMailNodeForm from "./sendmail-node-form";
+import GoogleSearchNodeForm from "./googlesearch-node-form";
+import WikipediaSearchNodeForm from "./wikipedia-search-node-form";
+import RewriteNodeForm from "./rewrite-node-form";
+import HttpRequestNodeForm from "./httprequest-node-form";
+import TransformNodeForm from "./transform-node-form";
+import DelayNodeForm from "./delay-node-form";
+import ValidateNodeForm from "./validate-node-form";
+import ConditionNodeForm from "./condition-node-form";
+import TextProcessNodeForm from "./textprocess-node-form";
 
 interface NodeFormProps {
   form: any;
@@ -17,26 +30,62 @@ interface NodeFormProps {
 const NodeForm: React.FC<NodeFormProps> = (props) => {
   const { selectedNode } = props;
 
-  if (!selectedNode) return null;
+  const renderForm = () => {
+    if (!selectedNode) return null;
 
-  switch (selectedNode.type) {
-    case "begin":
-      return <BeginNodeForm {...props} selectedNode={selectedNode} />;
-    case "interface":
-      return <InterfaceNodeForm {...props} selectedNode={selectedNode} />;
-    case "generate":
-      return <GenerateNodeForm {...props} selectedNode={selectedNode} />;
-    case "categorize":
-      return <CategorizeNodeForm {...props} selectedNode={selectedNode} />;
-    case "retrieval":
-      return <RetrievalNodeForm {...props} selectedNode={selectedNode} />;
-    case "decision":
-      return <DecisionNodeForm {...props} selectedNode={selectedNode} />;
-    case "keywords":
-      return <KeywordsNodeForm {...props} selectedNode={selectedNode} />;
-    default:
-      return null;
-  }
+    const commonProps = {
+      form: props.form,
+      selectedNode,
+      setIsDrawerOpen: props.setIsDrawerOpen,
+    };
+
+    switch (selectedNode.type) {
+      case "begin":
+        return <BeginNodeForm {...commonProps} />;
+      case "interface":
+        return <InterfaceNodeForm {...commonProps} />;
+      case "generate":
+        return <GenerateNodeForm {...commonProps} />;
+      case "categorize":
+        return <CategorizeNodeForm {...commonProps} />;
+      case "retrieval":
+        return <RetrievalNodeForm {...commonProps} />;
+      case "decision":
+        return <DecisionNodeForm {...commonProps} />;
+      case "keywords":
+        return <KeywordsNodeForm {...commonProps} />;
+      case "execmysql":
+        return <ExecMysqlNodeForm {...commonProps} />;
+      case "execmssql":
+        return <ExecMssqlNodeForm {...commonProps} />;
+      case "subagent":
+        return <SubAgentNodeForm {...commonProps} />;
+      case "sendmail":
+        return <SendMailNodeForm {...commonProps} />;
+      case "googlesearch":
+        return <GoogleSearchNodeForm {...commonProps} />;
+      case "wikipediasearch":
+        return <WikipediaSearchNodeForm {...commonProps} />;
+      case "rewrite":
+        return <RewriteNodeForm {...commonProps} />;
+      case "httprequest":
+        return <HttpRequestNodeForm {...commonProps} />;
+      case "transform":
+        return <TransformNodeForm {...commonProps} />;
+      case "delay":
+        return <DelayNodeForm {...commonProps} />;
+      case "validate":
+        return <ValidateNodeForm {...commonProps} />;
+      case "condition":
+        return <ConditionNodeForm {...commonProps} />;
+      case "textprocess":
+        return <TextProcessNodeForm {...commonProps} />;
+      default:
+        return <div>Unsupported node type: {selectedNode.type}</div>;
+    }
+  };
+
+  return <>{renderForm()}</>;
 };
 
 export default NodeForm;

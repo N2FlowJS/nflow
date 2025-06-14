@@ -1,6 +1,6 @@
 import { Empty, Layout, Tooltip } from 'antd';
 import React from 'react';
-import { NODE_REGISTRY } from '../../../utils/client';
+import { NODE_REGISTRY } from '../../../utils/client/NODE_REGISTRY';
 
 const { Sider } = Layout;
 

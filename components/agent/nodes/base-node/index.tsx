@@ -3,7 +3,7 @@ import { Card } from 'antd';
 import React, { memo, useMemo } from 'react';
 import { useFlowState } from '../../../../context/FlowStateContext';
 import { NodeData } from '../../../../models/flowTypes';
-import { NODE_REGISTRY } from '../../../../utils/client';
+import { NODE_REGISTRY } from '../../../../utils/client/NODE_REGISTRY';
 import { getHandleStyle } from './handle-icon';
 import NodeHeader from './node-header';
 
