@@ -47,6 +47,10 @@ import ValidateNode from '../nodes/validate-node';
 import ConditionNode from '../nodes/condition-node'; // Import ConditionNode
 import TextProcessNode from '../nodes/textprocess-node';
 import TransformNode from '../nodes/transform-node';
+import FileReadNode from '../nodes/fileread-node';
+import FileWriteNode from '../nodes/filewrite-node';
+import DelayNode from '../nodes/delay-node';
+import JsonParseNode from '../nodes/jsonparse-node';
 
 import { isConnectionAllowed } from '../../../utils/client/connectionRules';
 import { NODE_REGISTRY } from '../../../utils/client/NODE_REGISTRY';
@@ -72,6 +76,10 @@ const nodeTypes: ReactFlowNodeTypes = {
   condition: ConditionNode,
   textprocess: TextProcessNode,
   transform: TransformNode,
+  fileread: FileReadNode,
+  filewrite: FileWriteNode,
+  delay: DelayNode,
+  jsonparse: JsonParseNode,
 };
 
 const edgeTypes: EdgeTypes = {

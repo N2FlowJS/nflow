@@ -1,25 +1,29 @@
-import React from "react";
-import { FlowNode } from "../../../models/flowTypes";
-import BeginNodeForm from "./begin-node-form";
-import InterfaceNodeForm from "./Interface-node-form";
-import GenerateNodeForm from "./generate-node-form";
-import CategorizeNodeForm from "./categorize-node-form";
-import RetrievalNodeForm from "./retrieval-node-form";
-import DecisionNodeForm from "./decision-node-form";
-import KeywordsNodeForm from "./keywords-node-form";
-import ExecMysqlNodeForm from "./execmysql-node-form";
-import ExecMssqlNodeForm from "./execmssql-node-form";
-import SubAgentNodeForm from "./subagent-node-form";
-import SendMailNodeForm from "./sendmail-node-form";
-import GoogleSearchNodeForm from "./googlesearch-node-form";
-import WikipediaSearchNodeForm from "./wikipedia-search-node-form";
-import RewriteNodeForm from "./rewrite-node-form";
-import HttpRequestNodeForm from "./httprequest-node-form";
-import TransformNodeForm from "./transform-node-form";
-import DelayNodeForm from "./delay-node-form";
-import ValidateNodeForm from "./validate-node-form";
-import ConditionNodeForm from "./condition-node-form";
-import TextProcessNodeForm from "./textprocess-node-form";
+import React from 'react';
+import { FlowNode } from '../../../models/flowTypes';
+import BeginNodeForm from './begin-node-form';
+import InterfaceNodeForm from './Interface-node-form';
+import GenerateNodeForm from './generate-node-form';
+import CategorizeNodeForm from './categorize-node-form';
+import RetrievalNodeForm from './retrieval-node-form';
+import DecisionNodeForm from './decision-node-form';
+import KeywordsNodeForm from './keywords-node-form';
+import ExecMysqlNodeForm from './execmysql-node-form';
+import ExecMssqlNodeForm from './execmssql-node-form';
+import SubAgentNodeForm from './subagent-node-form';
+import SendMailNodeForm from './sendmail-node-form';
+import GoogleSearchNodeForm from './googlesearch-node-form';
+import WikipediaSearchNodeForm from './wikipedia-search-node-form';
+import RewriteNodeForm from './rewrite-node-form';
+import HttpRequestNodeForm from './httprequest-node-form';
+import TransformNodeForm from './transform-node-form';
+import DelayNodeForm from './delay-node-form';
+import ValidateNodeForm from './validate-node-form';
+import ConditionNodeForm from './condition-node-form';
+import TextProcessNodeForm from './textprocess-node-form';
+import FileWriteNodeForm from './filewrite-node-form';
+import FileReadNodeForm from './fileread-node-form';
+import WebhookNodeForm from './webhook-node-form';
+import JsonParseNodeForm from './jsonparse-node-form';
 
 interface NodeFormProps {
   form: any;
@@ -40,46 +44,54 @@ const NodeForm: React.FC<NodeFormProps> = (props) => {
     };
 
     switch (selectedNode.type) {
-      case "begin":
+      case 'begin':
         return <BeginNodeForm {...commonProps} />;
-      case "interface":
+      case 'interface':
         return <InterfaceNodeForm {...commonProps} />;
-      case "generate":
+      case 'generate':
         return <GenerateNodeForm {...commonProps} />;
-      case "categorize":
+      case 'categorize':
         return <CategorizeNodeForm {...commonProps} />;
-      case "retrieval":
+      case 'retrieval':
         return <RetrievalNodeForm {...commonProps} />;
-      case "decision":
+      case 'decision':
         return <DecisionNodeForm {...commonProps} />;
-      case "keywords":
+      case 'keywords':
         return <KeywordsNodeForm {...commonProps} />;
-      case "execmysql":
+      case 'execmysql':
         return <ExecMysqlNodeForm {...commonProps} />;
-      case "execmssql":
+      case 'execmssql':
         return <ExecMssqlNodeForm {...commonProps} />;
-      case "subagent":
+      case 'subagent':
         return <SubAgentNodeForm {...commonProps} />;
-      case "sendmail":
+      case 'sendmail':
         return <SendMailNodeForm {...commonProps} />;
-      case "googlesearch":
+      case 'googlesearch':
         return <GoogleSearchNodeForm {...commonProps} />;
-      case "wikipediasearch":
+      case 'wikipediasearch':
         return <WikipediaSearchNodeForm {...commonProps} />;
-      case "rewrite":
+      case 'rewrite':
         return <RewriteNodeForm {...commonProps} />;
-      case "httprequest":
+      case 'httprequest':
         return <HttpRequestNodeForm {...commonProps} />;
-      case "transform":
+      case 'transform':
         return <TransformNodeForm {...commonProps} />;
-      case "delay":
+      case 'delay':
         return <DelayNodeForm {...commonProps} />;
-      case "validate":
+      case 'validate':
         return <ValidateNodeForm {...commonProps} />;
-      case "condition":
+      case 'condition':
         return <ConditionNodeForm {...commonProps} />;
-      case "textprocess":
+      case 'textprocess':
         return <TextProcessNodeForm {...commonProps} />;
+      case 'fileread':
+        return <FileReadNodeForm {...commonProps} />;
+      case 'filewrite':
+        return <FileWriteNodeForm {...commonProps} />;
+      case 'webhook':
+        return <WebhookNodeForm {...commonProps} />;
+      case 'jsonparse':
+        return <JsonParseNodeForm {...commonProps} />;
       default:
         return <div>Unsupported node type: {selectedNode.type}</div>;
     }

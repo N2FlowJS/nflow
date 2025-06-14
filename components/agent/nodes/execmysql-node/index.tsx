@@ -1,11 +1,10 @@
-import React from 'react';
-import { Position, NodeProps, Node } from '@xyflow/react';
+import { DatabaseOutlined } from '@ant-design/icons';
+import { Node, NodeProps, Position } from '@xyflow/react';
+import { Flex } from 'antd';
 import { ExecMysqlNodeData } from '../../../../models/flowTypes';
 import BaseNode from '../base-node';
-import { Flex, Typography, Tag } from 'antd';
-import { DatabaseOutlined, CodeOutlined } from '@ant-design/icons';
-import QueryInfo from './QueryInfo';
 import ConnectionInfo from './ConnectionInfo';
+import QueryInfo from './QueryInfo';
 
 const ExecMysqlNode = ({ data, id, selected }: NodeProps<Node<ExecMysqlNodeData>>) => {
   const { form } = data;
