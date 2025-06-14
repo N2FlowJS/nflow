@@ -61,10 +61,7 @@ export async function executeGenerateNode(
         content: prompt,
       },
       ...historyMessages,
-      {
-        role: 'user' as const,
-        content: flowState.variables.userInput.content || '',
-      },
+     
     ]
       .filter((msg: MessagePart) => msg.content && msg.content.trim() !== '')
       .map((msg: MessagePart) => ({

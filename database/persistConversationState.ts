@@ -31,7 +31,7 @@ export async function saveConversationToDatabase({
         },
       });
 
-      if (message?.content) {
+      if (message) {
         await tx.conversationMessage.create({
           data: {
             conversationId: conversation.id,
@@ -57,24 +57,12 @@ export async function saveConversationToDatabase({
         },
       }),
 
-      message?.content
+      message
         ? prisma.conversationMessage.create({
             data: {
               conversationId: id,
               content: message.content,
               role: message.role || 'user',
-            },
-          })
-        : Promise.resolve(),
-
-      flowState.history?.length > 0 && flowState.history[flowState.history.length - 1].output
-        ? prisma.conversationMessage.create({
-            data: {
-              conversationId: id,
-              content: flowState.history[flowState.history.length - 1].output!,
-              role: 'agent',
-              nodeId: flowState.history[flowState.history.length - 1].nodeId,
-              nodeType: flowState.history[flowState.history.length - 1].nodeType,
             },
           })
         : Promise.resolve(),

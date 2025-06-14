@@ -88,7 +88,7 @@ export default async function handler(
           id: conversationId,
           message: {
             content: result.execution.output || '',
-            role: result.nodeInfo.role || 'developer',
+            role: 'assistant', 
           },
         });
         console.log('Conversation saved with ID:', conversationId);
