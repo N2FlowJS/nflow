@@ -36,6 +36,7 @@ export const NODE_TYPES = {
   confluence: 'confluence',
   github: 'github',
   facebook: 'facebook',
+  googlemap: 'googlemap',
 } as const;
 export type NodeTypeString = keyof typeof NODE_TYPES;
 
@@ -419,6 +420,9 @@ export type GitHubNodeData = BaseNodeData<GitHubForm> & {
 export type FacebookNodeData = BaseNodeData<FacebookForm> & {
   type: 'facebook';
 };
+export type GoogleMapNodeData = BaseNodeData<GoogleMapForm> & {
+  type: 'googlemap';
+};
 
 export type NodeDataWithForm<TForm> = BaseNodeData<TForm> & {
   type: NodeTypeString;
@@ -476,7 +480,8 @@ export type NodeData =
   | GitLabNodeData
   | ConfluenceNodeData
   | GitHubNodeData
-  | FacebookNodeData;
+  | FacebookNodeData
+  | GoogleMapNodeData;
 
 // Typed node instances
 export type BeginNode = Node<BeginNodeData>;
@@ -512,6 +517,7 @@ export type GitLabNode = Node<GitLabNodeData>;
 export type ConfluenceNode = Node<ConfluenceNodeData>;
 export type GitHubNode = Node<GitHubNodeData>;
 export type FacebookNode = Node<FacebookNodeData>;
+export type GoogleMapNode = Node<GoogleMapNodeData>;
 
 // Union type for all flow nodes
 export type FlowNode = Node<
@@ -548,6 +554,7 @@ export type FlowNode = Node<
   | ConfluenceNodeData
   | GitHubNodeData
   | FacebookNodeData
+  | GoogleMapNodeData
 >;
 
 // Type for a complete flow
@@ -689,4 +696,21 @@ export interface FacebookForm extends BaseForm {
   link?: string;
   scheduled?: boolean;
   scheduledTime?: string;
+}
+
+export interface GoogleMapForm extends BaseForm {
+  name: string;
+  description?: string;
+  action: 'geocode' | 'reverse_geocode' | 'directions' | 'places_search' | 'place_details' | 'distance_matrix';
+  apiKey: string;
+  address?: string;
+  latitude?: string;
+  longitude?: string;
+  origin?: string;
+  destination?: string;
+  travelMode?: 'driving' | 'walking' | 'bicycling' | 'transit';
+  query?: string;
+  placeId?: string;
+  radius?: number;
+  type?: string;
 }
