@@ -47,6 +47,7 @@ export const NODE_TYPES = {
   discord: 'discord',
   telegram: 'telegram',
   whatsapp: 'whatsapp',
+  weather: 'weather',
 } as const;
 export type NodeTypeString = keyof typeof NODE_TYPES;
 
@@ -463,6 +464,9 @@ export type TelegramNodeData = BaseNodeData<TelegramForm> & {
 export type WhatsAppNodeData = BaseNodeData<WhatsAppForm> & {
   type: 'whatsapp';
 };
+export type WeatherNodeData = BaseNodeData<WeatherForm> & {
+  type: 'weather';
+};
 
 export type NodeDataWithForm<TForm> = BaseNodeData<TForm> & {
   type: NodeTypeString;
@@ -531,7 +535,8 @@ export type NodeData =
   | TikTokNodeData
   | DiscordNodeData
   | TelegramNodeData
-  | WhatsAppNodeData;
+  | WhatsAppNodeData
+  | WeatherNodeData;
 
 // Typed node instances
 export type BeginNode = Node<BeginNodeData>;
@@ -578,6 +583,7 @@ export type TikTokNode = Node<TikTokNodeData>;
 export type DiscordNode = Node<DiscordNodeData>;
 export type TelegramNode = Node<TelegramNodeData>;
 export type WhatsAppNode = Node<WhatsAppNodeData>;
+export type WeatherNode = Node<WeatherNodeData>;
 
 // Union type for all flow nodes
 export type FlowNode = Node<
@@ -625,6 +631,7 @@ export type FlowNode = Node<
   | DiscordNodeData
   | TelegramNodeData
   | WhatsAppNodeData
+  | WeatherNodeData
 >;
 
 // Type for a complete flow
@@ -928,4 +935,18 @@ export interface DuckGoSearchForm extends BaseForm {
   searchType?: 'web' | 'images' | 'news' | 'videos';
   noHTML?: boolean;
   noRedirect?: boolean;
+}
+
+export interface WeatherForm extends BaseForm {
+  name: string;
+  description?: string;
+  action: 'current_weather' | 'forecast' | 'weather_alerts' | 'historical_weather';
+  location: string;
+  apiKey?: string;
+  useSystemConfig?: boolean;
+  units?: 'metric' | 'imperial' | 'kelvin';
+  language?: string;
+  days?: number; // For forecast
+  includeHourly?: boolean;
+  includeAlerts?: boolean;
 }

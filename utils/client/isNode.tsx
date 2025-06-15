@@ -173,5 +173,8 @@ export function isDuckGoSearchNodeData(data: NodeData): data is RetrievalNodeDat
   return data.type === 'duckgosearch';
 }
 
+export function isWeatherNodeData(data: NodeData): data is RetrievalNodeData {
+  return data.type === 'weather';
+}
 
 export { findNextNodes } from '../server/findNextNode';

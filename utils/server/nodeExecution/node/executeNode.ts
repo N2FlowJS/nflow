@@ -41,6 +41,7 @@ import {
   isWhatsAppNodeData,
   isBingSearchNodeData,
   isDuckGoSearchNodeData,
+  isWeatherNodeData,
 } from '../../../client/isNode';
 import { FlowExecutionContext, ExecutionResult } from '../../../../models/flowExecutionTypes';
 import { executeBeginNode } from './executeBeginNode';
@@ -86,6 +87,7 @@ import { executeTikTokNode } from './executeTikTokNode';
 import { executeDiscordNode } from './executeDiscordNode';
 import { executeTelegramNode } from './executeTelegramNode';
 import { executeWhatsAppNode } from './executeWhatsAppNode';
+import { executeWeatherNode } from './executeWeatherNode';
 
 export async function executeNode(
   node: any,
@@ -177,6 +179,8 @@ export async function executeNode(
     return await executeTelegramNode(node, context, dispatcher);
   } else if (isWhatsAppNodeData(node.data)) {
     return await executeWhatsAppNode(node, context, dispatcher);
+  } else if (isWeatherNodeData(node.data)) {
+    return await executeWeatherNode(node, context, dispatcher);
   }
   throw new Error(`Unsupported node type: ${node.type}`);
 }
