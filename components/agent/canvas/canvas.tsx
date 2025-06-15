@@ -69,6 +69,7 @@ import TikTokNode from '../nodes/tiktok-node';
 import DiscordNode from '../nodes/discord-node';
 import TelegramNode from '../nodes/telegram-node';
 import WhatsAppNode from '../nodes/whatsapp-node';
+import WeatherNode from '../nodes/weather-node';
 
 import { isConnectionAllowed } from '../../../utils/client/connectionRules';
 import { NODE_REGISTRY } from '../../../utils/client/NODE_REGISTRY';
@@ -116,6 +117,7 @@ const nodeTypes: ReactFlowNodeTypes = {
   discord: DiscordNode,
   telegram: TelegramNode,
   whatsapp: WhatsAppNode,
+  weather: WeatherNode,
 };
 
 const edgeTypes: EdgeTypes = {

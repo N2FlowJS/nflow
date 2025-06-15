@@ -42,6 +42,7 @@ import TikTokNodeForm from './tiktok-node-form';
 import DiscordNodeForm from './discord-node-form';
 import TelegramNodeForm from './telegram-node-form';
 import WhatsAppNodeForm from './whatsapp-node-form';
+import WeatherNodeForm from './weather-node-form';
 
 interface NodeFormProps {
   form: any;
@@ -146,6 +147,8 @@ const NodeForm: React.FC<NodeFormProps> = (props) => {
         return <TelegramNodeForm {...commonProps} />;
       case 'whatsapp':
         return <WhatsAppNodeForm {...commonProps} />;
+      case 'weather':
+        return <WeatherNodeForm {...commonProps} />;
       default:
         return <div>Unsupported node type: {selectedNode.type}</div>;
     }

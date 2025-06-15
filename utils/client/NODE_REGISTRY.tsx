@@ -45,6 +45,7 @@ import {
   WhatsAppNodeData,
   BingSearchNodeData,
   DuckGoSearchNodeData,
+  WeatherNodeData,
 } from '../../models/flowTypes';
 import {
   BranchesOutlined,
@@ -86,6 +87,7 @@ import {
   RobotOutlined as DiscordIcon,
   PhoneOutlined,
   WhatsAppOutlined,
+  CloudOutlined,
 } from '@ant-design/icons';
 
 // Central registry of all node types
@@ -1247,7 +1249,35 @@ Rewritten question:`,
       },
     } as Partial<DuckGoSearchNodeData>,
   },
-
+  weather: {
+    type: 'weather',
+    icon: <CloudOutlined style={{ color: '#52C41A' }} />,
+    color: {
+      background: 'rgba(82, 196, 26, .1)',
+      border: '#52C41A',
+      handle: '#52C41A',
+    },
+    input: 'Location name or coordinates',
+    output: 'Weather data and forecast information',
+    data: {
+      type: 'weather',
+      form: {
+        role: 'developer',
+        name: 'Weather',
+        description: 'Get weather information and forecasts',
+        action: 'current_weather',
+        location: '{{location}}',
+        units: 'metric',
+        language: 'en',
+        days: 5,
+        includeHourly: false,
+        includeAlerts: true,
+        useSystemConfig: true,
+        inputRefs: [],
+        output: '',
+      },
+    } as Partial<WeatherNodeData>,
+  },
 };
 
 // Get available input sources for the query - specifically for nodes that support input references
