@@ -37,6 +37,14 @@ export const NODE_TYPES = {
   github: 'github',
   facebook: 'facebook',
   googlemap: 'googlemap',
+  twitter: 'twitter',
+  instagram: 'instagram',
+  linkedin: 'linkedin',
+  youtube: 'youtube',
+  tiktok: 'tiktok',
+  discord: 'discord',
+  telegram: 'telegram',
+  whatsapp: 'whatsapp',
 } as const;
 export type NodeTypeString = keyof typeof NODE_TYPES;
 
@@ -423,6 +431,30 @@ export type FacebookNodeData = BaseNodeData<FacebookForm> & {
 export type GoogleMapNodeData = BaseNodeData<GoogleMapForm> & {
   type: 'googlemap';
 };
+export type TwitterNodeData = BaseNodeData<TwitterForm> & {
+  type: 'twitter';
+};
+export type InstagramNodeData = BaseNodeData<InstagramForm> & {
+  type: 'instagram';
+};
+export type LinkedInNodeData = BaseNodeData<LinkedInForm> & {
+  type: 'linkedin';
+};
+export type YouTubeNodeData = BaseNodeData<YouTubeForm> & {
+  type: 'youtube';
+};
+export type TikTokNodeData = BaseNodeData<TikTokForm> & {
+  type: 'tiktok';
+};
+export type DiscordNodeData = BaseNodeData<DiscordForm> & {
+  type: 'discord';
+};
+export type TelegramNodeData = BaseNodeData<TelegramForm> & {
+  type: 'telegram';
+};
+export type WhatsAppNodeData = BaseNodeData<WhatsAppForm> & {
+  type: 'whatsapp';
+};
 
 export type NodeDataWithForm<TForm> = BaseNodeData<TForm> & {
   type: NodeTypeString;
@@ -481,7 +513,15 @@ export type NodeData =
   | ConfluenceNodeData
   | GitHubNodeData
   | FacebookNodeData
-  | GoogleMapNodeData;
+  | GoogleMapNodeData
+  | TwitterNodeData
+  | InstagramNodeData
+  | LinkedInNodeData
+  | YouTubeNodeData
+  | TikTokNodeData
+  | DiscordNodeData
+  | TelegramNodeData
+  | WhatsAppNodeData;
 
 // Typed node instances
 export type BeginNode = Node<BeginNodeData>;
@@ -518,6 +558,14 @@ export type ConfluenceNode = Node<ConfluenceNodeData>;
 export type GitHubNode = Node<GitHubNodeData>;
 export type FacebookNode = Node<FacebookNodeData>;
 export type GoogleMapNode = Node<GoogleMapNodeData>;
+export type TwitterNode = Node<TwitterNodeData>;
+export type InstagramNode = Node<InstagramNodeData>;
+export type LinkedInNode = Node<LinkedInNodeData>;
+export type YouTubeNode = Node<YouTubeNodeData>;
+export type TikTokNode = Node<TikTokNodeData>;
+export type DiscordNode = Node<DiscordNodeData>;
+export type TelegramNode = Node<TelegramNodeData>;
+export type WhatsAppNode = Node<WhatsAppNodeData>;
 
 // Union type for all flow nodes
 export type FlowNode = Node<
@@ -555,6 +603,14 @@ export type FlowNode = Node<
   | GitHubNodeData
   | FacebookNodeData
   | GoogleMapNodeData
+  | TwitterNodeData
+  | InstagramNodeData
+  | LinkedInNodeData
+  | YouTubeNodeData
+  | TikTokNodeData
+  | DiscordNodeData
+  | TelegramNodeData
+  | WhatsAppNodeData
 >;
 
 // Type for a complete flow
@@ -713,4 +769,123 @@ export interface GoogleMapForm extends BaseForm {
   placeId?: string;
   radius?: number;
   type?: string;
+}
+
+export interface TwitterForm extends BaseForm {
+  name: string;
+  description?: string;
+  action: 'create_tweet' | 'get_tweets' | 'get_user_info' | 'follow_user' | 'like_tweet' | 'retweet' | 'get_mentions';
+  apiKey: string;
+  apiSecret: string;
+  accessToken: string;
+  accessTokenSecret: string;
+  tweetText?: string;
+  userId?: string;
+  username?: string;
+  tweetId?: string;
+  query?: string;
+  maxResults?: number;
+}
+
+export interface InstagramForm extends BaseForm {
+  name: string;
+  description?: string;
+  action: 'create_post' | 'get_posts' | 'get_user_info' | 'get_media' | 'create_story' | 'get_insights';
+  accessToken: string;
+  userId?: string;
+  mediaUrl?: string;
+  caption?: string;
+  mediaType?: 'image' | 'video' | 'carousel';
+  storyMediaUrl?: string;
+}
+
+export interface LinkedInForm extends BaseForm {
+  name: string;
+  description?: string;
+  action: 'create_post' | 'get_profile' | 'get_company_info' | 'create_article' | 'get_connections';
+  accessToken: string;
+  personId?: string;
+  companyId?: string;
+  postText?: string;
+  articleTitle?: string;
+  articleContent?: string;
+  mediaUrl?: string;
+  visibility?: 'public' | 'connections';
+}
+
+export interface YouTubeForm extends BaseForm {
+  name: string;
+  description?: string;
+  action: 'upload_video' | 'get_videos' | 'get_channel_info' | 'create_playlist' | 'get_comments' | 'get_analytics';
+  apiKey: string;
+  videoFile?: string;
+  title?: string;
+  videoDescription?: string;
+  tags?: string[];
+  categoryId?: string;
+  privacy?: 'public' | 'private' | 'unlisted';
+  channelId?: string;
+  videoId?: string;
+  playlistTitle?: string;
+}
+
+export interface TikTokForm extends BaseForm {
+  name: string;
+  description?: string;
+  action: 'upload_video' | 'get_user_info' | 'get_videos' | 'get_hashtag_videos';
+  accessToken: string;
+  videoFile?: string;
+  caption?: string;
+  hashtags?: string[];
+  userId?: string;
+  hashtag?: string;
+  maxResults?: number;
+  privacy?: 'public' | 'friends' | 'private';
+}
+
+export interface DiscordForm extends BaseForm {
+  name: string;
+  description?: string;
+  action: 'send_message' | 'create_channel' | 'get_messages' | 'send_embed' | 'manage_roles' | 'get_guild_info';
+  botToken: string;
+  channelId?: string;
+  guildId?: string;
+  message?: string;
+  embedTitle?: string;
+  embedDescription?: string;
+  embedColor?: string;
+  userId?: string;
+  roleId?: string;
+}
+
+export interface TelegramForm extends BaseForm {
+  name: string;
+  description?: string;
+  action: 'send_message' | 'send_photo' | 'send_document' | 'get_updates' | 'create_poll' | 'send_location';
+  botToken: string;
+  chatId?: string;
+  message?: string;
+  photoUrl?: string;
+  documentUrl?: string;
+  pollQuestion?: string;
+  pollOptions?: string[];
+  latitude?: string;
+  longitude?: string;
+  parseMode?: 'Markdown' | 'HTML';
+}
+
+export interface WhatsAppForm extends BaseForm {
+  name: string;
+  description?: string;
+  action: 'send_message' | 'send_media' | 'send_template' | 'get_media' | 'mark_read';
+  accessToken: string;
+  phoneNumberId: string;
+  recipientPhone: string;
+  message?: string;
+  mediaId?: string;
+  mediaUrl?: string;
+  templateName?: string;
+  templateLanguage?: string;
+  templateParameters?: string[];
+  mediaType?: 'image' | 'video' | 'audio' | 'document';
 }

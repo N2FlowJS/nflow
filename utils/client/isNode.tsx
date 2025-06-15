@@ -132,4 +132,36 @@ export function isFacebookNodeData(data: NodeData): data is RetrievalNodeData {
 export function isGoogleMapNodeData(data: NodeData): data is RetrievalNodeData {
   return data.type === 'googlemap';
 }
+export function isTwitterNodeData(data: NodeData): data is RetrievalNodeData {
+  return data.type === 'twitter';
+}
+
+export function isInstagramNodeData(data: NodeData): data is RetrievalNodeData {
+  return data.type === 'instagram';
+}
+
+export function isLinkedInNodeData(data: NodeData): data is RetrievalNodeData {
+  return data.type === 'linkedin';
+}
+
+export function isYouTubeNodeData(data: NodeData): data is RetrievalNodeData {
+  return data.type === 'youtube';
+}
+
+export function isTikTokNodeData(data: NodeData): data is RetrievalNodeData {
+  return data.type === 'tiktok';
+}
+
+export function isDiscordNodeData(data: NodeData): data is RetrievalNodeData {
+  return data.type === 'discord';
+}
+
+export function isTelegramNodeData(data: NodeData): data is RetrievalNodeData {
+  return data.type === 'telegram';
+}
+
+export function isWhatsAppNodeData(data: NodeData): data is RetrievalNodeData {
+  return data.type === 'whatsapp';
+}
+
 export { findNextNodes } from '../server/findNextNode';
