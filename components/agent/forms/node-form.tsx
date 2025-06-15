@@ -1,7 +1,7 @@
 import React from 'react';
 import { FlowNode } from '../../../models/flowTypes';
 import BeginNodeForm from './begin-node-form';
-import InterfaceNodeForm from './Interface-node-form';
+import InterfaceNodeForm from './interface-node-form';
 import GenerateNodeForm from './generate-node-form';
 import CategorizeNodeForm from './categorize-node-form';
 import RetrievalNodeForm from './retrieval-node-form';
@@ -12,6 +12,8 @@ import ExecMssqlNodeForm from './execmssql-node-form';
 import SubAgentNodeForm from './subagent-node-form';
 import SendMailNodeForm from './sendmail-node-form';
 import GoogleSearchNodeForm from './googlesearch-node-form';
+import BingSearchNodeForm from './bingsearch-node-form';
+import DuckGoSearchNodeForm from './duckgosearch-node-form';
 import WikipediaSearchNodeForm from './wikipedia-search-node-form';
 import RewriteNodeForm from './rewrite-node-form';
 import HttpRequestNodeForm from './httprequest-node-form';
@@ -76,6 +78,10 @@ const NodeForm: React.FC<NodeFormProps> = (props) => {
         return <SendMailNodeForm {...commonProps} />;
       case 'googlesearch':
         return <GoogleSearchNodeForm {...commonProps} />;
+      case 'bingsearch':
+        return <BingSearchNodeForm {...commonProps} />;
+      case 'duckgosearch':
+        return <DuckGoSearchNodeForm {...commonProps} />;
       case 'wikipediasearch':
         return <WikipediaSearchNodeForm {...commonProps} />;
       case 'rewrite':

@@ -15,6 +15,8 @@ export const NODE_TYPES = {
   subagent: 'subagent',
   sendmail: 'sendmail',
   googlesearch: 'googlesearch',
+  bingsearch: 'bingsearch',
+  duckgosearch: 'duckgosearch',
   wikipediasearch: 'wikipediasearch',
   rewrite: 'rewrite',
   httprequest: 'httprequest',
@@ -357,6 +359,12 @@ export type SendMailNodeData = BaseNodeData<SendMailForm> & {
 export type GoogleSearchNodeData = BaseNodeData<GoogleSearchForm> & {
   type: 'googlesearch';
 };
+export type BingSearchNodeData = BaseNodeData<BingSearchForm> & {
+  type: 'bingsearch';
+};
+export type DuckGoSearchNodeData = BaseNodeData<DuckGoSearchForm> & {
+  type: 'duckgosearch';
+};
 export type WikipediaSearchNodeData = BaseNodeData<WikipediaSearchForm> & {
   type: 'wikipediasearch';
 };
@@ -460,6 +468,8 @@ export type NodeData =
   | SubAgentNodeData
   | SendMailNodeData
   | GoogleSearchNodeData
+  | BingSearchNodeData
+  | DuckGoSearchNodeData
   | WikipediaSearchNodeData
   | RewriteNodeData
   | HttpRequestNodeData
@@ -496,6 +506,8 @@ export type SubAgentNode = Node<SubAgentNodeData>;
 export type ExecMssqlNode = Node<ExecMssqlNodeData>;
 export type SendMailNode = Node<SendMailNodeData>;
 export type GoogleSearchNode = Node<GoogleSearchNodeData>;
+export type BingSearchNode = Node<BingSearchNodeData>;
+export type DuckGoSearchNode = Node<DuckGoSearchNodeData>;
 export type WikipediaSearchNode = Node<WikipediaSearchNodeData>;
 export type RewriteNode = Node<RewriteNodeData>;
 export type HttpRequestNode = Node<HttpRequestNodeData>;
@@ -533,6 +545,8 @@ export type FlowNode = Node<
   | SubAgentNodeData
   | SendMailNodeData
   | GoogleSearchNodeData
+  | BingSearchNodeData
+  | DuckGoSearchNodeData
   | WikipediaSearchNodeData
   | RewriteNodeData
   | HttpRequestNodeData
@@ -714,3 +728,150 @@ export interface GoogleMapForm extends BaseForm {
   radius?: number;
   type?: string;
 }
+<<<<<<< Updated upstream
+=======
+
+export interface TwitterForm extends BaseForm {
+  name: string;
+  description?: string;
+  action: 'create_tweet' | 'get_tweets' | 'get_user_info' | 'follow_user' | 'like_tweet' | 'retweet' | 'get_mentions';
+  apiKey: string;
+  apiSecret: string;
+  accessToken: string;
+  accessTokenSecret: string;
+  tweetText?: string;
+  userId?: string;
+  username?: string;
+  tweetId?: string;
+  query?: string;
+  maxResults?: number;
+}
+
+export interface InstagramForm extends BaseForm {
+  name: string;
+  description?: string;
+  action: 'create_post' | 'get_posts' | 'get_user_info' | 'get_media' | 'create_story' | 'get_insights';
+  accessToken: string;
+  userId?: string;
+  mediaUrl?: string;
+  caption?: string;
+  mediaType?: 'image' | 'video' | 'carousel';
+  storyMediaUrl?: string;
+}
+
+export interface LinkedInForm extends BaseForm {
+  name: string;
+  description?: string;
+  action: 'create_post' | 'get_profile' | 'get_company_info' | 'create_article' | 'get_connections';
+  accessToken: string;
+  personId?: string;
+  companyId?: string;
+  postText?: string;
+  articleTitle?: string;
+  articleContent?: string;
+  mediaUrl?: string;
+  visibility?: 'public' | 'connections';
+}
+
+export interface YouTubeForm extends BaseForm {
+  name: string;
+  description?: string;
+  action: 'upload_video' | 'get_videos' | 'get_channel_info' | 'create_playlist' | 'get_comments' | 'get_analytics';
+  apiKey: string;
+  videoFile?: string;
+  title?: string;
+  videoDescription?: string;
+  tags?: string[];
+  categoryId?: string;
+  privacy?: 'public' | 'private' | 'unlisted';
+  channelId?: string;
+  videoId?: string;
+  playlistTitle?: string;
+}
+
+export interface TikTokForm extends BaseForm {
+  name: string;
+  description?: string;
+  action: 'upload_video' | 'get_user_info' | 'get_videos' | 'get_hashtag_videos';
+  accessToken: string;
+  videoFile?: string;
+  caption?: string;
+  hashtags?: string[];
+  userId?: string;
+  hashtag?: string;
+  maxResults?: number;
+  privacy?: 'public' | 'friends' | 'private';
+}
+
+export interface DiscordForm extends BaseForm {
+  name: string;
+  description?: string;
+  action: 'send_message' | 'create_channel' | 'get_messages' | 'send_embed' | 'manage_roles' | 'get_guild_info';
+  botToken: string;
+  channelId?: string;
+  guildId?: string;
+  message?: string;
+  embedTitle?: string;
+  embedDescription?: string;
+  embedColor?: string;
+  userId?: string;
+  roleId?: string;
+}
+
+export interface TelegramForm extends BaseForm {
+  name: string;
+  description?: string;
+  action: 'send_message' | 'send_photo' | 'send_document' | 'get_updates' | 'create_poll' | 'send_location';
+  botToken: string;
+  chatId?: string;
+  message?: string;
+  photoUrl?: string;
+  documentUrl?: string;
+  pollQuestion?: string;
+  pollOptions?: string[];
+  latitude?: string;
+  longitude?: string;
+  parseMode?: 'Markdown' | 'HTML';
+}
+
+export interface WhatsAppForm extends BaseForm {
+  name: string;
+  description?: string;
+  action: 'send_message' | 'send_media' | 'send_template' | 'get_media' | 'mark_read';
+  accessToken: string;
+  phoneNumberId: string;
+  recipientPhone: string;
+  message?: string;
+  mediaId?: string;
+  mediaUrl?: string;
+  templateName?: string;
+  templateLanguage?: string;
+  templateParameters?: string[];
+  mediaType?: 'image' | 'video' | 'audio' | 'document';
+}
+
+export interface BingSearchForm extends BaseForm {
+  name: string;
+  description?: string;
+  query: string;
+  maxResults?: number;
+  safeSearch?: 'off' | 'moderate' | 'strict';
+  language?: string;
+  country?: string;
+  apiKey?: string;
+  useSystemConfig?: boolean;
+  searchType?: 'web' | 'images' | 'news' | 'videos';
+}
+
+export interface DuckGoSearchForm extends BaseForm {
+  name: string;
+  description?: string;
+  query: string;
+  maxResults?: number;
+  safeSearch?: 'off' | 'moderate' | 'strict';
+  region?: string;
+  searchType?: 'web' | 'images' | 'news' | 'videos';
+  noHTML?: boolean;
+  noRedirect?: boolean;
+}
+>>>>>>> Stashed changes
