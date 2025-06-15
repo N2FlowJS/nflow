@@ -1,11 +1,3 @@
 {
-  "enabled": true,
-  "status": "running",
-  "activeWorkers": 3,
-  "maxWorkers": 3,
-<<<<<<< Updated upstream
-  "lastUpdated": "2025-06-14T16:58:45.446Z"
-=======
-  "lastUpdated": "2025-06-15T08:25:59.177Z"
->>>>>>> Stashed changes
+
 }

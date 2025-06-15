@@ -35,8 +35,6 @@ import {
   GitHubNodeData,
   FacebookNodeData,
   GoogleMapNodeData,
-<<<<<<< Updated upstream
-=======
   TwitterNodeData,
   InstagramNodeData,
   LinkedInNodeData,
@@ -47,7 +45,6 @@ import {
   WhatsAppNodeData,
   BingSearchNodeData,
   DuckGoSearchNodeData,
->>>>>>> Stashed changes
 } from '../../models/flowTypes';
 import {
   BranchesOutlined,
@@ -81,6 +78,14 @@ import {
   GithubOutlined,
   FacebookOutlined,
   EnvironmentOutlined,
+  TwitterOutlined,
+  InstagramOutlined,
+  LinkedinOutlined,
+  YoutubeOutlined,
+  CustomerServiceOutlined,
+  RobotOutlined as DiscordIcon,
+  PhoneOutlined,
+  WhatsAppOutlined,
 } from '@ant-design/icons';
 
 // Central registry of all node types
@@ -983,8 +988,6 @@ Rewritten question:`,
       },
     } as Partial<GoogleMapNodeData>,
   },
-<<<<<<< Updated upstream
-=======
   twitter: {
     type: 'twitter',
     icon: <TwitterOutlined style={{ color: '#1DA1F2' }} />,
@@ -1244,7 +1247,7 @@ Rewritten question:`,
       },
     } as Partial<DuckGoSearchNodeData>,
   },
->>>>>>> Stashed changes
+
 };
 
 // Get available input sources for the query - specifically for nodes that support input references

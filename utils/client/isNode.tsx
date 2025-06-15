@@ -132,8 +132,7 @@ export function isFacebookNodeData(data: NodeData): data is RetrievalNodeData {
 export function isGoogleMapNodeData(data: NodeData): data is RetrievalNodeData {
   return data.type === 'googlemap';
 }
-<<<<<<< Updated upstream
-=======
+
 export function isTwitterNodeData(data: NodeData): data is RetrievalNodeData {
   return data.type === 'twitter';
 }
@@ -174,5 +173,5 @@ export function isDuckGoSearchNodeData(data: NodeData): data is RetrievalNodeDat
   return data.type === 'duckgosearch';
 }
 
->>>>>>> Stashed changes
+
 export { findNextNodes } from '../server/findNextNode';

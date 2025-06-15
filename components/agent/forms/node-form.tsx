@@ -34,6 +34,14 @@ import ConfluenceNodeForm from './confluence-node-form';
 import GitHubNodeForm from './github-node-form';
 import FacebookNodeForm from './facebook-node-form';
 import GoogleMapNodeForm from './googlemap-node-form';
+import TwitterNodeForm from './twitter-node-form';
+import InstagramNodeForm from './instagram-node-form';
+import LinkedInNodeForm from './linkedin-node-form';
+import YouTubeNodeForm from './youtube-node-form';
+import TikTokNodeForm from './tiktok-node-form';
+import DiscordNodeForm from './discord-node-form';
+import TelegramNodeForm from './telegram-node-form';
+import WhatsAppNodeForm from './whatsapp-node-form';
 
 interface NodeFormProps {
   form: any;
@@ -122,6 +130,22 @@ const NodeForm: React.FC<NodeFormProps> = (props) => {
         return <FacebookNodeForm {...commonProps} />;
       case 'googlemap':
         return <GoogleMapNodeForm {...commonProps} />;
+      case 'twitter':
+        return <TwitterNodeForm {...commonProps} />;
+      case 'instagram':
+        return <InstagramNodeForm {...commonProps} />;
+      case 'linkedin':
+        return <LinkedInNodeForm {...commonProps} />;
+      case 'youtube':
+        return <YouTubeNodeForm {...commonProps} />;
+      case 'tiktok':
+        return <TikTokNodeForm {...commonProps} />;
+      case 'discord':
+        return <DiscordNodeForm {...commonProps} />;
+      case 'telegram':
+        return <TelegramNodeForm {...commonProps} />;
+      case 'whatsapp':
+        return <WhatsAppNodeForm {...commonProps} />;
       default:
         return <div>Unsupported node type: {selectedNode.type}</div>;
     }

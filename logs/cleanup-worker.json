@@ -1,10 +1,6 @@
 {
   "enabled": true,
   "status": "running",
-<<<<<<< Updated upstream
-  "lastRun": "2025-06-14T16:58:45.447Z",
-=======
-  "lastRun": "2025-06-15T08:25:59.181Z",
->>>>>>> Stashed changes
-  "lastDeleted": 0
+  "lastRun": "2025-06-15T08:16:58.858Z",
+  "lastDeleted": null
 }

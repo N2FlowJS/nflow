@@ -39,6 +39,14 @@ export const NODE_TYPES = {
   github: 'github',
   facebook: 'facebook',
   googlemap: 'googlemap',
+  twitter: 'twitter',
+  instagram: 'instagram',
+  linkedin: 'linkedin',
+  youtube: 'youtube',
+  tiktok: 'tiktok',
+  discord: 'discord',
+  telegram: 'telegram',
+  whatsapp: 'whatsapp',
 } as const;
 export type NodeTypeString = keyof typeof NODE_TYPES;
 
@@ -431,6 +439,30 @@ export type FacebookNodeData = BaseNodeData<FacebookForm> & {
 export type GoogleMapNodeData = BaseNodeData<GoogleMapForm> & {
   type: 'googlemap';
 };
+export type TwitterNodeData = BaseNodeData<TwitterForm> & {
+  type: 'twitter';
+};
+export type InstagramNodeData = BaseNodeData<InstagramForm> & {
+  type: 'instagram';
+};
+export type LinkedInNodeData = BaseNodeData<LinkedInForm> & {
+  type: 'linkedin';
+};
+export type YouTubeNodeData = BaseNodeData<YouTubeForm> & {
+  type: 'youtube';
+};
+export type TikTokNodeData = BaseNodeData<TikTokForm> & {
+  type: 'tiktok';
+};
+export type DiscordNodeData = BaseNodeData<DiscordForm> & {
+  type: 'discord';
+};
+export type TelegramNodeData = BaseNodeData<TelegramForm> & {
+  type: 'telegram';
+};
+export type WhatsAppNodeData = BaseNodeData<WhatsAppForm> & {
+  type: 'whatsapp';
+};
 
 export type NodeDataWithForm<TForm> = BaseNodeData<TForm> & {
   type: NodeTypeString;
@@ -491,7 +523,15 @@ export type NodeData =
   | ConfluenceNodeData
   | GitHubNodeData
   | FacebookNodeData
-  | GoogleMapNodeData;
+  | GoogleMapNodeData
+  | TwitterNodeData
+  | InstagramNodeData
+  | LinkedInNodeData
+  | YouTubeNodeData
+  | TikTokNodeData
+  | DiscordNodeData
+  | TelegramNodeData
+  | WhatsAppNodeData;
 
 // Typed node instances
 export type BeginNode = Node<BeginNodeData>;
@@ -530,6 +570,14 @@ export type ConfluenceNode = Node<ConfluenceNodeData>;
 export type GitHubNode = Node<GitHubNodeData>;
 export type FacebookNode = Node<FacebookNodeData>;
 export type GoogleMapNode = Node<GoogleMapNodeData>;
+export type TwitterNode = Node<TwitterNodeData>;
+export type InstagramNode = Node<InstagramNodeData>;
+export type LinkedInNode = Node<LinkedInNodeData>;
+export type YouTubeNode = Node<YouTubeNodeData>;
+export type TikTokNode = Node<TikTokNodeData>;
+export type DiscordNode = Node<DiscordNodeData>;
+export type TelegramNode = Node<TelegramNodeData>;
+export type WhatsAppNode = Node<WhatsAppNodeData>;
 
 // Union type for all flow nodes
 export type FlowNode = Node<
@@ -569,6 +617,14 @@ export type FlowNode = Node<
   | GitHubNodeData
   | FacebookNodeData
   | GoogleMapNodeData
+  | TwitterNodeData
+  | InstagramNodeData
+  | LinkedInNodeData
+  | YouTubeNodeData
+  | TikTokNodeData
+  | DiscordNodeData
+  | TelegramNodeData
+  | WhatsAppNodeData
 >;
 
 // Type for a complete flow
@@ -728,8 +784,7 @@ export interface GoogleMapForm extends BaseForm {
   radius?: number;
   type?: string;
 }
-<<<<<<< Updated upstream
-=======
+
 
 export interface TwitterForm extends BaseForm {
   name: string;
@@ -874,4 +929,3 @@ export interface DuckGoSearchForm extends BaseForm {
   noHTML?: boolean;
   noRedirect?: boolean;
 }
->>>>>>> Stashed changes

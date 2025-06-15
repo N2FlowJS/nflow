@@ -31,8 +31,6 @@ import {
   isGitHubNodeData,
   isFacebookNodeData,
   isGoogleMapNodeData,
-<<<<<<< Updated upstream
-=======
   isTwitterNodeData,
   isInstagramNodeData,
   isLinkedInNodeData,
@@ -43,7 +41,6 @@ import {
   isWhatsAppNodeData,
   isBingSearchNodeData,
   isDuckGoSearchNodeData,
->>>>>>> Stashed changes
 } from '../../../client/isNode';
 import { FlowExecutionContext, ExecutionResult } from '../../../../models/flowExecutionTypes';
 import { executeBeginNode } from './executeBeginNode';
@@ -81,6 +78,14 @@ import { executeConfluenceNode } from './executeConfluenceNode';
 import { executeGitHubNode } from './executeGitHubNode';
 import { executeFacebookNode } from './executeFacebookNode';
 import { executeGoogleMapNode } from './executeGoogleMapNode';
+import { executeTwitterNode } from './executeTwitterNode';
+import { executeInstagramNode } from './executeInstagramNode';
+import { executeLinkedInNode } from './executeLinkedInNode';
+import { executeYouTubeNode } from './executeYouTubeNode';
+import { executeTikTokNode } from './executeTikTokNode';
+import { executeDiscordNode } from './executeDiscordNode';
+import { executeTelegramNode } from './executeTelegramNode';
+import { executeWhatsAppNode } from './executeWhatsAppNode';
 
 export async function executeNode(
   node: any,
@@ -156,6 +161,22 @@ export async function executeNode(
     return await executeFacebookNode(node, context, dispatcher);
   } else if (isGoogleMapNodeData(node.data)) {
     return await executeGoogleMapNode(node, context, dispatcher);
+  } else if (isTwitterNodeData(node.data)) {
+    return await executeTwitterNode(node, context, dispatcher);
+  } else if (isInstagramNodeData(node.data)) {
+    return await executeInstagramNode(node, context, dispatcher);
+  } else if (isLinkedInNodeData(node.data)) {
+    return await executeLinkedInNode(node, context, dispatcher);
+  } else if (isYouTubeNodeData(node.data)) {
+    return await executeYouTubeNode(node, context, dispatcher);
+  } else if (isTikTokNodeData(node.data)) {
+    return await executeTikTokNode(node, context, dispatcher);
+  } else if (isDiscordNodeData(node.data)) {
+    return await executeDiscordNode(node, context, dispatcher);
+  } else if (isTelegramNodeData(node.data)) {
+    return await executeTelegramNode(node, context, dispatcher);
+  } else if (isWhatsAppNodeData(node.data)) {
+    return await executeWhatsAppNode(node, context, dispatcher);
   }
   throw new Error(`Unsupported node type: ${node.type}`);
 }

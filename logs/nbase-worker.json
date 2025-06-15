@@ -1,10 +1,6 @@
 {
   "enabled": true,
   "status": "running",
-  "serverType": "nbase",
-<<<<<<< Updated upstream
-  "lastUpdated": "2025-06-14T16:58:45.441Z"
-=======
-  "lastUpdated": "2025-06-15T08:25:59.170Z"
->>>>>>> Stashed changes
+  "serverType": "nbase"
+
 }
