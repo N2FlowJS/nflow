@@ -59,6 +59,14 @@ import ConfluenceNode from '../nodes/confluence-node';
 import GitHubNode from '../nodes/github-node';
 import FacebookNode from '../nodes/facebook-node';
 import GoogleMapNode from '../nodes/googlemap-node';
+import TwitterNode from '../nodes/twitter-node';
+import InstagramNode from '../nodes/instagram-node';
+import LinkedInNode from '../nodes/linkedin-node';
+import YouTubeNode from '../nodes/youtube-node';
+import TikTokNode from '../nodes/tiktok-node';
+import DiscordNode from '../nodes/discord-node';
+import TelegramNode from '../nodes/telegram-node';
+import WhatsAppNode from '../nodes/whatsapp-node';
 
 import { isConnectionAllowed } from '../../../utils/client/connectionRules';
 import { NODE_REGISTRY } from '../../../utils/client/NODE_REGISTRY';
@@ -96,6 +104,14 @@ const nodeTypes: ReactFlowNodeTypes = {
   github: GitHubNode,
   facebook: FacebookNode,
   googlemap: GoogleMapNode,
+  twitter: TwitterNode,
+  instagram: InstagramNode,
+  linkedin: LinkedInNode,
+  youtube: YouTubeNode,
+  tiktok: TikTokNode,
+  discord: DiscordNode,
+  telegram: TelegramNode,
+  whatsapp: WhatsAppNode,
 };
 
 const edgeTypes: EdgeTypes = {
