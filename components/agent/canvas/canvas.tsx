@@ -40,6 +40,8 @@ import ExecMssqlNode from '../nodes/execmssql-node';
 import SubAgentNode from '../nodes/subagent-node';
 import SendMailNode from '../nodes/sendmail-node';
 import GoogleSearchNode from '../nodes/googlesearch-node';
+import BingSearchNode from '../nodes/bingsearch-node';
+import DuckGoSearchNode from '../nodes/duckgosearch-node';
 import WikipediaSearchNode from '../nodes/wikipediasearch-node';
 import RewriteNode from '../nodes/rewrite-node';
 import HttpRequestNode from '../nodes/httprequest-node';
@@ -85,6 +87,8 @@ const nodeTypes: ReactFlowNodeTypes = {
   subagent: SubAgentNode,
   sendmail: SendMailNode,
   googlesearch: GoogleSearchNode,
+  bingsearch: BingSearchNode,
+  duckgosearch: DuckGoSearchNode,
   wikipediasearch: WikipediaSearchNode,
   rewrite: RewriteNode,
   httprequest: HttpRequestNode,

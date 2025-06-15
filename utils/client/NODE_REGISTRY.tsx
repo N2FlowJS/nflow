@@ -43,6 +43,8 @@ import {
   DiscordNodeData,
   TelegramNodeData,
   WhatsAppNodeData,
+  BingSearchNodeData,
+  DuckGoSearchNodeData,
 } from '../../models/flowTypes';
 import {
   BranchesOutlined,
@@ -1189,6 +1191,63 @@ Rewritten question:`,
       },
     } as Partial<WhatsAppNodeData>,
   },
+  bingsearch: {
+    type: 'bingsearch',
+    icon: <SearchOutlined style={{ color: '#00BCF2' }} />,
+    color: {
+      background: 'rgba(0, 188, 242, .1)',
+      border: '#00BCF2',
+      handle: '#00BCF2',
+    },
+    input: 'Search query text',
+    output: 'Bing search results with titles, descriptions, and URLs',
+    data: {
+      type: 'bingsearch',
+      form: {
+        role: 'developer',
+        name: 'Bing Search',
+        description: 'Search Bing for information and return results',
+        query: '{{searchTerm}}',
+        maxResults: 10,
+        safeSearch: 'moderate',
+        language: 'en',
+        country: 'us',
+        searchType: 'web',
+        useSystemConfig: true,
+        inputRefs: [],
+        output: '',
+      },
+    } as Partial<BingSearchNodeData>,
+  },
+  duckgosearch: {
+    type: 'duckgosearch',
+    icon: <SearchOutlined style={{ color: '#DE5833' }} />,
+    color: {
+      background: 'rgba(222, 88, 51, .1)',
+      border: '#DE5833',
+      handle: '#DE5833',
+    },
+    input: 'Search query text',
+    output: 'DuckDuckGo search results with titles, descriptions, and URLs',
+    data: {
+      type: 'duckgosearch',
+      form: {
+        role: 'developer',
+        name: 'DuckDuckGo Search',
+        description: 'Search DuckDuckGo for privacy-focused results',
+        query: '{{searchTerm}}',
+        maxResults: 10,
+        safeSearch: 'moderate',
+        region: 'us-en',
+        searchType: 'web',
+        noHTML: true,
+        noRedirect: true,
+        inputRefs: [],
+        output: '',
+      },
+    } as Partial<DuckGoSearchNodeData>,
+  },
+
 };
 
 // Get available input sources for the query - specifically for nodes that support input references

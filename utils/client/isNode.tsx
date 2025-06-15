@@ -132,6 +132,7 @@ export function isFacebookNodeData(data: NodeData): data is RetrievalNodeData {
 export function isGoogleMapNodeData(data: NodeData): data is RetrievalNodeData {
   return data.type === 'googlemap';
 }
+
 export function isTwitterNodeData(data: NodeData): data is RetrievalNodeData {
   return data.type === 'twitter';
 }
@@ -163,5 +164,14 @@ export function isTelegramNodeData(data: NodeData): data is RetrievalNodeData {
 export function isWhatsAppNodeData(data: NodeData): data is RetrievalNodeData {
   return data.type === 'whatsapp';
 }
+
+export function isBingSearchNodeData(data: NodeData): data is RetrievalNodeData {
+  return data.type === 'bingsearch';
+}
+
+export function isDuckGoSearchNodeData(data: NodeData): data is RetrievalNodeData {
+  return data.type === 'duckgosearch';
+}
+
 
 export { findNextNodes } from '../server/findNextNode';

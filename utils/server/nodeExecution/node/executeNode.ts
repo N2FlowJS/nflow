@@ -39,6 +39,8 @@ import {
   isDiscordNodeData,
   isTelegramNodeData,
   isWhatsAppNodeData,
+  isBingSearchNodeData,
+  isDuckGoSearchNodeData,
 } from '../../../client/isNode';
 import { FlowExecutionContext, ExecutionResult } from '../../../../models/flowExecutionTypes';
 import { executeBeginNode } from './executeBeginNode';
@@ -54,6 +56,8 @@ import { executeExecMssqlNode } from './executeExecMssqlNode';
 import { executeSubAgentNode } from './executeSubAgentNode';
 import { executeSendMailNode } from './executeSendMailNode';
 import { executeGoogleSearchNode } from './executeGoogleSearchNode';
+import { executeBingSearchNode } from './executeBingSearchNode';
+import { executeDuckGoSearchNode } from './executeDuckGoSearchNode';
 import { executeWikipediaSearchNode } from './executeWikipediaSearchNode';
 import { executeRewriteNode } from './executeRewriteNode';
 import { executeHttpRequestNode } from './executeHttpRequestNode';
@@ -113,6 +117,10 @@ export async function executeNode(
     return await executeSendMailNode(node, context, dispatcher);
   } else if (isGoogleSearchNodeData(node.data)) {
     return await executeGoogleSearchNode(node, context, dispatcher);
+  } else if (isBingSearchNodeData(node.data)) {
+    return await executeBingSearchNode(node, context, dispatcher);
+  } else if (isDuckGoSearchNodeData(node.data)) {
+    return await executeDuckGoSearchNode(node, context, dispatcher);
   } else if (isWikipediaSearchNodeData(node.data)) {
     return await executeWikipediaSearchNode(node, context, dispatcher);
   } else if (isRewriteNodeData(node.data)) {

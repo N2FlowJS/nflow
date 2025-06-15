@@ -15,6 +15,8 @@ export const NODE_TYPES = {
   subagent: 'subagent',
   sendmail: 'sendmail',
   googlesearch: 'googlesearch',
+  bingsearch: 'bingsearch',
+  duckgosearch: 'duckgosearch',
   wikipediasearch: 'wikipediasearch',
   rewrite: 'rewrite',
   httprequest: 'httprequest',
@@ -365,6 +367,12 @@ export type SendMailNodeData = BaseNodeData<SendMailForm> & {
 export type GoogleSearchNodeData = BaseNodeData<GoogleSearchForm> & {
   type: 'googlesearch';
 };
+export type BingSearchNodeData = BaseNodeData<BingSearchForm> & {
+  type: 'bingsearch';
+};
+export type DuckGoSearchNodeData = BaseNodeData<DuckGoSearchForm> & {
+  type: 'duckgosearch';
+};
 export type WikipediaSearchNodeData = BaseNodeData<WikipediaSearchForm> & {
   type: 'wikipediasearch';
 };
@@ -492,6 +500,8 @@ export type NodeData =
   | SubAgentNodeData
   | SendMailNodeData
   | GoogleSearchNodeData
+  | BingSearchNodeData
+  | DuckGoSearchNodeData
   | WikipediaSearchNodeData
   | RewriteNodeData
   | HttpRequestNodeData
@@ -536,6 +546,8 @@ export type SubAgentNode = Node<SubAgentNodeData>;
 export type ExecMssqlNode = Node<ExecMssqlNodeData>;
 export type SendMailNode = Node<SendMailNodeData>;
 export type GoogleSearchNode = Node<GoogleSearchNodeData>;
+export type BingSearchNode = Node<BingSearchNodeData>;
+export type DuckGoSearchNode = Node<DuckGoSearchNodeData>;
 export type WikipediaSearchNode = Node<WikipediaSearchNodeData>;
 export type RewriteNode = Node<RewriteNodeData>;
 export type HttpRequestNode = Node<HttpRequestNodeData>;
@@ -581,6 +593,8 @@ export type FlowNode = Node<
   | SubAgentNodeData
   | SendMailNodeData
   | GoogleSearchNodeData
+  | BingSearchNodeData
+  | DuckGoSearchNodeData
   | WikipediaSearchNodeData
   | RewriteNodeData
   | HttpRequestNodeData
@@ -771,6 +785,7 @@ export interface GoogleMapForm extends BaseForm {
   type?: string;
 }
 
+
 export interface TwitterForm extends BaseForm {
   name: string;
   description?: string;
@@ -888,4 +903,29 @@ export interface WhatsAppForm extends BaseForm {
   templateLanguage?: string;
   templateParameters?: string[];
   mediaType?: 'image' | 'video' | 'audio' | 'document';
+}
+
+export interface BingSearchForm extends BaseForm {
+  name: string;
+  description?: string;
+  query: string;
+  maxResults?: number;
+  safeSearch?: 'off' | 'moderate' | 'strict';
+  language?: string;
+  country?: string;
+  apiKey?: string;
+  useSystemConfig?: boolean;
+  searchType?: 'web' | 'images' | 'news' | 'videos';
+}
+
+export interface DuckGoSearchForm extends BaseForm {
+  name: string;
+  description?: string;
+  query: string;
+  maxResults?: number;
+  safeSearch?: 'off' | 'moderate' | 'strict';
+  region?: string;
+  searchType?: 'web' | 'images' | 'news' | 'videos';
+  noHTML?: boolean;
+  noRedirect?: boolean;
 }
