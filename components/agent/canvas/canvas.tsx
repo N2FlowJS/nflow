@@ -70,6 +70,8 @@ import DiscordNode from '../nodes/discord-node';
 import TelegramNode from '../nodes/telegram-node';
 import WhatsAppNode from '../nodes/whatsapp-node';
 import WeatherNode from '../nodes/weather-node';
+import DateTimeNode from '../nodes/datetime-node';
+import MathNode from '../nodes/math-node';
 
 import { isConnectionAllowed } from '../../../utils/client/connectionRules';
 import { NODE_REGISTRY } from '../../../utils/client/NODE_REGISTRY';
@@ -118,6 +120,8 @@ const nodeTypes: ReactFlowNodeTypes = {
   telegram: TelegramNode,
   whatsapp: WhatsAppNode,
   weather: WeatherNode,
+  datetime: DateTimeNode,
+  math: MathNode,
 };
 
 const edgeTypes: EdgeTypes = {

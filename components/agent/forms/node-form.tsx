@@ -43,6 +43,8 @@ import DiscordNodeForm from './discord-node-form';
 import TelegramNodeForm from './telegram-node-form';
 import WhatsAppNodeForm from './whatsapp-node-form';
 import WeatherNodeForm from './weather-node-form';
+import DateTimeNodeForm from './datetime-node-form';
+import MathNodeForm from './math-node-form';
 
 interface NodeFormProps {
   form: any;
@@ -149,6 +151,10 @@ const NodeForm: React.FC<NodeFormProps> = (props) => {
         return <WhatsAppNodeForm {...commonProps} />;
       case 'weather':
         return <WeatherNodeForm {...commonProps} />;
+      case 'datetime':
+        return <DateTimeNodeForm {...commonProps} />;
+      case 'math':
+        return <MathNodeForm {...commonProps} />;
       default:
         return <div>Unsupported node type: {selectedNode.type}</div>;
     }

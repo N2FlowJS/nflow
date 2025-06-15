@@ -1,11 +1,11 @@
-import { FileTextOutlined, SettingOutlined, SafetyOutlined } from '@ant-design/icons';
-import { FlowNode } from '../../../models/flowTypes';
-import { Form, Input, InputNumber, Select, Collapse, Space, Typography, Alert } from 'antd';
+import { FileTextOutlined, SafetyOutlined } from '@ant-design/icons';
+import { Alert, Collapse, Form, Input, InputNumber, Select, Space, Typography } from 'antd';
 import React from 'react';
+import { useLocale } from '../../../locale';
+import { FlowNode } from '../../../models/flowTypes';
 import BaseNodeForm from './base-node-form';
 import InputReferences from './shared/InputReferences';
 import RoleSelector from './shared/RoleSelector';
-import { useLocale } from '../../../locale';
 
 const { Text } = Typography;
 

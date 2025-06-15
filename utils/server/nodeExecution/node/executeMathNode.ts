@@ -17,7 +17,7 @@ export async function executeMathNode(
   const form = data.form || {};
   const startTime = new Date().toISOString();
 
-  // Extract variables from value templates
+  // Extract variables from relevant fields
   const inputs: string[] = [
     ...getInputFromTemplate(form.value1 || ''),
     ...getInputFromTemplate(form.value2 || ''),
@@ -29,7 +29,7 @@ export async function executeMathNode(
     return {
       nextNodes: [],
       status: 'waiting',
-      message: 'Waiting for input values for math operation',
+      message: 'Waiting for input variables for math operation',
       flowState,
       nodeInfo: {
         id: node.id,
@@ -38,7 +38,7 @@ export async function executeMathNode(
         role: 'developer',
       },
       execution: {
-        output: 'Waiting for input values',
+        output: 'Waiting for input variables',
         nodeId: node.id,
         nodeName: node.data?.label || node.id,
         startTime: startTime,
@@ -55,84 +55,99 @@ export async function executeMathNode(
   });
 
   try {
-    // Process templates
-    const processedValue1 = processTemplate(form.value1 || '0', vars);
-    const processedValue2 = form.value2 ? processTemplate(form.value2, vars) : '';
-
     console.log(`Executing Math node: ${node.id} with operation: ${form.operation}`);
 
-    // Convert to numbers
-    const num1 = parseFloat(processedValue1);
-    const num2 = processedValue2 ? parseFloat(processedValue2) : 0;
+    const value1String = processTemplate(form.value1 || '', vars);
+    const value2String = form.value2 ? processTemplate(form.value2, vars) : '';
+    
+    const value1 = parseFloat(value1String);
+    const value2 = value2String ? parseFloat(value2String) : 0;
 
-    if (isNaN(num1)) {
-      throw new Error(`Invalid number for value1: ${processedValue1}`);
+    if (isNaN(value1)) {
+      throw new Error(`Invalid number for value1: ${value1String}`);
     }
 
-    if (form.value2 && isNaN(num2)) {
-      throw new Error(`Invalid number for value2: ${processedValue2}`);
+    if (form.value2 && isNaN(value2)) {
+      throw new Error(`Invalid number for value2: ${value2String}`);
     }
 
     let result: number;
 
     switch (form.operation) {
       case 'add':
-        result = num1 + num2;
+        result = value1 + value2;
         break;
+
       case 'subtract':
-        result = num1 - num2;
+        result = value1 - value2;
         break;
+
       case 'multiply':
-        result = num1 * num2;
+        result = value1 * value2;
         break;
+
       case 'divide':
-        if (num2 === 0) {
-          throw new Error('Division by zero');
+        if (value2 === 0) {
+          throw new Error('Division by zero is not allowed');
         }
-        result = num1 / num2;
+        result = value1 / value2;
         break;
+
       case 'power':
-        result = Math.pow(num1, num2);
+        result = Math.pow(value1, value2);
         break;
+
       case 'sqrt':
-        if (num1 < 0) {
-          throw new Error('Cannot calculate square root of negative number');
+        if (value1 < 0) {
+          throw new Error('Square root of negative number is not allowed');
         }
-        result = Math.sqrt(num1);
+        result = Math.sqrt(value1);
         break;
+
       case 'abs':
-        result = Math.abs(num1);
+        result = Math.abs(value1);
         break;
+
       case 'round':
-        result = Math.round(num1);
+        result = Math.round(value1);
         break;
+
       case 'min':
-        result = Math.min(num1, num2);
+        result = Math.min(value1, value2);
         break;
+
       case 'max':
-        result = Math.max(num1, num2);
+        result = Math.max(value1, value2);
         break;
+
       default:
         throw new Error(`Unsupported math operation: ${form.operation}`);
     }
 
     // Apply precision if specified
-    const precision = form.precision ?? 2;
-    const formattedResult = Number(result.toFixed(precision));
-    const resultText = String(formattedResult);
+    const precision = form.precision || 2;
+    const formattedResult = parseFloat(result.toFixed(precision));
 
-    console.log(`Math node completed: ${node.id} = ${resultText}`);
+    const resultText = JSON.stringify({
+      operation: form.operation,
+      value1: value1,
+      value2: form.value2 ? value2 : undefined,
+      result: formattedResult,
+      precision: precision,
+    }, null, 2);
+    
+    console.log(`Math node completed: ${node.id}`);
 
     // Use shared dispatcher if available
     let finalState = flowState;
 
     if (dispatcher) {
-      dispatcher.setNodeOutput(node.id, resultText, 'math');
+      dispatcher.setNodeOutput(node.id, formattedResult.toString(), 'math');
       dispatcher.setCurrentNode(node);
       finalState = dispatcher.getState();
     } else {
       // Fallback to local state update
-      flowState.components[node.id]['output'] = resultText;
+      flowState.components[node.id]['output'] = formattedResult.toString();
       flowState.components[node.id]['type'] = 'math';
       flowState.components[node.id]['executionTime'] = Date.now();
       flowState.currentNode = node;
@@ -160,7 +175,7 @@ export async function executeMathNode(
         nodeName: node.data?.form?.name || node.id,
         startTime: startTime,
         endTime: new Date().toISOString(),
-        output: resultText,
+        output: formattedResult.toString(),
       },
     };
   } catch (error: unknown) {
