@@ -59,6 +59,7 @@ import ImageAnalysisNodeForm from './image-analysis-node-form';
 import PdfAnalysisNodeForm from './pdf-analysis-node-form';
 import LogAnalysisNodeForm from './log-analysis-node-form';
 import ExcelAnalysisNodeForm from './excel-analysis-node-form';
+import WeChatNodeForm from './wechat-node-form';
 
 interface NodeFormProps {
   form: any;
@@ -66,16 +67,14 @@ interface NodeFormProps {
   setIsDrawerOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const NodeForm: React.FC<NodeFormProps> = (props) => {
-  const { selectedNode } = props;
-
-  const renderForm = () => {
+const NodeForm: React.FC<NodeFormProps> = ({ form, selectedNode, setIsDrawerOpen }) => {
+  const renderNodeForm = () => {
     if (!selectedNode) return null;
 
     const commonProps = {
-      form: props.form,
+      form,
       selectedNode,
-      setIsDrawerOpen: props.setIsDrawerOpen,
+      setIsDrawerOpen,
     };
 
     switch (selectedNode.type) {
@@ -197,12 +196,14 @@ const NodeForm: React.FC<NodeFormProps> = (props) => {
         return <LogAnalysisNodeForm {...commonProps} />;
       case 'excelanalysis':
         return <ExcelAnalysisNodeForm {...commonProps} />;
+      case 'wechat':
+        return <WeChatNodeForm {...commonProps} />;
       default:
         return <div>Unsupported node type: {selectedNode.type}</div>;
     }
   };
 
-  return <>{renderForm()}</>;
+  return <>{renderNodeForm()}</>;
 };
 
 export default NodeForm;

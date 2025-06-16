@@ -57,6 +57,7 @@ import {
   isExcelAnalysisNodeData,
   isFileAnalysisNodeData,
   isCsvAnalysisNodeData,
+  isWeChatNodeData,
 } from '../../../client/isNode';
 import { FlowExecutionContext, ExecutionResult } from '../../../../models/flowExecutionTypes';
 import { executeBeginNode } from './executeBeginNode';
@@ -118,6 +119,7 @@ import { executeLogAnalysisNode } from './executeLogAnalysisNode';
 import { executeExcelAnalysisNode } from './executeExcelAnalysisNode';
 import { executeFileAnalysisNode } from './executeFileAnalysisNode';
 import { executeCsvAnalysisNode } from './executeCsvAnalysisNode';
+import { executeWeChatNode } from './executeWeChatNode';
 
 export async function executeNode(
   node: any,
@@ -241,6 +243,8 @@ export async function executeNode(
     return await executeLogAnalysisNode(node, context, dispatcher);
   } else if (isExcelAnalysisNodeData(node.data)) {
     return await executeExcelAnalysisNode(node, context, dispatcher);
+  } else if (isWeChatNodeData(node.data)) {
+    return await executeWeChatNode(node, context, dispatcher);
   }
   // Additional node types would be added here
   throw new Error(`Unsupported node type: ${node.type}`);

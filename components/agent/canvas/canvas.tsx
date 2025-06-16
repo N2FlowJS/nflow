@@ -86,6 +86,7 @@ import ImageAnalysisNode from '../nodes/image-analysis-node';
 import PdfAnalysisNode from '../nodes/pdf-analysis-node';
 import LogAnalysisNode from '../nodes/log-analysis-node';
 import ExcelAnalysisNode from '../nodes/excel-analysis-node';
+import WeChatNode from '../nodes/wechat-node'; // Import WeChatNode
 // Additional node imports would be added
 
 import { isConnectionAllowed } from '../../../utils/client/connectionRules';
@@ -151,6 +152,7 @@ const nodeTypes: ReactFlowNodeTypes = {
   pdfanalysis: PdfAnalysisNode,
   loganalysis: LogAnalysisNode,
   excelanalysis: ExcelAnalysisNode,
+  wechat: WeChatNode,
   // Additional nodes would be added here
 };
 

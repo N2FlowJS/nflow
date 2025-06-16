@@ -60,6 +60,7 @@ import {
   PdfAnalysisNodeData,
   LogAnalysisNodeData,
   ExcelAnalysisNodeData,
+  WeChatNodeData,
 } from '../../models/flowTypes';
 import {
   BranchesOutlined,
@@ -115,6 +116,7 @@ import {
   FilePdfOutlined,
   BugOutlined,
   FileExcelOutlined,
+  WechatOutlined,
 } from '@ant-design/icons';
 
 // Central registry of all node types
@@ -1659,6 +1661,33 @@ Rewritten question:`,
         output: '',
       },
     } as Partial<ExcelAnalysisNodeData>,
+  },
+
+  // WeChat node
+  wechat: {
+    type: 'wechat',
+    icon: <WechatOutlined style={{ color: '#07C160' }} />,
+    color: {
+      background: 'rgba(7, 193, 96, .15)',
+      border: '#52c41a',
+      handle: '#07C160',
+    },
+    input: 'WeChat API credentials and message content',
+    output: 'WeChat operation result',
+    data: {
+      type: 'wechat',
+      form: {
+        role: 'developer',
+        name: 'WeChat',
+        description: 'Interact with WeChat Official Account and Mini Program APIs',
+        action: 'send_message',
+        appId: '',
+        appSecret: '',
+        message: '{{wechatMessage}}',
+        inputRefs: [],
+        output: '',
+      },
+    } as Partial<WeChatNodeData>,
   },
 };
 

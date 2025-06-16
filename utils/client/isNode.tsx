@@ -20,6 +20,7 @@ import {
   PdfAnalysisNodeData,
   LogAnalysisNodeData,
   ExcelAnalysisNodeData,
+  WeChatNodeData,
 } from '../../models/flowTypes';
 
 export function isBeginNodeData(data: NodeData): data is BeginNodeData {
@@ -245,6 +246,10 @@ export function isLogAnalysisNodeData(data: NodeData): data is LogAnalysisNodeDa
 
 export function isExcelAnalysisNodeData(data: NodeData): data is ExcelAnalysisNodeData {
   return data.type === 'excelanalysis';
+}
+
+export function isWeChatNodeData(data: NodeData): data is WeChatNodeData {
+  return data.type === 'wechat';
 }
 
 export { findNextNodes } from '../server/findNextNode';

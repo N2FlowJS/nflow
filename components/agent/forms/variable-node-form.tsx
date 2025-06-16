@@ -1,4 +1,4 @@
-import { SettingOutlined, DatabaseOutlined, EditOutlined } from '@ant-design/icons';
+import { SettingOutlined, EditOutlined } from '@ant-design/icons';
 import { FlowNode } from '../../../models/flowTypes';
 import { Form, Input, Select, Collapse, Space, Typography, Alert } from 'antd';
 import React from 'react';

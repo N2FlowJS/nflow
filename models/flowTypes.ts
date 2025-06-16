@@ -62,6 +62,8 @@ export const NODE_TYPES = {
   pdfanalysis: 'pdfanalysis',
   loganalysis: 'loganalysis',
   excelanalysis: 'excelanalysis',
+  // Chinese platform nodes
+  wechat: 'wechat',
 } as const;
 export type NodeTypeString = keyof typeof NODE_TYPES;
 
@@ -564,7 +566,8 @@ export type NodeData =
   | ImageAnalysisNodeData
   | PdfAnalysisNodeData
   | LogAnalysisNodeData
-  | ExcelAnalysisNodeData;
+  | ExcelAnalysisNodeData
+  | WeChatNodeData;
 
 // Typed node instances
 export type BeginNode = Node<BeginNodeData>;
@@ -618,6 +621,7 @@ export type ImageAnalysisNode = Node<ImageAnalysisNodeData>;
 export type PdfAnalysisNode = Node<PdfAnalysisNodeData>;
 export type LogAnalysisNode = Node<LogAnalysisNodeData>;
 export type ExcelAnalysisNode = Node<ExcelAnalysisNodeData>;
+export type WeChatNode = Node<WeChatNodeData>;
 
 // Union type for all flow nodes
 export type FlowNode = Node<
@@ -680,6 +684,7 @@ export type FlowNode = Node<
   | PdfAnalysisNodeData
   | LogAnalysisNodeData
   | ExcelAnalysisNodeData
+  | WeChatNodeData
 >;
 
 // Type for a complete flow
@@ -1146,6 +1151,24 @@ export interface ExcelAnalysisForm extends BaseForm {
   dataTypes?: { [column: string]: 'string' | 'number' | 'date' | 'boolean' };
 }
 
+// Chinese platform form interfaces
+export interface WeChatForm extends BaseForm {
+  name: string;
+  description?: string;
+  action: 'send_message' | 'send_template' | 'get_user_info' | 'create_menu' | 'get_qr_code' | 'send_mini_program';
+  appId: string;
+  appSecret: string;
+  accessToken?: string;
+  openId?: string;
+  templateId?: string;
+  message?: string;
+  mediaId?: string;
+  menuData?: string;
+  scene?: string;
+  miniProgramAppId?: string;
+  miniProgramPath?: string;
+}
+
 // Add new node data types
 export type FileAnalysisNodeData = BaseNodeData<FileAnalysisForm> & {
   type: 'fileanalysis';
@@ -1170,7 +1193,6 @@ export type LogAnalysisNodeData = BaseNodeData<LogAnalysisForm> & {
 export type ExcelAnalysisNodeData = BaseNodeData<ExcelAnalysisForm> & {
   type: 'excelanalysis';
 };
-
 
 export type DisplayNodeData = BaseNodeData<DisplayForm> & {
   type: 'display';
@@ -1202,6 +1224,10 @@ export type CacheNodeData = BaseNodeData<CacheForm> & {
 
 export type LogNodeData = BaseNodeData<LogForm> & {
   type: 'log';
+};
+
+export type WeChatNodeData = BaseNodeData<WeChatForm> & {
+  type: 'wechat';
 };
 
 // Add typed node instances

@@ -32,7 +32,6 @@ const WeatherNode = ({ data, id, selected }: NodeProps<Node<WeatherNodeData>>) =
                 form.action === 'forecast' ? 'green' :
                 form.action === 'weather_alerts' ? 'orange' : 'purple'
               } 
-              size="small" 
               style={{ fontSize: '10px', margin: 0, textTransform: 'capitalize' }}
             >
               {form.action.replace('_', ' ').toUpperCase()}
@@ -54,7 +53,7 @@ const WeatherNode = ({ data, id, selected }: NodeProps<Node<WeatherNodeData>>) =
             <Text type="secondary" style={{ fontSize: '11px' }}>Units:</Text>
             <Tag 
               color={form.units === 'imperial' ? 'blue' : 'purple'} 
-              size="small" 
+              
               style={{ fontSize: '10px', margin: 0, textTransform: 'capitalize' }}
             >
               {form.units}
@@ -65,7 +64,7 @@ const WeatherNode = ({ data, id, selected }: NodeProps<Node<WeatherNodeData>>) =
         {form?.action === 'forecast' && form?.days && (
           <Flex align="center" gap={6}>
             <Text type="secondary" style={{ fontSize: '11px' }}>Days:</Text>
-            <Tag color="cyan" size="small" style={{ fontSize: '10px', margin: 0 }}>
+            <Tag color="cyan" style={{ fontSize: '10px', margin: 0 }}>
               {form.days}
             </Tag>
           </Flex>
@@ -74,7 +73,7 @@ const WeatherNode = ({ data, id, selected }: NodeProps<Node<WeatherNodeData>>) =
         {form?.includeAlerts && (
           <Flex align="center" gap={6}>
             <Text type="secondary" style={{ fontSize: '11px' }}>Alerts:</Text>
-            <Tag color="orange" size="small" style={{ fontSize: '10px', margin: 0 }}>
+            <Tag color="orange" style={{ fontSize: '10px', margin: 0 }}>
               Enabled
             </Tag>
           </Flex>
@@ -83,7 +82,7 @@ const WeatherNode = ({ data, id, selected }: NodeProps<Node<WeatherNodeData>>) =
         {form?.useSystemConfig === false && (
           <Flex align="center" gap={6}>
             <Text type="secondary" style={{ fontSize: '11px' }}>API:</Text>
-            <Tag color="gold" size="small" style={{ fontSize: '10px', margin: 0 }}>
+            <Tag color="gold" style={{ fontSize: '10px', margin: 0 }}>
               Custom Key
             </Tag>
           </Flex>

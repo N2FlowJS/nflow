@@ -783,7 +783,29 @@ const en = {
     aggregateOperation: 'Data Aggregation',
     sheetNameLabel: 'Sheet Name',
     sheetNameHelp: 'Name of the sheet to analyze (leave empty for first sheet)',
-  }
+  },
+  wechatNode: {
+    title: 'WeChat Node',
+    description: 'Integrate with WeChat Official Account and Mini Program APIs',
+    configurationLabel: 'WeChat Configuration',
+    actionLabel: 'WeChat Action',
+    appIdLabel: 'App ID',
+    appSecretLabel: 'App Secret',
+    accessTokenLabel: 'Access Token',
+    messageLabel: 'Message Content',
+    templateIdLabel: 'Template ID',
+    openIdLabel: 'User OpenID',
+    menuDataLabel: 'Menu Data',
+    sceneLabel: 'QR Scene',
+    miniProgramAppIdLabel: 'Mini Program App ID',
+    miniProgramPathLabel: 'Mini Program Path',
+    sendMessage: 'Send Message',
+    sendTemplate: 'Send Template Message',
+    getUserInfo: 'Get User Info',
+    createMenu: 'Create Menu',
+    getQrCode: 'Generate QR Code',
+    sendMiniProgram: 'Send Mini Program',
+  },
 };
 
 export default en;
