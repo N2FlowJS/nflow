@@ -5,7 +5,6 @@ import React from 'react';
 import BaseNodeForm from './base-node-form';
 import InputReferences from './shared/InputReferences';
 import RoleSelector from './shared/RoleSelector';
-import { useLocale } from '../../../locale';
 
 const { TextArea } = Input;
 const { Text } = Typography;
@@ -18,7 +17,6 @@ interface TextProcessNodeFormProps {
 
 const TextProcessNodeForm: React.FC<TextProcessNodeFormProps> = (props) => {
   const { selectedNode } = props;
-  const { t } = useLocale('form.nodeForm');
 
   return (
     <BaseNodeForm {...props}>
@@ -185,9 +183,9 @@ const TextProcessNodeForm: React.FC<TextProcessNodeFormProps> = (props) => {
         message="Usage Examples"
         description={
           <div>
-            <p><strong>Uppercase:</strong> Convert "hello world" to "HELLO WORLD"</p>
-            <p><strong>Split:</strong> Split "apple,banana,cherry" by "," into array</p>
-            <p><strong>Replace:</strong> Replace "old" with "new" in text</p>
+            <p><strong>Uppercase:</strong> Convert &quot;hello world&quot; to &quot;HELLO WORLD&quot;</p>
+            <p><strong>Split:</strong> Split &quot;apple,banana,cherry&quot; by &quot;,&quot; into array</p>
+            <p><strong>Replace:</strong> Replace &quot;old&quot; with &quot;new&quot; in text</p>
             <p><strong>Regex:</strong> Extract email addresses or phone numbers</p>
           </div>
         }

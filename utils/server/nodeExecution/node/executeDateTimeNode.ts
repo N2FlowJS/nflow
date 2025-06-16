@@ -215,7 +215,7 @@ async function formatDateTime(form: any, inputDate: string) {
   }
 }
 
-async function parseDateTime(form: any, dateString: string) {
+async function parseDateTime(_form: any, dateString: string) {
   const date = new Date(dateString);
   
   if (isNaN(date.getTime())) {
@@ -323,7 +323,7 @@ async function subtractFromDateTime(form: any, inputDate: string) {
   };
 }
 
-async function compareDateTime(form: any, inputDate: string) {
+async function compareDateTime(_form: any, inputDate: string) {
   const date1 = new Date(inputDate);
   const date2 = new Date(); // Compare with current time
   

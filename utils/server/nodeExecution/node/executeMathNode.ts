@@ -136,7 +136,7 @@ export async function executeMathNode(
       precision: precision,
     }, null, 2);
     
-    console.log(`Math node completed: ${node.id}`);
+    console.log(`Math node completed: ${node.id}` ,resultText);
 
     // Use shared dispatcher if available
     let finalState = flowState;

@@ -164,7 +164,7 @@ async function analyzeCsvData(content: string, delimiter: string, hasHeader: boo
   };
 }
 
-async function validateCsvData(content: string, delimiter: string, hasHeader: boolean) {
+async function validateCsvData(content: string, delimiter: string, _hasHeader: boolean) {
   const lines = content.trim().split('\n');
   const expectedColumns = lines[0] ? lines[0].split(delimiter).length : 0;
   const issues: string[] = [];

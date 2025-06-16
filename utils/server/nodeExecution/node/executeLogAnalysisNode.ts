@@ -150,7 +150,7 @@ export async function executeLogAnalysisNode(
   }
 }
 
-async function analyzeLogSummary(content: string, form: any) {
+async function analyzeLogSummary(content: string, _form: any) {
   const lines = content.split('\n');
   const errorLines = lines.filter(line => 
     line.toLowerCase().includes('error') || 
@@ -172,7 +172,7 @@ async function analyzeLogSummary(content: string, form: any) {
   };
 }
 
-async function analyzeLogErrors(content: string, form: any) {
+async function analyzeLogErrors(content: string, _form: any) {
   const lines = content.split('\n');
   const errorLines = lines.filter(line => 
     line.toLowerCase().includes('error') || 
@@ -187,7 +187,7 @@ async function analyzeLogErrors(content: string, form: any) {
   };
 }
 
-async function analyzeLogPerformance(content: string, form: any) {
+async function analyzeLogPerformance(content: string, _form: any) {
   const lines = content.split('\n');
   const performanceLines = lines.filter(line => 
     line.includes('ms') || 

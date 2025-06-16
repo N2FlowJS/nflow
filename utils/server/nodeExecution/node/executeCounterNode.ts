@@ -85,8 +85,8 @@ export async function executeCounterNode(
     };
 
     const resultText = JSON.stringify(result, null, 2);
-    
-    console.log(`Counter node completed: ${node.id}, value: ${newValue}`);
+
+    console.log(`Counter node completed: ${node.id}, value: ${newValue}`, resultText);
 
     // Use shared dispatcher if available
     let finalState = flowState;

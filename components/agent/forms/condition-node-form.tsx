@@ -154,7 +154,7 @@ const ConditionNodeForm: React.FC<ConditionNodeFormProps> = (props) => {
         message="Usage Examples"
         description={
           <div>
-            <p><strong>Text comparison:</strong> Check if user input contains "help"</p>
+            <p><strong>Text comparison:</strong> Check if user input contains &quot;help&quot;</p>
             <p><strong>Number comparison:</strong> Compare scores or counts</p>
             <p><strong>Status checks:</strong> Route based on previous node results</p>
           </div>

@@ -181,7 +181,7 @@ async function extractPdfText(pdfPath: string, form: any) {
   };
 }
 
-async function extractPdfMetadata(pdfPath: string, form: any) {
+async function extractPdfMetadata(pdfPath: string, _form: any) {
   // This is a simplified implementation
   // In a real scenario, you'd use a library like pdf-lib or pdf-parse
   const stats = await fs.promises.stat(pdfPath);

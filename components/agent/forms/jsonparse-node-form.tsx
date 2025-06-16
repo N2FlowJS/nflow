@@ -5,7 +5,6 @@ import React from 'react';
 import BaseNodeForm from './base-node-form';
 import InputReferences from './shared/InputReferences';
 import RoleSelector from './shared/RoleSelector';
-import { useLocale } from '../../../locale';
 
 const { TextArea } = Input;
 const { Text } = Typography;
@@ -18,7 +17,6 @@ interface JsonParseNodeFormProps {
 
 const JsonParseNodeForm: React.FC<JsonParseNodeFormProps> = (props) => {
   const { selectedNode } = props;
-  const { t } = useLocale('form.nodeForm');
 
   return (
     <BaseNodeForm {...props}>
@@ -53,7 +51,7 @@ const JsonParseNodeForm: React.FC<JsonParseNodeFormProps> = (props) => {
               >
                 <TextArea
                   rows={4}
-                  placeholder='{{apiResponse}} or {"key": "value"}'
+                  placeholder='{{apiResponse}} or {&quot;key&quot;: &quot;value&quot;}'
                 />
               </Form.Item>
             ),
@@ -131,7 +129,7 @@ const JsonParseNodeForm: React.FC<JsonParseNodeFormProps> = (props) => {
         description={
           <div>
             <p><strong>Parse:</strong> Convert API response string to usable object</p>
-            <p><strong>Extract:</strong> Get specific values like "user.profile.email"</p>
+            <p><strong>Extract:</strong> Get specific values like &quot;user.profile.email&quot;</p>
             <p><strong>Stringify:</strong> Convert data for HTTP requests or storage</p>
             <p><strong>Validate:</strong> Check data integrity before processing</p>
           </div>

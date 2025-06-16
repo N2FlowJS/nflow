@@ -148,7 +148,7 @@ export async function executeFileAnalysisNode(
   }
 }
 
-async function getFileMetadata(filePath: string, form: any) {
+async function getFileMetadata(filePath: string, _form: any) {
   const stats = await fs.promises.stat(filePath);
   return {
     path: filePath,
@@ -163,7 +163,7 @@ async function getFileMetadata(filePath: string, form: any) {
   };
 }
 
-async function analyzeFileContent(filePath: string, form: any) {
+async function analyzeFileContent(filePath: string, _form: any) {
   const content = await fs.promises.readFile(filePath, 'utf8');
   return {
     path: filePath,
@@ -175,7 +175,7 @@ async function analyzeFileContent(filePath: string, form: any) {
   };
 }
 
-async function analyzeFileStructure(filePath: string, form: any) {
+async function analyzeFileStructure(filePath: string, _form: any) {
   const stats = await fs.promises.stat(filePath);
 
   if (stats.isDirectory()) {

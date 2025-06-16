@@ -1,11 +1,10 @@
 import { TeamOutlined, SettingOutlined, LinkOutlined } from '@ant-design/icons';
 import { FlowNode } from '../../../models/flowTypes';
 import { Form, Input, InputNumber, Switch, Collapse, Space, Typography, Alert, Select, Button } from 'antd';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import BaseNodeForm from './base-node-form';
 import InputReferences from './shared/InputReferences';
 import RoleSelector from './shared/RoleSelector';
-import { useLocale } from '../../../locale';
 import { useRouter } from 'next/router';
 
 const { Text } = Typography;
@@ -18,27 +17,26 @@ interface SubAgentNodeFormProps {
 
 const SubAgentNodeForm: React.FC<SubAgentNodeFormProps> = (props) => {
   const { selectedNode } = props;
-  const { t } = useLocale('form.nodeForm');
   const [agents, setAgents] = useState<Array<{ id: string; name: string }>>([]);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const currentAgentId = router.query.id as string;
 
   // Load user's agents using direct API call like AgentsList page
-  const loadAgents = async () => {
+  const loadAgents = useCallback(async () => {
     setLoading(true);
     try {
       // Get auth token from localStorage like AgentsList
       const token = localStorage.getItem('token');
-      
+
       // Build query params for filtering (exclude current agent)
       const params = new URLSearchParams();
       if (currentAgentId) {
         params.append('excludeId', currentAgentId);
       }
-      
+
       const queryString = params.toString() ? `?${params.toString()}` : '';
-      
+
       const response = await fetch(`/api/agent${queryString}`, {
         method: 'GET',
         headers: {
@@ -52,19 +50,19 @@ const SubAgentNodeForm: React.FC<SubAgentNodeFormProps> = (props) => {
       }
 
       const agentsData = await response.json();
-      
+
       if (!Array.isArray(agentsData)) {
         throw new Error('Invalid response format');
       }
 
       // Filter out the current agent to prevent circular references (backup filter)
       const filteredAgents = agentsData.filter((agent: any) => agent.id !== currentAgentId);
-      
+
       const formattedAgents = filteredAgents.map((agent: any) => ({
         id: agent.id,
         name: agent.name || 'Unnamed Agent',
       }));
-      
+
       setAgents(formattedAgents);
     } catch (error) {
       console.error('Failed to load user agents:', error);
@@ -72,11 +70,11 @@ const SubAgentNodeForm: React.FC<SubAgentNodeFormProps> = (props) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentAgentId]);
 
   useEffect(() => {
     loadAgents();
-  }, [currentAgentId]);
+  }, [loadAgents]);
 
   return (
     <BaseNodeForm {...props}>
@@ -107,8 +105,7 @@ const SubAgentNodeForm: React.FC<SubAgentNodeFormProps> = (props) => {
                 <Form.Item
                   name="agentId"
                   label="Target Agent"
-                  rules={[{ required: true, message: 'Please select an agent' }]}
-                >
+                  rules={[{ required: true, message: 'Please select an agent' }]}>
                   <Select
                     placeholder="Select an agent to execute"
                     loading={loading}
@@ -116,12 +113,11 @@ const SubAgentNodeForm: React.FC<SubAgentNodeFormProps> = (props) => {
                     filterOption={(input, option) =>
                       (option?.children as unknown as string)?.toLowerCase().includes(input.toLowerCase())
                     }
-                    onChange={(value, option: any) => {
+                    onChange={(_value, option: any) => {
                       props.form.setFieldsValue({
-                        agentName: option?.children || ''
+                        agentName: option?.children || '',
                       });
-                    }}
-                  >
+                    }}>
                     {agents.map((agent) => (
                       <Select.Option key={agent.id} value={agent.id}>
                         {agent.name}
@@ -130,11 +126,7 @@ const SubAgentNodeForm: React.FC<SubAgentNodeFormProps> = (props) => {
                   </Select>
                 </Form.Item>
 
-                <Form.Item
-                  name="agentName"
-                  label="Agent Name"
-                  help="Display name for the selected agent"
-                >
+                <Form.Item name="agentName" label="Agent Name" help="Display name for the selected agent">
                   <Input placeholder="Agent display name" disabled />
                 </Form.Item>
               </Space>
@@ -154,14 +146,8 @@ const SubAgentNodeForm: React.FC<SubAgentNodeFormProps> = (props) => {
                   name="timeout"
                   label="Execution Timeout (seconds)"
                   help="Maximum time to wait for sub-agent execution"
-                  initialValue={300}
-                >
-                  <InputNumber
-                    min={30}
-                    max={1800}
-                    style={{ width: '100%' }}
-                    placeholder="300"
-                  />
+                  initialValue={300}>
+                  <InputNumber min={30} max={1800} style={{ width: '100%' }} placeholder="300" />
                 </Form.Item>
 
                 <Form.Item
@@ -169,8 +155,7 @@ const SubAgentNodeForm: React.FC<SubAgentNodeFormProps> = (props) => {
                   label="Inherit Context"
                   help="Whether the sub-agent should inherit conversation context from the current flow"
                   valuePropName="checked"
-                  initialValue={true}
-                >
+                  initialValue={true}>
                   <Switch />
                 </Form.Item>
               </Space>
@@ -192,7 +177,7 @@ const SubAgentNodeForm: React.FC<SubAgentNodeFormProps> = (props) => {
                   type="info"
                   style={{ marginBottom: 16 }}
                 />
-                
+
                 <Form.List name="variableMappings">
                   {(fields, { add, remove }) => (
                     <>
@@ -201,15 +186,13 @@ const SubAgentNodeForm: React.FC<SubAgentNodeFormProps> = (props) => {
                           <Form.Item
                             {...restField}
                             name={[name, 'key']}
-                            rules={[{ required: true, message: 'Missing variable name' }]}
-                          >
+                            rules={[{ required: true, message: 'Missing variable name' }]}>
                             <Input placeholder="Variable name" />
                           </Form.Item>
                           <Form.Item
                             {...restField}
                             name={[name, 'value']}
-                            rules={[{ required: true, message: 'Missing variable value' }]}
-                          >
+                            rules={[{ required: true, message: 'Missing variable value' }]}>
                             <Input placeholder="Value or ${reference}" />
                           </Form.Item>
                           <Button type="link" onClick={() => remove(name)}>
