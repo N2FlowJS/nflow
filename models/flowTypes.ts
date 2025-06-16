@@ -48,6 +48,20 @@ export const NODE_TYPES = {
   telegram: 'telegram',
   whatsapp: 'whatsapp',
   weather: 'weather',
+  display: 'display',
+  loop: 'loop',
+  variable: 'variable',
+  code: 'code',
+  template: 'template',
+  counter: 'counter',
+  cache: 'cache',
+  log: 'log',
+  fileanalysis: 'fileanalysis',
+  csvanalysis: 'csvanalysis',
+  imageanalysis: 'imageanalysis',
+  pdfanalysis: 'pdfanalysis',
+  loganalysis: 'loganalysis',
+  excelanalysis: 'excelanalysis',
 } as const;
 export type NodeTypeString = keyof typeof NODE_TYPES;
 
@@ -536,7 +550,21 @@ export type NodeData =
   | DiscordNodeData
   | TelegramNodeData
   | WhatsAppNodeData
-  | WeatherNodeData;
+  | WeatherNodeData
+  | DisplayNodeData
+  | LoopNodeData
+  | VariableNodeData
+  | CodeNodeData
+  | TemplateNodeData
+  | CounterNodeData
+  | CacheNodeData
+  | LogNodeData
+  | FileAnalysisNodeData
+  | CsvAnalysisNodeData
+  | ImageAnalysisNodeData
+  | PdfAnalysisNodeData
+  | LogAnalysisNodeData
+  | ExcelAnalysisNodeData;
 
 // Typed node instances
 export type BeginNode = Node<BeginNodeData>;
@@ -584,6 +612,12 @@ export type DiscordNode = Node<DiscordNodeData>;
 export type TelegramNode = Node<TelegramNodeData>;
 export type WhatsAppNode = Node<WhatsAppNodeData>;
 export type WeatherNode = Node<WeatherNodeData>;
+export type FileAnalysisNode = Node<FileAnalysisNodeData>;
+export type CsvAnalysisNode = Node<CsvAnalysisNodeData>;
+export type ImageAnalysisNode = Node<ImageAnalysisNodeData>;
+export type PdfAnalysisNode = Node<PdfAnalysisNodeData>;
+export type LogAnalysisNode = Node<LogAnalysisNodeData>;
+export type ExcelAnalysisNode = Node<ExcelAnalysisNodeData>;
 
 // Union type for all flow nodes
 export type FlowNode = Node<
@@ -632,6 +666,20 @@ export type FlowNode = Node<
   | TelegramNodeData
   | WhatsAppNodeData
   | WeatherNodeData
+  | DisplayNodeData
+  | LoopNodeData
+  | VariableNodeData
+  | CodeNodeData
+  | TemplateNodeData
+  | CounterNodeData
+  | CacheNodeData
+  | LogNodeData
+  | FileAnalysisNodeData
+  | CsvAnalysisNodeData
+  | ImageAnalysisNodeData
+  | PdfAnalysisNodeData
+  | LogAnalysisNodeData
+  | ExcelAnalysisNodeData
 >;
 
 // Type for a complete flow
@@ -950,3 +998,218 @@ export interface WeatherForm extends BaseForm {
   includeHourly?: boolean;
   includeAlerts?: boolean;
 }
+
+export interface DisplayForm extends BaseForm {
+  name: string;
+  description?: string;
+  outputFormat: 'text' | 'markdown' | 'html' | 'json';
+  showAsModal?: boolean;
+  content?: string;
+}
+
+export interface LoopForm extends BaseForm {
+  name: string;
+  description?: string;
+  loopType: 'array' | 'object' | 'range';
+  inputData: string;
+  startIndex?: number;
+  endIndex?: number;
+  stepSize?: number;
+  maxIterations: number;
+  currentItemVariable: string;
+  currentIndexVariable: string;
+}
+
+export interface VariableForm extends BaseForm {
+  name: string;
+  description?: string;
+  operation: 'set' | 'get' | 'delete' | 'append';
+  variableName: string;
+  variableValue?: string;
+  defaultValue?: string;
+}
+
+export interface CodeForm extends BaseForm {
+  name: string;
+  description?: string;
+  code: string;
+  timeout: number;
+  allowConsole: boolean;
+}
+
+export interface TemplateForm extends BaseForm {
+  name: string;
+  description?: string;
+  templateEngine: 'handlebars' | 'mustache' | 'simple';
+  templateContent: string;
+  outputFormat: 'text' | 'html' | 'json';
+}
+
+export interface CounterForm extends BaseForm {
+  name: string;
+  description?: string;
+  counterName: string;
+  operation: 'increment' | 'decrement' | 'reset' | 'set';
+  stepValue: number;
+  initialValue: number;
+  maxValue?: number;
+  minValue?: number;
+}
+
+export interface CacheForm extends BaseForm {
+  name: string;
+  description?: string;
+  operation: 'set' | 'get' | 'delete' | 'clear';
+  cacheKey: string;
+  cacheValue?: string;
+  ttl: number;
+  defaultValue?: string;
+}
+
+export interface LogForm extends BaseForm {
+  name: string;
+  description?: string;
+  logLevel: 'debug' | 'info' | 'warn' | 'error';
+  message: string;
+  includeData?: string;
+  includeTimestamp: boolean;
+  includeNodeInfo: boolean;
+}
+
+export interface FileAnalysisForm extends BaseForm {
+  name: string;
+  description?: string;
+  filePath: string;
+  analysisType: 'metadata' | 'content' | 'structure' | 'security' | 'quality';
+  fileTypes?: string[];
+  includeHidden?: boolean;
+  recursive?: boolean;
+  outputFormat?: 'json' | 'csv' | 'xml' | 'text';
+}
+
+export interface CsvAnalysisForm extends BaseForm {
+  name: string;
+  description?: string;
+  filePath: string;
+  operation: 'analyze' | 'validate' | 'transform' | 'filter' | 'aggregate';
+  delimiter?: string;
+  hasHeader?: boolean;
+  encoding?: string;
+  columns?: string[];
+  filterCondition?: string;
+  groupBy?: string;
+  aggregateFunction?: 'count' | 'sum' | 'avg' | 'min' | 'max';
+}
+
+export interface ImageAnalysisForm extends BaseForm {
+  name: string;
+  description?: string;
+  imagePath: string;
+  analysisType: 'metadata' | 'dimensions' | 'colors' | 'text_recognition' | 'object_detection';
+  ocrLanguage?: string;
+  colorPalette?: number;
+  outputDetails?: boolean;
+}
+
+export interface PdfAnalysisForm extends BaseForm {
+  name: string;
+  description?: string;
+  pdfPath: string;
+  operation: 'extract_text' | 'extract_metadata' | 'extract_images' | 'split_pages' | 'merge_pdfs';
+  pageRange?: string;
+  outputDir?: string;
+  preserveFormatting?: boolean;
+  extractImages?: boolean;
+}
+
+export interface LogAnalysisForm extends BaseForm {
+  name: string;
+  description?: string;
+  logPath: string;
+  logFormat: 'apache' | 'nginx' | 'json' | 'csv' | 'custom';
+  customPattern?: string;
+  analysisType: 'summary' | 'errors' | 'performance' | 'security' | 'trends';
+  timeRange?: string;
+  filterLevel?: 'debug' | 'info' | 'warn' | 'error' | 'fatal';
+  groupBy?: 'hour' | 'day' | 'week' | 'month';
+}
+
+export interface ExcelAnalysisForm extends BaseForm {
+  name: string;
+  description?: string;
+  filePath: string;
+  operation: 'read_sheets' | 'analyze_data' | 'pivot_table' | 'chart_data' | 'validate_formulas';
+  sheetName?: string;
+  cellRange?: string;
+  includeFormulas?: boolean;
+  skipEmptyRows?: boolean;
+  dataTypes?: { [column: string]: 'string' | 'number' | 'date' | 'boolean' };
+}
+
+// Add new node data types
+export type FileAnalysisNodeData = BaseNodeData<FileAnalysisForm> & {
+  type: 'fileanalysis';
+};
+
+export type CsvAnalysisNodeData = BaseNodeData<CsvAnalysisForm> & {
+  type: 'csvanalysis';
+};
+
+export type ImageAnalysisNodeData = BaseNodeData<ImageAnalysisForm> & {
+  type: 'imageanalysis';
+};
+
+export type PdfAnalysisNodeData = BaseNodeData<PdfAnalysisForm> & {
+  type: 'pdfanalysis';
+};
+
+export type LogAnalysisNodeData = BaseNodeData<LogAnalysisForm> & {
+  type: 'loganalysis';
+};
+
+export type ExcelAnalysisNodeData = BaseNodeData<ExcelAnalysisForm> & {
+  type: 'excelanalysis';
+};
+
+
+export type DisplayNodeData = BaseNodeData<DisplayForm> & {
+  type: 'display';
+};
+
+export type LoopNodeData = BaseNodeData<LoopForm> & {
+  type: 'loop';
+};
+
+export type VariableNodeData = BaseNodeData<VariableForm> & {
+  type: 'variable';
+};
+
+export type CodeNodeData = BaseNodeData<CodeForm> & {
+  type: 'code';
+};
+
+export type TemplateNodeData = BaseNodeData<TemplateForm> & {
+  type: 'template';
+};
+
+export type CounterNodeData = BaseNodeData<CounterForm> & {
+  type: 'counter';
+};
+
+export type CacheNodeData = BaseNodeData<CacheForm> & {
+  type: 'cache';
+};
+
+export type LogNodeData = BaseNodeData<LogForm> & {
+  type: 'log';
+};
+
+// Add typed node instances
+export type DisplayNode = Node<DisplayNodeData>;
+export type LoopNode = Node<LoopNodeData>;
+export type VariableNode = Node<VariableNodeData>;
+export type CodeNode = Node<CodeNodeData>;
+export type TemplateNode = Node<TemplateNodeData>;
+export type CounterNode = Node<CounterNodeData>;
+export type CacheNode = Node<CacheNodeData>;
+export type LogNode = Node<LogNodeData>;

@@ -1,11 +1,25 @@
 import {
   BeginNodeData,
+  CacheNodeData,
   CategorizeNodeData,
+  CodeNodeData,
+  CounterNodeData,
+  DisplayNodeData,
   GenerateNodeData,
   InterfaceNodeData,
+  LogNodeData,
+  LoopNodeData,
   NodeData,
   RetrievalNodeData,
   SubAgentNodeData,
+  TemplateNodeData,
+  VariableNodeData,
+  FileAnalysisNodeData,
+  CsvAnalysisNodeData,
+  ImageAnalysisNodeData,
+  PdfAnalysisNodeData,
+  LogAnalysisNodeData,
+  ExcelAnalysisNodeData,
 } from '../../models/flowTypes';
 
 export function isBeginNodeData(data: NodeData): data is BeginNodeData {
@@ -175,6 +189,62 @@ export function isDuckGoSearchNodeData(data: NodeData): data is RetrievalNodeDat
 
 export function isWeatherNodeData(data: NodeData): data is RetrievalNodeData {
   return data.type === 'weather';
+}
+
+export function isDisplayNodeData(data: NodeData): data is DisplayNodeData {
+  return data.type === 'display';
+}
+
+export function isLoopNodeData(data: NodeData): data is LoopNodeData {
+  return data.type === 'loop';
+}
+
+export function isVariableNodeData(data: NodeData): data is VariableNodeData {
+  return data.type === 'variable';
+}
+
+export function isCodeNodeData(data: NodeData): data is CodeNodeData {
+  return data.type === 'code';
+}
+
+export function isTemplateNodeData(data: NodeData): data is TemplateNodeData {
+  return data.type === 'template';
+}
+
+export function isCounterNodeData(data: NodeData): data is CounterNodeData {
+  return data.type === 'counter';
+}
+
+export function isCacheNodeData(data: NodeData): data is CacheNodeData {
+  return data.type === 'cache';
+}
+
+export function isLogNodeData(data: NodeData): data is LogNodeData {
+  return data.type === 'log';
+}
+
+export function isFileAnalysisNodeData(data: NodeData): data is FileAnalysisNodeData {
+  return data.type === 'fileanalysis';
+}
+
+export function isCsvAnalysisNodeData(data: NodeData): data is CsvAnalysisNodeData {
+  return data.type === 'csvanalysis';
+}
+
+export function isImageAnalysisNodeData(data: NodeData): data is ImageAnalysisNodeData {
+  return data.type === 'imageanalysis';
+}
+
+export function isPdfAnalysisNodeData(data: NodeData): data is PdfAnalysisNodeData {
+  return data.type === 'pdfanalysis';
+}
+
+export function isLogAnalysisNodeData(data: NodeData): data is LogAnalysisNodeData {
+  return data.type === 'loganalysis';
+}
+
+export function isExcelAnalysisNodeData(data: NodeData): data is ExcelAnalysisNodeData {
+  return data.type === 'excelanalysis';
 }
 
 export { findNextNodes } from '../server/findNextNode';

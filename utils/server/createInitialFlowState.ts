@@ -1,4 +1,4 @@
-import { BeginNode, Flow, FlowNode } from '../../models/flowTypes';
+import { BeginNode, Flow, FlowNode, NodeTypeString } from '../../models/flowTypes';
 import { FlowState } from '../../models/flowExecutionTypes';
 
 // Create an initial flow state
@@ -14,10 +14,10 @@ export function createInitialFlowState({ beginNode, variables, flowConfig }: Ini
   const components: FlowState['components'] = {};
   flowConfig.nodes.forEach((node) => {
     components[`${node.id}`] = {
-      type: node.type,
+      type: node.type as NodeTypeString, // Type assertion to ensure correct type
       output: '',
       inputFlow: [],
-      inputRefs: node.data.form.inputRefs,
+      inputRefs: node.data.form?.inputRefs || [], // Add optional chaining and fallback
       executionTime: now,
     };
   });
@@ -26,7 +26,7 @@ export function createInitialFlowState({ beginNode, variables, flowConfig }: Ini
       if (!components[edge.target].inputFlow.find((input: any) => input.id === edge.source))
         components[edge.target].inputFlow.push({
           id: edge.source,
-          name: flowConfig.nodes.find((node) => node.id === edge.source)?.data.form.name || edge.source,
+          name: flowConfig.nodes.find((node) => node.id === edge.source)?.data.form?.name || edge.source,
         });
     }
   });

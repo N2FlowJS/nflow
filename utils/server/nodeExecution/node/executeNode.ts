@@ -43,6 +43,20 @@ import {
   isDuckGoSearchNodeData,
   isWeatherNodeData,
   isDateTimeNodeData,
+  isDisplayNodeData,
+  isLoopNodeData,
+  isVariableNodeData,
+  isCodeNodeData,
+  isTemplateNodeData,
+  isCounterNodeData,
+  isCacheNodeData,
+  isLogNodeData,
+  isImageAnalysisNodeData,
+  isPdfAnalysisNodeData,
+  isLogAnalysisNodeData,
+  isExcelAnalysisNodeData,
+  isFileAnalysisNodeData,
+  isCsvAnalysisNodeData,
 } from '../../../client/isNode';
 import { FlowExecutionContext, ExecutionResult } from '../../../../models/flowExecutionTypes';
 import { executeBeginNode } from './executeBeginNode';
@@ -90,6 +104,20 @@ import { executeTelegramNode } from './executeTelegramNode';
 import { executeWhatsAppNode } from './executeWhatsAppNode';
 import { executeWeatherNode } from './executeWeatherNode';
 import { executeDateTimeNode } from './executeDateTimeNode';
+import { executeDisplayNode } from './executeDisplayNode';
+import { executeLoopNode } from './executeLoopNode';
+import { executeVariableNode } from './executeVariableNode';
+import { executeCodeNode } from './executeCodeNode';
+import { executeTemplateNode } from './executeTemplateNode';
+import { executeCounterNode } from './executeCounterNode';
+import { executeCacheNode } from './executeCacheNode';
+import { executeLogNode } from './executeLogNode';
+import { executeImageAnalysisNode } from './executeImageAnalysisNode';
+import { executePdfAnalysisNode } from './executePdfAnalysisNode';
+import { executeLogAnalysisNode } from './executeLogAnalysisNode';
+import { executeExcelAnalysisNode } from './executeExcelAnalysisNode';
+import { executeFileAnalysisNode } from './executeFileAnalysisNode';
+import { executeCsvAnalysisNode } from './executeCsvAnalysisNode';
 
 export async function executeNode(
   node: any,
@@ -185,6 +213,35 @@ export async function executeNode(
     return await executeWeatherNode(node, context, dispatcher);
   } else if (isDateTimeNodeData(node.data)) {
     return await executeDateTimeNode(node, context, dispatcher);
+  } else if (isDisplayNodeData(node.data)) {
+    return await executeDisplayNode(node, context, dispatcher);
+  } else if (isLoopNodeData(node.data)) {
+    return await executeLoopNode(node, context, dispatcher);
+  } else if (isVariableNodeData(node.data)) {
+    return await executeVariableNode(node, context, dispatcher);
+  } else if (isCodeNodeData(node.data)) {
+    return await executeCodeNode(node, context, dispatcher);
+  } else if (isTemplateNodeData(node.data)) {
+    return await executeTemplateNode(node, context, dispatcher);
+  } else if (isCounterNodeData(node.data)) {
+    return await executeCounterNode(node, context, dispatcher);
+  } else if (isCacheNodeData(node.data)) {
+    return await executeCacheNode(node, context, dispatcher);
+  } else if (isLogNodeData(node.data)) {
+    return await executeLogNode(node, context, dispatcher);
+  } else if (isFileAnalysisNodeData(node.data)) {
+    return await executeFileAnalysisNode(node, context, dispatcher);
+  } else if (isCsvAnalysisNodeData(node.data)) {
+    return await executeCsvAnalysisNode(node, context, dispatcher);
+  } else if (isImageAnalysisNodeData(node.data)) {
+    return await executeImageAnalysisNode(node, context, dispatcher);
+  } else if (isPdfAnalysisNodeData(node.data)) {
+    return await executePdfAnalysisNode(node, context, dispatcher);
+  } else if (isLogAnalysisNodeData(node.data)) {
+    return await executeLogAnalysisNode(node, context, dispatcher);
+  } else if (isExcelAnalysisNodeData(node.data)) {
+    return await executeExcelAnalysisNode(node, context, dispatcher);
   }
+  // Additional node types would be added here
   throw new Error(`Unsupported node type: ${node.type}`);
 }

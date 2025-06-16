@@ -72,6 +72,21 @@ import WhatsAppNode from '../nodes/whatsapp-node';
 import WeatherNode from '../nodes/weather-node';
 import DateTimeNode from '../nodes/datetime-node';
 import MathNode from '../nodes/math-node';
+import DisplayNode from '../nodes/display-node'; // Import DisplayNode
+import LoopNode from '../nodes/loop-node';
+import VariableNode from '../nodes/variable-node';
+import CodeNode from '../nodes/code-node';
+import TemplateNode from '../nodes/template-node';
+import CounterNode from '../nodes/counter-node';
+import CacheNode from '../nodes/cache-node';
+import LogNode from '../nodes/log-node'; // Import LogNode
+import FileAnalysisNode from '../nodes/file-analysis-node';
+import CsvAnalysisNode from '../nodes/csv-analysis-node';
+import ImageAnalysisNode from '../nodes/image-analysis-node';
+import PdfAnalysisNode from '../nodes/pdf-analysis-node';
+import LogAnalysisNode from '../nodes/log-analysis-node';
+import ExcelAnalysisNode from '../nodes/excel-analysis-node';
+// Additional node imports would be added
 
 import { isConnectionAllowed } from '../../../utils/client/connectionRules';
 import { NODE_REGISTRY } from '../../../utils/client/NODE_REGISTRY';
@@ -122,6 +137,21 @@ const nodeTypes: ReactFlowNodeTypes = {
   weather: WeatherNode,
   datetime: DateTimeNode,
   math: MathNode,
+  display: DisplayNode, // Add DisplayNode to nodeTypes
+  loop: LoopNode,
+  variable: VariableNode,
+  code: CodeNode,
+  template: TemplateNode,
+  counter: CounterNode,
+  cache: CacheNode,
+  log: LogNode,
+  fileanalysis: FileAnalysisNode,
+  csvanalysis: CsvAnalysisNode,
+  imageanalysis: ImageAnalysisNode,
+  pdfanalysis: PdfAnalysisNode,
+  loganalysis: LogAnalysisNode,
+  excelanalysis: ExcelAnalysisNode,
+  // Additional nodes would be added here
 };
 
 const edgeTypes: EdgeTypes = {

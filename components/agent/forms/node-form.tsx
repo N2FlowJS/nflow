@@ -45,6 +45,20 @@ import WhatsAppNodeForm from './whatsapp-node-form';
 import WeatherNodeForm from './weather-node-form';
 import DateTimeNodeForm from './datetime-node-form';
 import MathNodeForm from './math-node-form';
+import DisplayNodeForm from './display-node-form';
+import LoopNodeForm from './loop-node-form';
+import VariableNodeForm from './variable-node-form';
+import CodeNodeForm from './code-node-form';
+import TemplateNodeForm from './template-node-form';
+import CounterNodeForm from './counter-node-form';
+import CacheNodeForm from './cache-node-form';
+import LogNodeForm from './log-node-form';
+import FileAnalysisNodeForm from './file-analysis-node-form';
+import CsvAnalysisNodeForm from './csv-analysis-node-form';
+import ImageAnalysisNodeForm from './image-analysis-node-form';
+import PdfAnalysisNodeForm from './pdf-analysis-node-form';
+import LogAnalysisNodeForm from './log-analysis-node-form';
+import ExcelAnalysisNodeForm from './excel-analysis-node-form';
 
 interface NodeFormProps {
   form: any;
@@ -155,6 +169,34 @@ const NodeForm: React.FC<NodeFormProps> = (props) => {
         return <DateTimeNodeForm {...commonProps} />;
       case 'math':
         return <MathNodeForm {...commonProps} />;
+      case 'display':
+        return <DisplayNodeForm {...commonProps} />;
+      case 'loop':
+        return <LoopNodeForm {...commonProps} />;
+      case 'variable':
+        return <VariableNodeForm {...commonProps} />;
+      case 'code':
+        return <CodeNodeForm {...commonProps} />;
+      case 'template':
+        return <TemplateNodeForm {...commonProps} />;
+      case 'counter':
+        return <CounterNodeForm {...commonProps} />;
+      case 'cache':
+        return <CacheNodeForm {...commonProps} />;
+      case 'log':
+        return <LogNodeForm {...commonProps} />;
+      case 'fileanalysis':
+        return <FileAnalysisNodeForm {...commonProps} />;
+      case 'csvanalysis':
+        return <CsvAnalysisNodeForm {...commonProps} />;
+      case 'imageanalysis':
+        return <ImageAnalysisNodeForm {...commonProps} />;
+      case 'pdfanalysis':
+        return <PdfAnalysisNodeForm {...commonProps} />;
+      case 'loganalysis':
+        return <LogAnalysisNodeForm {...commonProps} />;
+      case 'excelanalysis':
+        return <ExcelAnalysisNodeForm {...commonProps} />;
       default:
         return <div>Unsupported node type: {selectedNode.type}</div>;
     }
