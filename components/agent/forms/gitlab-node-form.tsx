@@ -5,7 +5,6 @@ import React from 'react';
 import BaseNodeForm from './base-node-form';
 import InputReferences from './shared/InputReferences';
 import RoleSelector from './shared/RoleSelector';
-import { useLocale } from '../../../locale';
 
 const { TextArea } = Input;
 const { Text } = Typography;
@@ -18,7 +17,6 @@ interface GitLabNodeFormProps {
 
 const GitLabNodeForm: React.FC<GitLabNodeFormProps> = (props) => {
   const { selectedNode } = props;
-  const { t } = useLocale('form.nodeForm');
 
   return (
     <BaseNodeForm {...props}>

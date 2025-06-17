@@ -89,7 +89,6 @@ import {
   BranchesOutlined as ConditionOutlined,
   MessageOutlined,
   SlackOutlined,
-  BugFilled,
   GitlabOutlined,
   GithubOutlined,
   FacebookOutlined,

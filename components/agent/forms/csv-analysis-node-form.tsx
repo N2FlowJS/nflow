@@ -1,6 +1,6 @@
 import { TableOutlined, SettingOutlined, FileTextOutlined } from '@ant-design/icons';
 import { FlowNode } from '../../../models/flowTypes';
-import { Form, Input, Select, Switch, InputNumber, Collapse, Space, Typography, Alert } from 'antd';
+import { Form, Input, Select, Switch, Collapse, Space, Typography, Alert } from 'antd';
 import React from 'react';
 import BaseNodeForm from './base-node-form';
 import InputReferences from './shared/InputReferences';
@@ -49,8 +49,7 @@ const CsvAnalysisNodeForm: React.FC<CsvAnalysisNodeFormProps> = (props) => {
                   name="filePath"
                   label={t('filePathLabel')}
                   help={t('filePathHelp')}
-                  rules={[{ required: true, message: 'Please enter CSV file path' }]}
-                >
+                  rules={[{ required: true, message: 'Please enter CSV file path' }]}>
                   <Input placeholder="/path/to/data.csv or {{csvFile}}" />
                 </Form.Item>
 
@@ -59,8 +58,7 @@ const CsvAnalysisNodeForm: React.FC<CsvAnalysisNodeFormProps> = (props) => {
                   label={t('operationLabel')}
                   help={t('operationHelp')}
                   initialValue="analyze"
-                  rules={[{ required: true, message: 'Please select an operation' }]}
-                >
+                  rules={[{ required: true, message: 'Please select an operation' }]}>
                   <Select>
                     <Select.Option value="analyze">{t('analyzeOperation')}</Select.Option>
                     <Select.Option value="validate">{t('validateOperation')}</Select.Option>
@@ -70,12 +68,7 @@ const CsvAnalysisNodeForm: React.FC<CsvAnalysisNodeFormProps> = (props) => {
                   </Select>
                 </Form.Item>
 
-                <Form.Item
-                  name="delimiter"
-                  label={t('delimiterLabel')}
-                  help={t('delimiterHelp')}
-                  initialValue=","
-                >
+                <Form.Item name="delimiter" label={t('delimiterLabel')} help={t('delimiterHelp')} initialValue=",">
                   <Select>
                     <Select.Option value=",">{t('commaDelimiter')}</Select.Option>
                     <Select.Option value=";">{t('semicolonDelimiter')}</Select.Option>
@@ -89,17 +82,11 @@ const CsvAnalysisNodeForm: React.FC<CsvAnalysisNodeFormProps> = (props) => {
                   label={t('hasHeaderLabel')}
                   help={t('hasHeaderHelp')}
                   valuePropName="checked"
-                  initialValue={true}
-                >
+                  initialValue={true}>
                   <Switch />
                 </Form.Item>
 
-                <Form.Item
-                  name="encoding"
-                  label={t('encodingLabel')}
-                  help={t('encodingHelp')}
-                  initialValue="utf8"
-                >
+                <Form.Item name="encoding" label={t('encodingLabel')} help={t('encodingHelp')} initialValue="utf8">
                   <Select>
                     <Select.Option value="utf8">UTF-8</Select.Option>
                     <Select.Option value="ascii">ASCII</Select.Option>
@@ -122,13 +109,12 @@ const CsvAnalysisNodeForm: React.FC<CsvAnalysisNodeFormProps> = (props) => {
                 <Form.Item shouldUpdate>
                   {({ getFieldValue }) => {
                     const operation = getFieldValue('operation');
-                    
+
                     return operation === 'filter' ? (
                       <Form.Item
                         name="filterCondition"
                         label={t('filterConditionLabel')}
-                        help={t('filterConditionHelp')}
-                      >
+                        help={t('filterConditionHelp')}>
                         <Input placeholder="Search term or condition" />
                       </Form.Item>
                     ) : null;
@@ -138,22 +124,17 @@ const CsvAnalysisNodeForm: React.FC<CsvAnalysisNodeFormProps> = (props) => {
                 <Form.Item shouldUpdate>
                   {({ getFieldValue }) => {
                     const operation = getFieldValue('operation');
-                    
+
                     return operation === 'aggregate' ? (
                       <>
-                        <Form.Item
-                          name="groupBy"
-                          label={t('groupByLabel')}
-                          help={t('groupByHelp')}
-                        >
+                        <Form.Item name="groupBy" label={t('groupByLabel')} help={t('groupByHelp')}>
                           <Input placeholder="Column name to group by" />
                         </Form.Item>
                         <Form.Item
                           name="aggregateFunction"
                           label={t('aggregateFunctionLabel')}
                           help={t('aggregateFunctionHelp')}
-                          initialValue="count"
-                        >
+                          initialValue="count">
                           <Select>
                             <Select.Option value="count">Count</Select.Option>
                             <Select.Option value="sum">Sum</Select.Option>

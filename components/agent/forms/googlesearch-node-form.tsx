@@ -5,7 +5,6 @@ import React from 'react';
 import BaseNodeForm from './base-node-form';
 import InputReferences from './shared/InputReferences';
 import RoleSelector from './shared/RoleSelector';
-import { useLocale } from '../../../locale';
 
 const { Text } = Typography;
 
@@ -17,7 +16,6 @@ interface GoogleSearchNodeFormProps {
 
 const GoogleSearchNodeForm: React.FC<GoogleSearchNodeFormProps> = (props) => {
   const { selectedNode } = props;
-  const { t } = useLocale('form.nodeForm');
 
   return (
     <BaseNodeForm {...props}>

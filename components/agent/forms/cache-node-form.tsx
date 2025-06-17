@@ -131,7 +131,7 @@ const CacheNodeForm: React.FC<CacheNodeFormProps> = (props) => {
                           style={{ width: '100%' }}
                           placeholder="3600"
                           formatter={(value) => `${value} seconds`}
-                          parser={(value) => value!.replace(' seconds', '')}
+                          parser={(value) => value?.replace(' seconds', '') as any}
                         />
                       </Form.Item>
                     ) : null;
