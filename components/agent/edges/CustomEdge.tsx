@@ -1,7 +1,7 @@
 import { BaseEdge, Edge, EdgeProps, getBezierPath } from '@xyflow/react';
 import { theme } from 'antd';
-import React, { useMemo } from 'react'; // Added useMemo
-import { useFlowState } from '../../../context/FlowStateContext'; // Import the context
+import React from 'react';
+import { useEdgeExecutionStatus } from '../../../context/FlowStateContext';
 
 interface CustomEdgeData extends Edge {
   onDelete?: (edgeId: string) => void;
@@ -33,33 +33,7 @@ const CustomEdge: React.FC<EdgeProps<CustomEdgeData>> = ({
   });
 
   const { token } = theme.useToken();
-  const { flowState } = useFlowState(); // Consume the context
-
-  // Determine if the edge is connected to the active node
-  const isExecutedEdge = useMemo(() => {
-    if (!flowState || !flowState.components || typeof flowState.executionTime !== 'number') {
-      return false;
-    }
-
-    const sourceComponent = flowState.components[source];
-    const targetComponent = flowState.components[target];
-
-    if (!sourceComponent || !targetComponent) {
-      return false;
-    }
-
-    return (
-      sourceComponent.executionTime > flowState.executionTime &&
-      targetComponent.executionTime > flowState.executionTime
-    );
-  }, [flowState, source, target]);
-
-  // Example: Log flowState when an edge is rendered or updated
-  React.useEffect(() => {
-    if (flowState) {
-      // console.log(`CustomEdge ${id} has access to flowState:`, flowState);
-    }
-  }, [flowState, id]);
+  const isExecutedEdge = useEdgeExecutionStatus(source, target);
 
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
