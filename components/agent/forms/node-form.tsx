@@ -60,6 +60,7 @@ import PdfAnalysisNodeForm from './pdf-analysis-node-form';
 import LogAnalysisNodeForm from './log-analysis-node-form';
 import ExcelAnalysisNodeForm from './excel-analysis-node-form';
 import WeChatNodeForm from './wechat-node-form';
+import AgentNodeForm from './agent-node-form';
 
 interface NodeFormProps {
   form: any;
@@ -198,6 +199,8 @@ const NodeForm: React.FC<NodeFormProps> = ({ form, selectedNode, setIsDrawerOpen
         return <ExcelAnalysisNodeForm {...commonProps} />;
       case 'wechat':
         return <WeChatNodeForm {...commonProps} />;
+      case 'agent':
+        return <AgentNodeForm {...commonProps} />;
       default:
         return <div>Unsupported node type: {selectedNode.type}</div>;
     }

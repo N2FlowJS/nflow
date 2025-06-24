@@ -17,7 +17,7 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { Drawer, Form, Layout, message } from 'antd';
-import React, { memo, useCallback, useEffect, useState } from 'react';
+import React, { memo, useCallback, useEffect, useState, createContext, useContext } from 'react';
 
 import { saveFlowConfig } from '../../../services/agentService';
 import NodeForm from '../forms/node-form';
@@ -92,6 +92,20 @@ import WeChatNode from '../nodes/wechat-node'; // Import WeChatNode
 import { isConnectionAllowed } from '../../../utils/client/connectionRules';
 import { NODE_REGISTRY } from '../../../utils/client/NODE_REGISTRY';
 import { parseFlowConfig } from '../../../utils/server/parseFlowConfig';
+import AgentNode from '../nodes/agent-node';
+
+interface FlowEditorContextType {
+  openConfigDrawer: () => void;
+  deleteNode: (nodeId: string) => void;
+}
+const FlowEditorContext = createContext<FlowEditorContextType | null>(null);
+export const useFlowEditorContext = () => {
+  const context = useContext(FlowEditorContext);
+  if (!context) {
+    throw new Error('useFlowEditorContext must be used within a FlowEditorProvider');
+  }
+  return context;
+};
 
 const nodeTypes: ReactFlowNodeTypes = {
   begin: BeginNode,
@@ -138,7 +152,7 @@ const nodeTypes: ReactFlowNodeTypes = {
   weather: WeatherNode,
   datetime: DateTimeNode,
   math: MathNode,
-  display: DisplayNode, // Add DisplayNode to nodeTypes
+  display: DisplayNode, 
   loop: LoopNode,
   variable: VariableNode,
   code: CodeNode,
@@ -153,7 +167,7 @@ const nodeTypes: ReactFlowNodeTypes = {
   loganalysis: LogAnalysisNode,
   excelanalysis: ExcelAnalysisNode,
   wechat: WeChatNode,
-  // Additional nodes would be added here
+  agent: AgentNode, 
 };
 
 const edgeTypes: EdgeTypes = {
@@ -390,16 +404,12 @@ const useDragOverHandler = () => {
   }, []);
 };
 
-const useNodeClickHandler = (
-  setSelectedNode: React.Dispatch<React.SetStateAction<FlowNode | null>>,
-  setIsDrawerOpen: React.Dispatch<React.SetStateAction<boolean>>
-) => {
+const useNodeClickHandler = (setSelectedNode: React.Dispatch<React.SetStateAction<FlowNode | null>>) => {
   return useCallback(
     (_: React.MouseEvent, node: FlowNode) => {
       setSelectedNode(node);
-      setIsDrawerOpen(true);
     },
-    [setSelectedNode, setIsDrawerOpen]
+    [setSelectedNode]
   );
 };
 
@@ -425,7 +435,20 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flowConfig, onStartConversation
   const isValidConnection = useValidConnection(nodes);
   const onDrop = useNodeDropper(screenToFlowPosition, setNodes, nodes);
   const onDragOver = useDragOverHandler();
-  const onNodeClick = useNodeClickHandler(setSelectedNode, setIsDrawerOpen);
+  const onNodeClick = useNodeClickHandler(setSelectedNode);
+
+  const openConfigDrawer = useCallback(() => {
+    if (selectedNode) {
+      setIsDrawerOpen(true);
+    }
+  }, [selectedNode]);
+
+  const deleteNode = useCallback(
+    (nodeId: string) => {
+      setNodes((nds) => nds.filter((node) => node.id !== nodeId));
+    },
+    [setNodes]
+  );
 
   React.useEffect(() => {
     setEdges((currentEdges) =>
@@ -437,77 +460,78 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flowConfig, onStartConversation
   }, [onEdgeDelete, setEdges]);
 
   return (
-    <Layout style={{ height: '100%', position: 'relative' }}>
-      <NodePalette
-        hasBeginNode={nodes.some((node) => node.type === 'begin')}
-        isCollapsed={isPaletteCollapsed}
-        onCollapsedChange={setIsPaletteCollapsed}
-      />
+    <FlowEditorContext.Provider value={{ openConfigDrawer, deleteNode }}>
+      <Layout style={{ height: '100%', position: 'relative' }}>
+        <NodePalette
+          hasBeginNode={nodes.some((node) => node.type === 'begin')}
+          isCollapsed={isPaletteCollapsed}
+          onCollapsedChange={setIsPaletteCollapsed}
+        />
 
-      <Content
-        style={{
-          marginLeft: isPaletteCollapsed ? 50 : 250,
-          transition: 'margin-left 0.2s',
-          height: '100%',
-          position: 'relative',
-        }}>
-        <ReactFlow
-          colorMode={theme}
-          nodes={nodes}
-          edges={edges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onConnect={onConnect}
-          onDrop={onDrop}
-          onDragOver={onDragOver}
-          onNodeClick={onNodeClick}
-          connectionLineType={ConnectionLineType.Bezier}
-          isValidConnection={isValidConnection}
-          fitView
-          nodeOrigin={[0.5, 0]}
-          nodeTypes={nodeTypes}
-          edgeTypes={edgeTypes}
-          snapToGrid={true}
-          defaultEdgeOptions={{
-            type: 'default',
-            data: {
-              onDelete: onEdgeDelete,
+        <Content
+          style={{
+            marginLeft: isPaletteCollapsed ? 70 : 250,
+            transition: 'margin-left 0.2s',
+            height: '100%',
+            position: 'relative',
+          }}>
+          <ReactFlow
+            fitViewOptions={{ padding: 0.1 }}
+            colorMode={theme}
+            nodes={nodes}
+            edges={edges}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onConnect={onConnect}
+            onDrop={onDrop}
+            onDragOver={onDragOver}
+            onNodeClick={onNodeClick}
+            connectionLineType={ConnectionLineType.Bezier}
+            isValidConnection={isValidConnection}
+            fitView
+            nodeOrigin={[0.5, 0]}
+            nodeTypes={nodeTypes}
+            edgeTypes={edgeTypes}
+            snapToGrid={true}
+            defaultEdgeOptions={{
+              type: 'default',
+              data: {
+                onDelete: onEdgeDelete,
+              },
+            }}>
+            <Controls
+              orientation="horizontal"
+              position="top-left"
+              showZoom={true}
+              showFitView={true}
+              showInteractive={true}>
+              <ControlButton onClick={handleSaveFlow}>
+                <SaveOutlined />
+              </ControlButton>
+              <ControlButton onClick={onStartConversation}>
+                <CommentOutlined />
+              </ControlButton>
+            </Controls>
+            <Background />
+          </ReactFlow>
+        </Content>
+
+        <Drawer
+          title="Node Configuration"
+          placement="right"
+          onClose={() => nodeForm.submit()}
+          open={isDrawerOpen}
+          width={window.innerWidth > 768 ? '45%' : '80%'}
+          styles={{
+            body: {
+              paddingTop: 12,
+              paddingBottom: 60,
             },
-          }}
-          // end Marker for edges
-        >
-          <Controls
-            orientation="horizontal"
-            position="top-left"
-            showZoom={true}
-            showFitView={true}
-            showInteractive={true}>
-            <ControlButton onClick={handleSaveFlow}>
-              <SaveOutlined />
-            </ControlButton>
-            <ControlButton onClick={onStartConversation}>
-              <CommentOutlined />
-            </ControlButton>
-          </Controls>
-          <Background />
-        </ReactFlow>
-      </Content>
-
-      <Drawer
-        title="Node Configuration"
-        placement="right"
-        onClose={() => nodeForm.submit()}
-        open={isDrawerOpen}
-        width={window.innerWidth > 768 ? '45%' : '80%'}
-        styles={{
-          body: {
-            paddingTop: 12,
-            paddingBottom: 60,
-          },
-        }}>
-        <NodeForm form={nodeForm} selectedNode={selectedNode} setIsDrawerOpen={setIsDrawerOpen} />
-      </Drawer>
-    </Layout>
+          }}>
+          <NodeForm form={nodeForm} selectedNode={selectedNode} setIsDrawerOpen={setIsDrawerOpen} />
+        </Drawer>
+      </Layout>
+    </FlowEditorContext.Provider>
   );
 };
 

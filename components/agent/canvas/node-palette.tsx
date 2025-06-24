@@ -10,11 +10,7 @@ interface NodePaletteProps {
   onCollapsedChange?: (collapsed: boolean) => void;
 }
 
-const NodePalette: React.FC<NodePaletteProps> = ({ 
-  hasBeginNode, 
-  isCollapsed = false, 
-  onCollapsedChange 
-}) => {
+const NodePalette: React.FC<NodePaletteProps> = ({ hasBeginNode, isCollapsed = false, onCollapsedChange }) => {
   const availableNodes = Object.entries(NODE_REGISTRY).filter(([type]) => !(type === 'begin' && hasBeginNode));
 
   return (
@@ -23,7 +19,7 @@ const NodePalette: React.FC<NodePaletteProps> = ({
       collapsible
       collapsed={isCollapsed}
       onCollapse={onCollapsedChange}
-      collapsedWidth={50}
+      collapsedWidth={70}
       className="node-palette-sider"
       theme="light"
       style={{
@@ -33,18 +29,16 @@ const NodePalette: React.FC<NodePaletteProps> = ({
         height: '100%',
         boxShadow: '2px 0 8px rgba(0,0,0,0.1)',
         zIndex: 5,
-        overflow: 'auto'
-      }}
-    >
-      <div style={{ 
-        padding: isCollapsed ? 8 : 12,
         overflow: 'auto',
-        height: '100%'
       }}>
-        {!isCollapsed && (
-          <h3 style={{ marginBottom: 16 }}>Node Palette</h3>
-        )}
-        
+      <div
+        style={{
+          padding: isCollapsed ? 8 : 12,
+          overflow: 'auto',
+          height: '100%',
+        }}>
+        {!isCollapsed && <h3 style={{ marginBottom: 16 }}>Node Palette</h3>}
+
         {availableNodes.length === 0 ? (
           !isCollapsed && <Empty description="No more nodes to add" />
         ) : (
@@ -55,7 +49,9 @@ const NodePalette: React.FC<NodePaletteProps> = ({
                 title={
                   <div>
                     <div style={{ fontWeight: 500 }}>{config.data.form?.name || 'Drag to add to flow'}</div>
-                    <div style={{ fontSize: 12, color: '#888' }}>{config.data.form?.description || 'No description available'}</div>
+                    <div style={{ fontSize: 12, color: '#888' }}>
+                      {config.data.form?.description || 'No description available'}
+                    </div>
                   </div>
                 }
                 placement="right">

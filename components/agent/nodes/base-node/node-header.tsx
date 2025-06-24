@@ -11,19 +11,21 @@ interface NodeHeaderProps {
   role?: 'developer' | 'assistant' | 'system' | 'user';
 }
 
-const NodeHeader: React.FC<NodeHeaderProps> = memo(({ id, name, icon, role }) => {
-  return (
-    <Flex align="center" gap={8} justify="space-between">
-      <Flex align="center" gap={8}>
-        {icon && <div>{icon}</div>}
-        <Typography.Text strong ellipsis={{ tooltip: id }}>
-          {name}
-        </Typography.Text>
+const NodeHeader: React.FC<NodeHeaderProps> = memo(
+  ({ id, name, icon, role }) => {
+    return (
+      <Flex align="center" gap={8} justify="space-between">
+        <Flex align="center" gap={8}>
+          {icon && <div>{icon}</div>}
+          <Typography.Text strong ellipsis={{ tooltip: id }}>
+            {name}
+          </Typography.Text>
+        </Flex>
+        {role && <RoleIndicator role={role} />}
       </Flex>
-      {role && <RoleIndicator role={role} />}
-    </Flex>
-  );
-});
+    );
+  }
+);
 
 NodeHeader.displayName = 'NodeHeader';
 

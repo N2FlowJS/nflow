@@ -11,6 +11,7 @@ import {
   ExecMysqlNodeData,
   ExecMssqlNodeData,
   SubAgentNodeData,
+  AgentNodeData,
   SendMailNodeData,
   GoogleSearchNodeData,
   WikipediaSearchNodeData,
@@ -116,6 +117,7 @@ import {
   BugOutlined,
   FileExcelOutlined,
   WechatOutlined,
+  ApartmentOutlined,
 } from '@ant-design/icons';
 
 // Central registry of all node types
@@ -401,6 +403,30 @@ export const NODE_REGISTRY: Record<NodeTypeString, NodeConfig> = {
         output: '',
       },
     } as Partial<SubAgentNodeData>,
+  },
+  agent: {
+    type: 'agent',
+    icon: <ApartmentOutlined style={{ color: '#1890ff' }} />,
+    color: {
+      background: 'rgba(24, 144, 255, .1)',
+      border: '#69c0ff',
+      handle: '#1890ff',
+    },
+    input: 'User request or data to be processed',
+    output: "Result from the agent's execution or delegated task",
+    data: {
+      type: 'agent',
+      form: {
+        role: 'developer',
+        name: 'Agent',
+        description:
+          'Acts as a central coordinator that can execute tools and delegate tasks to other agents.',
+        systemMessage:
+          'You are a helpful assistant. Your role is to analyze the user input and decide which tool or other agent to use to best answer the request.',
+        inputRefs: [],
+        output: '',
+      },
+    } as Partial<AgentNodeData>,
   },
   sendmail: {
     type: 'sendmail',

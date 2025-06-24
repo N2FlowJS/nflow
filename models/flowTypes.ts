@@ -13,6 +13,7 @@ export const NODE_TYPES = {
   execmysql: 'execmysql',
   execmssql: 'execmssql',
   subagent: 'subagent',
+  agent: 'agent',
   sendmail: 'sendmail',
   googlesearch: 'googlesearch',
   bingsearch: 'bingsearch',
@@ -161,6 +162,11 @@ export interface SubAgentForm extends BaseForm {
   variables?: { [key: string]: string };
   timeout?: number;
   inheritContext?: boolean;
+}
+
+export interface AgentForm extends BaseForm {
+  systemMessage: string;
+  model?: string;
 }
 
 export interface ExecMssqlForm extends BaseForm {
@@ -375,6 +381,10 @@ export type ExecMysqlNodeData = BaseNodeData<ExecMysqlForm> & {
 export type SubAgentNodeData = BaseNodeData<SubAgentForm> & {
   type: 'subagent';
 };
+export type AgentNodeData = BaseNodeData<AgentForm> & {
+  type: 'agent';
+};
+
 export type ExecMssqlNodeData = BaseNodeData<ExecMssqlForm> & {
   type: 'execmssql';
 };
@@ -518,6 +528,7 @@ export type NodeData =
   | BaseNodeData<ExecMysqlForm> & { type: 'execmysql' }
   | BaseNodeData<ExecMssqlForm> & { type: 'execmssql' }
   | BaseNodeData<SubAgentForm> & { type: 'subagent' }
+  | BaseNodeData<AgentForm> & { type: 'agent' }
   | BaseNodeData<SendMailForm> & { type: 'sendmail' }
   | BaseNodeData<GoogleSearchForm> & { type: 'googlesearch' }
   | BaseNodeData<BingSearchForm> & { type: 'bingsearch' }
@@ -639,6 +650,7 @@ export type FlowNode = Node<
   | ExecMysqlNodeData
   | ExecMssqlNodeData
   | SubAgentNodeData
+  | AgentNodeData
   | SendMailNodeData
   | GoogleSearchNodeData
   | BingSearchNodeData

@@ -1,11 +1,14 @@
 import { Handle, Position } from '@xyflow/react';
-import { Card } from 'antd';
+import { Card, Button, Space, Modal } from 'antd';
+import { DeleteOutlined, BugOutlined, SettingOutlined } from '@ant-design/icons';
 import React, { memo, useMemo } from 'react';
-import { useFlowState } from '../../../../context/FlowStateContext';
+import { useNodeExecutionStatus } from '../../../../context/FlowStateContext';
+import { useCardStyle } from '../../../../hooks/useCardStyle';
 import { NodeData } from '../../../../models/flowTypes';
 import { NODE_REGISTRY } from '../../../../utils/client/NODE_REGISTRY';
 import { getHandleStyle } from './handle-icon';
 import NodeHeader from './node-header';
+import { useFlowEditorContext } from '../../canvas/canvas';
 
 interface BaseNodeProps {
   data: NodeData;
@@ -22,29 +25,32 @@ interface BaseNodeProps {
 
 const BaseNode: React.FC<BaseNodeProps> = ({ data, id, selected, handlePositions, children, icon, role }) => {
   const nodeConfig = NODE_REGISTRY[data.type];
-  const { flowState } = useFlowState();
+  const isExecutedNode = useNodeExecutionStatus(id);
+  const { openConfigDrawer, deleteNode } = useFlowEditorContext();
 
-  // // Properly memoize the execution check to prevent infinite loops
-  const isExecutedNode = useMemo(() => {
-    if (!flowState?.components) return false;
+  const cardStyle = useCardStyle({ selected, isExecutedNode, nodeConfig });
 
-    const component = flowState.components[id];
-    if (!component) return false;
+  const handleDelete = () => {
+    Modal.confirm({
+      title: 'Are you sure you want to delete this node?',
+      content: 'This action cannot be undone.',
+      okText: 'Yes',
+      okType: 'danger',
+      cancelText: 'No',
+      onOk() {
+        deleteNode(id);
+      },
+    });
+  };
 
-    return component.executionTime > flowState.executionTime;
-  }, [flowState?.components, flowState?.executionTime, id]);
+  const handleDebug = () => {
+    // eslint-disable-next-line no-console
+    console.log(`Debugging node ${id}`);
+  };
 
-  const cardStyle = useMemo(() => {
-    const borderColor = selected ? 'red' : isExecutedNode ? '#52c41a' : nodeConfig?.color.border || '#888888';
-    const borderWidth = selected || isExecutedNode ? '3px' : '3px';
-    const boxShadow = isExecutedNode ? '0 0 32px #52c41a' : undefined;
-
-    return {
-      borderColor,
-      borderWidth,
-      boxShadow,
-    };
-  }, [selected, isExecutedNode, nodeConfig?.color.border]);
+  const handleConfig = () => {
+    openConfigDrawer();
+  };
 
   const childrenSection = useMemo(
     () => (children ? <div style={{ padding: '10px 0' }}>{children}</div> : null),
@@ -80,12 +86,28 @@ const BaseNode: React.FC<BaseNodeProps> = ({ data, id, selected, handlePositions
   );
 
   return (
-    <Card style={cardStyle}>
-      <NodeHeader id={id} name={data.form?.name} type={data.type} icon={icon} role={role} />
-      {childrenSection}
-      {inputHandles}
-      {outputHandles}
-    </Card>
+    <div style={{ position: 'relative' }}>
+      {selected && (
+        <Space
+          style={{
+            position: 'absolute',
+            top: -30,
+            right: 0,
+            zIndex: 10,
+          }}
+        >
+          <Button size="small" icon={<SettingOutlined />} onClick={handleConfig} />
+          <Button size="small" icon={<BugOutlined />} onClick={handleDebug} />
+          <Button size="small" icon={<DeleteOutlined />} onClick={handleDelete} danger />
+        </Space>
+      )}
+      <Card style={cardStyle}>
+        <NodeHeader id={id} name={data.form?.name} type={data.type} icon={icon} role={role} />
+        {childrenSection}
+        {inputHandles}
+        {outputHandles}
+      </Card>
+    </div>
   );
 };
 
