@@ -44,7 +44,6 @@ const BaseNode: React.FC<BaseNodeProps> = ({ data, id, selected, handlePositions
   };
 
   const handleDebug = () => {
-    // eslint-disable-next-line no-console
     console.log(`Debugging node ${id}`);
   };
 
@@ -112,3 +111,4 @@ const BaseNode: React.FC<BaseNodeProps> = ({ data, id, selected, handlePositions
 };
 
 export default memo(BaseNode);
+// BaseNode component

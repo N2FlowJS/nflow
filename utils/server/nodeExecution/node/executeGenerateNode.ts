@@ -19,11 +19,17 @@ export async function executeGenerateNode(
 ): Promise<ExecutionResult> {
   const data = node.data as GenerateNodeData;
   const form = data.form || {};
+
   const inputs: string[] = getInputFromTemplate(form.prompt);
-  const historyMessages: MessagePart[] = (history || []).slice(form.numberHistory || 0).map((msg: MessagePart) => ({
-    role: msg.role == 'user' ? 'user' : 'assistant',
-    content: msg.content || '',
-  }));
+
+  const historyMessages: MessagePart[] =
+    form.numberHistory > 0
+      ? (history || []).slice(-form.numberHistory).map((msg: MessagePart) => ({
+          role: msg.role == 'user' ? 'user' : 'assistant',
+          content: msg.content || '',
+        }))
+      : [];
+
   const ready = isNodeReady(inputs, flowState);
   if (!ready) {
     return {
@@ -61,14 +67,12 @@ export async function executeGenerateNode(
         content: prompt,
       },
       ...historyMessages,
-     
     ]
       .filter((msg: MessagePart) => msg.content && msg.content.trim() !== '')
       .map((msg: MessagePart) => ({
         role: msg.role,
         content: msg.content,
       }));
-    console.log(`Executing Generate node: ${node.id} with message: ${JSON.stringify(message, null, 2)}`);
 
     // Get model ID
     const modelId = form.model;
@@ -106,7 +110,12 @@ export async function executeGenerateNode(
           });
         }
       : undefined;
-
+    console.log('Executing LLM model:', {
+      model: model.name,
+      provider: model.provider.providerType,
+      prompt: message,
+      nodeId: node.id,
+    });
     switch (model.provider.providerType) {
       case 'openai':
         aiResponse = await llmOpenAI.completions(
