@@ -120,14 +120,11 @@ import {
   ApartmentOutlined,
 } from '@ant-design/icons';
 
-export const NODE_TYPE = {
-  Begin: 'begin',
-  Interface: 'interface',
-};
+
 // Central registry of all node types
 export const NODE_REGISTRY: Record<NodeTypeString, NodeConfig> = {
   begin: {
-    type: NODE_TYPE.Begin,
+    type: 'begin',
     icon: <PlayCircleOutlined style={{ color: '#1677ff' }} />,
     color: {
       background: 'rgba(145, 202, 255, .45)',
@@ -150,7 +147,7 @@ export const NODE_REGISTRY: Record<NodeTypeString, NodeConfig> = {
   },
 
   interface: {
-    type: NODE_TYPE.Interface,
+    type: 'interface',
     icon: <SendOutlined style={{ color: '#1677ff' }} />,
     color: {
       background: 'rgba(212, 230, 249, .45)',
@@ -164,7 +161,7 @@ export const NODE_REGISTRY: Record<NodeTypeString, NodeConfig> = {
       type: 'interface',
       form: {
         role: 'assistant',
-        name: 'Interface',
+        name: 'Interface',      
         displayFormat: 'text',
         output: '', // Required by BaseForm
       },
@@ -423,7 +420,8 @@ export const NODE_REGISTRY: Record<NodeTypeString, NodeConfig> = {
       form: {
         role: 'developer',
         name: 'Agent',
-        description: 'Acts as a central coordinator that can execute tools and delegate tasks to other agents.',
+        description:
+          'Acts as a central coordinator that can execute tools and delegate tasks to other agents.',
         systemMessage:
           'You are a helpful assistant. Your role is to analyze the user input and decide which tool or other agent to use to best answer the request.',
         inputRefs: [],
