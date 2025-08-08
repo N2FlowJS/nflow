@@ -120,17 +120,12 @@ import {
   ApartmentOutlined,
 } from '@ant-design/icons';
 
-
 // Central registry of all node types
 export const NODE_REGISTRY: Record<NodeTypeString, NodeConfig> = {
   begin: {
     type: 'begin',
-    icon: <PlayCircleOutlined style={{ color: '#1677ff' }} />,
-    color: {
-      background: 'rgba(145, 202, 255, .45)',
-      border: '#69b1ff',
-      handle: '#1677ff',
-    },
+    icon: <PlayCircleOutlined />,
+
     input: 'None',
     output: 'Initial variables and greeting message',
     data: {
@@ -148,12 +143,7 @@ export const NODE_REGISTRY: Record<NodeTypeString, NodeConfig> = {
 
   interface: {
     type: 'interface',
-    icon: <SendOutlined style={{ color: '#1677ff' }} />,
-    color: {
-      background: 'rgba(212, 230, 249, .45)',
-      border: '#91caff',
-      handle: '#1677ff',
-    },
+    icon: <SendOutlined />,
     input: 'Previous node output or user input',
     output: 'User input for next node',
     data: {
@@ -161,7 +151,7 @@ export const NODE_REGISTRY: Record<NodeTypeString, NodeConfig> = {
       type: 'interface',
       form: {
         role: 'assistant',
-        name: 'Interface',      
+        name: 'Interface',
         displayFormat: 'text',
         output: '', // Required by BaseForm
       },
@@ -170,12 +160,7 @@ export const NODE_REGISTRY: Record<NodeTypeString, NodeConfig> = {
 
   generate: {
     type: 'generate',
-    icon: <RobotOutlined style={{ color: '#52c41a' }} />,
-    color: {
-      background: 'rgba(217, 247, 190, .45)',
-      border: '#95de64',
-      handle: '#52c41a',
-    },
+    icon: <RobotOutlined />,
     input: 'Prompt template with variables',
     output: 'AI-generated content',
     data: {
@@ -196,12 +181,7 @@ export const NODE_REGISTRY: Record<NodeTypeString, NodeConfig> = {
 
   categorize: {
     type: 'categorize',
-    icon: <BranchesOutlined style={{ color: '#eb2f96' }} />,
-    color: {
-      background: 'rgba(255, 214, 231,.45)',
-      border: '#ffadd2',
-      handle: '#eb2f96',
-    },
+    icon: <BranchesOutlined />,
     input: 'Text to categorize',
     output: 'Categorized output',
 
@@ -234,12 +214,7 @@ export const NODE_REGISTRY: Record<NodeTypeString, NodeConfig> = {
   },
   retrieval: {
     type: 'retrieval',
-    icon: <DatabaseOutlined style={{ color: '#595959' }} />,
-    color: {
-      background: 'rgba(217, 217, 217,.45)',
-      border: '#bfbfbf',
-      handle: '#595959',
-    },
+    icon: <DatabaseOutlined />,
     input: 'Query text for search',
     output: 'Retrieved information from knowledge bases',
     data: {
@@ -257,12 +232,7 @@ export const NODE_REGISTRY: Record<NodeTypeString, NodeConfig> = {
   },
   decision: {
     type: 'decision',
-    icon: <QuestionOutlined style={{ color: '#fa8c16' }} />,
-    color: {
-      background: 'rgba(255, 247, 230,0.45)',
-      border: '#ffe58f',
-      handle: '#fa8c16',
-    },
+    icon: <QuestionOutlined />,
     input: 'Variables from previous nodes',
     output: 'Path based on condition groups',
     data: {
@@ -292,12 +262,7 @@ export const NODE_REGISTRY: Record<NodeTypeString, NodeConfig> = {
   },
   keywords: {
     type: 'keywords',
-    icon: <TagsOutlined style={{ color: '#722ed1' }} />,
-    color: {
-      background: 'rgba(212, 230, 249, .45)',
-      border: '#91caff',
-      handle: '#722ed1',
-    },
+    icon: <TagsOutlined />,
     input: 'Text to extract keywords from',
     output: 'Extracted keywords',
     data: {
@@ -322,12 +287,7 @@ export const NODE_REGISTRY: Record<NodeTypeString, NodeConfig> = {
   },
   execmysql: {
     type: 'execmysql',
-    icon: <DatabaseOutlined style={{ color: '#ff7a00' }} />,
-    color: {
-      background: 'rgba(255, 247, 230, .45)',
-      border: '#ffb366',
-      handle: '#ff7a00',
-    },
+    icon: <DatabaseOutlined />,
     input: 'Variables for SQL query substitution',
     output: 'Query results as JSON array',
     data: {
@@ -351,12 +311,8 @@ export const NODE_REGISTRY: Record<NodeTypeString, NodeConfig> = {
   },
   execmssql: {
     type: 'execmssql',
-    icon: <DatabaseOutlined style={{ color: '#0078d4' }} />,
-    color: {
-      background: 'rgba(0, 120, 212, .1)',
-      border: '#40a9ff',
-      handle: '#0078d4',
-    },
+    icon: <DatabaseOutlined />,
+
     input: 'Variables for SQL query substitution',
     output: 'Query results as JSON array',
     data: {
@@ -381,12 +337,7 @@ export const NODE_REGISTRY: Record<NodeTypeString, NodeConfig> = {
   },
   subagent: {
     type: 'subagent',
-    icon: <TeamOutlined style={{ color: '#13c2c2' }} />,
-    color: {
-      background: 'rgba(230, 255, 251, .45)',
-      border: '#5cdbd3',
-      handle: '#13c2c2',
-    },
+    icon: <TeamOutlined />,
     input: 'Variables and context from current flow',
     output: 'Results from sub-agent execution',
     data: {
@@ -407,12 +358,7 @@ export const NODE_REGISTRY: Record<NodeTypeString, NodeConfig> = {
   },
   agent: {
     type: 'agent',
-    icon: <ApartmentOutlined style={{ color: '#1890ff' }} />,
-    color: {
-      background: 'rgba(24, 144, 255, .1)',
-      border: '#69c0ff',
-      handle: '#1890ff',
-    },
+    icon: <ApartmentOutlined />,
     input: 'User request or data to be processed',
     output: "Result from the agent's execution or delegated task",
     data: {
@@ -420,8 +366,7 @@ export const NODE_REGISTRY: Record<NodeTypeString, NodeConfig> = {
       form: {
         role: 'developer',
         name: 'Agent',
-        description:
-          'Acts as a central coordinator that can execute tools and delegate tasks to other agents.',
+        description: 'Acts as a central coordinator that can execute tools and delegate tasks to other agents.',
         systemMessage:
           'You are a helpful assistant. Your role is to analyze the user input and decide which tool or other agent to use to best answer the request.',
         inputRefs: [],
@@ -431,12 +376,7 @@ export const NODE_REGISTRY: Record<NodeTypeString, NodeConfig> = {
   },
   sendmail: {
     type: 'sendmail',
-    icon: <MailOutlined style={{ color: '#1890ff' }} />,
-    color: {
-      background: 'rgba(24, 144, 255, .1)',
-      border: '#69c0ff',
-      handle: '#1890ff',
-    },
+    icon: <MailOutlined />,
     input: 'Email content and recipient information',
     output: 'Email sending status and result',
     data: {
@@ -462,12 +402,8 @@ export const NODE_REGISTRY: Record<NodeTypeString, NodeConfig> = {
   },
   googlesearch: {
     type: 'googlesearch',
-    icon: <SearchOutlined style={{ color: '#4285f4' }} />,
-    color: {
-      background: 'rgba(66, 133, 244, .1)',
-      border: '#4285f4',
-      handle: '#4285f4',
-    },
+    icon: <SearchOutlined />,
+
     input: 'Search query text',
     output: 'Search results with titles, descriptions, and URLs',
     data: {
@@ -489,12 +425,8 @@ export const NODE_REGISTRY: Record<NodeTypeString, NodeConfig> = {
   },
   wikipediasearch: {
     type: 'wikipediasearch',
-    icon: <GlobalOutlined style={{ color: '#000000' }} />,
-    color: {
-      background: 'rgba(0, 0, 0, .05)',
-      border: '#595959',
-      handle: '#000000',
-    },
+    icon: <GlobalOutlined />,
+
     input: 'Search query text',
     output: 'Wikipedia articles with summaries and URLs',
     data: {
@@ -514,12 +446,8 @@ export const NODE_REGISTRY: Record<NodeTypeString, NodeConfig> = {
   },
   rewrite: {
     type: 'rewrite',
-    icon: <EditOutlined style={{ color: '#52c41a' }} />,
-    color: {
-      background: 'rgba(82, 196, 26, .1)',
-      border: '#73d13d',
-      handle: '#52c41a',
-    },
+    icon: <EditOutlined />,
+
     input: 'Text and conversation history to rewrite',
     output: 'Rewritten and improved text',
     data: {
@@ -554,12 +482,7 @@ Rewritten question:`,
   },
   httprequest: {
     type: 'httprequest',
-    icon: <ApiOutlined style={{ color: '#fa8c16' }} />,
-    color: {
-      background: 'rgba(250, 140, 22, .1)',
-      border: '#ffa940',
-      handle: '#fa8c16',
-    },
+    icon: <ApiOutlined />,
     input: 'URL parameters and request data',
     output: 'HTTP response data',
     data: {
@@ -579,12 +502,8 @@ Rewritten question:`,
   },
   transform: {
     type: 'transform',
-    icon: <SwapOutlined style={{ color: '#722ed1' }} />,
-    color: {
-      background: 'rgba(114, 46, 209, .1)',
-      border: '#b37feb',
-      handle: '#722ed1',
-    },
+    icon: <SwapOutlined />,
+
     input: 'Data to transform',
     output: 'Transformed data',
     data: {
@@ -603,12 +522,7 @@ Rewritten question:`,
   },
   fileread: {
     type: 'fileread',
-    icon: <FileTextOutlined style={{ color: '#52c41a' }} />,
-    color: {
-      background: 'rgba(82, 196, 26, .1)',
-      border: '#95de64',
-      handle: '#52c41a',
-    },
+    icon: <FileTextOutlined />,
     input: 'File path to read',
     output: 'File content',
     data: {
@@ -627,12 +541,8 @@ Rewritten question:`,
   },
   filewrite: {
     type: 'filewrite',
-    icon: <SaveOutlined style={{ color: '#1890ff' }} />,
-    color: {
-      background: 'rgba(24, 144, 255, .1)',
-      border: '#69c0ff',
-      handle: '#1890ff',
-    },
+    icon: <SaveOutlined />,
+
     input: 'Content to write to file',
     output: 'Write operation result',
     data: {
@@ -652,12 +562,8 @@ Rewritten question:`,
   },
   delay: {
     type: 'delay',
-    icon: <ClockCircleOutlined style={{ color: '#fa8c16' }} />,
-    color: {
-      background: 'rgba(250, 140, 22, .1)',
-      border: '#ffa940',
-      handle: '#fa8c16',
-    },
+    icon: <ClockCircleOutlined />,
+
     input: 'Previous node output',
     output: 'Same as input after delay',
     data: {
@@ -675,12 +581,8 @@ Rewritten question:`,
   },
   webhook: {
     type: 'webhook',
-    icon: <LinkOutlined style={{ color: '#13c2c2' }} />,
-    color: {
-      background: 'rgba(19, 194, 194, .1)',
-      border: '#5cdbd3',
-      handle: '#13c2c2',
-    },
+    icon: <LinkOutlined />,
+
     input: 'Data to send via webhook',
     output: 'Webhook response',
     data: {
@@ -700,12 +602,8 @@ Rewritten question:`,
   },
   jsonparse: {
     type: 'jsonparse',
-    icon: <CodeOutlined style={{ color: '#13c2c2' }} />,
-    color: {
-      background: 'rgba(19, 194, 194, .1)',
-      border: '#5cdbd3',
-      handle: '#13c2c2',
-    },
+    icon: <CodeOutlined />,
+
     input: 'JSON data to parse or manipulate',
     output: 'Processed JSON result',
     data: {
@@ -724,12 +622,8 @@ Rewritten question:`,
   },
   textprocess: {
     type: 'textprocess',
-    icon: <FontSizeOutlined style={{ color: '#eb2f96' }} />,
-    color: {
-      background: 'rgba(235, 47, 150, .1)',
-      border: '#ffadd2',
-      handle: '#eb2f96',
-    },
+    icon: <FontSizeOutlined />,
+
     input: 'Text to process',
     output: 'Processed text result',
     data: {
@@ -747,12 +641,8 @@ Rewritten question:`,
   },
   validate: {
     type: 'validate',
-    icon: <CheckCircleOutlined style={{ color: '#52c41a' }} />,
-    color: {
-      background: 'rgba(82, 196, 26, .1)',
-      border: '#95de64',
-      handle: '#52c41a',
-    },
+    icon: <CheckCircleOutlined />,
+   
     input: 'Data to validate',
     output: 'Validation result (true/false)',
     data: {
@@ -771,12 +661,7 @@ Rewritten question:`,
   },
   math: {
     type: 'math',
-    icon: <CalculatorOutlined style={{ color: '#fa8c16' }} />,
-    color: {
-      background: 'rgba(250, 140, 22, .1)',
-      border: '#ffa940',
-      handle: '#fa8c16',
-    },
+    icon: <CalculatorOutlined />,
     input: 'Numbers for mathematical operations',
     output: 'Calculation result',
     data: {
@@ -796,12 +681,7 @@ Rewritten question:`,
   },
   datetime: {
     type: 'datetime',
-    icon: <FieldTimeOutlined style={{ color: '#722ed1' }} />,
-    color: {
-      background: 'rgba(114, 46, 209, .1)',
-      border: '#b37feb',
-      handle: '#722ed1',
-    },
+    icon: <FieldTimeOutlined />,
     input: 'Date/time data to process',
     output: 'Processed date/time result',
     data: {
@@ -819,12 +699,7 @@ Rewritten question:`,
   },
   condition: {
     type: 'condition',
-    icon: <ConditionOutlined style={{ color: '#1890ff' }} />,
-    color: {
-      background: 'rgba(24, 144, 255, .1)',
-      border: '#69c0ff',
-      handle: '#1890ff',
-    },
+    icon: <ConditionOutlined />,
     input: 'Values to compare',
     output: 'Conditional result based on comparison',
     data: {
@@ -846,12 +721,7 @@ Rewritten question:`,
   },
   mattermost: {
     type: 'mattermost',
-    icon: <MessageOutlined style={{ color: '#0072C6' }} />,
-    color: {
-      background: 'rgba(0, 114, 198, .1)',
-      border: '#0072C6',
-      handle: '#0072C6',
-    },
+    icon: <MessageOutlined />,
     input: 'Message content and channel information',
     output: 'Mattermost operation result',
     data: {
@@ -871,12 +741,7 @@ Rewritten question:`,
   },
   slack: {
     type: 'slack',
-    icon: <SlackOutlined style={{ color: '#4A154B' }} />,
-    color: {
-      background: 'rgba(74, 21, 75, .1)',
-      border: '#4A154B',
-      handle: '#4A154B',
-    },
+    icon: <SlackOutlined />,
     input: 'Message content and channel information',
     output: 'Slack operation result',
     data: {
@@ -895,12 +760,7 @@ Rewritten question:`,
   },
   jira: {
     type: 'jira',
-    icon: <BugOutlined style={{ color: '#0052CC' }} />,
-    color: {
-      background: 'rgba(0, 82, 204, .1)',
-      border: '#0052CC',
-      handle: '#0052CC',
-    },
+    icon: <BugOutlined />,
     input: 'Issue details and project information',
     output: 'Jira operation result',
     data: {
@@ -921,12 +781,7 @@ Rewritten question:`,
   },
   gitlab: {
     type: 'gitlab',
-    icon: <GitlabOutlined style={{ color: '#FC6D26' }} />,
-    color: {
-      background: 'rgba(252, 109, 38, .1)',
-      border: '#FC6D26',
-      handle: '#FC6D26',
-    },
+    icon: <GitlabOutlined />,
     input: 'Project details and operation data',
     output: 'GitLab operation result',
     data: {
@@ -946,12 +801,7 @@ Rewritten question:`,
   },
   confluence: {
     type: 'confluence',
-    icon: <FileTextOutlined style={{ color: '#172B4D' }} />,
-    color: {
-      background: 'rgba(23, 43, 77, .1)',
-      border: '#172B4D',
-      handle: '#172B4D',
-    },
+    icon: <FileTextOutlined />,
     input: 'Page content and space information',
     output: 'Confluence operation result',
     data: {
@@ -972,12 +822,7 @@ Rewritten question:`,
   },
   github: {
     type: 'github',
-    icon: <GithubOutlined style={{ color: '#24292f' }} />,
-    color: {
-      background: 'rgba(36, 41, 47, .1)',
-      border: '#24292f',
-      handle: '#24292f',
-    },
+    icon: <GithubOutlined />,
     input: 'Repository details and operation data',
     output: 'GitHub operation result',
     data: {
@@ -998,12 +843,7 @@ Rewritten question:`,
   },
   facebook: {
     type: 'facebook',
-    icon: <FacebookOutlined style={{ color: '#1877F2' }} />,
-    color: {
-      background: 'rgba(24, 119, 242, .1)',
-      border: '#1877F2',
-      handle: '#1877F2',
-    },
+    icon: <FacebookOutlined />,
     input: 'Post content and page information',
     output: 'Facebook operation result',
     data: {
@@ -1022,12 +862,7 @@ Rewritten question:`,
   },
   googlemap: {
     type: 'googlemap',
-    icon: <EnvironmentOutlined style={{ color: '#4285F4' }} />,
-    color: {
-      background: 'rgba(66, 133, 244, .1)',
-      border: '#4285F4',
-      handle: '#4285F4',
-    },
+    icon: <EnvironmentOutlined />,
     input: 'Location data and search parameters',
     output: 'Google Maps API result',
     data: {
@@ -1046,12 +881,7 @@ Rewritten question:`,
   },
   twitter: {
     type: 'twitter',
-    icon: <TwitterOutlined style={{ color: '#1DA1F2' }} />,
-    color: {
-      background: 'rgba(29, 161, 242, .1)',
-      border: '#1DA1F2',
-      handle: '#1DA1F2',
-    },
+    icon: <TwitterOutlined />,
     input: 'Tweet content and user data',
     output: 'Twitter operation result',
     data: {
@@ -1073,12 +903,7 @@ Rewritten question:`,
   },
   instagram: {
     type: 'instagram',
-    icon: <InstagramOutlined style={{ color: '#E4405F' }} />,
-    color: {
-      background: 'rgba(228, 64, 95, .1)',
-      border: '#E4405F',
-      handle: '#E4405F',
-    },
+    icon: <InstagramOutlined />,
     input: 'Media content and captions',
     output: 'Instagram operation result',
     data: {
@@ -1098,12 +923,7 @@ Rewritten question:`,
   },
   linkedin: {
     type: 'linkedin',
-    icon: <LinkedinOutlined style={{ color: '#0077B5' }} />,
-    color: {
-      background: 'rgba(0, 119, 181, .1)',
-      border: '#0077B5',
-      handle: '#0077B5',
-    },
+    icon: <LinkedinOutlined />,
     input: 'Professional content and connections',
     output: 'LinkedIn operation result',
     data: {
@@ -1123,12 +943,7 @@ Rewritten question:`,
   },
   youtube: {
     type: 'youtube',
-    icon: <YoutubeOutlined style={{ color: '#FF0000' }} />,
-    color: {
-      background: 'rgba(255, 0, 0, .1)',
-      border: '#FF0000',
-      handle: '#FF0000',
-    },
+    icon: <YoutubeOutlined />,
     input: 'Video content and metadata',
     output: 'YouTube operation result',
     data: {
@@ -1149,12 +964,7 @@ Rewritten question:`,
   },
   tiktok: {
     type: 'tiktok',
-    icon: <CustomerServiceOutlined style={{ color: '#FF0050' }} />,
-    color: {
-      background: 'rgba(255, 0, 80, .1)',
-      border: '#FF0050',
-      handle: '#FF0050',
-    },
+    icon: <CustomerServiceOutlined />,
     input: 'Video content and hashtags',
     output: 'TikTok operation result',
     data: {
@@ -1174,12 +984,7 @@ Rewritten question:`,
   },
   discord: {
     type: 'discord',
-    icon: <DiscordIcon style={{ color: '#5865F2' }} />,
-    color: {
-      background: 'rgba(88, 101, 242, .1)',
-      border: '#5865F2',
-      handle: '#5865F2',
-    },
+    icon: <DiscordIcon />,
     input: 'Messages and server data',
     output: 'Discord operation result',
     data: {
@@ -1198,12 +1003,7 @@ Rewritten question:`,
   },
   telegram: {
     type: 'telegram',
-    icon: <PhoneOutlined style={{ color: '#0088CC' }} />,
-    color: {
-      background: 'rgba(0, 136, 204, .1)',
-      border: '#0088CC',
-      handle: '#0088CC',
-    },
+    icon: <PhoneOutlined />,
     input: 'Messages and media content',
     output: 'Telegram operation result',
     data: {
@@ -1223,12 +1023,7 @@ Rewritten question:`,
   },
   whatsapp: {
     type: 'whatsapp',
-    icon: <WhatsAppOutlined style={{ color: '#25D366' }} />,
-    color: {
-      background: 'rgba(37, 211, 102, .1)',
-      border: '#25D366',
-      handle: '#25D366',
-    },
+    icon: <WhatsAppOutlined />,
     input: 'Messages and business communications',
     output: 'WhatsApp operation result',
     data: {
@@ -1249,12 +1044,7 @@ Rewritten question:`,
   },
   bingsearch: {
     type: 'bingsearch',
-    icon: <SearchOutlined style={{ color: '#00BCF2' }} />,
-    color: {
-      background: 'rgba(0, 188, 242, .1)',
-      border: '#00BCF2',
-      handle: '#00BCF2',
-    },
+    icon: <SearchOutlined />,
     input: 'Search query text',
     output: 'Bing search results with titles, descriptions, and URLs',
     data: {
@@ -1277,12 +1067,7 @@ Rewritten question:`,
   },
   duckgosearch: {
     type: 'duckgosearch',
-    icon: <SearchOutlined style={{ color: '#DE5833' }} />,
-    color: {
-      background: 'rgba(222, 88, 51, .1)',
-      border: '#DE5833',
-      handle: '#DE5833',
-    },
+    icon: <SearchOutlined />,
     input: 'Search query text',
     output: 'DuckDuckGo search results with titles, descriptions, and URLs',
     data: {
@@ -1305,12 +1090,7 @@ Rewritten question:`,
   },
   weather: {
     type: 'weather',
-    icon: <CloudOutlined style={{ color: '#52C41A' }} />,
-    color: {
-      background: 'rgba(82, 196, 26, .1)',
-      border: '#52C41A',
-      handle: '#52C41A',
-    },
+    icon: <CloudOutlined />,
     input: 'Location name or coordinates',
     output: 'Weather data and forecast information',
     data: {
@@ -1334,12 +1114,7 @@ Rewritten question:`,
   },
   display: {
     type: 'display',
-    icon: <EyeOutlined style={{ color: '#52c41a' }} />,
-    color: {
-      background: 'rgba(82, 196, 26, .1)',
-      border: '#95de64',
-      handle: '#52c41a',
-    },
+    icon: <EyeOutlined />,
     input: 'Content to display from previous nodes',
     output: 'Displayed content (final output)',
     data: {
@@ -1358,12 +1133,7 @@ Rewritten question:`,
   },
   loop: {
     type: 'loop',
-    icon: <ReloadOutlined style={{ color: '#722ed1' }} />,
-    color: {
-      background: 'rgba(114, 46, 209, .1)',
-      border: '#b37feb',
-      handle: '#722ed1',
-    },
+    icon: <ReloadOutlined />,
     input: 'Array, object, or range data to iterate over',
     output: 'Iteration results and loop control',
     data: {
@@ -1385,12 +1155,7 @@ Rewritten question:`,
   },
   variable: {
     type: 'variable',
-    icon: <SettingOutlined style={{ color: '#fa8c16' }} />,
-    color: {
-      background: 'rgba(250, 140, 22, .1)',
-      border: '#ffa940',
-      handle: '#fa8c16',
-    },
+    icon: <SettingOutlined />,
     input: 'Variable name and value for operations',
     output: 'Variable operation result',
     data: {
@@ -1410,12 +1175,7 @@ Rewritten question:`,
   },
   code: {
     type: 'code',
-    icon: <CodeIcon style={{ color: '#1890ff' }} />,
-    color: {
-      background: 'rgba(24, 144, 255, .1)',
-      border: '#69c0ff',
-      handle: '#1890ff',
-    },
+    icon: <CodeIcon />,
     input: 'Input data for JavaScript processing',
     output: 'Result of code execution',
     data: {
@@ -1434,12 +1194,7 @@ Rewritten question:`,
   },
   template: {
     type: 'template',
-    icon: <TemplateIcon style={{ color: '#eb2f96' }} />,
-    color: {
-      background: 'rgba(235, 47, 150, .1)',
-      border: '#ffadd2',
-      handle: '#eb2f96',
-    },
+    icon: <TemplateIcon />,
     input: 'Template variables and data',
     output: 'Rendered template content',
     data: {
@@ -1458,12 +1213,7 @@ Rewritten question:`,
   },
   counter: {
     type: 'counter',
-    icon: <NumberOutlined style={{ color: '#13c2c2' }} />,
-    color: {
-      background: 'rgba(19, 194, 194, .1)',
-      border: '#5cdbd3',
-      handle: '#13c2c2',
-    },
+    icon: <NumberOutlined />,
     input: 'Counter operations and values',
     output: 'Current counter value',
     data: {
@@ -1483,12 +1233,7 @@ Rewritten question:`,
   },
   cache: {
     type: 'cache',
-    icon: <InboxOutlined style={{ color: '#fa541c' }} />,
-    color: {
-      background: 'rgba(250, 84, 28, .1)',
-      border: '#ff7875',
-      handle: '#fa541c',
-    },
+    icon: <InboxOutlined />,
     input: 'Cache keys and values for storage/retrieval',
     output: 'Cached data or operation result',
     data: {
@@ -1509,12 +1254,7 @@ Rewritten question:`,
   },
   log: {
     type: 'log',
-    icon: <FileSearchOutlined style={{ color: '#595959' }} />,
-    color: {
-      background: 'rgba(89, 89, 89, .1)',
-      border: '#bfbfbf',
-      handle: '#595959',
-    },
+    icon: <FileSearchOutlined />,
     input: 'Log messages and data to record',
     output: 'Log entry confirmation',
     data: {
@@ -1535,12 +1275,7 @@ Rewritten question:`,
   },
   fileanalysis: {
     type: 'fileanalysis',
-    icon: <FileSearchOutlined style={{ color: '#722ed1' }} />,
-    color: {
-      background: 'rgba(114, 46, 209, .1)',
-      border: '#b37feb',
-      handle: '#722ed1',
-    },
+    icon: <FileSearchOutlined />,
     input: 'File paths and analysis parameters',
     output: 'File analysis results and metadata',
     data: {
@@ -1562,12 +1297,7 @@ Rewritten question:`,
   },
   csvanalysis: {
     type: 'csvanalysis',
-    icon: <TableOutlined style={{ color: '#13c2c2' }} />,
-    color: {
-      background: 'rgba(19, 194, 194, .1)',
-      border: '#5cdbd3',
-      handle: '#13c2c2',
-    },
+    icon: <TableOutlined />,
     input: 'CSV file path and analysis configuration',
     output: 'CSV data analysis and statistics',
     data: {
@@ -1588,12 +1318,7 @@ Rewritten question:`,
   },
   imageanalysis: {
     type: 'imageanalysis',
-    icon: <PictureOutlined style={{ color: '#eb2f96' }} />,
-    color: {
-      background: 'rgba(235, 47, 150, .1)',
-      border: '#ffadd2',
-      handle: '#eb2f96',
-    },
+    icon: <PictureOutlined />,
     input: 'Image file path and analysis type',
     output: 'Image metadata, dimensions, colors, or OCR text',
     data: {
@@ -1614,12 +1339,7 @@ Rewritten question:`,
   },
   pdfanalysis: {
     type: 'pdfanalysis',
-    icon: <FilePdfOutlined style={{ color: '#f5222d' }} />,
-    color: {
-      background: 'rgba(245, 34, 45, .1)',
-      border: '#ff7875',
-      handle: '#f5222d',
-    },
+    icon: <FilePdfOutlined />,
     input: 'PDF file path and extraction parameters',
     output: 'Extracted text, metadata, or split PDF files',
     data: {
@@ -1639,12 +1359,7 @@ Rewritten question:`,
   },
   loganalysis: {
     type: 'loganalysis',
-    icon: <BugOutlined style={{ color: '#fa8c16' }} />,
-    color: {
-      background: 'rgba(250, 140, 22, .1)',
-      border: '#ffa940',
-      handle: '#fa8c16',
-    },
+    icon: <BugOutlined />,
     input: 'Log file path and analysis configuration',
     output: 'Log analysis summary, errors, and trends',
     data: {
@@ -1665,12 +1380,7 @@ Rewritten question:`,
   },
   excelanalysis: {
     type: 'excelanalysis',
-    icon: <FileExcelOutlined style={{ color: '#52c41a' }} />,
-    color: {
-      background: 'rgba(82, 196, 26, .1)',
-      border: '#95de64',
-      handle: '#52c41a',
-    },
+    icon: <FileExcelOutlined />,
     input: 'Excel file path and sheet configuration',
     output: 'Excel data, formulas, and analysis results',
     data: {
@@ -1692,12 +1402,7 @@ Rewritten question:`,
   // WeChat node
   wechat: {
     type: 'wechat',
-    icon: <WechatOutlined style={{ color: '#07C160' }} />,
-    color: {
-      background: 'rgba(7, 193, 96, .15)',
-      border: '#52c41a',
-      handle: '#07C160',
-    },
+    icon: <WechatOutlined />,
     input: 'WeChat API credentials and message content',
     output: 'WeChat operation result',
     data: {

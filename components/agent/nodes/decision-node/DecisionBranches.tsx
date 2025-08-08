@@ -1,9 +1,9 @@
-import React from "react";
-import { Card, Space, Tag, Typography, Divider } from "antd";
-import { ArrowRightOutlined } from "@ant-design/icons";
-import { useReactFlow } from "@xyflow/react";
-import { DecisionBranch,  DecisionCondition, FlowNode } from "../../../../models/flowTypes";
-import {  NODE_REGISTRY } from "../../../../utils/client/NODE_REGISTRY";
+import React from 'react';
+import { Card, Space, Tag, Typography, Divider } from 'antd';
+import { ArrowRightOutlined } from '@ant-design/icons';
+import { useReactFlow } from '@xyflow/react';
+import { DecisionBranch, DecisionCondition, FlowNode } from '../../../../models/flowTypes';
+import { NODE_REGISTRY } from '../../../../utils/client/NODE_REGISTRY';
 
 const OPERATOR_SYMBOLS: Record<string, string> = {
   equals: '=',
@@ -31,25 +31,14 @@ const DecisionBranches: React.FC<DecisionBranchesProps> = ({ branches }) => {
     const operatorSymbol = OPERATOR_SYMBOLS[condition.operator] || condition.operator;
     return `${getNodeName(condition.input)} ${operatorSymbol} ${condition.value}`;
   };
-  const nodeConfig =NODE_REGISTRY['decision'];
 
   return (
     <Space direction="vertical" style={{ width: '100%' }}>
       {branches?.map((branch, branchIndex) => (
-        <Card
-          key={branchIndex}
-          size="small"
-          title={<Typography.Text strong>{branch.name}</Typography.Text>}
-          style={{
-            marginBottom: 8,
-            borderColor: nodeConfig.color.border
-          }}
-        >
+        <Card key={branchIndex} size="small" title={<Typography.Text strong>{branch.name}</Typography.Text>}>
           {branch?.groups?.map((group, groupIndex) => (
             <React.Fragment key={groupIndex}>
-              {groupIndex > 0 && (
-                <Divider plain>{branch.groupOperator}</Divider>
-              )}
+              {groupIndex > 0 && <Divider plain>{branch.groupOperator}</Divider>}
               <Space direction="vertical" style={{ width: '100%', padding: '4px 0' }}>
                 {group.conditions?.map((condition, condIndex) => (
                   <React.Fragment key={condIndex}>

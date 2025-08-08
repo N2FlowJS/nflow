@@ -1,14 +1,20 @@
-import { Handle, Position, useReactFlow } from '@xyflow/react';
+import { Position, useReactFlow } from '@xyflow/react';
 import { Card, Button, Space, Modal, theme } from 'antd';
 import { DeleteOutlined, BugOutlined, SettingOutlined } from '@ant-design/icons';
-import React, { memo, useMemo, useRef } from 'react';
+import React, { memo, useRef } from 'react';
 import { useNodeExecutionStatus } from '../../../../context/FlowStateContext';
 import { useCardStyle } from '../../../../hooks/useCardStyle';
 import { NodeData } from '../../../../models/flowTypes';
 import { NODE_REGISTRY } from '../../../../utils/client/NODE_REGISTRY';
-import { getHandleStyle } from './handle-icon';
 import NodeHeader from './node-header';
 import { useFlowEditorContext } from '../../canvas/FlowEditorContext';
+import {
+  useHandleOptions,
+  useChildrenSection,
+  useInputHandles,
+  useOutputHandles,
+  useNodeActions,
+} from './useBaseNodeHooks';
 
 interface BaseNodeProps {
   data: NodeData;
@@ -35,6 +41,22 @@ const BaseNode: React.FC<BaseNodeProps> = ({ data, id, selected, handlePositions
   // measure fallback via DOM
   const wrapperRef = useRef<HTMLDivElement>(null);
 
+  // Optimized hooks
+  const handleOpts = useHandleOptions(token as any);
+  const childrenSection = useChildrenSection(children);
+  const inputHandles = useInputHandles(handlePositions.input, handleOpts);
+  const outputHandles = useOutputHandles({
+    positions: handlePositions.output,
+    opts: handleOpts,
+    id,
+    dataType: String(data.type),
+    getNode: getNode as any,
+    wrapperRef: wrapperRef as React.RefObject<HTMLDivElement | null>,
+    openNextStepModal,
+  });
+
+  const { handleConfig, handleDebug, doDelete } = useNodeActions({ id, deleteNode, openConfigDrawer });
+
   const handleDelete = () => {
     Modal.confirm({
       title: 'Are you sure you want to delete this node?',
@@ -43,101 +65,10 @@ const BaseNode: React.FC<BaseNodeProps> = ({ data, id, selected, handlePositions
       okType: 'danger',
       cancelText: 'No',
       onOk() {
-        deleteNode(id);
+        doDelete();
       },
     });
   };
-
-  const handleDebug = () => {
-    console.log(`Debugging node ${id}`);
-  };
-
-  const handleConfig = () => {
-    openConfigDrawer();
-  };
-
-  const childrenSection = useMemo(
-    () => (children ? <div style={{ padding: '10px 0' }}>{children}</div> : null),
-    [children]
-  );
-
-  // Helper to group handles by position so duplicates (e.g., two Bottom outputs) can be spaced evenly
-  const groupByPosition = (positions: Position[]) => {
-    const map = new Map<Position, number>();
-    positions.forEach((pos) => map.set(pos, (map.get(pos) ?? 0) + 1));
-    return map; // position -> count
-  };
-
-  const inputHandles = useMemo(() => {
-    const grouped = groupByPosition(handlePositions.input);
-    const handles: React.ReactNode[] = [];
-    const opts = {
-      sourceColor: token.colorSuccess,
-      targetColor: token.colorPrimary,
-      borderColor: (token as any).colorBorderSecondary ?? token.colorBorder,
-      shadow: (token as any).boxShadowSecondary ?? token.boxShadow,
-    };
-    grouped.forEach((count, pos) => {
-      for (let i = 0; i < count; i++) {
-        const hid = `in-${pos}-${i}`;
-        handles.push(
-          <Handle
-            key={hid}
-            type="target"
-            position={pos}
-            style={getHandleStyle && getHandleStyle(pos, 'target', i, count, opts)}
-            id={hid}
-          />
-        );
-      }
-    });
-    return handles;
-  }, [handlePositions.input, token]);
-
-  const outputHandles = useMemo(() => {
-    const grouped = groupByPosition(handlePositions.output);
-    const handles: React.ReactNode[] = [];
-    const opts = {
-      sourceColor: token.colorSuccess,
-      targetColor: token.colorPrimary,
-      borderColor: (token as any).colorBorderSecondary ?? token.colorBorder,
-      shadow: (token as any).boxShadowSecondary ?? token.boxShadow,
-    };
-    grouped.forEach((count, pos) => {
-      for (let i = 0; i < count; i++) {
-        const hid = `out-${pos}-${i}`;
-        handles.push(
-          <Handle
-            key={hid}
-            type="source"
-            position={pos}
-            style={getHandleStyle && getHandleStyle(pos, 'source', i, count, opts)}
-            id={hid}
-            onClick={(e) => {
-              e.stopPropagation();
-              const n = getNode(id as any);
-              const sourceW =
-                (n as any)?.width ?? (n as any)?.measured?.width ?? wrapperRef.current?.offsetWidth ?? undefined;
-              const sourceH =
-                (n as any)?.height ?? (n as any)?.measured?.height ?? wrapperRef.current?.offsetHeight ?? undefined;
-              openNextStepModal?.({
-                nodeId: id,
-                handleId: hid,
-                handleType: 'source',
-                position: pos,
-                nodeType: data.type as any,
-                clientX: e.clientX,
-                clientY: e.clientY,
-                sourceW: sourceW as number,
-                sourceH: sourceH as number,
-              });
-            }}
-          />
-        );
-      }
-    });
-    return handles;
-  }, [handlePositions.output, id, data.type, openNextStepModal, getNode, token]);
 
   return (
     <div style={{ position: 'relative' }}>

@@ -14,7 +14,7 @@ import {
   useReactFlow,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { Drawer, Form, Layout, Modal } from 'antd';
+import { Card, Drawer, Form, Layout, Modal } from 'antd';
 import React, { memo, useCallback, useMemo, useState } from 'react';
 
 import NodeForm from '../forms/node-form';
@@ -284,38 +284,44 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flowConfig, onStartConversation
       // If source is categorize, persist routing in form
       if (nextStepCtx.nodeType === 'categorize' && sourceHandle?.startsWith('out-')) {
         const categoryName = sourceHandle.substring(4);
-        setNodes((nds) => nds.map((n) => {
-          if (n.id !== nextStepCtx.nodeId || n.type !== 'categorize') return n;
-          const form = n.data.form as any;
-          if (!Array.isArray(form?.categories)) return n;
-          return {
-            ...n,
-            data: {
-              ...n.data,
-              form: {
-                ...form,
-                categories: form.categories.map((c: any) => c.name === categoryName ? { ...c, targetNode: newNode.id } : c)
-              }
-            }
-          } as FlowNode;
-        }));
+        setNodes((nds) =>
+          nds.map((n) => {
+            if (n.id !== nextStepCtx.nodeId || n.type !== 'categorize') return n;
+            const form = n.data.form as any;
+            if (!Array.isArray(form?.categories)) return n;
+            return {
+              ...n,
+              data: {
+                ...n.data,
+                form: {
+                  ...form,
+                  categories: form.categories.map((c: any) =>
+                    c.name === categoryName ? { ...c, targetNode: newNode.id } : c
+                  ),
+                },
+              },
+            } as FlowNode;
+          })
+        );
       }
 
       // If source is decision, persist target in form (branch or default)
       if (nextStepCtx.nodeType === 'decision' && sourceHandle) {
         const branchName = sourceHandle.startsWith('out-') ? sourceHandle.substring(4) : '';
-        setNodes((nds) => nds.map((n) => {
-          if (n.id !== nextStepCtx.nodeId || n.type !== 'decision') return n;
-          const form: any = { ...(n.data.form || {}) };
-          if (branchName === 'default') {
-            form.defaultTarget = newNode.id;
-          } else if (branchName) {
-            form.branches = (form.branches || []).map((b: any) =>
-              (slugify((b as any).name) === branchName) ? { ...b, targetNode: newNode.id } : b
-            );
-          }
-          return { ...n, data: { ...n.data, form } } as FlowNode;
-        }));
+        setNodes((nds) =>
+          nds.map((n) => {
+            if (n.id !== nextStepCtx.nodeId || n.type !== 'decision') return n;
+            const form: any = { ...(n.data.form || {}) };
+            if (branchName === 'default') {
+              form.defaultTarget = newNode.id;
+            } else if (branchName) {
+              form.branches = (form.branches || []).map((b: any) =>
+                slugify((b as any).name) === branchName ? { ...b, targetNode: newNode.id } : b
+              );
+            }
+            return { ...n, data: { ...n.data, form } } as FlowNode;
+          })
+        );
       }
 
       setEdges((eds) => [...eds, newEdge]);
@@ -413,11 +419,10 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flowConfig, onStartConversation
           footer={null}>
           <div style={{ maxHeight: 400, overflow: 'auto' }}>
             {availableNextTypes.map(([type, config]) => (
-              <div
+              <Card
                 key={type}
                 onClick={() => addNextNode(type as NodeTypeString)}
                 style={{
-                  border: `1px solid ${config.color.border}`,
                   borderRadius: 6,
                   padding: '10px 12px',
                   marginBottom: 10,
@@ -431,7 +436,7 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flowConfig, onStartConversation
                   <div style={{ fontWeight: 600 }}>{config.data.form?.name || type}</div>
                   <div style={{ fontSize: 12, color: '#888' }}>{config.data.form?.description || ''}</div>
                 </div>
-              </div>
+              </Card>
             ))}
             {availableNextTypes.length === 0 && <div style={{ color: '#999' }}>No compatible nodes</div>}
           </div>

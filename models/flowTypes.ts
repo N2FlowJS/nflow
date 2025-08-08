@@ -725,11 +725,6 @@ export interface NodeFormField {
 export interface NodeConfig {
   type: NodeTypeString;
   icon?: React.ReactNode;
-  color: {
-    background: string;
-    border: string;
-    handle: string;
-  };
   input: string; // Description of what input the node accepts
   output: string; // Description of what output the node produces
   references?: InputReference[]; // Optional references for input/output
