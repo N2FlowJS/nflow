@@ -95,6 +95,34 @@ import { NODE_REGISTRY } from '../../../utils/client/NODE_REGISTRY';
 import { parseFlowConfig } from '../../../utils/server/parseFlowConfig';
 import AgentNode from '../nodes/agent-node';
 
+// Helpers to work with handle ids and positions
+const getPositionFromHandleId = (handleId?: string | null): Position | null => {
+  if (!handleId) return null;
+  // expected format: in|out-<Position>-<index>
+  const parts = handleId.split('-');
+  if (parts.length >= 3) {
+    const pos = parts[1] as keyof typeof Position;
+    if (pos in Position) {
+      return Position[pos];
+    }
+  }
+  return null;
+};
+
+const getOppositePosition = (pos: Position): Position => {
+  switch (pos) {
+    case Position.Left:
+      return Position.Right;
+    case Position.Right:
+      return Position.Left;
+    case Position.Top:
+      return Position.Bottom;
+    case Position.Bottom:
+    default:
+      return Position.Top;
+  }
+};
+
 interface FlowEditorContextType {
   openConfigDrawer: () => void;
   deleteNode: (nodeId: string) => void;
@@ -106,6 +134,8 @@ interface FlowEditorContextType {
     nodeType: NodeTypeString;
     clientX: number;
     clientY: number;
+    sourceW: number;
+    sourceH: number;
   }) => void;
 }
 const FlowEditorContext = createContext<FlowEditorContextType | null>(null);
@@ -203,6 +233,8 @@ type NextStepContext = {
   nodeType: NodeTypeString;
   clientX: number;
   clientY: number;
+  sourceW: number;
+  sourceH: number;
 } | null;
 
 const useConversationStateLoader = (activeConversationId: string | undefined, setFlowState: (state: any) => void) => {
@@ -264,9 +296,11 @@ const useNodeConnection = (
           if (targetType === 'subagent') {
             targetHandle = `in-${Position.Top}-0`;
           }
-          // Default: if target handle missing, prefer Left
+          // If target handle missing, prefer opposite of source handle side; fallback to Top
           if (!targetHandle) {
-            targetHandle = `in-${Position.Left}-0`;
+            const srcPos = getPositionFromHandleId(sourceHandle) ?? Position.Left;
+            const opposite = getOppositePosition(srcPos);
+            targetHandle = `in-${opposite}-0`;
           }
 
           if (sourceType === 'decision') {
@@ -325,11 +359,11 @@ const useNodeConnection = (
           }
 
           const edgeToAdd: Edge = {
-            id: `edge-${params.source}-${params.target}-${sourceHandle || 'sh'}-${targetHandle || 'th'}`,
+            id: `edge-${params.source}-${params.target}-${sourceHandle || 'sh'}-${targetHandle || 'none'}`,
             source: params.source!,
             target: params.target!,
             sourceHandle,
-            targetHandle,
+            ...(targetHandle ? { targetHandle } : {}),
             type: 'default',
             markerEnd: {
               type: MarkerType.ArrowClosed,
@@ -587,18 +621,45 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flowConfig, onStartConversation
       const dir = getDirVector(nextStepCtx.position);
       const size = estimateSize(nodeType);
 
-      // Place new node so it doesn't overlap source and shows a clear edge
-      const GAP = 40; // small gap from handle
-      let pos = { x: clickFlow.x - size.width / 2, y: clickFlow.y - size.height / 2 };
+      // Place new node using source node size for smarter spacing
+      const GAP = 16; // gap between source node bbox and new node bbox
+      const sW = nextStepCtx.sourceW ?? (source as any).width ?? estimateSize(source.type as NodeTypeString).width;
+      const sH = nextStepCtx.sourceH ?? (source as any).height ?? estimateSize(source.type as NodeTypeString).height;
 
-      // Shift along direction to move the node away from the handle
-      pos = { x: pos.x + dir.x * (size.width / 2 + GAP), y: pos.y + dir.y * (size.height / 2 + GAP) };
+      let pos: { x: number; y: number };
+      switch (nextStepCtx.position) {
+        case Position.Bottom:
+          pos = {
+            x: clickFlow.x - size.width / 2,
+            y: source.position.y + sH + GAP,
+          };
+          break;
+        case Position.Top:
+          pos = {
+            x: clickFlow.x - size.width / 2,
+            y: source.position.y - GAP - size.height,
+          };
+          break;
+        case Position.Left:
+          pos = {
+            x: source.position.x + GAP,
+            y: clickFlow.y - size.height / 2,
+          };
+          break;
+        case Position.Right:
+        default:
+          pos = {
+            x: source.position.x + sW + GAP,
+            y: clickFlow.y - size.height / 2,
+          };
+          break;
+      }
 
       // Snap to grid
       pos = snapToGrid(pos);
 
       // Avoid collisions by pushing along the direction vector
-      const STEP = 40;
+      const STEP = 20; // reduced step from 40 so adjustments are less far
       let attempts = 0;
       while (collides(pos, size) && attempts < 20) {
         pos = { x: pos.x + dir.x * STEP, y: pos.y + dir.y * STEP };
@@ -620,15 +681,22 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flowConfig, onStartConversation
 
       setNodes((nds) => [...nds, newNode]);
 
-      // Prefer connecting to Top input of the new node
-      const targetHandle = `in-${Position.Top}-0` as string;
+      // Choose target handle: SubAgent -> Top; otherwise opposite of clicked source handle; fallback Top
+      let targetHandle: string | undefined;
+      if (nodeType === 'subagent') {
+        targetHandle = `in-${Position.Top}-0`;
+      } else {
+        const opposite = getOppositePosition(nextStepCtx.position);
+        targetHandle = `in-${opposite}-0`;
+      }
+
       const sourceHandle = nextStepCtx.handleId;
       const newEdge: Edge = {
         id: `edge-${nextStepCtx.nodeId}-to-${newNode.id}`,
         source: nextStepCtx.nodeId,
         sourceHandle,
         target: newNode.id,
-        targetHandle,
+        ...(targetHandle ? { targetHandle } : {}),
         type: 'default',
         markerEnd: { type: MarkerType.ArrowClosed },
       } as Edge;

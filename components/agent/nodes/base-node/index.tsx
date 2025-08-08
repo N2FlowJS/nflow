@@ -1,7 +1,7 @@
-import { Handle, Position } from '@xyflow/react';
+import { Handle, Position, useReactFlow } from '@xyflow/react';
 import { Card, Button, Space, Modal } from 'antd';
 import { DeleteOutlined, BugOutlined, SettingOutlined } from '@ant-design/icons';
-import React, { memo, useMemo } from 'react';
+import React, { memo, useMemo, useRef } from 'react';
 import { useNodeExecutionStatus } from '../../../../context/FlowStateContext';
 import { useCardStyle } from '../../../../hooks/useCardStyle';
 import { NodeData } from '../../../../models/flowTypes';
@@ -27,8 +27,12 @@ const BaseNode: React.FC<BaseNodeProps> = ({ data, id, selected, handlePositions
   const nodeConfig = NODE_REGISTRY[data.type];
   const isExecutedNode = useNodeExecutionStatus(id);
   const { openConfigDrawer, deleteNode, openNextStepModal } = useFlowEditorContext();
+  const { getNode } = useReactFlow();
 
   const cardStyle = useCardStyle({ selected, isExecutedNode, nodeConfig });
+
+  // measure fallback via DOM
+  const wrapperRef = useRef<HTMLDivElement>(null);
 
   const handleDelete = () => {
     Modal.confirm({
@@ -98,6 +102,11 @@ const BaseNode: React.FC<BaseNodeProps> = ({ data, id, selected, handlePositions
             id={hid}
             onClick={(e) => {
               e.stopPropagation();
+              const n = getNode(id as any);
+              const sourceW =
+                (n as any)?.width ?? (n as any)?.measured?.width ?? wrapperRef.current?.offsetWidth ?? undefined;
+              const sourceH =
+                (n as any)?.height ?? (n as any)?.measured?.height ?? wrapperRef.current?.offsetHeight ?? undefined;
               openNextStepModal?.({
                 nodeId: id,
                 handleId: hid,
@@ -106,6 +115,8 @@ const BaseNode: React.FC<BaseNodeProps> = ({ data, id, selected, handlePositions
                 nodeType: data.type as any,
                 clientX: e.clientX,
                 clientY: e.clientY,
+                sourceW: sourceW as number,
+                sourceH: sourceH as number,
               });
             }}
           />
@@ -113,7 +124,7 @@ const BaseNode: React.FC<BaseNodeProps> = ({ data, id, selected, handlePositions
       }
     });
     return handles;
-  }, [handlePositions.output, id, data.type, openNextStepModal]);
+  }, [handlePositions.output, id, data.type, openNextStepModal, getNode]);
 
   return (
     <div style={{ position: 'relative' }}>
@@ -124,14 +135,13 @@ const BaseNode: React.FC<BaseNodeProps> = ({ data, id, selected, handlePositions
             top: -30,
             right: 0,
             zIndex: 10,
-          }}
-        >
+          }}>
           <Button size="small" icon={<SettingOutlined />} onClick={handleConfig} />
           <Button size="small" icon={<BugOutlined />} onClick={handleDebug} />
           <Button size="small" icon={<DeleteOutlined />} onClick={handleDelete} danger />
         </Space>
       )}
-      <Card style={cardStyle}>
+      <Card style={cardStyle} ref={wrapperRef}>
         <NodeHeader id={id} name={data.form?.name} type={data.type} icon={icon} role={role} />
         {childrenSection}
         {inputHandles}
