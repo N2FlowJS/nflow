@@ -14,14 +14,15 @@ import {
   useNodesState,
   useReactFlow,
   Edge, // Import Edge type
+  Position,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { Drawer, Form, Layout, message } from 'antd';
+import { Drawer, Form, Layout, message, Modal } from 'antd';
 import React, { memo, useCallback, useEffect, useState, createContext, useContext, useMemo } from 'react';
 
 import { saveFlowConfig } from '../../../services/agentService';
 import NodeForm from '../forms/node-form';
-import NodePalette from './node-palette';
+// Removed NodePalette
 
 import { useFlowState } from '../../../context/FlowStateContext';
 import { CategorizeForm, DecisionForm, FlowNode, NodeTypeString } from '../../../models/flowTypes';
@@ -97,6 +98,15 @@ import AgentNode from '../nodes/agent-node';
 interface FlowEditorContextType {
   openConfigDrawer: () => void;
   deleteNode: (nodeId: string) => void;
+  openNextStepModal: (info: {
+    nodeId: string;
+    handleId: string;
+    handleType: 'source' | 'target';
+    position: Position;
+    nodeType: NodeTypeString;
+    clientX: number;
+    clientY: number;
+  }) => void;
 }
 const FlowEditorContext = createContext<FlowEditorContextType | null>(null);
 export const useFlowEditorContext = () => {
@@ -152,7 +162,7 @@ const nodeTypes: ReactFlowNodeTypes = {
   weather: WeatherNode,
   datetime: DateTimeNode,
   math: MathNode,
-  display: DisplayNode, 
+  display: DisplayNode,
   loop: LoopNode,
   variable: VariableNode,
   code: CodeNode,
@@ -167,7 +177,7 @@ const nodeTypes: ReactFlowNodeTypes = {
   loganalysis: LogAnalysisNode,
   excelanalysis: ExcelAnalysisNode,
   wechat: WeChatNode,
-  agent: AgentNode, 
+  agent: AgentNode,
 };
 
 const edgeTypes: EdgeTypes = {
@@ -184,6 +194,16 @@ interface FlowEditorProps {
 }
 
 const { Content } = Layout;
+
+type NextStepContext = {
+  nodeId: string;
+  handleId: string;
+  handleType: 'source' | 'target';
+  position: Position;
+  nodeType: NodeTypeString;
+  clientX: number;
+  clientY: number;
+} | null;
 
 const useConversationStateLoader = (activeConversationId: string | undefined, setFlowState: (state: any) => void) => {
   useEffect(() => {
@@ -236,17 +256,30 @@ const useNodeConnection = (
         const targetType = targetNode.type as NodeTypeString;
 
         if (isConnectionAllowed(sourceType, targetType)) {
+          // Normalize handles
+          let sourceHandle = params.sourceHandle ?? undefined;
+          let targetHandle = params.targetHandle ?? undefined;
+
+          // Always land on Top handle of SubAgent
+          if (targetType === 'subagent') {
+            targetHandle = `in-${Position.Top}-0`;
+          }
+          // Default: if target handle missing, prefer Left
+          if (!targetHandle) {
+            targetHandle = `in-${Position.Left}-0`;
+          }
+
           if (sourceType === 'decision') {
-            const branchName = params.sourceHandle?.startsWith('out-') ? params.sourceHandle.substring(4) : '';
+            const branchName = sourceHandle?.startsWith('out-') ? sourceHandle.substring(4) : '';
 
             setNodes((nds: FlowNode[]) =>
               nds.map((n) => {
                 if (n.id === params.source) {
                   const form: DecisionForm = { ...n.data.form } as DecisionForm;
 
-                  if (params.sourceHandle === 'out-default') {
-                    form.defaultTarget = params.target;
-                  } else {
+                  if (sourceHandle === 'out-default') {
+                    form.defaultTarget = params.target!;
+                  } else if (branchName) {
                     form.branches = form.branches.map((branch: any) =>
                       branch.name === branchName ? { ...branch, targetNode: params.target } : branch
                     );
@@ -264,10 +297,8 @@ const useNodeConnection = (
               })
             );
           }
-          if (sourceType === 'categorize' && params.sourceHandle) {
-            const categoryName = params.sourceHandle.startsWith('out-')
-              ? params.sourceHandle.substring(4)
-              : params.sourceHandle;
+          if (sourceType === 'categorize' && sourceHandle) {
+            const categoryName = sourceHandle.startsWith('out-') ? sourceHandle.substring(4) : sourceHandle;
 
             setNodes((nds: FlowNode[]) =>
               nds.map((n) => {
@@ -293,18 +324,22 @@ const useNodeConnection = (
             );
           }
 
-          setEdges((eds) =>
-            addEdge(
-              {
-                ...params,
-                type: 'default',
-                markerEnd: {
-                  type: MarkerType.ArrowClosed,
-                },
-              },
-              eds
-            )
-          );
+          const edgeToAdd: Edge = {
+            id: `edge-${params.source}-${params.target}-${sourceHandle || 'sh'}-${targetHandle || 'th'}`,
+            source: params.source!,
+            target: params.target!,
+            sourceHandle,
+            targetHandle,
+            type: 'default',
+            markerEnd: {
+              type: MarkerType.ArrowClosed,
+            },
+          } as Edge;
+
+          setEdges((eds) => {
+            if (eds.some((e) => e.id === edgeToAdd.id)) return eds; // dedupe
+            return addEdge(edgeToAdd, eds);
+          });
         } else {
           message.error(`Cannot connect ${sourceType} node to ${targetType} node`);
         }
@@ -430,11 +465,75 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flowConfig, onStartConversation
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [nodeForm] = Form.useForm();
   const { screenToFlowPosition } = useReactFlow();
-  const [isPaletteCollapsed, setIsPaletteCollapsed] = useState(false);
+  // Removed palette state
   // Add lightweight drag flag
   const [isDragging, setIsDragging] = useState(false);
 
   const { setFlowState } = useFlowState();
+
+  // Next step modal state
+  const [isNextStepOpen, setIsNextStepOpen] = useState(false);
+  const [nextStepCtx, setNextStepCtx] = useState<NextStepContext>(null);
+
+  // Helpers for smart positioning
+  const getDirVector = useCallback((p: Position) => {
+    switch (p) {
+      case Position.Bottom:
+        return { x: 0, y: 1 };
+      case Position.Top:
+        return { x: 0, y: -1 };
+      case Position.Left:
+        return { x: -1, y: 0 };
+      case Position.Right:
+        return { x: 1, y: 0 };
+      default:
+        return { x: 0, y: 1 };
+    }
+  }, []);
+
+  const estimateSize = useCallback((_: NodeTypeString) => {
+    // Fallback estimate; if measured sizes exist on nodes, use them where possible
+    // Could be refined per type
+    return { width: 320, height: 180 };
+  }, []);
+
+  const snapToGrid = useCallback((pos: { x: number; y: number }) => {
+    const grid = 20;
+    return {
+      x: Math.round(pos.x / grid) * grid,
+      y: Math.round(pos.y / grid) * grid,
+    };
+  }, []);
+
+  const rectsOverlap = (
+    a: { x: number; y: number; w: number; h: number },
+    b: { x: number; y: number; w: number; h: number }
+  ) => {
+    return !(a.x + a.w <= b.x || b.x + b.w <= a.x || a.y + a.h <= b.y || b.y + b.h <= a.y);
+  };
+
+  const collides = useCallback(
+    (pos: { x: number; y: number }, size: { width: number; height: number }) => {
+      const a = { x: pos.x, y: pos.y, w: size.width, h: size.height };
+      for (const n of nodes) {
+        const w = (n as any).width ?? estimateSize(n.type as NodeTypeString).width;
+        const h = (n as any).height ?? estimateSize(n.type as NodeTypeString).height;
+        const b = { x: n.position.x, y: n.position.y, w, h };
+        if (rectsOverlap(a, b)) return true;
+      }
+      return false;
+    },
+    [nodes, estimateSize]
+  );
+
+  const availableNextTypes = useMemo(() => {
+    if (!nextStepCtx) return [] as Array<[NodeTypeString, any]>;
+
+    const sourceType = nextStepCtx.nodeType;
+    return Object.entries(NODE_REGISTRY).filter(([type]) =>
+      isConnectionAllowed(sourceType, type as NodeTypeString)
+    ) as Array<[NodeTypeString, any]>;
+  }, [nextStepCtx]);
 
   useConversationStateLoader(activeConversationId, setFlowState);
   useEdgeCleanup(nodes, setEdges);
@@ -460,6 +559,88 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flowConfig, onStartConversation
     [setNodes]
   );
 
+  const openNextStepModal = useCallback<FlowEditorContextType['openNextStepModal']>((info) => {
+    // Only react to source handle clicks
+    if (info.handleType !== 'source') return;
+    setNextStepCtx(info);
+    setIsNextStepOpen(true);
+  }, []);
+
+  const addNextNode = useCallback(
+    (nodeType: NodeTypeString) => {
+      if (!nextStepCtx) return;
+      const source = nodes.find((n) => n.id === nextStepCtx.nodeId);
+      if (!source) return;
+
+      const defaultData = NODE_REGISTRY[nodeType].data as any;
+      const form = defaultData.form || {};
+      const baseName = form.name || nodeType;
+      let newName = baseName;
+      let counter = 1;
+      while (nodes.some((node) => node.data.form?.name === newName)) {
+        newName = `${baseName}_${counter}`;
+        counter++;
+      }
+
+      // Desired anchor is the clicked handle location in flow coords
+      const clickFlow = screenToFlowPosition({ x: nextStepCtx.clientX, y: nextStepCtx.clientY });
+      const dir = getDirVector(nextStepCtx.position);
+      const size = estimateSize(nodeType);
+
+      // Place new node so it doesn't overlap source and shows a clear edge
+      const GAP = 40; // small gap from handle
+      let pos = { x: clickFlow.x - size.width / 2, y: clickFlow.y - size.height / 2 };
+
+      // Shift along direction to move the node away from the handle
+      pos = { x: pos.x + dir.x * (size.width / 2 + GAP), y: pos.y + dir.y * (size.height / 2 + GAP) };
+
+      // Snap to grid
+      pos = snapToGrid(pos);
+
+      // Avoid collisions by pushing along the direction vector
+      const STEP = 40;
+      let attempts = 0;
+      while (collides(pos, size) && attempts < 20) {
+        pos = { x: pos.x + dir.x * STEP, y: pos.y + dir.y * STEP };
+        attempts++;
+      }
+
+      const newNode: FlowNode = {
+        id: `node_${Date.now()}`,
+        type: nodeType,
+        data: {
+          ...defaultData,
+          form: {
+            ...form,
+            name: newName,
+          },
+        },
+        position: pos,
+      };
+
+      setNodes((nds) => [...nds, newNode]);
+
+      // Prefer connecting to Top input of the new node
+      const targetHandle = `in-${Position.Top}-0` as string;
+      const sourceHandle = nextStepCtx.handleId;
+      const newEdge: Edge = {
+        id: `edge-${nextStepCtx.nodeId}-to-${newNode.id}`,
+        source: nextStepCtx.nodeId,
+        sourceHandle,
+        target: newNode.id,
+        targetHandle,
+        type: 'default',
+        markerEnd: { type: MarkerType.ArrowClosed },
+      } as Edge;
+
+      setEdges((eds) => [...eds, newEdge]);
+
+      setIsNextStepOpen(false);
+      setNextStepCtx(null);
+    },
+    [nextStepCtx, nodes, setNodes, setEdges, screenToFlowPosition, getDirVector, estimateSize, snapToGrid, collides]
+  );
+
   React.useEffect(() => {
     setEdges((currentEdges) =>
       currentEdges.map((edge) => ({
@@ -473,23 +654,13 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flowConfig, onStartConversation
   const edgesForRender = useEdgesWithDragFlag(edges, isDragging);
 
   return (
-    <FlowEditorContext.Provider value={{ openConfigDrawer, deleteNode }}>
+    <FlowEditorContext.Provider value={{ openConfigDrawer, deleteNode, openNextStepModal }}>
       <Layout style={{ height: '100%', position: 'relative' }}>
-        <NodePalette
-          hasBeginNode={nodes.some((node) => node.type === 'begin')}
-          isCollapsed={isPaletteCollapsed}
-          onCollapsedChange={setIsPaletteCollapsed}
-        />
+        {/* NodePalette removed */}
 
-        <Content
-          style={{
-            marginLeft: isPaletteCollapsed ? 70 : 250,
-            transition: 'margin-left 0.2s',
-            height: '100%',
-            position: 'relative',
-          }}>
+        <Content>
           <ReactFlow
-            fitViewOptions={{ padding: 0.1 }}
+            // fitViewOptions={{ padding: 0.1 }}
             colorMode={theme}
             nodes={nodes}
             edges={edgesForRender}
@@ -546,6 +717,40 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flowConfig, onStartConversation
           }}>
           <NodeForm form={nodeForm} selectedNode={selectedNode} setIsDrawerOpen={setIsDrawerOpen} />
         </Drawer>
+
+        <Modal
+          title="Select Next Step"
+          open={isNextStepOpen}
+          onCancel={() => {
+            setIsNextStepOpen(false);
+            setNextStepCtx(null);
+          }}
+          footer={null}>
+          <div style={{ maxHeight: 400, overflow: 'auto' }}>
+            {availableNextTypes.map(([type, config]) => (
+              <div
+                key={type}
+                onClick={() => addNextNode(type as NodeTypeString)}
+                style={{
+                  border: `1px solid ${config.color.border}`,
+                  borderRadius: 6,
+                  padding: '10px 12px',
+                  marginBottom: 10,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                }}>
+                <span style={{ fontSize: 20 }}>{config.icon}</span>
+                <div>
+                  <div style={{ fontWeight: 600 }}>{config.data.form?.name || type}</div>
+                  <div style={{ fontSize: 12, color: '#888' }}>{config.data.form?.description || ''}</div>
+                </div>
+              </div>
+            ))}
+            {availableNextTypes.length === 0 && <div style={{ color: '#999' }}>No compatible nodes</div>}
+          </div>
+        </Modal>
       </Layout>
     </FlowEditorContext.Provider>
   );

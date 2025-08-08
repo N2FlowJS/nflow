@@ -26,7 +26,7 @@ interface BaseNodeProps {
 const BaseNode: React.FC<BaseNodeProps> = ({ data, id, selected, handlePositions, children, icon, role }) => {
   const nodeConfig = NODE_REGISTRY[data.type];
   const isExecutedNode = useNodeExecutionStatus(id);
-  const { openConfigDrawer, deleteNode } = useFlowEditorContext();
+  const { openConfigDrawer, deleteNode, openNextStepModal } = useFlowEditorContext();
 
   const cardStyle = useCardStyle({ selected, isExecutedNode, nodeConfig });
 
@@ -68,13 +68,14 @@ const BaseNode: React.FC<BaseNodeProps> = ({ data, id, selected, handlePositions
     const handles: React.ReactNode[] = [];
     grouped.forEach((count, pos) => {
       for (let i = 0; i < count; i++) {
+        const hid = `in-${pos}-${i}`;
         handles.push(
           <Handle
-            key={`in-${pos}-${i}`}
+            key={hid}
             type="target"
             position={pos}
             style={getHandleStyle && getHandleStyle(pos, 'target', i, count)}
-            id={`in-${pos}-${i}`}
+            id={hid}
           />
         );
       }
@@ -87,19 +88,32 @@ const BaseNode: React.FC<BaseNodeProps> = ({ data, id, selected, handlePositions
     const handles: React.ReactNode[] = [];
     grouped.forEach((count, pos) => {
       for (let i = 0; i < count; i++) {
+        const hid = `out-${pos}-${i}`;
         handles.push(
           <Handle
-            key={`out-${pos}-${i}`}
+            key={hid}
             type="source"
             position={pos}
             style={getHandleStyle && getHandleStyle(pos, 'source', i, count)}
-            id={`out-${pos}-${i}`}
+            id={hid}
+            onClick={(e) => {
+              e.stopPropagation();
+              openNextStepModal?.({
+                nodeId: id,
+                handleId: hid,
+                handleType: 'source',
+                position: pos,
+                nodeType: data.type as any,
+                clientX: e.clientX,
+                clientY: e.clientY,
+              });
+            }}
           />
         );
       }
     });
     return handles;
-  }, [handlePositions.output]);
+  }, [handlePositions.output, id, data.type, openNextStepModal]);
 
   return (
     <div style={{ position: 'relative' }}>
