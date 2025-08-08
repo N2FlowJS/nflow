@@ -17,7 +17,7 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { Drawer, Form, Layout, message } from 'antd';
-import React, { memo, useCallback, useEffect, useState, createContext, useContext } from 'react';
+import React, { memo, useCallback, useEffect, useState, createContext, useContext, useMemo } from 'react';
 
 import { saveFlowConfig } from '../../../services/agentService';
 import NodeForm from '../forms/node-form';
@@ -423,6 +423,8 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flowConfig, onStartConversation
   const [nodeForm] = Form.useForm();
   const { screenToFlowPosition } = useReactFlow();
   const [isPaletteCollapsed, setIsPaletteCollapsed] = useState(false);
+  // Add lightweight drag flag
+  const [isDragging, setIsDragging] = useState(false);
 
   const { setFlowState } = useFlowState();
 
@@ -459,6 +461,12 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flowConfig, onStartConversation
     );
   }, [onEdgeDelete, setEdges]);
 
+  // Inject a single flag into edges to disable heavy decorations during drag
+  const edgesForRender = useMemo(
+    () => edges.map((e) => ({ ...e, data: { ...(e.data || {}), isDragging } })),
+    [edges, isDragging]
+  );
+
   return (
     <FlowEditorContext.Provider value={{ openConfigDrawer, deleteNode }}>
       <Layout style={{ height: '100%', position: 'relative' }}>
@@ -479,13 +487,16 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flowConfig, onStartConversation
             fitViewOptions={{ padding: 0.1 }}
             colorMode={theme}
             nodes={nodes}
-            edges={edges}
+            edges={edgesForRender}
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
             onConnect={onConnect}
             onDrop={onDrop}
             onDragOver={onDragOver}
             onNodeClick={onNodeClick}
+            // Toggle performance mode for edges while dragging nodes
+            onNodeDragStart={() => setIsDragging(true)}
+            onNodeDragStop={() => setIsDragging(false)}
             connectionLineType={ConnectionLineType.Bezier}
             isValidConnection={isValidConnection}
             fitView

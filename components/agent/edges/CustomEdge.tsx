@@ -1,6 +1,6 @@
 import { BaseEdge, Edge, EdgeProps, getBezierPath } from '@xyflow/react';
 import { theme } from 'antd';
-import React from 'react';
+import React, { memo } from 'react';
 import { useEdgeExecutionStatus } from '../../../context/FlowStateContext';
 
 interface CustomEdgeData extends Edge {
@@ -34,6 +34,7 @@ const CustomEdge: React.FC<EdgeProps<CustomEdgeData>> = ({
 
   const { token } = theme.useToken();
   const isExecutedEdge = useEdgeExecutionStatus(source, target);
+  const isDragging = (data as any)?.isDragging;
 
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -51,6 +52,21 @@ const CustomEdge: React.FC<EdgeProps<CustomEdgeData>> = ({
     if (isExecutedEdge) return 3;
     return 1;
   };
+
+  // During drag, render only the path (skip heavy DOM like foreignObject)
+  if (isDragging) {
+    return (
+      <BaseEdge
+        path={edgePath}
+        markerEnd={markerEnd}
+        style={{
+          ...style,
+          strokeWidth: edgeStrokeWidth(),
+          stroke: edgeStrokeColor(),
+        }}
+      />
+    );
+  }
 
   return (
     <g>
@@ -84,4 +100,4 @@ const CustomEdge: React.FC<EdgeProps<CustomEdgeData>> = ({
   );
 };
 
-export default CustomEdge;
+export default memo(CustomEdge);
