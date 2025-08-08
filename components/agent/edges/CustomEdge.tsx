@@ -1,52 +1,18 @@
-import { BaseEdge, Edge, EdgeProps, getBezierPath } from '@xyflow/react';
+import { BaseEdge, EdgeProps } from '@xyflow/react';
+import React, { memo, useState } from 'react';
+import { useCustomEdge, CustomEdgeData } from './useCustomEdge';
 import { theme } from 'antd';
-import React, { memo, useMemo } from 'react';
-import { useEdgeExecutionStatus } from '../../../context/FlowStateContext';
 
-interface CustomEdgeData extends Edge {
-  onDelete?: (edgeId: string) => void;
-}
-
-const CustomEdge: React.FC<EdgeProps<CustomEdgeData>> = ({
-  id,
-  sourceX,
-  sourceY,
-  targetX,
-  targetY,
-  sourcePosition,
-  targetPosition,
-  style = {},
-  markerEnd,
-  data, // Ensure data is initialized with a default empty object and properly typed
-  source, // Added source and target from EdgeProps
-  target, // Added target from EdgeProps
-}): React.JSX.Element => {
-  // Calculate the path for the edge
-  const [edgePath, labelX, labelY] = getBezierPath({
-    sourceX,
-    sourceY,
-    sourcePosition,
-    targetX,
-    targetY,
-    targetPosition,
-    curvature: 1,
-  });
-
+const CustomEdge: React.FC<EdgeProps<CustomEdgeData>> = (props) => {
+  const { id } = props;
+  const { edgePath, labelX, labelY, markerEnd, effectiveStyle, isDragging } = useCustomEdge(props);
+  const [hovered, setHovered] = useState(false);
   const { token } = theme.useToken();
-  const isExecutedEdge = useEdgeExecutionStatus(source, target);
-  const isDragging = (data as any)?.isDragging;
-
-  const effectiveStyle = useMemo(() => {
-    const color = isExecutedEdge ? '#52c41a' : (style.stroke as string) || token.colorBorder;
-    const width = isExecutedEdge ? 3 : 1;
-    return { ...style, stroke: color, strokeWidth: width };
-  }, [isExecutedEdge, style, token.colorBorder]);
 
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if ((data as any)?.onDelete) {
-      (data as any).onDelete(id);
-    }
+    const data = props.data as any;
+    if (data?.onDelete) data.onDelete(id);
   };
 
   // During drag, render only the path (skip heavy DOM like foreignObject)
@@ -55,28 +21,35 @@ const CustomEdge: React.FC<EdgeProps<CustomEdgeData>> = ({
   }
 
   return (
-    <g>
-      {/* Base edge with consistent styling */}
+    <g onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}>
       <BaseEdge path={edgePath} markerEnd={markerEnd} style={effectiveStyle} />
 
-      {/* Permanent circle indicator */}
-      <circle cx={labelX} cy={labelY} r={6} fill={token.colorBgBase} stroke="red" strokeWidth={1} />
-      <foreignObject onClick={handleDelete} x={labelX - 5} y={labelY - 5} width={10} height={10}>
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            width: '100%',
-            height: '100%',
-            padding: 0,
-          }}>
-          ×
-        </div>
-      </foreignObject>
+      {/* only show delete UI on hover */}
+      {hovered && (
+        <>
+          <foreignObject onClick={handleDelete} x={labelX - 6} y={labelY - 6} width={12} height={12}>
+            <span
+              style={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                width: '100%',
+                alignSelf: 'center',
+                justifySelf: 'center',
+                height: '100%',
+                fontSize: 24,
+                color: token.colorError,
+                cursor: 'pointer',
+                userSelect: 'none',
+                lineHeight: 1,
+              }}>
+              ×
+            </span>
+          </foreignObject>
+        </>
+      )}
     </g>
   );
 };
 
 export default memo(CustomEdge);
-    
