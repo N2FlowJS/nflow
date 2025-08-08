@@ -2,9 +2,9 @@ import React from 'react';
 import { Position, NodeProps, Node } from '@xyflow/react';
 import { AgentNodeData } from '../../../../models/flowTypes';
 import BaseNode from '../base-node';
-import { Flex } from 'antd';
 import { ApartmentOutlined } from '@ant-design/icons';
 import AgentConfigInfo from './AgentConfigInfo';
+import ConfigInfo from './ConfigInfo';
 
 const AgentNode = ({ data, id, selected }: NodeProps<Node<AgentNodeData>>) => {
   const { form } = data;
@@ -20,9 +20,8 @@ const AgentNode = ({ data, id, selected }: NodeProps<Node<AgentNodeData>>) => {
       }}
       icon={<ApartmentOutlined style={{ color: '#1890ff' }} />}
       role={data.form?.role}>
-      <Flex vertical gap={8}>
-        <AgentConfigInfo systemMessage={form?.systemMessage || ''} />
-      </Flex>
+      <AgentConfigInfo systemMessage={form?.systemMessage || ''} />
+      <ConfigInfo inheritContext={true} timeout={form.inputRefs} variableCount={form?.variables?.length || 0} />
     </BaseNode>
   );
 };

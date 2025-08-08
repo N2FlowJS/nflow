@@ -123,6 +123,17 @@ const getOppositePosition = (pos: Position): Position => {
   }
 };
 
+// Normalize strings to safe handle ids (avoid spaces/diacritics)
+const slugify = (s: string) =>
+  (s || '')
+    .toString()
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+
 interface FlowEditorContextType {
   openConfigDrawer: () => void;
   deleteNode: (nodeId: string) => void;
@@ -290,6 +301,11 @@ const useNodeConnection = (
         if (isConnectionAllowed(sourceType, targetType)) {
           // Normalize handles
           let sourceHandle = params.sourceHandle ?? undefined;
+          if (sourceType === 'decision' && sourceHandle?.startsWith('out-')) {
+            // force sourceHandle to be slugified variant to match our render ids
+            const raw = sourceHandle.substring(4);
+            sourceHandle = `out-${slugify(raw)}`;
+          }
           let targetHandle = params.targetHandle ?? undefined;
 
           // Always land on Top handle of SubAgent
@@ -315,7 +331,10 @@ const useNodeConnection = (
                     form.defaultTarget = params.target!;
                   } else if (branchName) {
                     form.branches = form.branches.map((branch: any) =>
-                      branch.name === branchName ? { ...branch, targetNode: params.target } : branch
+                      // match by slugified name to align with handle ids
+                      (slugify((branch as any).name) === branchName)
+                        ? { ...branch, targetNode: params.target }
+                        : branch
                     );
                   }
 
@@ -700,6 +719,43 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flowConfig, onStartConversation
         type: 'default',
         markerEnd: { type: MarkerType.ArrowClosed },
       } as Edge;
+
+      // If source is categorize, persist routing in form
+      if (nextStepCtx.nodeType === 'categorize' && sourceHandle?.startsWith('out-')) {
+        const categoryName = sourceHandle.substring(4);
+        setNodes((nds) => nds.map((n) => {
+          if (n.id !== nextStepCtx.nodeId || n.type !== 'categorize') return n;
+          const form = n.data.form as any;
+          if (!Array.isArray(form?.categories)) return n;
+          return {
+            ...n,
+            data: {
+              ...n.data,
+              form: {
+                ...form,
+                categories: form.categories.map((c: any) => c.name === categoryName ? { ...c, targetNode: newNode.id } : c)
+              }
+            }
+          } as FlowNode;
+        }));
+      }
+
+      // If source is decision, persist target in form (branch or default)
+      if (nextStepCtx.nodeType === 'decision' && sourceHandle) {
+        const branchName = sourceHandle.startsWith('out-') ? sourceHandle.substring(4) : '';
+        setNodes((nds) => nds.map((n) => {
+          if (n.id !== nextStepCtx.nodeId || n.type !== 'decision') return n;
+          const form: any = { ...(n.data.form || {}) };
+          if (branchName === 'default') {
+            form.defaultTarget = newNode.id;
+          } else if (branchName) {
+            form.branches = (form.branches || []).map((b: any) =>
+              (slugify((b as any).name) === branchName) ? { ...b, targetNode: newNode.id } : b
+            );
+          }
+          return { ...n, data: { ...n.data, form } } as FlowNode;
+        }));
+      }
 
       setEdges((eds) => [...eds, newEdge]);
 
