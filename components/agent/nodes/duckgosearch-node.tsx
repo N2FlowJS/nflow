@@ -19,7 +19,7 @@ const DuckGoSearchNode = ({ data, id, selected }: NodeProps<Node<DuckGoSearchNod
         input: [Position.Left, Position.Right],
         output: [Position.Right, Position.Left],
       }}
-      icon={<SearchOutlined style={{ color: '#DE5833' }} />}
+      icon={<SearchOutlined />}
       role={data.form?.role}
     >
       <Flex vertical gap={8}>

@@ -62,8 +62,8 @@ const KeywordsNode = ({ data, id, selected }: NodeProps<Node<KeywordsNodeData>>)
       id={id}
       selected={selected}
       handlePositions={{
-        input: [Position.Right, Position.Left],
-        output: [Position.Left, Position.Right],
+        input: [Position.Left, Position.Top],
+        output: [Position.Right, Position.Bottom],
       }}
       icon={<TagsOutlined style={{ color: '#722ed1' }} />}
       role={form?.role}>

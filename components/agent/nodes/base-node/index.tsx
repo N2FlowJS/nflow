@@ -1,5 +1,5 @@
 import { Handle, Position, useReactFlow } from '@xyflow/react';
-import { Card, Button, Space, Modal } from 'antd';
+import { Card, Button, Space, Modal, theme } from 'antd';
 import { DeleteOutlined, BugOutlined, SettingOutlined } from '@ant-design/icons';
 import React, { memo, useMemo, useRef } from 'react';
 import { useNodeExecutionStatus } from '../../../../context/FlowStateContext';
@@ -28,6 +28,7 @@ const BaseNode: React.FC<BaseNodeProps> = ({ data, id, selected, handlePositions
   const isExecutedNode = useNodeExecutionStatus(id);
   const { openConfigDrawer, deleteNode, openNextStepModal } = useFlowEditorContext();
   const { getNode } = useReactFlow();
+  const { token } = theme.useToken();
 
   const cardStyle = useCardStyle({ selected, isExecutedNode, nodeConfig });
 
@@ -70,6 +71,12 @@ const BaseNode: React.FC<BaseNodeProps> = ({ data, id, selected, handlePositions
   const inputHandles = useMemo(() => {
     const grouped = groupByPosition(handlePositions.input);
     const handles: React.ReactNode[] = [];
+    const opts = {
+      sourceColor: token.colorSuccess,
+      targetColor: token.colorPrimary,
+      borderColor: (token as any).colorBorderSecondary ?? token.colorBorder,
+      shadow: (token as any).boxShadowSecondary ?? token.boxShadow,
+    };
     grouped.forEach((count, pos) => {
       for (let i = 0; i < count; i++) {
         const hid = `in-${pos}-${i}`;
@@ -78,18 +85,24 @@ const BaseNode: React.FC<BaseNodeProps> = ({ data, id, selected, handlePositions
             key={hid}
             type="target"
             position={pos}
-            style={getHandleStyle && getHandleStyle(pos, 'target', i, count)}
+            style={getHandleStyle && getHandleStyle(pos, 'target', i, count, opts)}
             id={hid}
           />
         );
       }
     });
     return handles;
-  }, [handlePositions.input]);
+  }, [handlePositions.input, token]);
 
   const outputHandles = useMemo(() => {
     const grouped = groupByPosition(handlePositions.output);
     const handles: React.ReactNode[] = [];
+    const opts = {
+      sourceColor: token.colorSuccess,
+      targetColor: token.colorPrimary,
+      borderColor: (token as any).colorBorderSecondary ?? token.colorBorder,
+      shadow: (token as any).boxShadowSecondary ?? token.boxShadow,
+    };
     grouped.forEach((count, pos) => {
       for (let i = 0; i < count; i++) {
         const hid = `out-${pos}-${i}`;
@@ -98,7 +111,7 @@ const BaseNode: React.FC<BaseNodeProps> = ({ data, id, selected, handlePositions
             key={hid}
             type="source"
             position={pos}
-            style={getHandleStyle && getHandleStyle(pos, 'source', i, count)}
+            style={getHandleStyle && getHandleStyle(pos, 'source', i, count, opts)}
             id={hid}
             onClick={(e) => {
               e.stopPropagation();
@@ -124,7 +137,7 @@ const BaseNode: React.FC<BaseNodeProps> = ({ data, id, selected, handlePositions
       }
     });
     return handles;
-  }, [handlePositions.output, id, data.type, openNextStepModal, getNode]);
+  }, [handlePositions.output, id, data.type, openNextStepModal, getNode, token]);
 
   return (
     <div style={{ position: 'relative' }}>

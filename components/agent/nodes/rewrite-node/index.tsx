@@ -16,8 +16,8 @@ const RewriteNode = ({ data, id, selected }: NodeProps<Node<RewriteNodeData>>) =
       id={id}
       selected={selected}
       handlePositions={{
-        input: [Position.Left, Position.Right],
-        output: [Position.Right, Position.Left],
+        input: [Position.Left, Position.Top],
+        output: [Position.Right, Position.Bottom],
       }}
       icon={<EditOutlined style={{ color: '#52c41a' }} />}
       role={data.form?.role}

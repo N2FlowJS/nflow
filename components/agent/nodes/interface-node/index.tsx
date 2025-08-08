@@ -17,8 +17,8 @@ const InterfaceNode = ({
       id={id}
       selected={selected}
       handlePositions={{
-        input: [Position.Left, Position.Right],
-        output: [Position.Right, Position.Left],
+        input: [Position.Left, Position.Top],
+        output: [Position.Right, Position.Bottom],
       }}
       icon={
         <Badge color="green">

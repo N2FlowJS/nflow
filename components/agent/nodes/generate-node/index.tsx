@@ -1,23 +1,17 @@
-import React from "react";
-import { Position, NodeProps, Node } from "@xyflow/react";
-import { GenerateNodeData } from "../../../../models/flowTypes";
+import React from 'react';
+import { Position, NodeProps, Node } from '@xyflow/react';
+import { GenerateNodeData } from '../../../../models/flowTypes';
 import BaseNode from '../base-node';
 import { Flex, Tooltip, Spin } from 'antd';
-import { RobotOutlined, InfoCircleOutlined } from "@ant-design/icons";
-import ModelInfo from "./ModelInfo";
-import PromptInfo from "./PromptInfo";
-import { useModelDetails } from "../../../../hooks/useModelDetails";
-import HistoryChatSize from "../keywords-node/history-chat-size";
+import { RobotOutlined, InfoCircleOutlined } from '@ant-design/icons';
+import ModelInfo from './ModelInfo';
+import PromptInfo from './PromptInfo';
+import { useModelDetails } from '../../../../hooks/useModelDetails';
+import HistoryChatSize from '../keywords-node/history-chat-size';
 
 const GenerateNode = ({ data, id, selected }: NodeProps<Node<GenerateNodeData>>) => {
   const { form } = data;
-  const {
-    loading,
-    error,
-    getModelDisplayName,
-    getProviderName,
-    modelDetails
-  } = useModelDetails(form?.model);
+  const { loading, error, getModelDisplayName, getProviderName, modelDetails } = useModelDetails(form?.model);
 
   return (
     <BaseNode
@@ -25,12 +19,11 @@ const GenerateNode = ({ data, id, selected }: NodeProps<Node<GenerateNodeData>>)
       id={id}
       selected={selected}
       handlePositions={{
-        input: [Position.Right, Position.Left],
-        output: [Position.Left, Position.Right],
+        input: [Position.Left, Position.Right, Position.Top],
+        output: [Position.Right, Position.Bottom],
       }}
       icon={<RobotOutlined style={{ color: '#52c41a' }} />}
-      role={form?.role}
-    >
+      role={form?.role}>
       <Flex vertical gap={8}>
         <Flex align="center" justify="space-between">
           {loading ? (
@@ -50,9 +43,8 @@ const GenerateNode = ({ data, id, selected }: NodeProps<Node<GenerateNodeData>>)
           )}
         </Flex>
 
-        <PromptInfo prompt={form?.prompt || ""} />
-                <HistoryChatSize numberHistory={form?.numberHistory || 0} />
-
+        <PromptInfo prompt={form?.prompt || ''} />
+        <HistoryChatSize numberHistory={form?.numberHistory || 0} />
       </Flex>
     </BaseNode>
   );

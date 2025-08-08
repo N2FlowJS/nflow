@@ -5,19 +5,10 @@ import { DecisionNodeData } from "../../../../models/flowTypes";
 import BaseNode from "../base-node";
 import DecisionBranches from "./DecisionBranches";
 import DefaultBranch from "./DefaultBranch";
-import { NODE_REGISTRY } from "../../../../utils/client/NODE_REGISTRY";
-import { sourceColor } from "../base-node/handle-icon";
+import {  getHandleStyle } from "../base-node/handle-icon";
 import { useFlowEditorContext } from "../../canvas/FlowEditorContext";
-
-const slugify = (s: string) =>
-  (s || "")
-    .toString()
-    .trim()
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/\p{Diacritic}/gu, '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
+import { slugify } from "../../canvas/useFlowHelpers";
+import { theme } from 'antd';
 
 const DecisionNode = ({
   data,
@@ -27,9 +18,16 @@ const DecisionNode = ({
   const form = data.form || {};
   const branches = form.branches || [];
   const hasBranches = branches.length > 0;
-  const nodeConfig = NODE_REGISTRY.decision;
   const { openNextStepModal } = useFlowEditorContext();
   const { getNode } = useReactFlow();
+  const { token } = theme.useToken();
+
+  const styleOpts = {
+    sourceColor: token.colorSuccess,
+    targetColor: token.colorPrimary,
+    borderColor: (token as any).colorBorderSecondary ?? token.colorBorder,
+    shadow: (token as any).boxShadowSecondary ?? token.boxShadow,
+  };
 
   return (
     <BaseNode
@@ -42,7 +40,6 @@ const DecisionNode = ({
       }}
       icon={<QuestionOutlined style={{ color: "#faad14" }} />}
       role={form?.role}
-
     >
       <div>
         {hasBranches && (
@@ -56,22 +53,16 @@ const DecisionNode = ({
 
       {branches.map((branch, index) => {
         const handleId = `out-${slugify(branch.name)}`;
+        const total = branches.length;
+        const styleBase = getHandleStyle(Position.Right, 'source', index, total, styleOpts);
         return (
           <Handle
             key={`branch-${index}`}
             type="source"
             position={Position.Right}
             id={handleId}
-            style={{
-              top: `${(index + 1) * (100 / (branches.length + 1))}%`,
-              background: nodeConfig.color.handle,
-              border: "2px solid " + nodeConfig.color.border,
-              width: "10px",
-              height: "10px",
-              cursor: 'pointer',
-              pointerEvents: 'auto',
-              zIndex: 2,
-            }}
+            style={styleBase}
+            title={branch.name}
             onClick={(e) => {
               e.stopPropagation();
               const n = getNode(id as any);
@@ -100,15 +91,10 @@ const DecisionNode = ({
           position={Position.Right}
           id={`out-default`}
           style={{
-            top: "90%",
-            background: sourceColor,
-            border: "2px solid white",
-            width: "10px",
-            height: "10px",
-            cursor: 'pointer',
-            pointerEvents: 'auto',
-            zIndex: 2,
+            ...getHandleStyle(Position.Right, 'source', undefined, undefined, styleOpts),
+            background: token.colorWarning,
           }}
+          title="default"
           onClick={(e) => {
             e.stopPropagation();
             const n = getNode(id as any);

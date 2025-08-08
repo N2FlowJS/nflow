@@ -79,7 +79,7 @@ export const useNodeConnection = (
                       form: {
                         ...form,
                         categories: form.categories.map((c) =>
-                          c.name === categoryName ? { ...c, targetNode: params.target } : c
+                          slugify(c.name) === categoryName ? { ...c, targetNode: params.target } : c
                         ),
                       },
                     },
