@@ -7,7 +7,7 @@ import { RobotOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import ModelInfo from './ModelInfo';
 import PromptInfo from './PromptInfo';
 import { useModelDetails } from '../../../../hooks/useModelDetails';
-import HistoryChatSize from '../keywords-node/history-chat-size';
+import HistoryChatSize from '../components/history-chat-size';
 
 const GenerateNode = ({ data, id, selected }: NodeProps<Node<GenerateNodeData>>) => {
   const { form } = data;

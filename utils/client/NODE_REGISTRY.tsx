@@ -150,7 +150,7 @@ export const NODE_REGISTRY: Record<NodeTypeString, NodeConfig> = {
       name: 'Interface',
       type: 'interface',
       form: {
-        role: 'assistant',
+        role: 'developer',
         name: 'Interface',
         displayFormat: 'text',
         output: '', // Required by BaseForm

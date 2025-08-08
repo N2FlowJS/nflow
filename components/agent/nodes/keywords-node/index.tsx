@@ -8,7 +8,7 @@ import ModelInfo from '../generate-node/ModelInfo';
 import PromptInfo from '../generate-node/PromptInfo';
 import KeywordsInfo from './KeywordsInfo';
 import { fetchLLMModelById } from '../../../../services/llmService';
-import HistoryChatSize from './history-chat-size';
+import HistoryChatSize from '../components/history-chat-size';
 
 const KeywordsNode = ({ data, id, selected }: NodeProps<Node<KeywordsNodeData>>) => {
   const { form } = data;

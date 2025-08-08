@@ -1,9 +1,10 @@
-import { ArrowUpOutlined, CommentOutlined, InfoCircleOutlined } from "@ant-design/icons";
-import { FlowNode } from "../../../models/flowTypes";
-import { Alert, Card, Space, Typography } from "antd";
-import React from "react";
-import BaseNodeForm from "./base-node-form";
-import { useLocale } from "../../../locale";
+import { ArrowUpOutlined, CommentOutlined, InfoCircleOutlined } from '@ant-design/icons';
+import { FlowNode } from '../../../models/flowTypes';
+import { Alert, Card, Space, Typography } from 'antd';
+import React from 'react';
+import BaseNodeForm from './base-node-form';
+import { useLocale } from '../../../locale';
+import RoleSelector from './shared/RoleSelector';
 
 const { Text } = Typography;
 
@@ -25,35 +26,31 @@ const InterfaceNodeForm: React.FC<InterfaceNodeFormProps> = (props) => {
         icon={<CommentOutlined />}
         style={{ marginBottom: 16 }}
       />
-      
-      <Card 
+      <RoleSelector />
+
+      <Card
         title={
           <Text strong>
             <InfoCircleOutlined style={{ marginRight: 8 }} />
             {t('howItWorksTitle')}
           </Text>
-        }
-      >
+        }>
         <Space direction="vertical" style={{ width: '100%' }}>
           <div>
             <ArrowUpOutlined style={{ marginRight: 8 }} />
             <Text>{t('displayNodeHowItWorksText1')}</Text>
           </div>
-          
+
           <div>
-            <Text type="secondary">
-              {t('displayNodeHowItWorksText2')}
-            </Text>
+            <Text type="secondary">{t('displayNodeHowItWorksText2')}</Text>
             <ol style={{ marginTop: 8, paddingLeft: 24 }}>
               <li>{t('displayNodePriorityItem1')}</li>
               <li>{t('displayNodePriorityItem2')}</li>
               <li>{t('displayNodePriorityItem3')}</li>
             </ol>
           </div>
-          
-          <Text type="secondary">
-            {t('displayNodeHowItWorksText3')}
-          </Text>
+
+          <Text type="secondary">{t('displayNodeHowItWorksText3')}</Text>
         </Space>
       </Card>
     </BaseNodeForm>
