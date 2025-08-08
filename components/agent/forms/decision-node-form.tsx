@@ -3,7 +3,7 @@ import { DecisionBranch, DecisionForm, DecisionNodeData, FlowNode, NodeData } fr
 import { DeleteOutlined, LinkOutlined, PlusOutlined, QuestionCircleOutlined } from '@ant-design/icons';
 import { MarkerType, useReactFlow } from '@xyflow/react'; // Import Edge type
 import { Button, Card, Collapse, Form, Input, Radio, Select, Space, Tooltip, Typography } from 'antd';
-import React from 'react';
+import React, { useCallback, useEffect } from 'react';
 import BaseNodeForm from './base-node-form';
 import { FormInstance } from 'antd/lib';
 import RoleSelector from './shared/RoleSelector';
@@ -27,8 +27,106 @@ interface DecisionNodeFormProps {
   setIsDrawerOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
+// Helper to generate stable, safe handle ids from branch names
+const normalizeHandle = (name: string) =>
+  String(name || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+
+// New hook: returns a stable callback to sync edges based on branches/defaultTarget
+const useBranchEdgeSync = (sourceNodeId: string) => {
+  const { setEdges } = useReactFlow();
+
+  return useCallback(
+    (rawValues: DecisionNodeData['form'] | { form: DecisionNodeData['form'] } | any) => {
+      // Support both shapes: {form: {...}} and flat {...}
+      const values: DecisionNodeData['form'] = (rawValues?.form ?? rawValues ?? {}) as DecisionNodeData['form'];
+      const safeBranches: DecisionBranch[] = Array.isArray(values?.branches) ? values.branches : [];
+      const safeDefaultTarget: string | undefined = values?.defaultTarget;
+
+      setEdges((currentEdges) => {
+        // Only manage edges created by this decision node:
+        // - edges from this source whose sourceHandle starts with 'out-'
+        // - or edges whose id follows our pattern `edge-${sourceNodeId}-...`
+        const isManaged = (e: any) =>
+          e.source === sourceNodeId &&
+          ((typeof e.sourceHandle === 'string' && e.sourceHandle.startsWith('out-')) ||
+            (typeof e.id === 'string' && e.id.startsWith(`edge-${sourceNodeId}-`)));
+
+        const preservedEdges = currentEdges.filter((e) => !isManaged(e));
+        const nextEdges = [...preservedEdges];
+
+        // Branch connections
+        for (const branch of safeBranches) {
+          if (!branch?.targetNode || !branch?.name) continue;
+          const handleSlug = normalizeHandle(branch.name);
+          const sourceHandle = `out-${handleSlug}`;
+          const edgeId = `edge-${sourceNodeId}-${handleSlug}-to-${branch.targetNode}`;
+
+          // Avoid duplicates by checking if an identical managed edge already exists in currentEdges
+          const exists = currentEdges.some(
+            (e) =>
+              e.id === edgeId ||
+              (e.source === sourceNodeId && e.target === branch.targetNode && e.sourceHandle === sourceHandle)
+          );
+
+          nextEdges.push(
+            exists
+              ? currentEdges.find(
+                  (e) =>
+                    e.id === edgeId ||
+                    (e.source === sourceNodeId && e.target === branch.targetNode && e.sourceHandle === sourceHandle)
+                )!
+              : {
+                  id: edgeId,
+                  source: sourceNodeId,
+                  target: branch.targetNode,
+                  sourceHandle,
+                  type: 'default',
+                  markerEnd: { type: MarkerType.ArrowClosed },
+                }
+          );
+        }
+
+        // Default connection
+        if (safeDefaultTarget) {
+          const sourceHandle = 'out-default';
+          const edgeId = `edge-${sourceNodeId}-default-to-${safeDefaultTarget}`;
+          const exists = currentEdges.some(
+            (e) =>
+              e.id === edgeId ||
+              (e.source === sourceNodeId && e.target === safeDefaultTarget && e.sourceHandle === sourceHandle)
+          );
+
+          nextEdges.push(
+            exists
+              ? currentEdges.find(
+                  (e) =>
+                    e.id === edgeId ||
+                    (e.source === sourceNodeId && e.target === safeDefaultTarget && e.sourceHandle === sourceHandle)
+                )!
+              : {
+                  id: edgeId,
+                  source: sourceNodeId,
+                  target: safeDefaultTarget,
+                  sourceHandle,
+                  type: 'default',
+                  markerEnd: { type: MarkerType.ArrowClosed },
+                }
+          );
+        }
+
+        return nextEdges;
+      });
+    },
+    [setEdges, sourceNodeId]
+  );
+};
+
 const DecisionNodeForm: React.FC<DecisionNodeFormProps> = ({ form, selectedNode, setIsDrawerOpen }) => {
-  const { getNodes, getEdges, setEdges } = useReactFlow();
+  const { getNodes } = useReactFlow();
   const flowNodes = getNodes().filter((node) => node.id !== selectedNode.id);
   const { predecessorNodes } = usePredecessorNodes(selectedNode.id);
   const { t } = useLocale('form.nodeForm');
@@ -62,96 +160,20 @@ const DecisionNodeForm: React.FC<DecisionNodeFormProps> = ({ form, selectedNode,
 
 
   // Renamed from handleSave: This function now only syncs edges
-  const syncEdgesWithBranches = (values: DecisionNodeData['form']) => {
-    // Note: Node data is already saved by BaseNodeForm's handleSave
+  const syncEdgesWithBranches = useBranchEdgeSync(selectedNode.id);
 
-    // Get all current edges
-    const currentEdges = getEdges();
-    const sourceNodeId = selectedNode.id;
-
-    // Find existing category edges from this node
-    const existingCategoryEdges = currentEdges.filter(
-      (edge) => edge.source === sourceNodeId && edge.sourceHandle?.startsWith("out-")
-    );
-
-    // Keep all non-category edges
-    const nonCategoryEdges = currentEdges.filter(
-      (edge) => !(edge.source === sourceNodeId && edge.sourceHandle?.startsWith("out-"))
-    );
-
-    // Create new edges array starting with all non-category edges
-    const newEdges = [...nonCategoryEdges];
-
-    // For each category with a target node
-    values.branches.forEach((branche: DecisionBranch) => {
-      if (branche.targetNode) {
-        const sourceHandle = `out-${branche.name}`;
-
-        // Check if this connection already exists
-        const existingEdge = existingCategoryEdges.find(
-          (edge) =>
-            edge.source === sourceNodeId &&
-            edge.target === branche.targetNode &&
-            edge.sourceHandle === sourceHandle
-        );
-
-        if (existingEdge) {
-          // If connection already exists, keep it
-          newEdges.push(existingEdge);
-        } else {
-          // If connection doesn't exist, create a new edge
-          const edgeId = `edge-${sourceNodeId}-${branche.name}-to-${branche.targetNode}`;
-          newEdges.push({
-            id: edgeId,
-            source: sourceNodeId,
-            target: branche.targetNode,
-            sourceHandle: sourceHandle,
-            type: "default",
-            markerEnd: {
-              type: MarkerType.ArrowClosed,
-            },
-          });
-        }
-      }
-    });
-    if (values.defaultTarget) {
-      const sourceHandle = `out-default`;
-
-      // Check if this connection already exists
-      const existingEdge = existingCategoryEdges.find(
-        (edge) =>
-          edge.source === sourceNodeId &&
-          edge.target === values.defaultTarget &&
-          edge.sourceHandle === sourceHandle
-      );
-
-      if (existingEdge) {
-        // If connection already exists, keep it
-        newEdges.push(existingEdge);
-      } else {
-        // If connection doesn't exist, create a new edge
-        const edgeId = `edge-${sourceNodeId}-default-to-${values.defaultTarget}`;
-        newEdges.push({
-          id: edgeId,
-          source: sourceNodeId,
-          target: values.defaultTarget,
-          sourceHandle: sourceHandle,
-          type: "default",
-          markerEnd: {
-            type: MarkerType.ArrowClosed,
-          },
-        });
-      }
-
-    }
-
-
-    // Update the edges state
-    setEdges(newEdges);
-  };
+  // Auto-sync edges when form fields change (live feedback without waiting for save)
+  useEffect(() => {
+    syncEdgesWithBranches({ defaultTarget, branches });
+  }, [defaultTarget, branches, syncEdgesWithBranches]);
 
   return (
-    <BaseNodeForm form={form} selectedNode={selectedNode} setIsDrawerOpen={setIsDrawerOpen} onSaveSuccess={syncEdgesWithBranches}>
+    <BaseNodeForm
+      form={form}
+      selectedNode={selectedNode}
+      setIsDrawerOpen={setIsDrawerOpen}
+      onSaveSuccess={syncEdgesWithBranches}
+    >
       <RoleSelector />
 
       <Collapse

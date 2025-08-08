@@ -1,6 +1,6 @@
 import { BaseEdge, Edge, EdgeProps, getBezierPath } from '@xyflow/react';
 import { theme } from 'antd';
-import React, { memo } from 'react';
+import React, { memo, useMemo } from 'react';
 import { useEdgeExecutionStatus } from '../../../context/FlowStateContext';
 
 interface CustomEdgeData extends Edge {
@@ -36,50 +36,28 @@ const CustomEdge: React.FC<EdgeProps<CustomEdgeData>> = ({
   const isExecutedEdge = useEdgeExecutionStatus(source, target);
   const isDragging = (data as any)?.isDragging;
 
+  const effectiveStyle = useMemo(() => {
+    const color = isExecutedEdge ? '#52c41a' : (style.stroke as string) || token.colorBorder;
+    const width = isExecutedEdge ? 3 : 1;
+    return { ...style, stroke: color, strokeWidth: width };
+  }, [isExecutedEdge, style, token.colorBorder]);
+
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if ((data as any).onDelete) {
+    if ((data as any)?.onDelete) {
       (data as any).onDelete(id);
     }
   };
 
-  const edgeStrokeColor = () => {
-    if (isExecutedEdge) return '#52c41a'; // Executed path
-    return style.stroke || token.colorBorder; // Default
-  };
-
-  const edgeStrokeWidth = () => {
-    if (isExecutedEdge) return 3;
-    return 1;
-  };
-
   // During drag, render only the path (skip heavy DOM like foreignObject)
   if (isDragging) {
-    return (
-      <BaseEdge
-        path={edgePath}
-        markerEnd={markerEnd}
-        style={{
-          ...style,
-          strokeWidth: edgeStrokeWidth(),
-          stroke: edgeStrokeColor(),
-        }}
-      />
-    );
+    return <BaseEdge path={edgePath} markerEnd={markerEnd} style={effectiveStyle} />;
   }
 
   return (
     <g>
       {/* Base edge with consistent styling */}
-      <BaseEdge
-        path={edgePath}
-        markerEnd={markerEnd}
-        style={{
-          ...style,
-          strokeWidth: edgeStrokeWidth(),
-          stroke: edgeStrokeColor(),
-        }}
-      />
+      <BaseEdge path={edgePath} markerEnd={markerEnd} style={effectiveStyle} />
 
       {/* Permanent circle indicator */}
       <circle cx={labelX} cy={labelY} r={6} fill={token.colorBgBase} stroke="red" strokeWidth={1} />
@@ -101,3 +79,4 @@ const CustomEdge: React.FC<EdgeProps<CustomEdgeData>> = ({
 };
 
 export default memo(CustomEdge);
+    

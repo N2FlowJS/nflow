@@ -1,5 +1,6 @@
 import { AppstoreOutlined } from "@ant-design/icons";
 import { MarkerType, useReactFlow } from "@xyflow/react";
+import React, { useCallback } from "react";
 import {
   Collapse,
   Empty,
@@ -10,7 +11,6 @@ import {
   Space,
   Tag
 } from "antd";
-import React from "react";
 import { CategorizeForm, CategorizeNodeData, FlowNode, ICategory } from "../../../../models/flowTypes";
 import BaseNodeForm from "../base-node-form";
 import InputReferences from "../shared/InputReferences";
@@ -28,6 +28,44 @@ interface CategorizeNodeFormProps {
   setIsDrawerOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
+// New hook: returns a stable callback to sync edges for categories
+const useCategoryEdgeSync = (sourceNodeId: string) => {
+  const { getEdges, setEdges } = useReactFlow();
+
+  return useCallback((values: CategorizeNodeData['form']) => {
+    const currentEdges = getEdges();
+
+    const managed = currentEdges.filter(
+      (e) => e.source === sourceNodeId && e.sourceHandle?.startsWith('out-')
+    );
+    const preserved = currentEdges.filter(
+      (e) => !(e.source === sourceNodeId && e.sourceHandle?.startsWith('out-'))
+    );
+
+    const nextEdges = [...preserved];
+
+    values.categories.forEach((cat: ICategory) => {
+      if (!cat.targetNode) return;
+      const sourceHandle = `out-${cat.name}`;
+      const existing = managed.find(
+        (e) => e.source === sourceNodeId && e.target === cat.targetNode && e.sourceHandle === sourceHandle
+      );
+      nextEdges.push(
+        existing ?? {
+          id: `edge-${sourceNodeId}-${cat.name}-to-${cat.targetNode}`,
+          source: sourceNodeId,
+          target: cat.targetNode,
+          sourceHandle,
+          type: 'default',
+          markerEnd: { type: MarkerType.ArrowClosed },
+        }
+      );
+    });
+
+    setEdges(nextEdges);
+  }, [getEdges, setEdges, sourceNodeId]);
+};
+
 const CategorizeNodeForm: React.FC<CategorizeNodeFormProps> = ({ form, selectedNode, setIsDrawerOpen }) => {
   // Get form instance using hook
 
@@ -36,8 +74,7 @@ const CategorizeNodeForm: React.FC<CategorizeNodeFormProps> = ({ form, selectedN
   const defaultCategory = Form.useWatch("defaultCategory", form) || "";
 
   // Get ReactFlow instance to access nodes and edges
-  const { getNodes, getEdges, setEdges } = useReactFlow();
-  const flowNodes = getNodes().filter(
+  const flowNodes = useReactFlow().getNodes().filter(
     (node) => node.id !== selectedNode.id
   );
   const { t } = useLocale('form.nodeForm');
@@ -92,65 +129,7 @@ const CategorizeNodeForm: React.FC<CategorizeNodeFormProps> = ({ form, selectedN
     }
   };
 
-  // Renamed from handleSave: This function now only syncs edges
-  const syncEdgesWithCategories = (values: CategorizeNodeData['form']) => {
-    // Note: Node data is already saved by BaseNodeForm's handleSave
-
-    // Get all current edges
-    const currentEdges = getEdges();
-    const sourceNodeId = selectedNode.id;
-
-    // Find existing category edges from this node
-    const existingCategoryEdges = currentEdges.filter(
-      (edge) => edge.source === sourceNodeId && edge.sourceHandle?.startsWith("out-")
-    );
-
-    // Keep all non-category edges
-    const nonCategoryEdges = currentEdges.filter(
-      (edge) => !(edge.source === sourceNodeId && edge.sourceHandle?.startsWith("out-"))
-    );
-
-    // Create new edges array starting with all non-category edges
-    const newEdges = [...nonCategoryEdges];
-
-    // For each category with a target node
-    values.categories.forEach((category: ICategory) => {
-      if (category.targetNode) {
-        const sourceHandle = `out-${category.name}`;
-
-        // Check if this connection already exists
-        const existingEdge = existingCategoryEdges.find(
-          (edge) =>
-            edge.source === sourceNodeId &&
-            edge.target === category.targetNode &&
-            edge.sourceHandle === sourceHandle
-        );
-
-        if (existingEdge) {
-          // If connection already exists, keep it
-          newEdges.push(existingEdge);
-        } else {
-          // If connection doesn't exist, create a new edge
-          const edgeId = `edge-${sourceNodeId}-${category.name}-to-${category.targetNode}`;
-          newEdges.push({
-            id: edgeId,
-            source: sourceNodeId,
-            target: category.targetNode,
-            sourceHandle: sourceHandle,
-            type: "default",
-            markerEnd: {
-              type: MarkerType.ArrowClosed,
-            },
-          });
-        }
-      }
-    });
-
-    // Update the edges state
-    setEdges(newEdges);
-  };
-
-
+  const syncEdgesWithCategories = useCategoryEdgeSync(selectedNode.id);
 
   return (
     <BaseNodeForm
@@ -251,3 +230,4 @@ const CategorizeNodeForm: React.FC<CategorizeNodeFormProps> = ({ form, selectedN
 };
 
 export default CategorizeNodeForm;
+         

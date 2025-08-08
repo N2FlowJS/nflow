@@ -20,47 +20,44 @@ export const usePredecessorNodes = (nodeId: string) => {
             return;
         }
 
-        // Create a map for O(1) node lookups
-        const nodesMap = new Map(nodes.map(node => [node.id, node]));
+        // O(1) lookups
+        const nodesMap = new Map(nodes.map(n => [n.id, n] as const));
 
-        // Track visited nodes to prevent cycles
+        // Build adjacency map of incoming edges once: targetId -> sourceIds[]
+        const incomingMap = new Map<string, string[]>();
+        for (const e of edges) {
+            if (!e?.target || !e?.source) continue;
+            const arr = incomingMap.get(e.target) ?? [];
+            arr.push(e.source);
+            incomingMap.set(e.target, arr);
+        }
+
         const visited = new Set<string>();
+        const found: FlowNode[] = [];
 
-        // Store all predecessor nodes
-        const foundNodes: FlowNode[] = [];
+        const dfs = (currentId: string) => {
+            if (visited.has(currentId)) return;
+            visited.add(currentId);
 
-        // Recursive function to traverse predecessors
-        const findPredecessors = (currentNodeId: string) => {
-            // Skip if already visited
-            if (visited.has(currentNodeId)) return;
-            visited.add(currentNodeId);
+            const incoming = incomingMap.get(currentId);
+            if (!incoming?.length) return;
 
-            // Find all direct incoming edges to this node
-            const incomingEdges = edges.filter(edge => edge.target === currentNodeId);
+            for (const srcId of incoming) {
+                const srcNode = nodesMap.get(srcId) as FlowNode | undefined;
+                if (!srcNode) continue;
 
-            // Process each predecessor
-            for (const edge of incomingEdges) {
-                const sourceId = edge.source;
-                const sourceNode = nodesMap.get(sourceId) as FlowNode;
-
-                if (!sourceNode) continue;
-
-                // Add the node to our results
-                foundNodes.push(sourceNode);
-
+                found.push(srcNode);
                 // Stop at interface nodes, continue recursion for others
-                if (sourceNode.type !== 'interface') {
-                    findPredecessors(sourceId);
+                if (srcNode.type !== 'interface') {
+                    dfs(srcId);
                 }
             }
         };
 
-        // Start recursion from the selected node
-        findPredecessors(nodeId);
-        setPredecessorNodes(foundNodes);
+        dfs(nodeId);
+        setPredecessorNodes(found);
     }, [nodeId, getNodes, getEdges]);
 
-    // Derive variables from nodes for mention suggestions
     const predecessorVariables = useMemo(() => {
         return predecessorNodes.map(node => ({
             id: node.id,

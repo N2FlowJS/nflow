@@ -1,5 +1,5 @@
 import { Empty, Layout, Tooltip } from 'antd';
-import React from 'react';
+import React, { useMemo, useCallback } from 'react';
 import { NODE_REGISTRY } from '../../../utils/client/NODE_REGISTRY';
 
 const { Sider } = Layout;
@@ -11,7 +11,14 @@ interface NodePaletteProps {
 }
 
 const NodePalette: React.FC<NodePaletteProps> = ({ hasBeginNode, isCollapsed = false, onCollapsedChange }) => {
-  const availableNodes = Object.entries(NODE_REGISTRY).filter(([type]) => !(type === 'begin' && hasBeginNode));
+  const availableNodes = useMemo(
+    () => Object.entries(NODE_REGISTRY).filter(([type]) => !(type === 'begin' && hasBeginNode)),
+    [hasBeginNode]
+  );
+
+  const onDragStart = useCallback((event: React.DragEvent, type: string) => {
+    event.dataTransfer.setData('nflow.application.reactflow', type);
+  }, []);
 
   return (
     <Sider
@@ -56,9 +63,7 @@ const NodePalette: React.FC<NodePaletteProps> = ({ hasBeginNode, isCollapsed = f
                 }
                 placement="right">
                 <div
-                  onDragStart={(event) => {
-                    event.dataTransfer.setData('nflow.application.reactflow', type);
-                  }}
+                  onDragStart={(e) => onDragStart(e, type)}
                   draggable
                   style={{
                     backgroundColor: 'transparent',

@@ -413,6 +413,14 @@ const useNodeClickHandler = (setSelectedNode: React.Dispatch<React.SetStateActio
   );
 };
 
+// Small hook: memoize edges enriched with a drag flag to reduce work during drag
+const useEdgesWithDragFlag = (edges: any[], isDragging: boolean) => {
+  return React.useMemo(
+    () => edges.map((e) => ({ ...e, data: { ...(e.data || {}), isDragging } })),
+    [edges, isDragging]
+  );
+};
+
 const FlowEditor: React.FC<FlowEditorProps> = ({ flowConfig, onStartConversation, agentId, activeConversationId }) => {
   const { theme } = useTheme();
   const initialFlow = parseFlowConfig(flowConfig);
@@ -461,11 +469,8 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flowConfig, onStartConversation
     );
   }, [onEdgeDelete, setEdges]);
 
-  // Inject a single flag into edges to disable heavy decorations during drag
-  const edgesForRender = useMemo(
-    () => edges.map((e) => ({ ...e, data: { ...(e.data || {}), isDragging } })),
-    [edges, isDragging]
-  );
+  // Replace inline useMemo with the hook
+  const edgesForRender = useEdgesWithDragFlag(edges, isDragging);
 
   return (
     <FlowEditorContext.Provider value={{ openConfigDrawer, deleteNode }}>

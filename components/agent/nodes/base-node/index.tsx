@@ -56,33 +56,50 @@ const BaseNode: React.FC<BaseNodeProps> = ({ data, id, selected, handlePositions
     [children]
   );
 
-  const inputHandles = useMemo(
-    () =>
-      handlePositions.input.flatMap((position: Position) => (
-        <Handle
-          key={`in-${position}`}
-          type="target"
-          position={position}
-          style={getHandleStyle && getHandleStyle(position, 'target')}
-          id={`in-${position}`}
-        />
-      )),
-    [handlePositions.input]
-  );
+  // Helper to group handles by position so duplicates (e.g., two Bottom outputs) can be spaced evenly
+  const groupByPosition = (positions: Position[]) => {
+    const map = new Map<Position, number>();
+    positions.forEach((pos) => map.set(pos, (map.get(pos) ?? 0) + 1));
+    return map; // position -> count
+  };
 
-  const outputHandles = useMemo(
-    () =>
-      handlePositions.output.flatMap((position) => (
-        <Handle
-          key={`out-${position}`}
-          type="source"
-          position={position}
-          style={getHandleStyle && getHandleStyle(position, 'source')}
-          id={`out-${position}`}
-        />
-      )),
-    [handlePositions.output]
-  );
+  const inputHandles = useMemo(() => {
+    const grouped = groupByPosition(handlePositions.input);
+    const handles: React.ReactNode[] = [];
+    grouped.forEach((count, pos) => {
+      for (let i = 0; i < count; i++) {
+        handles.push(
+          <Handle
+            key={`in-${pos}-${i}`}
+            type="target"
+            position={pos}
+            style={getHandleStyle && getHandleStyle(pos, 'target', i, count)}
+            id={`in-${pos}-${i}`}
+          />
+        );
+      }
+    });
+    return handles;
+  }, [handlePositions.input]);
+
+  const outputHandles = useMemo(() => {
+    const grouped = groupByPosition(handlePositions.output);
+    const handles: React.ReactNode[] = [];
+    grouped.forEach((count, pos) => {
+      for (let i = 0; i < count; i++) {
+        handles.push(
+          <Handle
+            key={`out-${pos}-${i}`}
+            type="source"
+            position={pos}
+            style={getHandleStyle && getHandleStyle(pos, 'source', i, count)}
+            id={`out-${pos}-${i}`}
+          />
+        );
+      }
+    });
+    return handles;
+  }, [handlePositions.output]);
 
   return (
     <div style={{ position: 'relative' }}>

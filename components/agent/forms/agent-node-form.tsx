@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { Form, Input, Select, Collapse, Typography, Alert, Space } from 'antd';
 import {
   SettingOutlined,
@@ -11,7 +11,7 @@ import RoleSelector from './shared/RoleSelector';
 import InputReferences from './shared/InputReferences';
 import { useRouter } from 'next/router';
 import { NODE_REGISTRY } from '../../../utils/client/NODE_REGISTRY';
-import { useReactFlow } from '@xyflow/react';
+import { Edge, MarkerType, Position, useReactFlow } from '@xyflow/react';
 
 const { Text } = Typography;
 
@@ -23,15 +23,19 @@ interface AgentNodeFormProps {
 
 const AgentNodeForm: React.FC<AgentNodeFormProps> = (props) => {
   const { selectedNode, form, setIsDrawerOpen } = props;
-  const { setNodes, getNodes } = useReactFlow();
+  const { setNodes, getNodes, setEdges, getEdges } = useReactFlow<FlowNode, Edge>();
 
-  const tools = Object.entries(NODE_REGISTRY)
-    .filter(([type]) => type !== 'agent' && type !== 'subagent')
-    .map(([type, config]) => ({
-      id: type,
-      name: config.data?.form?.name || type,
-      type: config.type,
-    }));
+  const tools = useMemo(
+    () =>
+      Object.entries(NODE_REGISTRY)
+        .filter(([type]) => type !== 'agent' && type !== 'subagent')
+        .map(([type, config]) => ({
+          id: type,
+          name: config.data?.form?.name || type,
+          type: config.type,
+        })),
+    []
+  );
 
   const [agents, setAgents] = useState<Array<{ id: string; name: string }>>([]);
   const [loadingAgents, setLoadingAgents] = useState(false);
@@ -102,38 +106,78 @@ const AgentNodeForm: React.FC<AgentNodeFormProps> = (props) => {
     // Auto-create subagent nodes for selected delegationAgents if not present
     const agentIds: string[] = formData?.delegationAgents || [];
     if (agentIds.length > 0) {
-      setNodes((currentNodes) => {
-        const existingSubAgentIds = currentNodes
-          .filter((n) => n.type === 'subagent')
-          .map((n) => n?.data?.form?.agentId);
+      const nodesSnapshot = getNodes();
+      const edgesSnapshot = getEdges?.() ?? [];
 
-        const newNodes = agentIds
-          .filter((id) => !existingSubAgentIds.includes(id))
-          .map((id, idx) => {
-            const agentMeta = agents.find((a) => a.id === id);
-            return {
-              id: `subagent_${id}_${Date.now()}_${idx}`,
+      const existingSubAgentNodes = nodesSnapshot.filter(
+        (n) => n.type === 'subagent' && agentIds.includes((n as any)?.data?.form?.agentId)
+      );
+      const existingSubAgentIds = existingSubAgentNodes.map((n) => (n as any)?.data?.form?.agentId);
+
+      const agentNode = nodesSnapshot.find((n) => n.id === selectedNode.id);
+      const baseX = agentNode?.position?.x ?? selectedNode.position?.x ?? 200;
+      const baseY = agentNode?.position?.y ?? selectedNode.position?.y ?? 200;
+
+      // Prepare new SubAgent nodes directly below the Agent
+      const newSubAgentNodes: FlowNode[] = agentIds
+        .filter((id) => !existingSubAgentIds.includes(id))
+        .map((id, idx) => {
+          const agentMeta = agents.find((a) => a.id === id);
+          const nodeId = `subagent_${id}_${Date.now()}_${idx}`;
+          const nodeLabel = agentMeta?.name || 'Sub Agent';
+          const nodePosition = { x: baseX, y: baseY + 220 + idx * 120 };
+          return {
+            id: nodeId,
+            type: 'subagent',
+            data: {
+              id: nodeId,
+              label: nodeLabel,
+              position: nodePosition,
               type: 'subagent',
-              data: {
-                type: 'subagent',
-                form: {
-                  agentId: id,
-                  agentName: agentMeta?.name || '',
-                  variables: {},
-                  timeout: 300,
-                  inheritContext: true,
-                  name: 'Sub Agent',
-                  description: 'Auto-created subagent',
-                  output: '',
-                  role: 'developer',
-                  inputRefs: [],
-                },
+              form: {
+                agentId: id,
+                agentName: agentMeta?.name || '',
+                variables: {},
+                timeout: 300,
+                inheritContext: true,
+                name: nodeLabel,
+                description: 'Auto-created subagent',
+                output: '',
+                role: 'developer',
+                inputRefs: [],
               },
-              position: { x: 200, y: 200 + Math.random() * 200 },
-            };
-          });
+            },
+            position: nodePosition,
+          } as FlowNode;
+        });
 
-        return newNodes.length ? [...currentNodes, ...newNodes] : currentNodes;
+      const allTargetNodes: FlowNode[] = [...existingSubAgentNodes, ...newSubAgentNodes];
+
+      if (newSubAgentNodes.length) {
+        // Append new nodes first
+        setNodes((current) => [...current, ...newSubAgentNodes]);
+      }
+
+      // Create edges Agent -> each SubAgent (use the first bottom handle of Agent, and top handle of SubAgent)
+      const sourceHandleId = `out-${Position.Bottom}-0`; // out-bottom-0
+      const targetHandleId = `in-${Position.Top}-0`; // in-top-0
+      const existingEdgeIds = new Set(edgesSnapshot.map((e: any) => e.id));
+      const newEdges: Edge[] = allTargetNodes.map((n) => ({
+        id: `edge-${selectedNode.id}-to-${n.id}`,
+        source: selectedNode.id,
+        target: n.id,
+        sourceHandle: sourceHandleId,
+        targetHandle: targetHandleId,
+        type: 'default',
+        markerEnd: { type: MarkerType.ArrowClosed },
+      }));
+
+      setEdges((current) => {
+        const next = [...current];
+        newEdges.forEach((e) => {
+          if (!existingEdgeIds.has(e.id)) next.push(e);
+        });
+        return next;
       });
     }
   };

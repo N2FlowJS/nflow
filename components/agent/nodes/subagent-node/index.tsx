@@ -16,18 +16,14 @@ const SubAgentNode = ({ data, id, selected }: NodeProps<Node<SubAgentNodeData>>)
       id={id}
       selected={selected}
       handlePositions={{
-        input: [Position.Left, Position.Right],
+        input: [Position.Left, Position.Right, Position.Top],
         output: [Position.Right, Position.Left],
       }}
       icon={<TeamOutlined style={{ color: '#13c2c2' }} />}
-      role={data.form?.role}
-    >
+      role={data.form?.role}>
       <Flex vertical gap={8}>
-        <AgentInfo 
-          agentId={form?.agentId || ''} 
-          agentName={form?.agentName || ''} 
-        />
-        <ConfigInfo 
+        <AgentInfo agentId={form?.agentId || ''} agentName={form?.agentName || ''} />
+        <ConfigInfo
           timeout={form?.timeout ?? 300}
           inheritContext={form?.inheritContext ?? true}
           variableCount={Object.keys(form?.variables || {}).length}

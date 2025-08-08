@@ -15,16 +15,13 @@ const AgentNode = ({ data, id, selected }: NodeProps<Node<AgentNodeData>>) => {
       id={id}
       selected={selected}
       handlePositions={{
-        input: [Position.Left],
-        output: [Position.Right],
+        input: [Position.Left, Position.Right],
+        output: [Position.Bottom, Position.Bottom, Position.Right],
       }}
       icon={<ApartmentOutlined style={{ color: '#1890ff' }} />}
-      role={data.form?.role}
-    >
+      role={data.form?.role}>
       <Flex vertical gap={8}>
-        <AgentConfigInfo 
-          systemMessage={form?.systemMessage || ''} 
-        />
+        <AgentConfigInfo systemMessage={form?.systemMessage || ''} />
       </Flex>
     </BaseNode>
   );
