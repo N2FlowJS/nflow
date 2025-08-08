@@ -8,7 +8,7 @@ import { NodeData } from '../../../../models/flowTypes';
 import { NODE_REGISTRY } from '../../../../utils/client/NODE_REGISTRY';
 import { getHandleStyle } from './handle-icon';
 import NodeHeader from './node-header';
-import { useFlowEditorContext } from '../../canvas/canvas';
+import { useFlowEditorContext } from '../../canvas/FlowEditorContext';
 
 interface BaseNodeProps {
   data: NodeData;

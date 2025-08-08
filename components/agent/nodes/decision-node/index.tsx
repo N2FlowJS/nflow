@@ -7,7 +7,7 @@ import DecisionBranches from "./DecisionBranches";
 import DefaultBranch from "./DefaultBranch";
 import { NODE_REGISTRY } from "../../../../utils/client/NODE_REGISTRY";
 import { sourceColor } from "../base-node/handle-icon";
-import { useFlowEditorContext } from "../../canvas/canvas";
+import { useFlowEditorContext } from "../../canvas/FlowEditorContext";
 
 const slugify = (s: string) =>
   (s || "")

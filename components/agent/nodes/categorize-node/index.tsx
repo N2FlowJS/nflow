@@ -7,7 +7,7 @@ import { BranchesOutlined } from "@ant-design/icons";
 import ConnectedCategories from "./ConnectedCategories";
 import UnconnectedCategories from "./UnconnectedCategories";
 import DefaultCategory from "./DefaultCategory";
-import { useFlowEditorContext } from "../../canvas/canvas";
+import { useFlowEditorContext } from "../../canvas/FlowEditorContext";
 
 const CategorizeNode = ({
   data,

@@ -1,225 +1,47 @@
 import { CommentOutlined, SaveOutlined } from '@ant-design/icons';
 import {
-  addEdge,
   Background,
-  Connection,
   ConnectionLineType,
   ControlButton,
   Controls,
+  Edge,
   EdgeTypes,
   MarkerType,
+  Position,
   ReactFlow,
-  NodeTypes as ReactFlowNodeTypes,
   useEdgesState,
   useNodesState,
   useReactFlow,
-  Edge, // Import Edge type
-  Position,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { Drawer, Form, Layout, message, Modal } from 'antd';
-import React, { memo, useCallback, useEffect, useState, createContext, useContext, useMemo } from 'react';
+import { Drawer, Form, Layout, Modal } from 'antd';
+import React, { memo, useCallback, useMemo, useState } from 'react';
 
-import { saveFlowConfig } from '../../../services/agentService';
 import NodeForm from '../forms/node-form';
 // Removed NodePalette
 
 import { useFlowState } from '../../../context/FlowStateContext';
-import { CategorizeForm, DecisionForm, FlowNode, NodeTypeString } from '../../../models/flowTypes';
-import { conversationService } from '../../../services/conversationService';
+import { FlowNode, NodeTypeString } from '../../../models/flowTypes';
 import { useTheme } from '../../../theme';
 import CustomEdge from '../edges/CustomEdge';
-import BeginNode from '../nodes/begin-node';
-import CategorizeNode from '../nodes/categorize-node';
-import DecisionNode from '../nodes/decision-node';
-import GenerateNode from '../nodes/generate-node';
-import InterfaceNode from '../nodes/interface-node';
-import RetrievalNode from '../nodes/retrieval-node';
-import KeywordsNode from '../nodes/keywords-node';
-import ExecMysqlNode from '../nodes/execmysql-node';
-import ExecMssqlNode from '../nodes/execmssql-node';
-import SubAgentNode from '../nodes/subagent-node';
-import SendMailNode from '../nodes/sendmail-node';
-import GoogleSearchNode from '../nodes/googlesearch-node';
-import BingSearchNode from '../nodes/bingsearch-node';
-import DuckGoSearchNode from '../nodes/duckgosearch-node';
-import WikipediaSearchNode from '../nodes/wikipediasearch-node';
-import RewriteNode from '../nodes/rewrite-node';
-import HttpRequestNode from '../nodes/httprequest-node';
-import ValidateNode from '../nodes/validate-node';
-import ConditionNode from '../nodes/condition-node'; // Import ConditionNode
-import TextProcessNode from '../nodes/textprocess-node';
-import TransformNode from '../nodes/transform-node';
-import FileReadNode from '../nodes/fileread-node';
-import FileWriteNode from '../nodes/filewrite-node';
-import DelayNode from '../nodes/delay-node';
-import JsonParseNode from '../nodes/jsonparse-node';
-import MattermostNode from '../nodes/mattermost-node';
-import SlackNode from '../nodes/slack-node';
-import JiraNode from '../nodes/jira-node';
-import GitLabNode from '../nodes/gitlab-node';
-import ConfluenceNode from '../nodes/confluence-node';
-import GitHubNode from '../nodes/github-node';
-import FacebookNode from '../nodes/facebook-node';
-import GoogleMapNode from '../nodes/googlemap-node';
-import TwitterNode from '../nodes/twitter-node';
-import InstagramNode from '../nodes/instagram-node';
-import LinkedInNode from '../nodes/linkedin-node';
-import YouTubeNode from '../nodes/youtube-node';
-import TikTokNode from '../nodes/tiktok-node';
-import DiscordNode from '../nodes/discord-node';
-import TelegramNode from '../nodes/telegram-node';
-import WhatsAppNode from '../nodes/whatsapp-node';
-import WeatherNode from '../nodes/weather-node';
-import DateTimeNode from '../nodes/datetime-node';
-import MathNode from '../nodes/math-node';
-import DisplayNode from '../nodes/display-node'; // Import DisplayNode
-import LoopNode from '../nodes/loop-node';
-import VariableNode from '../nodes/variable-node';
-import CodeNode from '../nodes/code-node';
-import TemplateNode from '../nodes/template-node';
-import CounterNode from '../nodes/counter-node';
-import CacheNode from '../nodes/cache-node';
-import LogNode from '../nodes/log-node'; // Import LogNode
-import FileAnalysisNode from '../nodes/file-analysis-node';
-import CsvAnalysisNode from '../nodes/csv-analysis-node';
-import ImageAnalysisNode from '../nodes/image-analysis-node';
-import PdfAnalysisNode from '../nodes/pdf-analysis-node';
-import LogAnalysisNode from '../nodes/log-analysis-node';
-import ExcelAnalysisNode from '../nodes/excel-analysis-node';
-import WeChatNode from '../nodes/wechat-node'; // Import WeChatNode
 // Additional node imports would be added
 
 import { isConnectionAllowed } from '../../../utils/client/connectionRules';
 import { NODE_REGISTRY } from '../../../utils/client/NODE_REGISTRY';
 import { parseFlowConfig } from '../../../utils/server/parseFlowConfig';
-import AgentNode from '../nodes/agent-node';
-
-// Helpers to work with handle ids and positions
-const getPositionFromHandleId = (handleId?: string | null): Position | null => {
-  if (!handleId) return null;
-  // expected format: in|out-<Position>-<index>
-  const parts = handleId.split('-');
-  if (parts.length >= 3) {
-    const pos = parts[1] as keyof typeof Position;
-    if (pos in Position) {
-      return Position[pos];
-    }
-  }
-  return null;
-};
-
-const getOppositePosition = (pos: Position): Position => {
-  switch (pos) {
-    case Position.Left:
-      return Position.Right;
-    case Position.Right:
-      return Position.Left;
-    case Position.Top:
-      return Position.Bottom;
-    case Position.Bottom:
-    default:
-      return Position.Top;
-  }
-};
-
-// Normalize strings to safe handle ids (avoid spaces/diacritics)
-const slugify = (s: string) =>
-  (s || '')
-    .toString()
-    .trim()
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/\p{Diacritic}/gu, '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-
-interface FlowEditorContextType {
-  openConfigDrawer: () => void;
-  deleteNode: (nodeId: string) => void;
-  openNextStepModal: (info: {
-    nodeId: string;
-    handleId: string;
-    handleType: 'source' | 'target';
-    position: Position;
-    nodeType: NodeTypeString;
-    clientX: number;
-    clientY: number;
-    sourceW: number;
-    sourceH: number;
-  }) => void;
-}
-const FlowEditorContext = createContext<FlowEditorContextType | null>(null);
-export const useFlowEditorContext = () => {
-  const context = useContext(FlowEditorContext);
-  if (!context) {
-    throw new Error('useFlowEditorContext must be used within a FlowEditorProvider');
-  }
-  return context;
-};
-
-const nodeTypes: ReactFlowNodeTypes = {
-  begin: BeginNode,
-  interface: InterfaceNode,
-  generate: GenerateNode,
-  categorize: CategorizeNode,
-  retrieval: RetrievalNode,
-  decision: DecisionNode,
-  keywords: KeywordsNode,
-  execmysql: ExecMysqlNode,
-  execmssql: ExecMssqlNode,
-  subagent: SubAgentNode,
-  sendmail: SendMailNode,
-  googlesearch: GoogleSearchNode,
-  bingsearch: BingSearchNode,
-  duckgosearch: DuckGoSearchNode,
-  wikipediasearch: WikipediaSearchNode,
-  rewrite: RewriteNode,
-  httprequest: HttpRequestNode,
-  validate: ValidateNode,
-  condition: ConditionNode,
-  textprocess: TextProcessNode,
-  transform: TransformNode,
-  fileread: FileReadNode,
-  filewrite: FileWriteNode,
-  delay: DelayNode,
-  jsonparse: JsonParseNode,
-  mattermost: MattermostNode,
-  slack: SlackNode,
-  jira: JiraNode,
-  gitlab: GitLabNode,
-  confluence: ConfluenceNode,
-  github: GitHubNode,
-  facebook: FacebookNode,
-  googlemap: GoogleMapNode,
-  twitter: TwitterNode,
-  instagram: InstagramNode,
-  linkedin: LinkedInNode,
-  youtube: YouTubeNode,
-  tiktok: TikTokNode,
-  discord: DiscordNode,
-  telegram: TelegramNode,
-  whatsapp: WhatsAppNode,
-  weather: WeatherNode,
-  datetime: DateTimeNode,
-  math: MathNode,
-  display: DisplayNode,
-  loop: LoopNode,
-  variable: VariableNode,
-  code: CodeNode,
-  template: TemplateNode,
-  counter: CounterNode,
-  cache: CacheNode,
-  log: LogNode,
-  fileanalysis: FileAnalysisNode,
-  csvanalysis: CsvAnalysisNode,
-  imageanalysis: ImageAnalysisNode,
-  pdfanalysis: PdfAnalysisNode,
-  loganalysis: LogAnalysisNode,
-  excelanalysis: ExcelAnalysisNode,
-  wechat: WeChatNode,
-  agent: AgentNode,
-};
+import { nodeTypes } from './nodeTypes';
+import { FlowEditorContext, FlowEditorContextType } from './FlowEditorContext';
+import { useConversationStateLoader } from './hooks/useConversationStateLoader';
+import { useEdgeCleanup } from './hooks/useEdgeCleanup';
+import { useEdgeDeletion } from './hooks/useEdgeDeletion';
+import { useNodeConnection } from './hooks/useNodeConnection';
+import { useFlowSaver } from './hooks/useFlowSaver';
+import { useValidConnection } from './hooks/useValidConnection';
+import { useNodeDropper } from './hooks/useNodeDropper';
+import { useDragOverHandler } from './hooks/useDragOverHandler';
+import { useNodeClickHandler } from './hooks/useNodeClickHandler';
+import { useEdgesWithDragFlag } from './hooks/useEdgesWithDragFlag';
+import { getOppositePosition, slugify } from './useFlowHelpers';
 
 const edgeTypes: EdgeTypes = {
   default: CustomEdge,
@@ -247,267 +69,6 @@ type NextStepContext = {
   sourceW: number;
   sourceH: number;
 } | null;
-
-const useConversationStateLoader = (activeConversationId: string | undefined, setFlowState: (state: any) => void) => {
-  useEffect(() => {
-    const loadConversationState = async () => {
-      if (activeConversationId) {
-        const conversation = await conversationService.getConversation(activeConversationId);
-        console.log({ conversation });
-
-        if (conversation && conversation.flowState) {
-          setFlowState(conversation.flowState);
-        } else {
-          setFlowState(null);
-        }
-      } else {
-        setFlowState(null);
-      }
-    };
-    loadConversationState();
-  }, [activeConversationId, setFlowState]);
-};
-
-const useEdgeCleanup = (nodes: FlowNode[], setEdges: React.Dispatch<React.SetStateAction<any[]>>) => {
-  React.useEffect(() => {
-    const nodeIds = nodes.map((node) => node.id);
-    setEdges((edges) => edges.filter((edge) => nodeIds.includes(edge.source) && nodeIds.includes(edge.target)));
-  }, [nodes, setEdges]);
-};
-
-const useEdgeDeletion = (setEdges: React.Dispatch<React.SetStateAction<any[]>>) => {
-  return useCallback(
-    (edgeId: string) => {
-      setEdges((eds) => eds.filter((edge) => edge.id !== edgeId));
-    },
-    [setEdges]
-  );
-};
-
-const useNodeConnection = (
-  nodes: FlowNode[],
-  setNodes: React.Dispatch<React.SetStateAction<FlowNode[]>>,
-  setEdges: React.Dispatch<React.SetStateAction<any[]>>
-) => {
-  return useCallback(
-    (params: Connection) => {
-      const sourceNode = nodes.find((node) => node.id === params.source);
-      const targetNode = nodes.find((node) => node.id === params.target);
-
-      if (sourceNode && targetNode) {
-        const sourceType = sourceNode.type as NodeTypeString;
-        const targetType = targetNode.type as NodeTypeString;
-
-        if (isConnectionAllowed(sourceType, targetType)) {
-          // Normalize handles
-          let sourceHandle = params.sourceHandle ?? undefined;
-          if (sourceType === 'decision' && sourceHandle?.startsWith('out-')) {
-            // force sourceHandle to be slugified variant to match our render ids
-            const raw = sourceHandle.substring(4);
-            sourceHandle = `out-${slugify(raw)}`;
-          }
-          let targetHandle = params.targetHandle ?? undefined;
-
-          // Always land on Top handle of SubAgent
-          if (targetType === 'subagent') {
-            targetHandle = `in-${Position.Top}-0`;
-          }
-          // If target handle missing, prefer opposite of source handle side; fallback to Top
-          if (!targetHandle) {
-            const srcPos = getPositionFromHandleId(sourceHandle) ?? Position.Left;
-            const opposite = getOppositePosition(srcPos);
-            targetHandle = `in-${opposite}-0`;
-          }
-
-          if (sourceType === 'decision') {
-            const branchName = sourceHandle?.startsWith('out-') ? sourceHandle.substring(4) : '';
-
-            setNodes((nds: FlowNode[]) =>
-              nds.map((n) => {
-                if (n.id === params.source) {
-                  const form: DecisionForm = { ...n.data.form } as DecisionForm;
-
-                  if (sourceHandle === 'out-default') {
-                    form.defaultTarget = params.target!;
-                  } else if (branchName) {
-                    form.branches = form.branches.map((branch: any) =>
-                      // match by slugified name to align with handle ids
-                      (slugify((branch as any).name) === branchName)
-                        ? { ...branch, targetNode: params.target }
-                        : branch
-                    );
-                  }
-
-                  return {
-                    ...n,
-                    data: {
-                      ...n.data,
-                      form,
-                    },
-                  } as FlowNode;
-                }
-                return n;
-              })
-            );
-          }
-          if (sourceType === 'categorize' && sourceHandle) {
-            const categoryName = sourceHandle.startsWith('out-') ? sourceHandle.substring(4) : sourceHandle;
-
-            setNodes((nds: FlowNode[]) =>
-              nds.map((n) => {
-                if (n.id === params.source && n.type === 'categorize') {
-                  const form = n.data.form as CategorizeForm;
-                  if (!form.categories) return n;
-
-                  return {
-                    ...n,
-                    data: {
-                      ...n.data,
-                      form: {
-                        ...form,
-                        categories: form.categories.map((c) =>
-                          c.name === categoryName ? { ...c, targetNode: params.target } : c
-                        ),
-                      },
-                    },
-                  } as FlowNode;
-                }
-                return n;
-              })
-            );
-          }
-
-          const edgeToAdd: Edge = {
-            id: `edge-${params.source}-${params.target}-${sourceHandle || 'sh'}-${targetHandle || 'none'}`,
-            source: params.source!,
-            target: params.target!,
-            sourceHandle,
-            ...(targetHandle ? { targetHandle } : {}),
-            type: 'default',
-            markerEnd: {
-              type: MarkerType.ArrowClosed,
-            },
-          } as Edge;
-
-          setEdges((eds) => {
-            if (eds.some((e) => e.id === edgeToAdd.id)) return eds; // dedupe
-            return addEdge(edgeToAdd, eds);
-          });
-        } else {
-          message.error(`Cannot connect ${sourceType} node to ${targetType} node`);
-        }
-      }
-    },
-    [nodes, setEdges, setNodes]
-  );
-};
-
-const useFlowSaver = (agentId: string | undefined, nodes: FlowNode[], edges: any[]) => {
-  return async () => {
-    if (!agentId) {
-      message.error('Agent ID is missing');
-      return;
-    }
-    try {
-      const flow = { nodes, edges };
-      await saveFlowConfig(agentId, flow);
-      message.success('Flow saved successfully');
-    } catch (error: unknown) {
-      console.error('Error saving flow:', error);
-      message.error('Failed to save flow');
-    }
-  };
-};
-
-const useValidConnection = (nodes: FlowNode[]) => {
-  return useCallback(
-    (params: Connection | Edge) => {
-      // Changed Connection to Connection | Edge
-      const sourceNode = nodes.find((node) => node.id === params.source);
-      const targetNode = nodes.find((node) => node.id === params.target);
-
-      if (sourceNode && targetNode) {
-        const sourceType = sourceNode.type as NodeTypeString;
-        const targetType = targetNode.type as NodeTypeString;
-        return isConnectionAllowed(sourceType, targetType);
-      }
-
-      return false;
-    },
-    [nodes]
-  );
-};
-
-const useNodeDropper = (
-  screenToFlowPosition: (position: { x: number; y: number }) => { x: number; y: number },
-  setNodes: React.Dispatch<React.SetStateAction<FlowNode[]>>,
-  nodes: FlowNode[]
-) => {
-  return useCallback(
-    (event: React.DragEvent) => {
-      event.preventDefault();
-      const nodeType = event.dataTransfer.getData('nflow.application.reactflow') as NodeTypeString;
-      if (!nodeType) return;
-
-      const position = screenToFlowPosition({
-        x: event.clientX,
-        y: event.clientY,
-      });
-
-      const defaultData = NODE_REGISTRY[nodeType].data as any;
-
-      const form = defaultData.form || {};
-      const baseName = form.name || nodeType;
-      let newName = baseName;
-      let counter = 1;
-
-      while (nodes.some((node) => node.data.form?.name === newName)) {
-        newName = `${baseName}_${counter}`;
-        counter++;
-      }
-
-      const newNode: FlowNode = {
-        id: `node_${Date.now()}`,
-        type: nodeType,
-        data: {
-          ...defaultData,
-          form: {
-            ...form,
-            name: newName,
-          },
-        },
-        position,
-      };
-
-      setNodes((nds) => [...nds, newNode]);
-    },
-    [screenToFlowPosition, setNodes, nodes]
-  );
-};
-
-const useDragOverHandler = () => {
-  return useCallback((event: React.DragEvent) => {
-    event.preventDefault();
-    event.dataTransfer.dropEffect = 'move';
-  }, []);
-};
-
-const useNodeClickHandler = (setSelectedNode: React.Dispatch<React.SetStateAction<FlowNode | null>>) => {
-  return useCallback(
-    (_: React.MouseEvent, node: FlowNode) => {
-      setSelectedNode(node);
-    },
-    [setSelectedNode]
-  );
-};
-
-// Small hook: memoize edges enriched with a drag flag to reduce work during drag
-const useEdgesWithDragFlag = (edges: any[], isDragging: boolean) => {
-  return React.useMemo(
-    () => edges.map((e) => ({ ...e, data: { ...(e.data || {}), isDragging } })),
-    [edges, isDragging]
-  );
-};
 
 const FlowEditor: React.FC<FlowEditorProps> = ({ flowConfig, onStartConversation, agentId, activeConversationId }) => {
   const { theme } = useTheme();
