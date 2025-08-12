@@ -9,6 +9,7 @@ import DecisionNode from '../nodes/decision-node';
 import KeywordsNode from '../nodes/keywords-node';
 import ExecMysqlNode from '../nodes/execmysql-node';
 import ExecMssqlNode from '../nodes/execmssql-node';
+import ExecPostgresNode from '../nodes/execpostgres-node';
 import SubAgentNode from '../nodes/subagent-node';
 import SendMailNode from '../nodes/sendmail-node';
 import GoogleSearchNode from '../nodes/googlesearch-node';
@@ -71,6 +72,7 @@ export const nodeTypes: ReactFlowNodeTypes = {
   keywords: KeywordsNode,
   execmysql: ExecMysqlNode,
   execmssql: ExecMssqlNode,
+  execpostgres: ExecPostgresNode,
   subagent: SubAgentNode,
   sendmail: SendMailNode,
   googlesearch: GoogleSearchNode,

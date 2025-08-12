@@ -1,6 +1,5 @@
 import React from 'react';
-import { Card, Typography } from 'antd';
-import { ApartmentOutlined } from '@ant-design/icons';
+import { Typography } from 'antd';
 
 interface AgentConfigInfoProps {
   systemMessage: string;

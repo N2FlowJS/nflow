@@ -8,6 +8,7 @@ import {
   isKeywordsNodeData,
   isExecMysqlNodeData,
   isExecMssqlNodeData,
+  isExecPostgresNodeData,
   isSubAgentNodeData,
   isSendMailNodeData,
   isGoogleSearchNodeData,
@@ -70,6 +71,7 @@ import { FlowStateDispatcher } from '../flowStateDispatcher';
 import { executeKeywordsNode } from './executeKeywordsNode';
 import { executeExecMysqlNode } from './executeExecMysqlNode';
 import { executeExecMssqlNode } from './executeExecMssqlNode';
+import { executeExecPostgresNode } from './executeExecPostgresNode';
 import { executeSubAgentNode } from './executeSubAgentNode';
 import { executeSendMailNode } from './executeSendMailNode';
 import { executeGoogleSearchNode } from './executeGoogleSearchNode';
@@ -145,6 +147,8 @@ export async function executeNode(
     return await executeExecMysqlNode(node, context, dispatcher);
   } else if (isExecMssqlNodeData(node.data)) {
     return await executeExecMssqlNode(node, context, dispatcher);
+  } else if (isExecPostgresNodeData(node.data)) {
+    return await executeExecPostgresNode(node, context, dispatcher);
   } else if (isSubAgentNodeData(node.data)) {
     return await executeSubAgentNode(node, context, dispatcher);
   } else if (isSendMailNodeData(node.data)) {

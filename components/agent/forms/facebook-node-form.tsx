@@ -41,7 +41,7 @@ const FacebookNodeForm: React.FC<FacebookNodeFormProps> = (props) => {
             label: (
               <Text strong>
                 <LinkOutlined style={{ marginRight: 8 }} />
-                Connection Settings
+                {t('facebook.connectionSettings')}
               </Text>
             ),
             children: (

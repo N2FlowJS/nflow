@@ -12,6 +12,7 @@ export const NODE_TYPES = {
   keywords: 'keywords',
   execmysql: 'execmysql',
   execmssql: 'execmssql',
+  execpostgres: 'execpostgres',
   subagent: 'subagent',
   agent: 'agent',
   sendmail: 'sendmail',
@@ -181,6 +182,20 @@ export interface ExecMssqlForm extends BaseForm {
   timeout?: number;
   maxRows?: number;
   trustServerCertificate?: boolean;
+}
+
+export interface ExecPostgresForm extends BaseForm {
+  name: string;
+  description?: string;
+  query: string;
+  server: string;
+  port: number;
+  user: string;
+  password: string;
+  database: string;
+  timeout?: number;
+  maxRows?: number;
+  ssl?: boolean;
 }
 
 export interface SendMailForm extends BaseForm {
@@ -388,6 +403,9 @@ export type AgentNodeData = BaseNodeData<AgentForm> & {
 export type ExecMssqlNodeData = BaseNodeData<ExecMssqlForm> & {
   type: 'execmssql';
 };
+export type ExecPostgresNodeData = BaseNodeData<ExecPostgresForm> & {
+  type: 'execpostgres';
+};
 export type SendMailNodeData = BaseNodeData<SendMailForm> & {
   type: 'sendmail';
 };
@@ -527,6 +545,7 @@ export type NodeData =
   | BaseNodeData<KeywordsForm> & { type: 'keywords' }
   | BaseNodeData<ExecMysqlForm> & { type: 'execmysql' }
   | BaseNodeData<ExecMssqlForm> & { type: 'execmssql' }
+  | BaseNodeData<ExecPostgresForm> & { type: 'execpostgres' }
   | BaseNodeData<SubAgentForm> & { type: 'subagent' }
   | BaseNodeData<AgentForm> & { type: 'agent' }
   | BaseNodeData<SendMailForm> & { type: 'sendmail' }
@@ -595,6 +614,7 @@ export type KeywordsNode = Node<KeywordsNodeData>;
 export type ExecMysqlNode = Node<ExecMysqlNodeData>;
 export type SubAgentNode = Node<SubAgentNodeData>;
 export type ExecMssqlNode = Node<ExecMssqlNodeData>;
+export type ExecPostgresNode = Node<ExecPostgresNodeData>;
 export type SendMailNode = Node<SendMailNodeData>;
 export type GoogleSearchNode = Node<GoogleSearchNodeData>;
 export type BingSearchNode = Node<BingSearchNodeData>;
@@ -649,6 +669,7 @@ export type FlowNode = Node<
   | KeywordsNodeData
   | ExecMysqlNodeData
   | ExecMssqlNodeData
+  | ExecPostgresNodeData
   | SubAgentNodeData
   | AgentNodeData
   | SendMailNodeData

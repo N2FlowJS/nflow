@@ -21,11 +21,15 @@ import { useMobile } from '../../hooks/useMobile';
 import { useLocale } from '../../locale';
 import { useTheme } from '../../theme';
 import LanguageMenu from './LanguageMenu';
+import dynamic from 'next/dynamic';
 
 interface MainLayoutProps {
   children: React.ReactNode;
   title?: string;
 }
+const DatabaseStatus = dynamic(() => import('../../components/DatabaseStatus'), {
+  ssr: false,
+});
 
 export default function MainLayout({ children }: MainLayoutProps) {
   const { messages } = useLocale();
@@ -222,18 +226,21 @@ export default function MainLayout({ children }: MainLayoutProps) {
             <span>
               {messages.mainLayout.footer} © {new Date().getFullYear()} - Knowledge Management Platform
             </span>
-            <a
-              href="https://github.com/N2FlowJS/nflow"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                color: 'inherit',
-              }}>
-              <GithubOutlined /> Stars {loading ? '...' : stars || 0}
-            </a>
+            <Space>
+              <DatabaseStatus />
+              <a
+                href="https://github.com/N2FlowJS/nflow"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  color: 'inherit',
+                }}>
+                <GithubOutlined /> Stars {loading ? '...' : stars || 0}
+              </a>
+            </Space>
           </Layout.Footer>
         )}
         {isMobile && (

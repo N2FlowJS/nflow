@@ -9,6 +9,7 @@ import DecisionNodeForm from './decision-node-form';
 import KeywordsNodeForm from './keywords-node-form';
 import ExecMysqlNodeForm from './execmysql-node-form';
 import ExecMssqlNodeForm from './execmssql-node-form';
+import ExecPostgresNodeForm from './execpostgres-node-form';
 import SubAgentNodeForm from './subagent-node-form';
 import SendMailNodeForm from './sendmail-node-form';
 import GoogleSearchNodeForm from './googlesearch-node-form';
@@ -97,6 +98,8 @@ const NodeForm: React.FC<NodeFormProps> = ({ form, selectedNode, setIsDrawerOpen
         return <ExecMysqlNodeForm {...commonProps} />;
       case 'execmssql':
         return <ExecMssqlNodeForm {...commonProps} />;
+      case 'execpostgres':
+        return <ExecPostgresNodeForm {...commonProps} />;
       case 'subagent':
         return <SubAgentNodeForm {...commonProps} />;
       case 'sendmail':

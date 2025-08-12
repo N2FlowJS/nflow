@@ -41,7 +41,7 @@ const GoogleMapNodeForm: React.FC<GoogleMapNodeFormProps> = (props) => {
             label: (
               <Text strong>
                 <KeyOutlined style={{ marginRight: 8 }} />
-                API Configuration
+                {t('googlemap.apiKey')}
               </Text>
             ),
             children: (
@@ -49,8 +49,7 @@ const GoogleMapNodeForm: React.FC<GoogleMapNodeFormProps> = (props) => {
                 name="apiKey"
                 label="Google Maps API Key"
                 help="Your Google Maps API key with required permissions"
-                rules={[{ required: true, message: 'Please enter Google Maps API key' }]}
-              >
+                rules={[{ required: true, message: 'Please enter Google Maps API key' }]}>
                 <Input.Password placeholder="AIza..." />
               </Form.Item>
             ),
@@ -69,8 +68,7 @@ const GoogleMapNodeForm: React.FC<GoogleMapNodeFormProps> = (props) => {
                 label="Action Type"
                 help="Choose what operation to perform"
                 initialValue="geocode"
-                rules={[{ required: true, message: 'Please select an action' }]}
-              >
+                rules={[{ required: true, message: 'Please select an action' }]}>
                 <Select>
                   <Select.Option value="geocode">Geocode (Address to Coordinates)</Select.Option>
                   <Select.Option value="reverse_geocode">Reverse Geocode (Coordinates to Address)</Select.Option>
@@ -94,7 +92,7 @@ const GoogleMapNodeForm: React.FC<GoogleMapNodeFormProps> = (props) => {
               <Form.Item shouldUpdate>
                 {({ getFieldValue }) => {
                   const action = getFieldValue('action');
-                  
+
                   return (
                     <Space direction="vertical" style={{ width: '100%' }} size="middle">
                       {action === 'geocode' && (
@@ -102,57 +100,51 @@ const GoogleMapNodeForm: React.FC<GoogleMapNodeFormProps> = (props) => {
                           name="address"
                           label="Address"
                           help="Address to convert to coordinates"
-                          rules={[{ required: true, message: 'Please enter address' }]}
-                        >
+                          rules={[{ required: true, message: 'Please enter address' }]}>
                           <Input placeholder="{{locationQuery}} or 1600 Amphitheatre Parkway, Mountain View, CA" />
                         </Form.Item>
                       )}
-                      
+
                       {action === 'reverse_geocode' && (
                         <>
                           <Form.Item
                             name="latitude"
                             label="Latitude"
                             help="Latitude coordinate"
-                            rules={[{ required: true, message: 'Please enter latitude' }]}
-                          >
+                            rules={[{ required: true, message: 'Please enter latitude' }]}>
                             <Input placeholder="37.4224764" />
                           </Form.Item>
                           <Form.Item
                             name="longitude"
                             label="Longitude"
                             help="Longitude coordinate"
-                            rules={[{ required: true, message: 'Please enter longitude' }]}
-                          >
+                            rules={[{ required: true, message: 'Please enter longitude' }]}>
                             <Input placeholder="-122.0842499" />
                           </Form.Item>
                         </>
                       )}
-                      
+
                       {action === 'directions' && (
                         <>
                           <Form.Item
                             name="origin"
                             label="Origin"
                             help="Starting location"
-                            rules={[{ required: true, message: 'Please enter origin' }]}
-                          >
+                            rules={[{ required: true, message: 'Please enter origin' }]}>
                             <Input placeholder="{{startLocation}} or address" />
                           </Form.Item>
                           <Form.Item
                             name="destination"
                             label="Destination"
                             help="Ending location"
-                            rules={[{ required: true, message: 'Please enter destination' }]}
-                          >
+                            rules={[{ required: true, message: 'Please enter destination' }]}>
                             <Input placeholder="{{endLocation}} or address" />
                           </Form.Item>
                           <Form.Item
                             name="travelMode"
                             label="Travel Mode"
                             help="Mode of transportation"
-                            initialValue="driving"
-                          >
+                            initialValue="driving">
                             <Select>
                               <Select.Option value="driving">Driving</Select.Option>
                               <Select.Option value="walking">Walking</Select.Option>
@@ -162,44 +154,30 @@ const GoogleMapNodeForm: React.FC<GoogleMapNodeFormProps> = (props) => {
                           </Form.Item>
                         </>
                       )}
-                      
-                      {(action === 'places_search') && (
+
+                      {action === 'places_search' && (
                         <>
                           <Form.Item
                             name="query"
                             label="Search Query"
                             help="What to search for"
-                            rules={[{ required: true, message: 'Please enter search query' }]}
-                          >
+                            rules={[{ required: true, message: 'Please enter search query' }]}>
                             <Input placeholder="{{searchQuery}} or restaurants near me" />
                           </Form.Item>
-                          <Form.Item
-                            name="latitude"
-                            label="Latitude (Optional)"
-                            help="Center latitude for search"
-                          >
+                          <Form.Item name="latitude" label="Latitude (Optional)" help="Center latitude for search">
                             <Input placeholder="37.4224764" />
                           </Form.Item>
-                          <Form.Item
-                            name="longitude"
-                            label="Longitude (Optional)"
-                            help="Center longitude for search"
-                          >
+                          <Form.Item name="longitude" label="Longitude (Optional)" help="Center longitude for search">
                             <Input placeholder="-122.0842499" />
                           </Form.Item>
                           <Form.Item
                             name="radius"
                             label="Search Radius (meters)"
                             help="Search radius in meters"
-                            initialValue={5000}
-                          >
+                            initialValue={5000}>
                             <InputNumber min={1} max={50000} style={{ width: '100%' }} />
                           </Form.Item>
-                          <Form.Item
-                            name="type"
-                            label="Place Type (Optional)"
-                            help="Filter by place type"
-                          >
+                          <Form.Item name="type" label="Place Type (Optional)" help="Filter by place type">
                             <Select allowClear>
                               <Select.Option value="restaurant">Restaurant</Select.Option>
                               <Select.Option value="gas_station">Gas Station</Select.Option>
@@ -213,48 +191,38 @@ const GoogleMapNodeForm: React.FC<GoogleMapNodeFormProps> = (props) => {
                           </Form.Item>
                         </>
                       )}
-                      
+
                       {action === 'place_details' && (
                         <Form.Item
                           name="placeId"
                           label="Place ID"
                           help="Google Place ID to get details for"
-                          rules={[{ required: true, message: 'Please enter place ID' }]}
-                        >
+                          rules={[{ required: true, message: 'Please enter place ID' }]}>
                           <Input placeholder="ChIJN1t_tDeuEmsRUsoyG83frY4" />
                         </Form.Item>
                       )}
-                      
+
                       {action === 'distance_matrix' && (
                         <>
                           <Form.Item
                             name="origin"
                             label="Origins"
                             help="Starting locations (comma-separated for multiple)"
-                            rules={[{ required: true, message: 'Please enter origins' }]}
-                          >
-                            <TextArea
-                              rows={2}
-                              placeholder="Address 1, Address 2"
-                            />
+                            rules={[{ required: true, message: 'Please enter origins' }]}>
+                            <TextArea rows={2} placeholder="Address 1, Address 2" />
                           </Form.Item>
                           <Form.Item
                             name="destination"
                             label="Destinations"
                             help="Ending locations (comma-separated for multiple)"
-                            rules={[{ required: true, message: 'Please enter destinations' }]}
-                          >
-                            <TextArea
-                              rows={2}
-                              placeholder="Address 3, Address 4"
-                            />
+                            rules={[{ required: true, message: 'Please enter destinations' }]}>
+                            <TextArea rows={2} placeholder="Address 3, Address 4" />
                           </Form.Item>
                           <Form.Item
                             name="travelMode"
                             label="Travel Mode"
                             help="Mode of transportation"
-                            initialValue="driving"
-                          >
+                            initialValue="driving">
                             <Select>
                               <Select.Option value="driving">Driving</Select.Option>
                               <Select.Option value="walking">Walking</Select.Option>

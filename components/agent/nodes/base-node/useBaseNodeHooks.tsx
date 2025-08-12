@@ -2,6 +2,7 @@ import React, { useCallback, useMemo } from 'react';
 import { Handle, Position } from '@xyflow/react';
 import type { GlobalToken } from 'antd/es/theme/interface';
 import { getHandleStyle } from './handle-icon';
+import { Modal } from 'antd';
 
 export type HandleStyleOpts = {
   sourceColor: string;
@@ -141,4 +142,19 @@ export const useNodeActions = (args: {
   const doDelete = useCallback(() => deleteNode(id), [deleteNode, id]);
 
   return { handleDebug, handleConfig, doDelete };
+};
+
+export const useDeleteConfirm = (doDelete: () => void) => {
+  return useCallback(() => {
+    Modal.confirm({
+      title: 'Are you sure you want to delete this node?',
+      content: 'This action cannot be undone.',
+      okText: 'Yes',
+      okType: 'danger',
+      cancelText: 'No',
+      onOk() {
+        doDelete();
+      },
+    });
+  }, [doDelete]);
 };

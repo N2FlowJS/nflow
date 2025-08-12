@@ -1,5 +1,5 @@
 import { Position, useReactFlow } from '@xyflow/react';
-import { Card, Button, Space, Modal, theme } from 'antd';
+import { Card, Button, Space, theme } from 'antd';
 import { DeleteOutlined, BugOutlined, SettingOutlined } from '@ant-design/icons';
 import React, { memo, useRef } from 'react';
 import { useNodeExecutionStatus } from '../../../../context/FlowStateContext';
@@ -14,6 +14,7 @@ import {
   useInputHandles,
   useOutputHandles,
   useNodeActions,
+  useDeleteConfirm,
 } from './useBaseNodeHooks';
 
 interface BaseNodeProps {
@@ -56,19 +57,7 @@ const BaseNode: React.FC<BaseNodeProps> = ({ data, id, selected, handlePositions
   });
 
   const { handleConfig, handleDebug, doDelete } = useNodeActions({ id, deleteNode, openConfigDrawer });
-
-  const handleDelete = () => {
-    Modal.confirm({
-      title: 'Are you sure you want to delete this node?',
-      content: 'This action cannot be undone.',
-      okText: 'Yes',
-      okType: 'danger',
-      cancelText: 'No',
-      onOk() {
-        doDelete();
-      },
-    });
-  };
+  const handleDelete = useDeleteConfirm(doDelete);
 
   return (
     <div style={{ position: 'relative' }}>

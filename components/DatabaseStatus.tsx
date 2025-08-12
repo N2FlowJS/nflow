@@ -192,15 +192,6 @@ export default function DatabaseStatus() {
         trigger="click"
         placement="bottomRight"
       >
-        <div
-          style={{
-            position: "fixed",
-            bottom: "20px",
-            right: "20px",
-            zIndex: 1000,
-            cursor: "pointer",
-          }}
-        >
           {workerStatus.status === "running" ? (
             <Badge count={workerStatus.activeTasks} overflowCount={99}>
               <SyncOutlined
@@ -213,7 +204,6 @@ export default function DatabaseStatus() {
               style={{ fontSize: "24px", color: "#52c41a" }}
             />
           )}
-        </div>
       </Popover>
     );
   }

@@ -60,6 +60,9 @@ export function isSubAgentNodeData(data: NodeData): data is SubAgentNodeData {
 export function isExecMssqlNodeData(data: NodeData): data is RetrievalNodeData {
   return data.type === 'execmssql';
 }
+export function isExecPostgresNodeData(data: NodeData): data is RetrievalNodeData {
+  return data.type === 'execpostgres';
+}
 export function isSendMailNodeData(data: NodeData): data is RetrievalNodeData {
   return data.type === 'sendmail';
 }

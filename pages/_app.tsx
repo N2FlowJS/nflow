@@ -2,7 +2,6 @@ import React from "react";
 import "@ant-design/v5-patch-for-react-19";
 import { ConfigProvider } from "antd";
 import { AppProps } from "next/app";
-import dynamic from "next/dynamic";
 import { AuthProvider } from "../context/AuthContext";
 import { LocaleProvider, useLocale } from "../locale";
 import { ThemeProvider } from "../theme";
@@ -16,9 +15,6 @@ if (typeof window === "undefined") {
   });
 }
 
-const DatabaseStatus = dynamic(() => import("../components/DatabaseStatus"), {
-  ssr: false,
-});
 
 function ConfigProviderWrapper({ children }: { children: React.ReactNode }) {
   const { antdLocale } = useLocale();
@@ -35,7 +31,6 @@ function IFlowApp({ Component, pageProps }: AppProps) {
       <ThemeProvider>
         <LocaleProvider>
           <ConfigProviderWrapper>
-            <DatabaseStatus />
             <Component {...pageProps} />
           </ConfigProviderWrapper>
         </LocaleProvider>
