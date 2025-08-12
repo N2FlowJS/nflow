@@ -19,19 +19,11 @@ const JsonParseNode = ({ data, id, selected }: NodeProps<Node<JsonParseNodeData>
         input: [Position.Left, Position.Right],
         output: [Position.Right, Position.Left],
       }}
-      icon={<CodeOutlined style={{ color: '#13c2c2' }} />}
-      role={data.form?.role}
-    >
+      icon={<CodeOutlined />}
+      role={data.form?.role}>
       <Flex vertical gap={8}>
-        <JsonOperationInfo 
-          operation={form?.operation || 'parse'}
-          outputFormat={form?.outputFormat || 'object'}
-        />
-        {form?.operation === 'extract' && (
-          <JsonPathInfo 
-            jsonPath={form?.jsonPath || ''}
-          />
-        )}
+        <JsonOperationInfo operation={form?.operation || 'parse'} outputFormat={form?.outputFormat || 'object'} />
+        {form?.operation === 'extract' && <JsonPathInfo jsonPath={form?.jsonPath || ''} />}
       </Flex>
     </BaseNode>
   );

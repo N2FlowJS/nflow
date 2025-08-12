@@ -72,6 +72,7 @@ import { executeKeywordsNode } from './executeKeywordsNode';
 import { executeExecMysqlNode } from './executeExecMysqlNode';
 import { executeExecMssqlNode } from './executeExecMssqlNode';
 import { executeExecPostgresNode } from './executeExecPostgresNode';
+import { executeNativeKeywordsNode } from './executeNativeKeywordsNode';
 import { executeSubAgentNode } from './executeSubAgentNode';
 import { executeSendMailNode } from './executeSendMailNode';
 import { executeGoogleSearchNode } from './executeGoogleSearchNode';
@@ -143,6 +144,8 @@ export async function executeNode(
     return await executeDecisionNode(node, context, dispatcher);
   } else if (isKeywordsNodeData(node.data)) {
     return await executeKeywordsNode(node, context, callback, dispatcher);
+  } else if (node.data?.type === 'nativekeywords') {
+    return await executeNativeKeywordsNode(node, context, dispatcher);
   } else if (isExecMysqlNodeData(node.data)) {
     return await executeExecMysqlNode(node, context, dispatcher);
   } else if (isExecMssqlNodeData(node.data)) {

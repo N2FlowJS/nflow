@@ -66,6 +66,7 @@ export const NODE_TYPES = {
   excelanalysis: 'excelanalysis',
   // Chinese platform nodes
   wechat: 'wechat',
+    nativekeywords: 'nativekeywords',
 } as const;
 export type NodeTypeString = keyof typeof NODE_TYPES;
 
@@ -119,6 +120,15 @@ export interface KeywordsForm extends BaseForm {
   prompt: string;
   maxResults: number;
   numberHistory: number;
+}
+
+export interface NativeKeywordsForm extends BaseForm {
+  text: string; // template with ${var}
+  language?: 'en' | 'vi' | 'auto';
+  maxResults?: number;
+  minLength?: number;
+  removeDigits?: boolean;
+  extraStopwords?: string[]; // custom stopwords
 }
 
 export interface ICategory {
@@ -389,7 +399,6 @@ export type RetrievalNodeData = BaseNodeData<RetrievalForm> & {
 export type KeywordsNodeData = BaseNodeData<KeywordsForm> & {
   type: 'keywords';
 };
-
 export type ExecMysqlNodeData = BaseNodeData<ExecMysqlForm> & {
   type: 'execmysql';
 };
@@ -405,6 +414,9 @@ export type ExecMssqlNodeData = BaseNodeData<ExecMssqlForm> & {
 };
 export type ExecPostgresNodeData = BaseNodeData<ExecPostgresForm> & {
   type: 'execpostgres';
+};
+export type NativeKeywordsNodeData = BaseNodeData<NativeKeywordsForm> & {
+  type: 'nativekeywords';
 };
 export type SendMailNodeData = BaseNodeData<SendMailForm> & {
   type: 'sendmail';
@@ -543,6 +555,7 @@ export type NodeData =
   | BaseNodeData<RetrievalForm> & { type: 'retrieval' }
   | BaseNodeData<DecisionForm> & { type: 'decision' }
   | BaseNodeData<KeywordsForm> & { type: 'keywords' }
+  | BaseNodeData<NativeKeywordsForm> & { type: 'nativekeywords' }
   | BaseNodeData<ExecMysqlForm> & { type: 'execmysql' }
   | BaseNodeData<ExecMssqlForm> & { type: 'execmssql' }
   | BaseNodeData<ExecPostgresForm> & { type: 'execpostgres' }
@@ -615,6 +628,7 @@ export type ExecMysqlNode = Node<ExecMysqlNodeData>;
 export type SubAgentNode = Node<SubAgentNodeData>;
 export type ExecMssqlNode = Node<ExecMssqlNodeData>;
 export type ExecPostgresNode = Node<ExecPostgresNodeData>;
+export type NativeKeywordsNode = Node<NativeKeywordsNodeData>;
 export type SendMailNode = Node<SendMailNodeData>;
 export type GoogleSearchNode = Node<GoogleSearchNodeData>;
 export type BingSearchNode = Node<BingSearchNodeData>;
@@ -667,6 +681,7 @@ export type FlowNode = Node<
   | RetrievalNodeData
   | DecisionNodeData
   | KeywordsNodeData
+  | NativeKeywordsNodeData
   | ExecMysqlNodeData
   | ExecMssqlNodeData
   | ExecPostgresNodeData

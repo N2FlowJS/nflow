@@ -14,7 +14,7 @@ import {
   useReactFlow,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { Card, Drawer, Form, Layout, Modal } from 'antd';
+import { Card, Drawer, Form, Layout, Modal, Button } from 'antd';
 import React, { memo, useCallback, useMemo, useState } from 'react';
 
 import NodeForm from '../forms/node-form';
@@ -89,6 +89,8 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flowConfig, onStartConversation
   const [isNextStepOpen, setIsNextStepOpen] = useState(false);
   const [nextStepCtx, setNextStepCtx] = useState<NextStepContext>(null);
 
+  const noNodes = nodes.length === 0;
+
   // Helpers for smart positioning
   const getDirVector = useCallback((p: Position) => {
     switch (p) {
@@ -141,11 +143,15 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flowConfig, onStartConversation
   );
 
   const availableNextTypes = useMemo(() => {
-    if (!nextStepCtx) return [] as Array<[NodeTypeString, any]>;
-
-    const sourceType = nextStepCtx.nodeType;
-    return Object.entries(NODE_REGISTRY).filter(([type]) =>
-      isConnectionAllowed(sourceType, type as NodeTypeString)
+    if (nextStepCtx) {
+      const sourceType = nextStepCtx.nodeType;
+      return Object.entries(NODE_REGISTRY).filter(([type]) =>
+        isConnectionAllowed(sourceType, type as NodeTypeString)
+      ) as Array<[NodeTypeString, any]>;
+    }
+    // Initial state (no source). Allow "begin" and types connectable from begin
+    return Object.entries(NODE_REGISTRY).filter(
+      ([type]) => type === 'begin' || isConnectionAllowed('begin' as NodeTypeString, type as NodeTypeString)
     ) as Array<[NodeTypeString, any]>;
   }, [nextStepCtx]);
 
@@ -180,9 +186,53 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flowConfig, onStartConversation
     setIsNextStepOpen(true);
   }, []);
 
+  const openInitialAddModal = useCallback(() => {
+    setNextStepCtx(null);
+    setIsNextStepOpen(true);
+  }, []);
+
   const addNextNode = useCallback(
     (nodeType: NodeTypeString) => {
-      if (!nextStepCtx) return;
+      // Initial add (no source context)
+      if (!nextStepCtx) {
+        const defaultData = NODE_REGISTRY[nodeType].data as any;
+        const form = defaultData.form || {};
+        const baseName = form.name || nodeType;
+        let newName = baseName;
+        let counter = 1;
+        while (nodes.some((node) => node.data.form?.name === newName)) {
+          newName = `${baseName}_${counter}`;
+          counter++;
+        }
+
+        const size = estimateSize(nodeType);
+        const centerFlow = screenToFlowPosition({ x: window.innerWidth / 2, y: window.innerHeight / 2 });
+        let pos = snapToGrid({ x: centerFlow.x - size.width / 2, y: centerFlow.y - size.height / 2 });
+        // push down if colliding (unlikely with empty canvas)
+        let attempts = 0;
+        while (collides(pos, size) && attempts < 10) {
+          pos = { x: pos.x, y: pos.y + 20 };
+          attempts++;
+        }
+
+        const newNode: FlowNode = {
+          id: `node_${Date.now()}`,
+          type: nodeType,
+          data: {
+            ...defaultData,
+            form: {
+              ...form,
+              name: newName,
+            },
+          },
+          position: pos,
+        };
+        setNodes((nds) => [...nds, newNode]);
+        setIsNextStepOpen(false);
+        setNextStepCtx(null);
+        return;
+      }
+
       const source = nodes.find((n) => n.id === nextStepCtx.nodeId);
       if (!source) return;
 
@@ -344,12 +394,14 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flowConfig, onStartConversation
   // Replace inline useMemo with the hook
   const edgesForRender = useEdgesWithDragFlag(edges, isDragging);
 
+  const modalTitle = nextStepCtx ? 'Select Next Step' : 'Add First Node';
+
   return (
     <FlowEditorContext.Provider value={{ openConfigDrawer, deleteNode, openNextStepModal }}>
       <Layout style={{ height: '100%', position: 'relative' }}>
         {/* NodePalette removed */}
 
-        <Content>
+        <Content style={{ position: 'relative' }}>
           <ReactFlow
             // fitViewOptions={{ padding: 0.1 }}
             colorMode={theme}
@@ -392,6 +444,22 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flowConfig, onStartConversation
             </Controls>
             <Background />
           </ReactFlow>
+
+          {noNodes && !isNextStepOpen && (
+            <div
+              style={{
+                position: 'absolute',
+                inset: 0,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                pointerEvents: 'none',
+              }}>
+              <Button type="primary" size="large" onClick={openInitialAddModal} style={{ pointerEvents: 'auto' }}>
+                Start building your N-Flow
+              </Button>
+            </div>
+          )}
         </Content>
 
         <Drawer
@@ -410,7 +478,7 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flowConfig, onStartConversation
         </Drawer>
 
         <Modal
-          title="Select Next Step"
+          title={modalTitle}
           open={isNextStepOpen}
           onCancel={() => {
             setIsNextStepOpen(false);

@@ -286,6 +286,28 @@ export const NODE_REGISTRY: Record<NodeTypeString, NodeConfig> = {
       },
     } as Partial<KeywordsNodeData>,
   },
+  nativekeywords: {
+    type: 'nativekeywords',
+    icon: <TagsOutlined />,
+    input: 'Raw text or variables to extract from',
+    output: 'Keywords (comma-separated or JSON array)',
+    data: {
+      type: 'nativekeywords',
+      form: {
+        role: 'developer',
+        name: 'Local Keywords',
+        description: 'Extract keywords locally without AI',
+        text: '${conversation}',
+        language: 'auto',
+        maxResults: 10,
+        minLength: 3,
+        removeDigits: true,
+        extraStopwords: [],
+        inputRefs: [],
+        output: '',
+      },
+    },
+  },
   execmysql: {
     type: 'execmysql',
     icon: <DatabaseOutlined />,
