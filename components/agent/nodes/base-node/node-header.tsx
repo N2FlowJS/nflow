@@ -1,7 +1,8 @@
-import React, { memo, isValidElement, cloneElement } from 'react';
-import { Typography, Flex, theme } from 'antd';
+import React, { memo } from 'react';
+import { Typography, Flex } from 'antd';
 import { NodeTypeString } from '../../../../models/flowTypes';
 import RoleIndicator from '../shared/RoleIndicator';
+import { useNodeHeader } from './useBaseNodeHooks';
 
 interface NodeHeaderProps {
   id?: string;
@@ -12,17 +13,7 @@ interface NodeHeaderProps {
 }
 
 const NodeHeader: React.FC<NodeHeaderProps> = memo(({ id, name, icon, role }) => {
-  const { token } = theme.useToken();
-
-  const unifiedIcon = isValidElement(icon)
-    ? cloneElement(
-        icon as React.ReactElement<any>,
-        {
-          // force unified color, preserve other styles
-          style: { ...((icon as any).props?.style || {}), color: token.colorPrimary },
-        } as any
-      )
-    : icon;
+  const { unifiedIcon } = useNodeHeader(icon);
 
   return (
     <Flex align="center" gap={8} justify="space-between">

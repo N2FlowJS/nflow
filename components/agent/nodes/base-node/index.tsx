@@ -1,21 +1,10 @@
-import { Position, useReactFlow } from '@xyflow/react';
-import { Card, Button, Space, theme } from 'antd';
+import { Position } from '@xyflow/react';
+import { Card, Button, Space } from 'antd';
 import { DeleteOutlined, BugOutlined, SettingOutlined } from '@ant-design/icons';
-import React, { memo, useRef } from 'react';
-import { useNodeExecutionStatus } from '../../../../context/FlowStateContext';
-import { useCardStyle } from '../../../../hooks/useCardStyle';
+import React, { memo } from 'react';
 import { NodeData } from '../../../../models/flowTypes';
-import { NODE_REGISTRY } from '../../../../utils/client/NODE_REGISTRY';
 import NodeHeader from './node-header';
-import { useFlowEditorContext } from '../../canvas/FlowEditorContext';
-import {
-  useHandleOptions,
-  useChildrenSection,
-  useInputHandles,
-  useOutputHandles,
-  useNodeActions,
-  useDeleteConfirm,
-} from './useBaseNodeHooks';
+import { useBaseNode } from './useBaseNodeHooks';
 
 interface BaseNodeProps {
   data: NodeData;
@@ -31,36 +20,17 @@ interface BaseNodeProps {
 }
 
 const BaseNode: React.FC<BaseNodeProps> = ({ data, id, selected, handlePositions, children, icon, role }) => {
-  const nodeConfig = NODE_REGISTRY[data.type];
-  const isExecutedNode = useNodeExecutionStatus(id);
-  const { openConfigDrawer, deleteNode, openNextStepModal } = useFlowEditorContext();
-  const { getNode } = useReactFlow();
-  const { token } = theme.useToken();
-
-  const cardStyle = useCardStyle({ selected, isExecutedNode, nodeConfig });
-
-  // measure fallback via DOM
-  const wrapperRef = useRef<HTMLDivElement>(null);
-
-  // Optimized hooks
-  const handleOpts = useHandleOptions(token as any);
-  const childrenSection = useChildrenSection(children);
-  const inputHandles = useInputHandles(handlePositions.input, handleOpts);
-  const outputHandles = useOutputHandles({
-    positions: handlePositions.output,
-    opts: handleOpts,
+  const { cardStyle, wrapperRef, childrenSection, inputHandles, outputHandles, actions, onMouseEnter } = useBaseNode({
+    data,
     id,
-    dataType: String(data.type),
-    getNode: getNode as any,
-    wrapperRef: wrapperRef as React.RefObject<HTMLDivElement | null>,
-    openNextStepModal,
+    selected,
+    handlePositions,
+    children,
   });
-
-  const { handleConfig, handleDebug, doDelete } = useNodeActions({ id, deleteNode, openConfigDrawer });
-  const handleDelete = useDeleteConfirm(doDelete);
+  const { handleConfig, handleDebug, handleDelete } = actions;
 
   return (
-    <div style={{ position: 'relative' }}>
+    <div style={{ position: 'relative' }} onMouseEnter={onMouseEnter}>
       {selected && (
         <Space
           style={{

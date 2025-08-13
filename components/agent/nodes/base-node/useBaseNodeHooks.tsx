@@ -1,8 +1,14 @@
-import React, { useCallback, useMemo } from 'react';
-import { Handle, Position } from '@xyflow/react';
+import React, { useCallback, useMemo, useRef } from 'react';
+import { Handle, Position, useReactFlow } from '@xyflow/react';
 import type { GlobalToken } from 'antd/es/theme/interface';
 import { getHandleStyle } from './handle-icon';
 import { Modal } from 'antd';
+import { theme } from 'antd';
+import { useCardStyle } from '../../../../hooks/useCardStyle';
+import { NODE_REGISTRY } from '../../../../utils/client/NODE_REGISTRY';
+import { useNodeExecutionStatus } from '../../../../context/FlowStateContext';
+import type { NodeData } from '../../../../models/flowTypes';
+import { useFlowEditorContext } from '../../canvas/FlowEditorContext';
 
 export type HandleStyleOpts = {
   sourceColor: string;
@@ -157,4 +163,79 @@ export const useDeleteConfirm = (doDelete: () => void) => {
       },
     });
   }, [doDelete]);
+};
+
+// Hook: auto-select the node when hovered
+export const useHoverSelectOnEnter = (id: string) => {
+  const { setNodes } = useReactFlow();
+
+  return useCallback(() => {
+    setNodes((nds: any[]) => nds.map((n) => (n.id === id ? { ...n, selected: true } : { ...n, selected: false })));
+  }, [id, setNodes]);
+};
+
+// Composed hook: encapsulates BaseNode behavior and wiring so component stays lean
+export const useBaseNode = (args: {
+  data: NodeData;
+  id: string;
+  selected: boolean;
+  handlePositions: { input: Position[]; output: Position[] };
+  children?: React.ReactNode;
+}) => {
+  const { data, id, selected, handlePositions, children } = args;
+
+  // Context and config
+  const nodeConfig = NODE_REGISTRY[data.type];
+  const isExecutedNode = useNodeExecutionStatus(id);
+  const { openConfigDrawer, deleteNode, openNextStepModal } = useFlowEditorContext();
+  const { getNode } = useReactFlow();
+  const { token } = theme.useToken();
+
+  // Styles and refs
+  const cardStyle = useCardStyle({ selected, isExecutedNode, nodeConfig });
+  const wrapperRef = useRef<HTMLDivElement>(null);
+
+  // Derived UI pieces
+  const handleOpts = useHandleOptions(token as any);
+  const childrenSection = useChildrenSection(children);
+  const inputHandles = useInputHandles(handlePositions.input, handleOpts);
+  const outputHandles = useOutputHandles({
+    positions: handlePositions.output,
+    opts: handleOpts,
+    id,
+    dataType: String(data.type),
+    getNode: getNode as any,
+    wrapperRef: wrapperRef as React.RefObject<HTMLDivElement | null>,
+    openNextStepModal,
+  });
+
+  // Actions
+  const { handleConfig, handleDebug, doDelete } = useNodeActions({ id, deleteNode, openConfigDrawer });
+  const handleDelete = useDeleteConfirm(doDelete);
+  const onMouseEnter = useHoverSelectOnEnter(id);
+
+  return {
+    cardStyle,
+    wrapperRef,
+    childrenSection,
+    inputHandles,
+    outputHandles,
+    actions: { handleConfig, handleDebug, handleDelete },
+    onMouseEnter,
+  };
+};
+
+// Hook: NodeHeader helpers
+export const useNodeHeader = (icon?: React.ReactNode) => {
+  const { token } = theme.useToken();
+  const unifiedIcon = useMemo(() => {
+    if (React.isValidElement(icon)) {
+      return React.cloneElement(icon as React.ReactElement<any>, {
+        style: { ...((icon as any).props?.style || {}), color: token.colorPrimary },
+      });
+    }
+    return icon ?? null;
+  }, [icon, token.colorPrimary]);
+
+  return { unifiedIcon };
 };

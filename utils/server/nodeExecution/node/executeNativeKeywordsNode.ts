@@ -5,12 +5,20 @@ import { getInputFromTemplate, processTemplate } from '../../templateProcessor';
 import { isNodeReady } from '../../isNodeReady';
 import { FlowStateDispatcher } from '../flowStateDispatcher';
 
-const EN_STOP = new Set([
-  'the','a','an','and','or','but','if','then','else','when','at','by','for','with','about','against','between','into','through','during','before','after','above','below','to','from','up','down','in','out','on','off','over','under','again','further','then','once','here','there','all','any','both','each','few','more','most','other','some','such','no','nor','not','only','own','same','so','than','too','very','can','will','just','don','should','now'
-]);
-const VI_STOP = new Set([
-  'và','của','là','các','những','một','có','cho','với','từ','trên','dưới','trong','ngoài','lúc','khi','nếu','thì','nhưng','đã','sẽ','đang','này','kia','đó','vì','do','nên','hay','hoặc','rằng','được','bị','để','không','rất','rằng'
-]);
+// Base stopword lists per language (concise but effective)
+const STOPWORDS_RAW: Record<string, string[]> = {
+  en: ['the','a','an','and','or','but','if','then','else','when','at','by','for','with','about','against','between','into','through','during','before','after','above','below','to','from','up','down','in','out','on','off','over','under','again','further','once','here','there','all','any','both','each','few','more','most','other','some','such','no','nor','not','only','own','same','so','than','too','very','can','will','just','should','now'],
+  vi: ['và','của','là','các','những','một','có','cho','với','từ','trên','dưới','trong','ngoài','lúc','khi','nếu','thì','nhưng','đã','sẽ','đang','này','kia','đó','vì','do','nên','hay','hoặc','rằng','được','bị','để','không','rất'],
+  es: ['el','la','los','las','un','una','unos','unas','y','o','pero','si','entonces','cuando','en','por','con','sobre','entre','hasta','antes','después','más','menos','muy','no','ni','solo','mismo','también','ya','a','de','que','se','del','al'],
+  fr: ['le','la','les','un','une','des','et','ou','mais','si','alors','quand','en','par','avec','sur','entre','avant','après','plus','moins','très','ne','pas','seulement','même','aussi','déjà','à','de','que','qui','du','au'],
+  de: ['der','die','das','ein','eine','und','oder','aber','wenn','dann','wann','in','an','bei','mit','über','zwischen','vor','nach','mehr','weniger','sehr','nicht','nur','gleich','auch','schon','zu','von','dass'],
+  pt: ['o','a','os','as','um','uma','uns','umas','e','ou','mas','se','então','quando','em','por','com','sobre','entre','antes','depois','mais','menos','muito','não','nem','apenas','mesmo','também','já','a','de','que','do','da','dos','das'],
+  it: ['il','lo','la','i','gli','le','un','una','e','o','ma','se','allora','quando','in','per','con','su','tra','prima','dopo','più','meno','molto','non','né','solo','stesso','anche','già','a','di','che','del','della'],
+  nl: ['de','het','een','en','of','maar','als','dan','wanneer','in','op','bij','voor','met','over','tussen','voor','na','meer','minder','zeer','niet','alleen','zelfde','ook','al','te','van','dat','die'],
+  id: ['dan','atau','tetapi','jika','maka','ketika','di','ke','dari','dengan','tentang','antara','sebelum','sesudah','lebih','kurang','sangat','tidak','hanya','sama','juga','sudah','yang','ini','itu'],
+  tr: ['ve','veya','ama','eğer','o zaman','ne zaman','için','ile','hakkında','arasında','önce','sonra','daha','az','çok','değil','sadece','ayni','ayrıca','zaten','bu','şu','o'],
+  ru: ['и','или','но','если','то','когда','в','на','с','о','об','между','до','после','больше','меньше','очень','не','только','также','уже','это','этот','эта','эти','а','по','из','для'],
+};
 
 function normalize(text: string) {
   return text
@@ -22,16 +30,54 @@ function normalize(text: string) {
     .trim();
 }
 
+// Precompute normalized stopwords for extraction
+const STOPWORDS_NORM: Record<string, Set<string>> = Object.fromEntries(
+  Object.entries(STOPWORDS_RAW).map(([lang, words]) => [lang, new Set(words.map(w => normalize(w)))])
+);
+
 function tokenize(text: string) {
   return text.split(' ').filter(Boolean);
 }
 
-function selectStopwords(lang: 'en' | 'vi' | 'auto', sample: string) {
-  if (lang === 'en') return EN_STOP;
-  if (lang === 'vi') return VI_STOP;
-  // naive auto detect: presence of Vietnamese diacritics in sample (before normalize)
-  const hasVi = /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/i.test(sample);
-  return hasVi ? VI_STOP : EN_STOP;
+// Script/diacritic hints to quickly detect language families
+const SCRIPT_HINTS: Array<{ re: RegExp; lang: string }> = [
+  { re: /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/i, lang: 'vi' }, // Vietnamese diacritics
+  { re: /[а-яё]/i, lang: 'ru' }, // Cyrillic (Russian)
+  { re: /[ğüşöçıİĞÜŞÖÇ]/, lang: 'tr' }, // Turkish-specific chars
+];
+
+function detectLanguage(sampleRaw: string): string {
+  // Quick script-based hints on raw text
+  for (const { re, lang } of SCRIPT_HINTS) {
+    if (re.test(sampleRaw)) return lang;
+  }
+  // Fallback to stopword scoring on normalized tokens
+  const tokens = tokenize(normalize(sampleRaw));
+  const scores: Record<string, number> = {};
+  for (const [lang, stopset] of Object.entries(STOPWORDS_NORM)) {
+    let score = 0;
+    for (const t of tokens) if (stopset.has(t)) score++;
+    scores[lang] = score;
+  }
+  let bestLang = 'en';
+  let bestScore = -1;
+  for (const [lang, score] of Object.entries(scores)) {
+    if (score > bestScore) {
+      bestScore = score;
+      bestLang = lang;
+    }
+  }
+  // If there are almost no stopword matches, default to English
+  if (bestScore <= 1) return 'en';
+  return bestLang;
+}
+
+function buildStopSet(lang: string, extra?: string[]) {
+  const base = STOPWORDS_NORM[lang] || STOPWORDS_NORM['en'];
+  if (!extra || extra.length === 0) return base;
+  const merged = new Set(base);
+  for (const w of extra) merged.add(normalize(w));
+  return merged;
 }
 
 function extractKeywords(text: string, opts: { maxResults?: number; minLength?: number; removeDigits?: boolean; stop: Set<string> }) {
@@ -55,7 +101,7 @@ export async function executeNativeKeywordsNode(
   dispatcher?: FlowStateDispatcher
 ): Promise<ExecutionResult> {
   const data = node.data as NativeKeywordsNodeData;
-  const form = data.form || {} as NativeKeywordsNodeData['form'];
+  const form = (data.form || {}) as NativeKeywordsNodeData['form'];
   const startTime = new Date().toISOString();
 
   const inputs: string[] = getInputFromTemplate(form.text || '');
@@ -80,7 +126,9 @@ export async function executeNativeKeywordsNode(
 
   try {
     const raw = processTemplate(form.text || '', vars);
-    const stop = selectStopwords((form.language as any) || 'auto', raw);
+    // Always auto-detect language from content
+    const lang = detectLanguage(raw);
+    const stop = buildStopSet(lang, form.extraStopwords);
     const kws = extractKeywords(raw, {
       maxResults: form.maxResults ?? 10,
       minLength: form.minLength ?? 3,
@@ -88,7 +136,7 @@ export async function executeNativeKeywordsNode(
       stop,
     });
 
-    const output = JSON.stringify(kws);
+    const output = JSON.stringify({ language: lang, keywords: kws });
 
     let finalState = flowState;
     if (dispatcher) {

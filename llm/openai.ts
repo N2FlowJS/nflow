@@ -1,5 +1,6 @@
 import OpenAI from 'openai';
 import { MessagePart } from '../models/MessagePart';
+import { log } from 'console';
 
 class LLMOpenAI {
   completions = async (baseURL: string, apiKey: string, model: string, message: MessagePart[], options?: any, callback?: (result: string) => void): Promise<string> => {
@@ -45,11 +46,17 @@ class LLMOpenAI {
    * Generate embeddings using the OpenAI API
    */
   embeddings = async (baseURL: string, apiKey: string, model: string, input: string | string[]): Promise<OpenAI.Embeddings.CreateEmbeddingResponse> => {
+    console.log('Base URL:', baseURL);
+    console.log('API Key:', apiKey);
+    console.log('Model:', model);
+    console.log('Input:', input);
+
     const openai = new OpenAI({
       apiKey: apiKey,
       baseURL: baseURL,
     });
-
+    console.log(`Generating embeddings for input: ${JSON.stringify(input)}`);
+    console.log(`Using model: ${model}`);
     const response = await openai.embeddings.create({
       model: model,
       input: input,
