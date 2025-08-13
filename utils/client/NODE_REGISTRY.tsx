@@ -118,7 +118,7 @@ import {
   BugOutlined,
   FileExcelOutlined,
   WechatOutlined,
-    ToolOutlined,
+  ToolOutlined,
   ApartmentOutlined,
 } from '@ant-design/icons';
 
@@ -419,6 +419,8 @@ export const NODE_REGISTRY: Record<NodeTypeString, NodeConfig> = {
         systemMessage:
           'You are a helpful assistant. Your role is to analyze the user input and decide which tool or other agent to use to best answer the request.',
         inputRefs: [],
+        delegationTools: [],
+        delegationAgents: [],
         output: '',
       },
     } as Partial<AgentNodeData>,
@@ -708,7 +710,7 @@ Rewritten question:`,
   validate: {
     type: 'validate',
     icon: <CheckCircleOutlined />,
-   
+
     input: 'Data to validate',
     output: 'Validation result (true/false)',
     data: {

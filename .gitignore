@@ -43,3 +43,4 @@ dist
 nbase/node_modules
 nbase-data
 /logs
+prisma/dev.db

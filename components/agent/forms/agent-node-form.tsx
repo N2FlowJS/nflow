@@ -181,8 +181,8 @@ const AgentNodeForm: React.FC<AgentNodeFormProps> = (props) => {
       });
     }
 
-    // Auto-create (or update) an AgentTools node for selected delegationTools
-    const toolIds: string[] = Array.isArray(formData?.delegationTools) ? formData.delegationTools : [];
+  // Auto-create (or update) an AgentTools node for selected delegationTools, keep both in sync
+  const toolIds: string[] = Array.isArray(formData?.delegationTools) ? formData.delegationTools : [];
     if (toolIds.length > 0) {
       const nodesSnapshot = getNodes();
       const edgesSnapshot = getEdges?.() ?? [];
@@ -196,23 +196,36 @@ const AgentNodeForm: React.FC<AgentNodeFormProps> = (props) => {
       const toolsNodePosition = { x: baseX + 300, y: baseY + 220 };
 
       if (existingToolsNode) {
-        // Update toolIds on existing node
+        // Update toolIds on existing AgentTools node AND reflect back into Agent node delegationTools to keep consistent
         setNodes((nds) =>
-          nds.map((n: any) =>
-            n.id === toolsNodeId
-              ? {
-                  ...n,
-                  data: {
-                    ...n.data,
-                    form: {
-                      ...(n as any).data?.form,
-                      name: (n as any).data?.form?.name || 'Agent Tools',
-                      toolIds,
-                    },
+          nds.map((n: any) => {
+            if (n.id === toolsNodeId) {
+              return {
+                ...n,
+                data: {
+                  ...n.data,
+                  form: {
+                    ...(n as any).data?.form,
+                    name: (n as any).data?.form?.name || 'Agent Tools',
+                    toolIds,
                   },
-                }
-              : n
-          )
+                },
+              };
+            }
+            if (n.id === selectedNode.id) {
+              return {
+                ...n,
+                data: {
+                  ...n.data,
+                  form: {
+                    ...(n as any).data?.form,
+                    delegationTools: toolIds,
+                  },
+                },
+              };
+            }
+            return n;
+          })
         );
       } else {
         // Create a new AgentTools node

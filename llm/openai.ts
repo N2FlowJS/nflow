@@ -1,6 +1,5 @@
 import OpenAI from 'openai';
 import { MessagePart } from '../models/MessagePart';
-import { log } from 'console';
 
 class LLMOpenAI {
   completions = async (baseURL: string, apiKey: string, model: string, message: MessagePart[], options?: any, callback?: (result: string) => void): Promise<string> => {
