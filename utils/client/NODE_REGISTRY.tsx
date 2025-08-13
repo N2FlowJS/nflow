@@ -118,6 +118,7 @@ import {
   BugOutlined,
   FileExcelOutlined,
   WechatOutlined,
+    ToolOutlined,
   ApartmentOutlined,
 } from '@ant-design/icons';
 
@@ -421,6 +422,23 @@ export const NODE_REGISTRY: Record<NodeTypeString, NodeConfig> = {
         output: '',
       },
     } as Partial<AgentNodeData>,
+  },
+  agenttools: {
+    type: 'agenttools',
+    icon: <ToolOutlined />,
+    input: 'Context from current flow',
+    output: 'Selected tools list',
+    data: {
+      type: 'agenttools',
+      form: {
+        role: 'developer',
+        name: 'Agent Tools',
+        description: 'Display and manage tools associated with an agent',
+        toolIds: [],
+        inputRefs: [],
+        output: '',
+      },
+    } as any,
   },
   sendmail: {
     type: 'sendmail',

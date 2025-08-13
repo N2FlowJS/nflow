@@ -62,6 +62,7 @@ import ExcelAnalysisNode from '../nodes/excel-analysis-node';
 import WeChatNode from '../nodes/wechat-node';
 import AgentNode from '../nodes/agent-node';
 import LocalKeywordsNode from '../nodes/nativekeywords-node';
+import AgentToolsNode from '../nodes/agenttools-node';
 
 export const nodeTypes: ReactFlowNodeTypes = {
   begin: BeginNode,
@@ -126,4 +127,5 @@ export const nodeTypes: ReactFlowNodeTypes = {
   excelanalysis: ExcelAnalysisNode,
   wechat: WeChatNode,
   agent: AgentNode,
+  agenttools: AgentToolsNode,
 };

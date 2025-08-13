@@ -62,6 +62,7 @@ import LogAnalysisNodeForm from './log-analysis-node-form';
 import ExcelAnalysisNodeForm from './excel-analysis-node-form';
 import WeChatNodeForm from './wechat-node-form';
 import AgentNodeForm from './agent-node-form';
+import AgentToolsNodeForm from './agenttools-node-form';
 
 interface NodeFormProps {
   form: any;
@@ -204,6 +205,8 @@ const NodeForm: React.FC<NodeFormProps> = ({ form, selectedNode, setIsDrawerOpen
         return <WeChatNodeForm {...commonProps} />;
       case 'agent':
         return <AgentNodeForm {...commonProps} />;
+      case 'agenttools':
+        return <AgentToolsNodeForm {...commonProps} />;
       default:
         return <div>Unsupported node type: {selectedNode.type}</div>;
     }

@@ -103,7 +103,7 @@ const AgentNodeForm: React.FC<AgentNodeFormProps> = (props) => {
     );
     setIsDrawerOpen(false);
 
-    // Auto-create subagent nodes for selected delegationAgents if not present
+  // Auto-create subagent nodes for selected delegationAgents if not present
     const agentIds: string[] = formData?.delegationAgents || [];
     if (agentIds.length > 0) {
       const nodesSnapshot = getNodes();
@@ -179,6 +179,81 @@ const AgentNodeForm: React.FC<AgentNodeFormProps> = (props) => {
         });
         return next;
       });
+    }
+
+    // Auto-create (or update) an AgentTools node for selected delegationTools
+    const toolIds: string[] = Array.isArray(formData?.delegationTools) ? formData.delegationTools : [];
+    if (toolIds.length > 0) {
+      const nodesSnapshot = getNodes();
+      const edgesSnapshot = getEdges?.() ?? [];
+
+      const agentNode = nodesSnapshot.find((n) => n.id === selectedNode.id);
+      const baseX = agentNode?.position?.x ?? selectedNode.position?.x ?? 200;
+      const baseY = agentNode?.position?.y ?? selectedNode.position?.y ?? 200;
+
+      const toolsNodeId = `agenttools_${selectedNode.id}`;
+      const existingToolsNode = nodesSnapshot.find((n) => n.id === toolsNodeId);
+      const toolsNodePosition = { x: baseX + 300, y: baseY + 220 };
+
+      if (existingToolsNode) {
+        // Update toolIds on existing node
+        setNodes((nds) =>
+          nds.map((n: any) =>
+            n.id === toolsNodeId
+              ? {
+                  ...n,
+                  data: {
+                    ...n.data,
+                    form: {
+                      ...(n as any).data?.form,
+                      name: (n as any).data?.form?.name || 'Agent Tools',
+                      toolIds,
+                    },
+                  },
+                }
+              : n
+          )
+        );
+      } else {
+        // Create a new AgentTools node
+        const newToolsNode: FlowNode = {
+          id: toolsNodeId,
+          type: 'agenttools',
+          data: {
+            id: toolsNodeId,
+            label: 'Agent Tools',
+            position: toolsNodePosition,
+            type: 'agenttools',
+            form: {
+              role: 'developer',
+              name: 'Agent Tools',
+              description: 'Display and manage tools associated with an agent',
+              toolIds,
+              inputRefs: [],
+              output: '',
+            },
+          },
+          position: toolsNodePosition,
+        } as FlowNode;
+
+        setNodes((current) => [...current, newToolsNode]);
+      }
+
+      // Connect Agent -> AgentTools (use second bottom handle index 1, and tools top handle)
+      const sourceHandleId = `out-${Position.Bottom}-1`;
+      const targetHandleId = `in-${Position.Top}-0`;
+      const edgeId = `edge-${selectedNode.id}-to-${toolsNodeId}`;
+      const existingEdgeIds = new Set(edgesSnapshot.map((e: any) => e.id));
+      const newEdge: Edge = {
+        id: edgeId,
+        source: selectedNode.id,
+        target: toolsNodeId,
+        sourceHandle: sourceHandleId,
+        targetHandle: targetHandleId,
+        type: 'default',
+        markerEnd: { type: MarkerType.ArrowClosed },
+      };
+      setEdges((current) => (existingEdgeIds.has(edgeId) ? current : [...current, newEdge]));
     }
   };
 

@@ -50,6 +50,7 @@ export const NODE_TYPES = {
   telegram: 'telegram',
   whatsapp: 'whatsapp',
   weather: 'weather',
+  agenttools: 'agenttools',
   display: 'display',
   loop: 'loop',
   variable: 'variable',
@@ -178,6 +179,10 @@ export interface SubAgentForm extends BaseForm {
 export interface AgentForm extends BaseForm {
   systemMessage: string;
   model?: string;
+}
+
+export interface AgentToolsForm extends BaseForm {
+  toolIds: string[];
 }
 
 export interface ExecMssqlForm extends BaseForm {
@@ -561,6 +566,7 @@ export type NodeData =
   | BaseNodeData<ExecPostgresForm> & { type: 'execpostgres' }
   | BaseNodeData<SubAgentForm> & { type: 'subagent' }
   | BaseNodeData<AgentForm> & { type: 'agent' }
+  | BaseNodeData<AgentToolsForm> & { type: 'agenttools' }
   | BaseNodeData<SendMailForm> & { type: 'sendmail' }
   | BaseNodeData<GoogleSearchForm> & { type: 'googlesearch' }
   | BaseNodeData<BingSearchForm> & { type: 'bingsearch' }
@@ -626,6 +632,7 @@ export type DecisionNode = Node<DecisionNodeData>;
 export type KeywordsNode = Node<KeywordsNodeData>;
 export type ExecMysqlNode = Node<ExecMysqlNodeData>;
 export type SubAgentNode = Node<SubAgentNodeData>;
+export type AgentToolsNodeData = BaseNodeData<AgentToolsForm> & { type: 'agenttools' };
 export type ExecMssqlNode = Node<ExecMssqlNodeData>;
 export type ExecPostgresNode = Node<ExecPostgresNodeData>;
 export type NativeKeywordsNode = Node<NativeKeywordsNodeData>;
@@ -687,6 +694,7 @@ export type FlowNode = Node<
   | ExecPostgresNodeData
   | SubAgentNodeData
   | AgentNodeData
+  | AgentToolsNodeData
   | SendMailNodeData
   | GoogleSearchNodeData
   | BingSearchNodeData
