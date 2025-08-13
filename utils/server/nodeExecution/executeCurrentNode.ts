@@ -2,7 +2,7 @@ import {  FlowState, ExecutionResult } from '../../../models/flowExecutionTypes'
 import { MessagePart } from '../../../models/MessagePart';
 import { executeNode } from './node/executeNode';
 import { Flow } from '../../../models/flowTypes';
-import { FlowStateDispatcher } from './flowStateDispatcher';
+import { FlowStateDispatcher } from '../../../packages/@flow/flow-state-dispatcher';
 
 export async function executeCurrentNode(
   flow: Flow,

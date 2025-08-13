@@ -1,9 +1,9 @@
 import { Flow } from '../../../models/flowTypes';
 import { EXECUTION_STATUS } from '../../../utils/server/EXECUTION_STATUS';
-import { ExecutionResult } from '../../../models/flowExecutionTypes';
 import { processNode } from './processNode';
-import { FlowStateDispatcher } from './flowStateDispatcher';
+import { FlowStateDispatcher } from '../../../packages/@flow/flow-state-dispatcher';
 import { MessagePart } from '../../../models/MessagePart';
+import { ExecutionResult } from '../../../packages/@flow/type';
 
 export async function continueExecution(
   flow: Flow,

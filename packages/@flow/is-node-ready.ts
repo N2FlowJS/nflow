@@ -1,4 +1,4 @@
-import { FlowState } from '../../models/flowExecutionTypes';
+import { FlowState } from "./type";
 
 export function isNodeReady(inputs: string[], flowState: FlowState): boolean {
   if (inputs.length === 0) return true;

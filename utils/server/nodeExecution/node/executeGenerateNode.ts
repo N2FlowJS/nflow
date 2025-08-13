@@ -1,12 +1,12 @@
 import { FlowNode, GenerateNodeData } from '../../../../models/flowTypes';
 import { ExecutionResult, FlowExecutionContext } from '../../../../models/flowExecutionTypes';
-import { getInputFromTemplate, processTemplate } from '../../templateProcessor';
-import { findNextNodes } from '../../../../utils/server/findNextNode';
+import { getInputFromTemplate, processTemplate } from '../../../../packages/@template-processor/templateProcessor';
+import { findNextNodes } from '../../../../packages/@flow/find-next-node';
 import { prisma } from '../../../../lib/prisma';
-import { isNodeReady } from '../../isNodeReady';
+import { isNodeReady } from '../../../../packages/@flow/is-node-ready';
 import { MessagePart } from '../../../../models/MessagePart';
 import { llmOpenAI } from '../../../../llm/openai';
-import { FlowStateDispatcher } from '../flowStateDispatcher';
+import { FlowStateDispatcher } from '../../../../packages/@flow/flow-state-dispatcher';
 
 /**
  * Handler for executing Generate nodes

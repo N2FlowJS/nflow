@@ -1,7 +1,7 @@
 import { ExecutionResult, FlowExecutionContext } from '../../../../models/flowExecutionTypes';
 import { DelayNodeData, FlowNode } from '../../../../models/flowTypes';
-import { findNextNodes } from '../../../../utils/server/findNextNode';
-import { FlowStateDispatcher } from '../flowStateDispatcher';
+import { findNextNodes } from '../../../../packages/@flow/find-next-node';
+import { FlowStateDispatcher } from '../../../../packages/@flow/flow-state-dispatcher';
 
 /**
  * Handler for executing Delay nodes

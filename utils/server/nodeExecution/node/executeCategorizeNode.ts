@@ -2,7 +2,7 @@ import { getInputs, getQueryFromSource } from '../../../../hooks/useInputReferen
 import { prisma } from '../../../../lib/prisma';
 import { ExecutionResult, FlowExecutionContext } from '../../../../models/flowExecutionTypes';
 import { CategorizeNodeData, FlowNode, ICategory } from '../../../../models/flowTypes';
-import { FlowStateDispatcher } from '../flowStateDispatcher';
+import { FlowStateDispatcher } from '../../../../packages/@flow/flow-state-dispatcher';
 
 /**
  * Handler for executing Categorize nodes

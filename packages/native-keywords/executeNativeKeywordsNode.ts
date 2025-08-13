@@ -1,9 +1,9 @@
-import { ExecutionResult, FlowExecutionContext } from '../../../../models/flowExecutionTypes';
-import { FlowNode, NativeKeywordsNodeData } from '../../../../models/flowTypes';
-import { findNextNodes } from '../../findNextNode';
-import { getInputFromTemplate, processTemplate } from '../../templateProcessor';
-import { isNodeReady } from '../../isNodeReady';
-import { FlowStateDispatcher } from '../flowStateDispatcher';
+import { FlowNode, NativeKeywordsNodeData } from '../../models/flowTypes';
+import { findNextNodes } from '../@flow/find-next-node';
+import { getInputFromTemplate, processTemplate } from '../@template-processor/templateProcessor';
+import { isNodeReady } from '../@flow/is-node-ready';
+import { FlowStateDispatcher } from '../@flow/flow-state-dispatcher';
+import { ExecutionResult, FlowExecutionContext } from '../@flow/type';
 
 // Base stopword lists per language (concise but effective)
 const STOPWORDS_RAW: Record<string, string[]> = {

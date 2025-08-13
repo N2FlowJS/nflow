@@ -1,14 +1,4 @@
 import {
-  isBeginNodeData,
-  isInterfaceNodeData,
-  isGenerateNodeData,
-  isCategorizeNodeData,
-  isDecisionNodeData,
-  isRetrievalNodeData,
-  isKeywordsNodeData,
-  isExecMysqlNodeData,
-  isExecMssqlNodeData,
-  isExecPostgresNodeData,
   isSubAgentNodeData,
   isSendMailNodeData,
   isGoogleSearchNodeData,
@@ -48,7 +38,6 @@ import {
   isLoopNodeData,
   isVariableNodeData,
   isCodeNodeData,
-  isTemplateNodeData,
   isCounterNodeData,
   isCacheNodeData,
   isLogNodeData,
@@ -60,19 +49,8 @@ import {
   isCsvAnalysisNodeData,
   isWeChatNodeData,
 } from '../../../client/isNode';
-import { FlowExecutionContext, ExecutionResult } from '../../../../models/flowExecutionTypes';
-import { executeBeginNode } from './executeBeginNode';
-import { executeInterfaceNode } from './executeInterfaceNode';
-import { executeGenerateNode } from './executeGenerateNode';
-import { executeCategorizeNode } from './executeCategorizeNode';
-import { executeRetrievalNode } from './executeRetrievalNode';
-import { executeDecisionNode } from './executeDecisionNode';
-import { FlowStateDispatcher } from '../flowStateDispatcher';
-import { executeKeywordsNode } from './executeKeywordsNode';
-import { executeExecMysqlNode } from './executeExecMysqlNode';
-import { executeExecMssqlNode } from './executeExecMssqlNode';
-import { executeExecPostgresNode } from './executeExecPostgresNode';
-import { executeNativeKeywordsNode } from './executeNativeKeywordsNode';
+
+import { FlowStateDispatcher } from '../../../../packages/@flow/flow-state-dispatcher';
 import { executeSubAgentNode } from './executeSubAgentNode';
 import { executeSendMailNode } from './executeSendMailNode';
 import { executeGoogleSearchNode } from './executeGoogleSearchNode';
@@ -112,7 +90,6 @@ import { executeDisplayNode } from './executeDisplayNode';
 import { executeLoopNode } from './executeLoopNode';
 import { executeVariableNode } from './executeVariableNode';
 import { executeCodeNode } from './executeCodeNode';
-import { executeTemplateNode } from './executeTemplateNode';
 import { executeCounterNode } from './executeCounterNode';
 import { executeCacheNode } from './executeCacheNode';
 import { executeLogNode } from './executeLogNode';
@@ -123,6 +100,184 @@ import { executeExcelAnalysisNode } from './executeExcelAnalysisNode';
 import { executeFileAnalysisNode } from './executeFileAnalysisNode';
 import { executeCsvAnalysisNode } from './executeCsvAnalysisNode';
 import { executeWeChatNode } from './executeWeChatNode';
+import { NodePlugin } from '../../../../packages/@node-plugin/type';
+import { getNodePluginConfig } from '../../../../packages/@node-plugin';
+import { ExecutionResult, FlowExecutionContext } from '../../../../packages/@flow/type';
+
+const BUILTIN_PLUGINS: NodePlugin[] = [
+  { name: 'subagent', match: (n) => isSubAgentNodeData(n.data), run: (n, c, _cb, d) => executeSubAgentNode(n, c, d) },
+  { name: 'sendmail', match: (n) => isSendMailNodeData(n.data), run: (n, c, _cb, d) => executeSendMailNode(n, c, d) },
+  {
+    name: 'google-search',
+    match: (n) => isGoogleSearchNodeData(n.data),
+    run: (n, c, _cb, d) => executeGoogleSearchNode(n, c, d),
+  },
+  {
+    name: 'bing-search',
+    match: (n) => isBingSearchNodeData(n.data),
+    run: (n, c, _cb, d) => executeBingSearchNode(n, c, d),
+  },
+  {
+    name: 'duckgo-search',
+    match: (n) => isDuckGoSearchNodeData(n.data),
+    run: (n, c, _cb, d) => executeDuckGoSearchNode(n, c, d),
+  },
+  {
+    name: 'wikipedia-search',
+    match: (n) => isWikipediaSearchNodeData(n.data),
+    run: (n, c, _cb, d) => executeWikipediaSearchNode(n, c, d),
+  },
+  { name: 'rewrite', match: (n) => isRewriteNodeData(n.data), run: (n, c, cb, d) => executeRewriteNode(n, c, cb, d) },
+  {
+    name: 'http-request',
+    match: (n) => isHttpRequestNodeData(n.data),
+    run: (n, c, _cb, d) => executeHttpRequestNode(n, c, d),
+  },
+  {
+    name: 'transform',
+    match: (n) => isTransformNodeData(n.data),
+    run: (n, c, _cb, d) => executeTransformNode(n, c, d),
+  },
+  { name: 'delay', match: (n) => isDelayNodeData(n.data), run: (n, c, _cb, d) => executeDelayNode(n, c, d) },
+  { name: 'file-read', match: (n) => isFileReadNodeData(n.data), run: (n, c, _cb, d) => executeFileReadNode(n, c, d) },
+  {
+    name: 'file-write',
+    match: (n) => isFileWriteNodeData(n.data),
+    run: (n, c, _cb, d) => executeFileWriteNode(n, c, d),
+  },
+  {
+    name: 'json-parse',
+    match: (n) => isJsonParseNodeData(n.data),
+    run: (n, c, _cb, d) => executeJsonParseNode(n, c, d),
+  },
+  { name: 'math', match: (n) => isMathNodeData(n.data), run: (n, c, _cb, d) => executeMathNode(n, c, d) },
+  { name: 'validate', match: (n) => isValidateNodeData(n.data), run: (n, c, _cb, d) => executeValidateNode(n, c, d) },
+  {
+    name: 'text-process',
+    match: (n) => isTextProcessNodeData(n.data),
+    run: (n, c, _cb, d) => executeTextProcessNode(n, c, d),
+  },
+  {
+    name: 'condition',
+    match: (n) => isConditionNodeData(n.data),
+    run: (n, c, _cb, d) => executeConditionNode(n, c, d),
+  },
+  {
+    name: 'mattermost',
+    match: (n) => isMattermostNodeData(n.data),
+    run: (n, c, _cb, d) => executeMattermostNode(n, c, d),
+  },
+  { name: 'slack', match: (n) => isSlackNodeData(n.data), run: (n, c, _cb, d) => executeSlackNode(n, c, d) },
+  { name: 'jira', match: (n) => isJiraNodeData(n.data), run: (n, c, _cb, d) => executeJiraNode(n, c, d) },
+  { name: 'gitlab', match: (n) => isGitLabNodeData(n.data), run: (n, c, _cb, d) => executeGitLabNode(n, c, d) },
+  {
+    name: 'confluence',
+    match: (n) => isConfluenceNodeData(n.data),
+    run: (n, c, _cb, d) => executeConfluenceNode(n, c, d),
+  },
+  { name: 'github', match: (n) => isGitHubNodeData(n.data), run: (n, c, _cb, d) => executeGitHubNode(n, c, d) },
+  { name: 'facebook', match: (n) => isFacebookNodeData(n.data), run: (n, c, _cb, d) => executeFacebookNode(n, c, d) },
+  {
+    name: 'google-map',
+    match: (n) => isGoogleMapNodeData(n.data),
+    run: (n, c, _cb, d) => executeGoogleMapNode(n, c, d),
+  },
+  { name: 'twitter', match: (n) => isTwitterNodeData(n.data), run: (n, c, _cb, d) => executeTwitterNode(n, c, d) },
+  {
+    name: 'instagram',
+    match: (n) => isInstagramNodeData(n.data),
+    run: (n, c, _cb, d) => executeInstagramNode(n, c, d),
+  },
+  { name: 'linkedin', match: (n) => isLinkedInNodeData(n.data), run: (n, c, _cb, d) => executeLinkedInNode(n, c, d) },
+  { name: 'youtube', match: (n) => isYouTubeNodeData(n.data), run: (n, c, _cb, d) => executeYouTubeNode(n, c, d) },
+  { name: 'tiktok', match: (n) => isTikTokNodeData(n.data), run: (n, c, _cb, d) => executeTikTokNode(n, c, d) },
+  { name: 'discord', match: (n) => isDiscordNodeData(n.data), run: (n, c, _cb, d) => executeDiscordNode(n, c, d) },
+  { name: 'telegram', match: (n) => isTelegramNodeData(n.data), run: (n, c, _cb, d) => executeTelegramNode(n, c, d) },
+  { name: 'whatsapp', match: (n) => isWhatsAppNodeData(n.data), run: (n, c, _cb, d) => executeWhatsAppNode(n, c, d) },
+  { name: 'weather', match: (n) => isWeatherNodeData(n.data), run: (n, c, _cb, d) => executeWeatherNode(n, c, d) },
+  { name: 'datetime', match: (n) => isDateTimeNodeData(n.data), run: (n, c, _cb, d) => executeDateTimeNode(n, c, d) },
+  { name: 'display', match: (n) => isDisplayNodeData(n.data), run: (n, c, _cb, d) => executeDisplayNode(n, c, d) },
+  { name: 'loop', match: (n) => isLoopNodeData(n.data), run: (n, c, _cb, d) => executeLoopNode(n, c, d) },
+  { name: 'variable', match: (n) => isVariableNodeData(n.data), run: (n, c, _cb, d) => executeVariableNode(n, c, d) },
+  { name: 'code', match: (n) => isCodeNodeData(n.data), run: (n, c, _cb, d) => executeCodeNode(n, c, d) },
+  { name: 'counter', match: (n) => isCounterNodeData(n.data), run: (n, c, _cb, d) => executeCounterNode(n, c, d) },
+  { name: 'cache', match: (n) => isCacheNodeData(n.data), run: (n, c, _cb, d) => executeCacheNode(n, c, d) },
+  { name: 'log', match: (n) => isLogNodeData(n.data), run: (n, c, _cb, d) => executeLogNode(n, c, d) },
+  {
+    name: 'file-analysis',
+    match: (n) => isFileAnalysisNodeData(n.data),
+    run: (n, c, _cb, d) => executeFileAnalysisNode(n, c, d),
+  },
+  {
+    name: 'csv-analysis',
+    match: (n) => isCsvAnalysisNodeData(n.data),
+    run: (n, c, _cb, d) => executeCsvAnalysisNode(n, c, d),
+  },
+  {
+    name: 'image-analysis',
+    match: (n) => isImageAnalysisNodeData(n.data),
+    run: (n, c, _cb, d) => executeImageAnalysisNode(n, c, d),
+  },
+  {
+    name: 'pdf-analysis',
+    match: (n) => isPdfAnalysisNodeData(n.data),
+    run: (n, c, _cb, d) => executePdfAnalysisNode(n, c, d),
+  },
+  {
+    name: 'log-analysis',
+    match: (n) => isLogAnalysisNodeData(n.data),
+    run: (n, c, _cb, d) => executeLogAnalysisNode(n, c, d),
+  },
+  {
+    name: 'excel-analysis',
+    match: (n) => isExcelAnalysisNodeData(n.data),
+    run: (n, c, _cb, d) => executeExcelAnalysisNode(n, c, d),
+  },
+  { name: 'wechat', match: (n) => isWeChatNodeData(n.data), run: (n, c, _cb, d) => executeWeChatNode(n, c, d) },
+];
+
+let PLUGINS: NodePlugin[] = buildPlugins();
+
+function buildPlugins(): NodePlugin[] {
+  const cfgMap = getNodePluginConfig();
+  // stable ordering with optional explicit order from config
+  const withMeta = BUILTIN_PLUGINS.map((p, idx) => {
+    // Resolve config by:
+    // 1) Direct key match with plugin name
+    // 2) Nested config within any package-level object under cfgMap[<pkg>][pluginName]
+    const direct = (cfgMap as Record<string, any>)[p.name];
+    const nested =
+      direct == null
+        ? (
+            Object.values(cfgMap as Record<string, any>).find(
+              (v: any) => v && typeof v === 'object' && p.name in (v as Record<string, any>)
+            ) as Record<string, any> | undefined
+          )?.[p.name]
+        : undefined;
+    const cfg = direct ?? nested;
+    const enabled = typeof cfg?.enabled === 'boolean' ? cfg.enabled : true;
+    const order = typeof cfg?.order === 'number' ? cfg.order : Number.MAX_SAFE_INTEGER;
+    return { p, enabled, order, idx };
+  });
+  return withMeta
+    .filter((m) => m.enabled)
+    .sort((a, b) => a.order - b.order || a.idx - b.idx)
+    .map((m) => m.p);
+}
+
+export function registerNodePlugin(plugin: NodePlugin) {
+  // Prevent duplicates by name
+  if (PLUGINS.some((p) => p.name === plugin.name)) return;
+  PLUGINS.push(plugin);
+}
+
+export function registerNodePlugins(plugins: NodePlugin[]) {
+  for (const p of plugins) registerNodePlugin(p);
+}
+
+export function reloadNodePlugins() {
+  PLUGINS = buildPlugins();
+}
 
 export async function executeNode(
   node: any,
@@ -130,129 +285,9 @@ export async function executeNode(
   callback?: (result: ExecutionResult) => void,
   dispatcher?: FlowStateDispatcher
 ): Promise<ExecutionResult> {
-  if (isBeginNodeData(node.data)) {
-    return await executeBeginNode(node, context, dispatcher);
-  } else if (isInterfaceNodeData(node.data)) {
-    return await executeInterfaceNode(node, context, dispatcher);
-  } else if (isGenerateNodeData(node.data)) {
-    return await executeGenerateNode(node, context, callback, dispatcher);
-  } else if (isCategorizeNodeData(node.data)) {
-    return await executeCategorizeNode(node, context, dispatcher);
-  } else if (isRetrievalNodeData(node.data)) {
-    return await executeRetrievalNode(node, context, dispatcher);
-  } else if (isDecisionNodeData(node.data)) {
-    return await executeDecisionNode(node, context, dispatcher);
-  } else if (isKeywordsNodeData(node.data)) {
-    return await executeKeywordsNode(node, context, callback, dispatcher);
-  } else if (node.data?.type === 'nativekeywords') {
-    return await executeNativeKeywordsNode(node, context, dispatcher);
-  } else if (isExecMysqlNodeData(node.data)) {
-    return await executeExecMysqlNode(node, context, dispatcher);
-  } else if (isExecMssqlNodeData(node.data)) {
-    return await executeExecMssqlNode(node, context, dispatcher);
-  } else if (isExecPostgresNodeData(node.data)) {
-    return await executeExecPostgresNode(node, context, dispatcher);
-  } else if (isSubAgentNodeData(node.data)) {
-    return await executeSubAgentNode(node, context, dispatcher);
-  } else if (isSendMailNodeData(node.data)) {
-    return await executeSendMailNode(node, context, dispatcher);
-  } else if (isGoogleSearchNodeData(node.data)) {
-    return await executeGoogleSearchNode(node, context, dispatcher);
-  } else if (isBingSearchNodeData(node.data)) {
-    return await executeBingSearchNode(node, context, dispatcher);
-  } else if (isDuckGoSearchNodeData(node.data)) {
-    return await executeDuckGoSearchNode(node, context, dispatcher);
-  } else if (isWikipediaSearchNodeData(node.data)) {
-    return await executeWikipediaSearchNode(node, context, dispatcher);
-  } else if (isRewriteNodeData(node.data)) {
-    return await executeRewriteNode(node, context, callback, dispatcher);
-  } else if (isHttpRequestNodeData(node.data)) {
-    return await executeHttpRequestNode(node, context, dispatcher);
-  } else if (isTransformNodeData(node.data)) {
-    return await executeTransformNode(node, context, dispatcher);
-  } else if (isDelayNodeData(node.data)) {
-    return await executeDelayNode(node, context, dispatcher);
-  } else if (isFileReadNodeData(node.data)) {
-    return await executeFileReadNode(node, context, dispatcher);
-  } else if (isFileWriteNodeData(node.data)) {
-    return await executeFileWriteNode(node, context, dispatcher);
-  } else if (isJsonParseNodeData(node.data)) {
-    return await executeJsonParseNode(node, context, dispatcher);
-  } else if (isMathNodeData(node.data)) {
-    return await executeMathNode(node, context, dispatcher);
-  } else if (isValidateNodeData(node.data)) {
-    return await executeValidateNode(node, context, dispatcher);
-  } else if (isTextProcessNodeData(node.data)) {
-    return await executeTextProcessNode(node, context, dispatcher);
-  } else if (isConditionNodeData(node.data)) {
-    return await executeConditionNode(node, context, dispatcher);
-  } else if (isMattermostNodeData(node.data)) {
-    return await executeMattermostNode(node, context, dispatcher);
-  } else if (isSlackNodeData(node.data)) {
-    return await executeSlackNode(node, context, dispatcher);
-  } else if (isJiraNodeData(node.data)) {
-    return await executeJiraNode(node, context, dispatcher);
-  } else if (isGitLabNodeData(node.data)) {
-    return await executeGitLabNode(node, context, dispatcher);
-  } else if (isConfluenceNodeData(node.data)) {
-    return await executeConfluenceNode(node, context, dispatcher);
-  } else if (isGitHubNodeData(node.data)) {
-    return await executeGitHubNode(node, context, dispatcher);
-  } else if (isFacebookNodeData(node.data)) {
-    return await executeFacebookNode(node, context, dispatcher);
-  } else if (isGoogleMapNodeData(node.data)) {
-    return await executeGoogleMapNode(node, context, dispatcher);
-  } else if (isTwitterNodeData(node.data)) {
-    return await executeTwitterNode(node, context, dispatcher);
-  } else if (isInstagramNodeData(node.data)) {
-    return await executeInstagramNode(node, context, dispatcher);
-  } else if (isLinkedInNodeData(node.data)) {
-    return await executeLinkedInNode(node, context, dispatcher);
-  } else if (isYouTubeNodeData(node.data)) {
-    return await executeYouTubeNode(node, context, dispatcher);
-  } else if (isTikTokNodeData(node.data)) {
-    return await executeTikTokNode(node, context, dispatcher);
-  } else if (isDiscordNodeData(node.data)) {
-    return await executeDiscordNode(node, context, dispatcher);
-  } else if (isTelegramNodeData(node.data)) {
-    return await executeTelegramNode(node, context, dispatcher);
-  } else if (isWhatsAppNodeData(node.data)) {
-    return await executeWhatsAppNode(node, context, dispatcher);
-  } else if (isWeatherNodeData(node.data)) {
-    return await executeWeatherNode(node, context, dispatcher);
-  } else if (isDateTimeNodeData(node.data)) {
-    return await executeDateTimeNode(node, context, dispatcher);
-  } else if (isDisplayNodeData(node.data)) {
-    return await executeDisplayNode(node, context, dispatcher);
-  } else if (isLoopNodeData(node.data)) {
-    return await executeLoopNode(node, context, dispatcher);
-  } else if (isVariableNodeData(node.data)) {
-    return await executeVariableNode(node, context, dispatcher);
-  } else if (isCodeNodeData(node.data)) {
-    return await executeCodeNode(node, context, dispatcher);
-  } else if (isTemplateNodeData(node.data)) {
-    return await executeTemplateNode(node, context, dispatcher);
-  } else if (isCounterNodeData(node.data)) {
-    return await executeCounterNode(node, context, dispatcher);
-  } else if (isCacheNodeData(node.data)) {
-    return await executeCacheNode(node, context, dispatcher);
-  } else if (isLogNodeData(node.data)) {
-    return await executeLogNode(node, context, dispatcher);
-  } else if (isFileAnalysisNodeData(node.data)) {
-    return await executeFileAnalysisNode(node, context, dispatcher);
-  } else if (isCsvAnalysisNodeData(node.data)) {
-    return await executeCsvAnalysisNode(node, context, dispatcher);
-  } else if (isImageAnalysisNodeData(node.data)) {
-    return await executeImageAnalysisNode(node, context, dispatcher);
-  } else if (isPdfAnalysisNodeData(node.data)) {
-    return await executePdfAnalysisNode(node, context, dispatcher);
-  } else if (isLogAnalysisNodeData(node.data)) {
-    return await executeLogAnalysisNode(node, context, dispatcher);
-  } else if (isExcelAnalysisNodeData(node.data)) {
-    return await executeExcelAnalysisNode(node, context, dispatcher);
-  } else if (isWeChatNodeData(node.data)) {
-    return await executeWeChatNode(node, context, dispatcher);
+  const plugin = PLUGINS.find((p) => p.match(node));
+  if (plugin) {
+    return await plugin.run(node, context, callback, dispatcher);
   }
-  // Additional node types would be added here
   throw new Error(`Unsupported node type: ${node.type}`);
 }

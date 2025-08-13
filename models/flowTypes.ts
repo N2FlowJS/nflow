@@ -67,9 +67,10 @@ export const NODE_TYPES = {
   excelanalysis: 'excelanalysis',
   // Chinese platform nodes
   wechat: 'wechat',
-    nativekeywords: 'nativekeywords',
+  nativekeywords: 'nativekeywords',
 } as const;
-export type NodeTypeString = keyof typeof NODE_TYPES;
+// Allow dynamic plugin node types while preserving autocomplete for built-ins
+export type NodeTypeString = string & {};
 
 // Input/Output reference system - simplified for specific node types
 export interface InputReference {
@@ -155,7 +156,7 @@ export interface RetrievalForm extends BaseForm {
   threshold: number;
 }
 
-export interface ExecMysqlForm  extends BaseForm {
+export interface ExecMysqlForm extends BaseForm {
   name: string;
   description?: string;
   query: string;
@@ -383,6 +384,11 @@ export type BeginNodeData = BaseNodeData<BeginForm> & {
   type: 'begin';
 };
 
+// Generic node data shape for plugin-provided nodes (dynamic types)
+export type PluginNodeData<TForm = Record<string, unknown>> = BaseNodeData<TForm> & {
+  type: string; // plugin-defined type id
+};
+
 export type InterfaceNodeData = BaseNodeData<InterfaceForm> & {
   type: 'interface';
 };
@@ -553,74 +559,73 @@ export interface DecisionBranch {
 
 // Consolidate all node data types into a single union
 export type NodeData =
-  | BaseNodeData<BeginForm> & { type: 'begin' }
-  | BaseNodeData<InterfaceForm> & { type: 'interface' }
-  | BaseNodeData<GenerateForm> & { type: 'generate' }
-  | BaseNodeData<CategorizeForm> & { type: 'categorize' }
-  | BaseNodeData<RetrievalForm> & { type: 'retrieval' }
-  | BaseNodeData<DecisionForm> & { type: 'decision' }
-  | BaseNodeData<KeywordsForm> & { type: 'keywords' }
-  | BaseNodeData<NativeKeywordsForm> & { type: 'nativekeywords' }
-  | BaseNodeData<ExecMysqlForm> & { type: 'execmysql' }
-  | BaseNodeData<ExecMssqlForm> & { type: 'execmssql' }
-  | BaseNodeData<ExecPostgresForm> & { type: 'execpostgres' }
-  | BaseNodeData<SubAgentForm> & { type: 'subagent' }
-  | BaseNodeData<AgentForm> & { type: 'agent' }
-  | BaseNodeData<AgentToolsForm> & { type: 'agenttools' }
-  | BaseNodeData<SendMailForm> & { type: 'sendmail' }
-  | BaseNodeData<GoogleSearchForm> & { type: 'googlesearch' }
-  | BaseNodeData<BingSearchForm> & { type: 'bingsearch' }
-  | BaseNodeData<DuckGoSearchForm> & { type: 'duckgosearch' }
-  | BaseNodeData<WikipediaSearchForm> & { type: 'wikipediasearch' }
-  | BaseNodeData<RewriteForm> & { type: 'rewrite' }
-  | BaseNodeData<HttpRequestForm> & { type: 'httprequest' }
-  | BaseNodeData<TransformForm> & { type: 'transform' }
-  | BaseNodeData<FileReadForm> & { type: 'fileread' }
-  | BaseNodeData<FileWriteForm> & { type: 'filewrite' }
-  | BaseNodeData<DelayForm> & { type: 'delay' }
-  | BaseNodeData<WebhookForm> & { type: 'webhook' }
-  | BaseNodeData<JsonParseForm> & { type: 'jsonparse' }
-  | BaseNodeData<TextProcessForm> & { type: 'textprocess' }
-  | BaseNodeData<ValidateForm> & { type: 'validate' }
-  | BaseNodeData<MathForm> & { type: 'math' }
-  | BaseNodeData<DateTimeForm> & { type: 'datetime' }
-  | BaseNodeData<ConditionForm> & { type: 'condition' }
-  | BaseNodeData<MattermostForm> & { type: 'mattermost' }
-  | BaseNodeData<SlackForm> & { type: 'slack' }
-  | BaseNodeData<JiraForm> & { type: 'jira' }
-  | BaseNodeData<GitLabForm> & { type: 'gitlab' }
-  | BaseNodeData<ConfluenceForm> & { type: 'confluence' }
-  | BaseNodeData<GitHubForm> & { type: 'github' }
-  | BaseNodeData<FacebookForm> & { type: 'facebook' }
-  | BaseNodeData<GoogleMapForm> & { type: 'googlemap' }
-  | BaseNodeData<TwitterForm> & { type: 'twitter' }
-  | BaseNodeData<InstagramForm> & { type: 'instagram' }
-  | BaseNodeData<LinkedInForm> & { type: 'linkedin' }
-  | BaseNodeData<YouTubeForm> & { type: 'youtube' }
-  | BaseNodeData<TikTokForm> & { type: 'tiktok' }
-  | BaseNodeData<DiscordForm> & { type: 'discord' }
-  | BaseNodeData<TelegramForm> & { type: 'telegram' }
-  | BaseNodeData<WhatsAppForm> & { type: 'whatsapp' }
-  | BaseNodeData<WeatherForm> & { type: 'weather' }
-  | BaseNodeData<DisplayForm> & { type: 'display' }
-  | BaseNodeData<LoopForm> & { type: 'loop' }
-  | BaseNodeData<VariableForm> & { type: 'variable' }
-  | BaseNodeData<CodeForm> & { type: 'code' }
-  | BaseNodeData<TemplateForm> & { type: 'template' }
-  | BaseNodeData<CounterForm> & { type: 'counter' }
-  | BaseNodeData<CacheForm> & { type: 'cache' }
-  | BaseNodeData<LogForm> & { type: 'log' }
-  | BaseNodeData<FileAnalysisForm> & { type: 'fileanalysis' }
-  | BaseNodeData<CsvAnalysisForm> & { type: 'csvanalysis' }
-  | BaseNodeData<ImageAnalysisForm> & { type: 'imageanalysis' }
-  | BaseNodeData<PdfAnalysisForm> & { type: 'pdfanalysis' }
-  | BaseNodeData<LogAnalysisForm> & { type: 'loganalysis' }
-  | BaseNodeData<ExcelAnalysisForm> & { type: 'excelanalysis' }
-  | BaseNodeData<WeChatForm> & { type: 'wechat' };
+  | (BaseNodeData<BeginForm> & { type: 'begin' })
+  | (BaseNodeData<InterfaceForm> & { type: 'interface' })
+  | (BaseNodeData<GenerateForm> & { type: 'generate' })
+  | (BaseNodeData<CategorizeForm> & { type: 'categorize' })
+  | (BaseNodeData<RetrievalForm> & { type: 'retrieval' })
+  | (BaseNodeData<DecisionForm> & { type: 'decision' })
+  | (BaseNodeData<KeywordsForm> & { type: 'keywords' })
+  | (BaseNodeData<NativeKeywordsForm> & { type: 'nativekeywords' })
+  | (BaseNodeData<ExecMysqlForm> & { type: 'execmysql' })
+  | (BaseNodeData<ExecMssqlForm> & { type: 'execmssql' })
+  | (BaseNodeData<ExecPostgresForm> & { type: 'execpostgres' })
+  | (BaseNodeData<SubAgentForm> & { type: 'subagent' })
+  | (BaseNodeData<AgentForm> & { type: 'agent' })
+  | (BaseNodeData<AgentToolsForm> & { type: 'agenttools' })
+  | (BaseNodeData<SendMailForm> & { type: 'sendmail' })
+  | (BaseNodeData<GoogleSearchForm> & { type: 'googlesearch' })
+  | (BaseNodeData<BingSearchForm> & { type: 'bingsearch' })
+  | (BaseNodeData<DuckGoSearchForm> & { type: 'duckgosearch' })
+  | (BaseNodeData<WikipediaSearchForm> & { type: 'wikipediasearch' })
+  | (BaseNodeData<RewriteForm> & { type: 'rewrite' })
+  | (BaseNodeData<HttpRequestForm> & { type: 'httprequest' })
+  | (BaseNodeData<TransformForm> & { type: 'transform' })
+  | (BaseNodeData<FileReadForm> & { type: 'fileread' })
+  | (BaseNodeData<FileWriteForm> & { type: 'filewrite' })
+  | (BaseNodeData<DelayForm> & { type: 'delay' })
+  | (BaseNodeData<WebhookForm> & { type: 'webhook' })
+  | (BaseNodeData<JsonParseForm> & { type: 'jsonparse' })
+  | (BaseNodeData<TextProcessForm> & { type: 'textprocess' })
+  | (BaseNodeData<ValidateForm> & { type: 'validate' })
+  | (BaseNodeData<MathForm> & { type: 'math' })
+  | (BaseNodeData<DateTimeForm> & { type: 'datetime' })
+  | (BaseNodeData<ConditionForm> & { type: 'condition' })
+  | (BaseNodeData<MattermostForm> & { type: 'mattermost' })
+  | (BaseNodeData<SlackForm> & { type: 'slack' })
+  | (BaseNodeData<JiraForm> & { type: 'jira' })
+  | (BaseNodeData<GitLabForm> & { type: 'gitlab' })
+  | (BaseNodeData<ConfluenceForm> & { type: 'confluence' })
+  | (BaseNodeData<GitHubForm> & { type: 'github' })
+  | (BaseNodeData<FacebookForm> & { type: 'facebook' })
+  | (BaseNodeData<GoogleMapForm> & { type: 'googlemap' })
+  | (BaseNodeData<TwitterForm> & { type: 'twitter' })
+  | (BaseNodeData<InstagramForm> & { type: 'instagram' })
+  | (BaseNodeData<LinkedInForm> & { type: 'linkedin' })
+  | (BaseNodeData<YouTubeForm> & { type: 'youtube' })
+  | (BaseNodeData<TikTokForm> & { type: 'tiktok' })
+  | (BaseNodeData<DiscordForm> & { type: 'discord' })
+  | (BaseNodeData<TelegramForm> & { type: 'telegram' })
+  | (BaseNodeData<WhatsAppForm> & { type: 'whatsapp' })
+  | (BaseNodeData<WeatherForm> & { type: 'weather' })
+  | (BaseNodeData<DisplayForm> & { type: 'display' })
+  | (BaseNodeData<LoopForm> & { type: 'loop' })
+  | (BaseNodeData<VariableForm> & { type: 'variable' })
+  | (BaseNodeData<CodeForm> & { type: 'code' })
+  | (BaseNodeData<TemplateForm> & { type: 'template' })
+  | (BaseNodeData<CounterForm> & { type: 'counter' })
+  | (BaseNodeData<CacheForm> & { type: 'cache' })
+  | (BaseNodeData<LogForm> & { type: 'log' })
+  | (BaseNodeData<FileAnalysisForm> & { type: 'fileanalysis' })
+  | (BaseNodeData<CsvAnalysisForm> & { type: 'csvanalysis' })
+  | (BaseNodeData<ImageAnalysisForm> & { type: 'imageanalysis' })
+  | (BaseNodeData<PdfAnalysisForm> & { type: 'pdfanalysis' })
+  | (BaseNodeData<LogAnalysisForm> & { type: 'loganalysis' })
+  | (BaseNodeData<ExcelAnalysisForm> & { type: 'excelanalysis' })
+  | (BaseNodeData<WeChatForm> & { type: 'wechat' });
 
 // Helper type to extract specific node data
 export type ExtractNodeData<T extends NodeTypeString> = Extract<NodeData, { type: T }>;
-
 
 // Typed node instances
 export type BeginNode = Node<BeginNodeData>;
@@ -853,7 +858,14 @@ export interface ConfluenceForm extends BaseForm {
 export interface GitHubForm extends BaseForm {
   name: string;
   description?: string;
-  action: 'create_issue' | 'create_pull_request' | 'get_repository' | 'get_issues' | 'add_comment' | 'get_pull_requests' | 'merge_pull_request';
+  action:
+    | 'create_issue'
+    | 'create_pull_request'
+    | 'get_repository'
+    | 'get_issues'
+    | 'add_comment'
+    | 'get_pull_requests'
+    | 'merge_pull_request';
   token: string;
   owner: string;
   repository: string;
@@ -899,7 +911,6 @@ export interface GoogleMapForm extends BaseForm {
   radius?: number;
   type?: string;
 }
-
 
 export interface TwitterForm extends BaseForm {
   name: string;

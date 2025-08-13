@@ -1,9 +1,9 @@
 import { ExecutionResult, FlowExecutionContext } from '../../../../models/flowExecutionTypes';
 import { InstagramNodeData, FlowNode } from '../../../../models/flowTypes';
-import { findNextNodes } from '../../../../utils/server/findNextNode';
-import { getInputFromTemplate, processTemplate } from '../../templateProcessor';
-import { isNodeReady } from '../../isNodeReady';
-import { FlowStateDispatcher } from '../flowStateDispatcher';
+import { findNextNodes } from '../../../../packages/@flow/find-next-node';
+import { getInputFromTemplate, processTemplate } from '../../../../packages/@template-processor/templateProcessor';
+import { isNodeReady } from '../../../../packages/@flow/is-node-ready';
+import { FlowStateDispatcher } from '../../../../packages/@flow/flow-state-dispatcher';
 
 /**
  * Handler for executing Instagram nodes

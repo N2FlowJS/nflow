@@ -1,9 +1,9 @@
 import { executeNode } from './node/executeNode';
 import { EXECUTION_STATUS } from '../EXECUTION_STATUS';
 import { Flow } from '../../../models/flowTypes';
-import { ExecutionResult } from '../../../models/flowExecutionTypes';
-import { FlowStateDispatcher } from './flowStateDispatcher';
+import { FlowStateDispatcher } from '../../../packages/@flow/flow-state-dispatcher';
 import { MessagePart } from '../../../models/MessagePart';
+import { ExecutionResult } from '../../../packages/@flow/type';
 
 export async function processNode(
   flow: Flow,

@@ -2,9 +2,9 @@ import { getInputs, getQueryFromSource } from '../../../../hooks/useInputReferen
 import { searchSimilarContent } from '../../../../lib/services/vectorSearchService';
 import { ExecutionResult, FlowExecutionContext } from '../../../../models/flowExecutionTypes';
 import { FlowNode, RetrievalNodeData } from '../../../../models/flowTypes';
-import { findNextNodes } from '../../../../utils/server/findNextNode';
+import { findNextNodes } from '../../../../packages/@flow/find-next-node';
 import { flowStateReducer } from '../flowStateReducer';
-import { FlowStateDispatcher } from '../flowStateDispatcher';
+import { FlowStateDispatcher } from '../../../../packages/@flow/flow-state-dispatcher';
 
 /**
  * Handler for executing Retrieval nodes

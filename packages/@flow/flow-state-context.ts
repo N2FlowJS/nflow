@@ -1,5 +1,5 @@
-import { FlowState } from '../../../models/flowExecutionTypes';
-import { flowStateReducer, FlowStateAction } from './flowStateReducer';
+import { flowStateReducer, FlowStateAction } from './flow-state-reducer';
+import { FlowState } from './type';
 
 export class FlowStateManager {
   private state: FlowState;

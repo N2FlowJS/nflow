@@ -1,11 +1,11 @@
 import { getInputs, getQueryFromSource } from '../../../../hooks/useInputReferences';
 import { ExecutionResult, FlowExecutionContext } from '../../../../models/flowExecutionTypes';
 import { FlowNode, KeywordsNodeData } from '../../../../models/flowTypes';
-import { findNextNodes } from '../../../../utils/server/findNextNode';
+import { findNextNodes } from '../../../../packages/@flow/find-next-node';
 import { flowStateReducer } from '../flowStateReducer';
-import { FlowStateDispatcher } from '../flowStateDispatcher';
-import { getInputFromTemplate, processTemplate } from '../../templateProcessor';
-import { isNodeReady } from '../../isNodeReady';
+import { FlowStateDispatcher } from '../../../../packages/@flow/flow-state-dispatcher';
+import { getInputFromTemplate, processTemplate } from '../../../../packages/@template-processor/templateProcessor';
+import { isNodeReady } from '../../../../packages/@flow/is-node-ready';
 import { MessagePart } from '../../../../models/MessagePart';
 import { llmOpenAI } from '../../../../llm/openai';
 import { prisma } from '../../../../lib/prisma';

@@ -255,4 +255,4 @@ export function isWeChatNodeData(data: NodeData): data is WeChatNodeData {
   return data.type === 'wechat';
 }
 
-export { findNextNodes } from '../server/findNextNode';
+export { findNextNodes } from '../../packages/@flow/find-next-node';

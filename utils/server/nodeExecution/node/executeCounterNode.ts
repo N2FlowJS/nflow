@@ -1,7 +1,7 @@
 import { ExecutionResult, FlowExecutionContext } from '../../../../models/flowExecutionTypes';
 import { CounterNodeData, FlowNode } from '../../../../models/flowTypes';
-import { findNextNodes } from '../../../../utils/server/findNextNode';
-import { FlowStateDispatcher } from '../flowStateDispatcher';
+import { findNextNodes } from '../../../../packages/@flow/find-next-node';
+import { FlowStateDispatcher } from '../../../../packages/@flow/flow-state-dispatcher';
 
 // In-memory counter storage (in production, this could be database or Redis)
 const counters: Map<string, number> = new Map();
