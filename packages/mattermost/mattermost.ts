@@ -1,5 +1,5 @@
 import { NodePlugin } from '../@node-plugin/type'
-import { executeMattermostNode } from '../executeMattermostNode'
+import { executeMattermostNode } from './execute'
 
 export const mattermostPlugin: NodePlugin = {
   name: 'mattermost',

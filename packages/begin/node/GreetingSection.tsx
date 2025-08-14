@@ -1,7 +1,7 @@
 import React, { memo, useMemo } from 'react';
 import { Flex, Typography } from 'antd';
 import { MessageOutlined } from '@ant-design/icons';
-import { useLocale } from '../../../../locale/index';
+import { useLocale } from '../../../locale/index';
 
 interface GreetingSectionProps {
   greeting: string;

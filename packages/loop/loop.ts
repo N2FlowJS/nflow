@@ -1,5 +1,5 @@
 import { NodePlugin } from '../@node-plugin/type'
-import { executeLoopNode } from '../executeLoopNode'
+import { executeLoopNode } from './execute'
 
 export const loopPlugin: NodePlugin = {
   name: 'loop',

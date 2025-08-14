@@ -1,15 +1,15 @@
 import React from "react"; // Remove memo
 import { Handle, Position, NodeProps, Node, useReactFlow } from "@xyflow/react";
-import { CategorizeNodeData, ICategory } from "../../../../models/flowTypes";
-import BaseNode from "../base-node";
 import { BranchesOutlined } from "@ant-design/icons";
 import ConnectedCategories from "./ConnectedCategories";
 import UnconnectedCategories from "./UnconnectedCategories";
 import DefaultCategory from "./DefaultCategory";
-import { useFlowEditorContext } from "../../../../packages/@flow/editor-context";
-import { getHandleStyle } from "../base-node/handle-icon";
-import { slugify } from "../../../../packages/@flow/flow-helpers";
 import { theme } from 'antd';
+import { CategorizeNodeData, ICategory } from "../../../models/flowTypes";
+import { useFlowEditorContext } from "../../@flow/editor-context";
+import BaseNode from "../../@flow/node/base-node";
+import { slugify } from "../../@flow/flow-helpers";
+import { getHandleStyle } from "../../@flow/node/base-node/handle-icon";
 
 const CategorizeNode = ({
   data,

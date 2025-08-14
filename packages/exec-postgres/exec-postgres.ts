@@ -1,4 +1,4 @@
-import { executeExecPostgresNode } from '../executeExecPostgresNode';
+import { executeExecPostgresNode } from './execute';
 import { NodePlugin } from '../@node-plugin/type';
 
 

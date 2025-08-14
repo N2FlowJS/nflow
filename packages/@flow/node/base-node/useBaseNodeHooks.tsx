@@ -8,7 +8,7 @@ import { useCardStyle } from '../../../../hooks/useCardStyle';
 import { NODE_REGISTRY } from '../../../../utils/client/NODE_REGISTRY';
 import { useNodeExecutionStatus } from '../../../../context/FlowStateContext';
 import type { NodeData } from '../../../../models/flowTypes';
-import { useFlowEditorContext } from '../../canvas/FlowEditorContext';
+import { useFlowEditorContext } from '../../editor-context';
 
 export type HandleStyleOpts = {
   sourceColor: string;

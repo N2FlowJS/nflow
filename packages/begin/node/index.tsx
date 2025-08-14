@@ -1,12 +1,12 @@
 import React, { memo, useMemo } from 'react';
 import { Position, NodeProps, Node } from '@xyflow/react';
-import { BeginNodeData } from '../../../../models/flowTypes';
-import BaseNode from '../base-node';
+import { BeginNodeData } from '../../../models/flowTypes';
 import { Flex } from 'antd';
 import { PlayCircleOutlined } from '@ant-design/icons';
 import DescriptionSection from './DescriptionSection';
 import GreetingSection from './GreetingSection';
 import VariablesSection from './VariablesSection';
+import BaseNode from '../../@flow/node/base-node';
 
 const BeginNode = memo(({ data, id, selected }: NodeProps<Node<BeginNodeData>>) => {
   const { form } = data;

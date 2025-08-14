@@ -1,3 +1,4 @@
+import { FlowNode } from "../../models/flowTypes";
 import { FlowStateDispatcher } from "../@flow/flow-state-dispatcher";
 import { ExecutionResult, FlowExecutionContext } from "../@flow/type";
 export interface NodePluginConfig {
@@ -25,7 +26,7 @@ export type Executor = (
 
 export type NodePlugin = {
   name: string;
-  match: (node: any) => boolean;
+  match: (node: FlowNode) => boolean;
   run: Executor;
 };
 

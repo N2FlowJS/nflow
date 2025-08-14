@@ -1,8 +1,8 @@
 import React, { memo } from 'react';
 import { Typography, Flex } from 'antd';
 import { NodeTypeString } from '../../../../models/flowTypes';
-import RoleIndicator from '../shared/RoleIndicator';
 import { useNodeHeader } from './useBaseNodeHooks';
+import RoleIndicator from '../../share/RoleIndicator';
 
 interface NodeHeaderProps {
   id?: string;

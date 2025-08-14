@@ -30,7 +30,7 @@ import { isConnectionAllowed } from '../../../utils/client/connectionRules';
 import { NODE_REGISTRY } from '../../../utils/client/NODE_REGISTRY';
 import { parseFlowConfig } from '../../../utils/server/parseFlowConfig';
 import { nodeTypes } from './nodeTypes';
-import { FlowEditorContext, FlowEditorContextType } from './FlowEditorContext';
+import { FlowEditorContext, FlowEditorContextType } from '../../../packages/@flow/editor-context';
 import { useConversationStateLoader } from './hooks/useConversationStateLoader';
 import { useEdgeCleanup } from './hooks/useEdgeCleanup';
 import { useEdgeDeletion } from './hooks/useEdgeDeletion';
@@ -41,7 +41,7 @@ import { useNodeDropper } from './hooks/useNodeDropper';
 import { useDragOverHandler } from './hooks/useDragOverHandler';
 import { useNodeClickHandler } from './hooks/useNodeClickHandler';
 import { useEdgesWithDragFlag } from './hooks/useEdgesWithDragFlag';
-import { getOppositePosition, slugify } from './useFlowHelpers';
+import { getOppositePosition, slugify } from '../../../packages/@flow/flow-helpers';
 
 const edgeTypes: EdgeTypes = {
   default: CustomEdge,

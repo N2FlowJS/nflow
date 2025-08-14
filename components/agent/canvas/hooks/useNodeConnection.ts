@@ -3,7 +3,7 @@ import { Connection, Edge, MarkerType, Position } from '@xyflow/react';
 import { message } from 'antd';
 import { FlowNode, NodeTypeString, CategorizeForm, DecisionForm } from '../../../../models/flowTypes';
 import { isConnectionAllowed } from '../../../../utils/client/connectionRules';
-import { getOppositePosition, getPositionFromHandleId, slugify } from '../useFlowHelpers';
+import { getOppositePosition, getPositionFromHandleId, slugify } from '../../../../packages/@flow/flow-helpers';
 
 export const useNodeConnection = (
   nodes: FlowNode[],

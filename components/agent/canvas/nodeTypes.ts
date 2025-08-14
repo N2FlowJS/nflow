@@ -1,9 +1,9 @@
 import { NodeTypes as ReactFlowNodeTypes } from '@xyflow/react';
 
-import BeginNode from '../nodes/begin-node';
+import BeginNode from '../../../packages/begin/node';
 import InterfaceNode from '../nodes/interface-node';
 import GenerateNode from '../nodes/generate-node';
-import CategorizeNode from '../nodes/categorize-node';
+import CategorizeNode from '../../../packages/categorize/node';
 import RetrievalNode from '../nodes/retrieval-node';
 import DecisionNode from '../nodes/decision-node';
 import KeywordsNode from '../nodes/keywords-node';

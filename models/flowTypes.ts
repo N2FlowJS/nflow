@@ -1,5 +1,6 @@
 import { Edge, Node } from '@xyflow/react';
 import React from 'react';
+import { BaseForm, InputReference } from '../packages/@flow';
 
 // Node types mapping
 export const NODE_TYPES = {
@@ -72,11 +73,6 @@ export const NODE_TYPES = {
 // Allow dynamic plugin node types while preserving autocomplete for built-ins
 export type NodeTypeString = string & {};
 
-// Input/Output reference system - simplified for specific node types
-export interface InputReference {
-  sourceNodeId: string;
-  id: string;
-}
 
 // Generic Base Node Data with form type parameter
 export type BaseNodeData<TForm = unknown> = {
@@ -89,13 +85,6 @@ export type BaseNodeData<TForm = unknown> = {
   _lastUpdate?: number; // Add timestamp field for forcing re-renders
 };
 
-export interface BaseForm {
-  name: string; // This field is essential for display and node identification
-  description?: string; // Make these optional since not all nodes need them
-  output?: string;
-  role?: 'developer' | 'assistant' | 'system' | 'user';
-  inputRefs?: InputReference[]; // Add support for input references
-}
 
 // Form types for each node
 export interface BeginForm extends BaseForm {

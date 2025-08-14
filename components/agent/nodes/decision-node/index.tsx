@@ -6,8 +6,8 @@ import BaseNode from "../base-node";
 import DecisionBranches from "./DecisionBranches";
 import DefaultBranch from "./DefaultBranch";
 import {  getHandleStyle } from "../base-node/handle-icon";
-import { useFlowEditorContext } from "../../canvas/FlowEditorContext";
-import { slugify } from "../../canvas/useFlowHelpers";
+import { useFlowEditorContext } from "../../../../packages/@flow/editor-context";
+import { slugify } from "../../../../packages/@flow/flow-helpers";
 import { theme } from 'antd';
 
 const DecisionNode = ({

@@ -1,5 +1,5 @@
 import { NodePlugin } from '../@node-plugin/type'
-import { executeFileAnalysisNode } from '../executeFileAnalysisNode'
+import { executeFileAnalysisNode } from './execute'
 
 export const fileAnalysisPlugin: NodePlugin = {
   name: 'fileanalysis',

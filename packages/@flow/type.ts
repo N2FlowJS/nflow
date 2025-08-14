@@ -1,6 +1,6 @@
-import { FlowComponent, FlowExecutionHistoryEntry } from "../../models/flowExecutionTypes";
-import { Flow, FlowNode, NodeTypeString } from "../../models/flowTypes";
-import { MessagePart } from "../../models/MessagePart";
+import { FlowComponent, FlowExecutionHistoryEntry } from '../../models/flowExecutionTypes';
+import { Flow, FlowNode, NodeTypeString } from '../../models/flowTypes';
+import { MessagePart } from '../../models/MessagePart';
 
 export interface NodeInfo {
   id: string;
@@ -13,7 +13,6 @@ export interface FlowState {
   // The ID of the currently executing node
   currentNode: FlowNode;
   executionTime: number;
-
 
   // Components in the flow with their execution state
   components: Record<string, FlowComponent>;
@@ -63,4 +62,17 @@ export interface FlowExecutionContext {
   input: MessagePart;
 
   history?: MessagePart[]; // Optional history of messages for the current execution step
+}
+// Input/Output reference system - simplified for specific node types
+export interface InputReference {
+  sourceNodeId: string;
+  id: string;
+}
+
+export interface BaseForm {
+  name: string; // This field is essential for display and node identification
+  description?: string; // Make these optional since not all nodes need them
+  output?: string;
+  role?: 'developer' | 'assistant' | 'system' | 'user';
+  inputRefs?: InputReference[]; // Add support for input references
 }
