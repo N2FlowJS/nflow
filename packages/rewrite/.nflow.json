@@ -1,4 +1,5 @@
 {
   "enabled": true,
-  "order": 130
+  "order": 130,
+  "name": "rewrite"
 }

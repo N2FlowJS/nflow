@@ -1,4 +1,5 @@
 {
   "enabled": true,
-  "order": 160
+  "order": 160,
+  "name": "log-analysis"
 }

@@ -1,5 +1,5 @@
 import { NodePlugin } from '../@node-plugin/type'
-import { executeWeChatNode } from '../../utils/server/nodeExecution/node/executeWeChatNode'
+import { executeWeChatNode } from './executeWeChatNode'
 
 export const wechatPlugin: NodePlugin = {
   name: 'wechat',

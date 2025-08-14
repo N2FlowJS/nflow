@@ -1,8 +1,7 @@
-import {  FlowState, ExecutionResult } from '../../../models/flowExecutionTypes';
-import { MessagePart } from '../../../models/MessagePart';
-import { executeNode } from './node/executeNode';
 import { Flow } from '../../../models/flowTypes';
-import { FlowStateDispatcher } from '../../../packages/@flow/flow-state-dispatcher';
+import { MessagePart } from '../../../models/MessagePart';
+import { ExecutionResult, FlowState, FlowStateDispatcher } from '../../../packages/@flow';
+import { executeNode } from './executeNode';
 
 export async function executeCurrentNode(
   flow: Flow,

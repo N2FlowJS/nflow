@@ -1,5 +1,6 @@
 {
-    "type": "whatsapp",
+  "type": "whatsapp",
   "enabled": true,
-  "order": 162
+  "order": 162,
+  "name": "wechat"
 }

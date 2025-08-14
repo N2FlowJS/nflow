@@ -1,5 +1,5 @@
 import { NodePlugin } from '../@node-plugin/type'
-import { executeLogNode } from '../../utils/server/nodeExecution/node/executeLogNode'
+import { executeLogNode } from './execute'
 
 export const logPlugin: NodePlugin = {
   name: 'log',

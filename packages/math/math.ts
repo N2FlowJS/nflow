@@ -1,5 +1,5 @@
 import { NodePlugin } from '../@node-plugin/type'
-import { executeMathNode } from '../../utils/server/nodeExecution/node/executeMathNode'
+import { executeMathNode } from '../executeMathNode'
 
 export const mathPlugin: NodePlugin = {
   name: 'math',

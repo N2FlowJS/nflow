@@ -1,2 +1,6 @@
-{ "enabled": true, "order": 30 ,  "type": "categorize"
+{
+  "enabled": true,
+  "order": 30,
+  "type": "categorize",
+  "name": "categorize"
 }

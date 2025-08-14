@@ -1,5 +1,5 @@
 import { NodePlugin } from '../@node-plugin/type'
-import { executeCsvAnalysisNode } from '../../utils/server/nodeExecution/node/executeCsvAnalysisNode'
+import { executeCsvAnalysisNode } from './execute'
 
 export const csvAnalysisPlugin: NodePlugin = {
   name: 'csvanalysis',

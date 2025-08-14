@@ -1,5 +1,5 @@
 import { isExecMysqlNodeData } from '../../utils/client/isNode';
-import { executeExecMysqlNode } from '../../utils/server/nodeExecution/node/executeExecMysqlNode';
+import { executeExecMysqlNode } from '../executeExecMysqlNode';
 import { NodePlugin } from '../@node-plugin/type';
 
 export const execMysqlPlugin: NodePlugin = {

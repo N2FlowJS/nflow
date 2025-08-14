@@ -1,5 +1,5 @@
 import { NodePlugin } from '../@node-plugin/type'
-import { executeSlackNode } from '../../utils/server/nodeExecution/node/executeSlackNode'
+import { executeSlackNode } from './executeSlackNode'
 
 export const slackPlugin: NodePlugin = {
   name: 'slack',

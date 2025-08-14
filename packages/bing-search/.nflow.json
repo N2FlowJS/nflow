@@ -1,4 +1,5 @@
 {
   "enabled": true,
-  "order": 121
+  "order": 121,
+  "name": "bing-search"
 }

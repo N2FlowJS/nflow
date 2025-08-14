@@ -1,4 +1,5 @@
 {
   "enabled": true,
-  "order": 131
+  "order": 131,
+  "name": "mattermost"
 }

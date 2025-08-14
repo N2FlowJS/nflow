@@ -1,6 +1,6 @@
 import { NodePlugin } from '../@node-plugin/type';
 import { isKeywordsNodeData } from '../../utils/client/isNode';
-import { executeKeywordsNode } from '../../utils/server/nodeExecution/node/executeKeywordsNode';
+import { executeKeywordsNode } from '../executeKeywordsNode';
 
 export const keywordsPlugin: NodePlugin = {
   name: 'keywords',

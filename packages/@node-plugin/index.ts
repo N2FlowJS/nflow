@@ -1,31 +1,11 @@
 export * from './type';
 import * as fs from 'fs';
 import * as path from 'path';
+import { LoaderOptions, NodePluginConfig, NodePluginConfigMap } from './type';
 
-// ---- Types ----
-export interface NodePluginConfig {
-  enabled?: boolean;
-  order?: number;      // canonical ordering key
-  sort?: number;       // legacy key (mapped to order if order missing)
-  [k: string]: any;    // allow future extension
-}
-export type NodePluginConfigMap = Record<string, NodePluginConfig>;
-
-interface LoaderOptions {
-  rootDir?: string;    // base directory (defaults to process.cwd())
-  filename?: string;   // primary filename (defaults to .nflow.json)
-  packagesDir?: string;// override packages folder
-}
 
 const DEFAULT_CONFIG_FILENAME = '.nflow.json';
 
-/**
- * Load plugin configuration objects from each folder inside the monorepo "packages" directory.
- * Supports two naming patterns inside every package directory:
- *   1) <filename>  (default: .nflow.json)
- *   2) <pkg>.nflow.json (secondary pattern)
- * Legacy field mapping: if only "sort" exists, it is promoted to "order".
- */
 export function getNodePluginConfig(options?: LoaderOptions): NodePluginConfigMap {
   const rootDir = options?.rootDir ?? process.cwd();
   const filename = options?.filename ?? DEFAULT_CONFIG_FILENAME;
@@ -59,12 +39,10 @@ export function getNodePluginConfig(options?: LoaderOptions): NodePluginConfigMa
   return result;
 }
 
-/** Return the specific package config (undefined if not found). */
 export function getPackageNodePluginConfig(packageName: string, options?: LoaderOptions) {
   return getNodePluginConfig(options)[packageName];
 }
 
-// ---- Internal helpers ----
 
 function resolvePackagesDir(base: string): string | null {
   const direct = path.join(base, 'packages');

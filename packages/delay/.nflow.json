@@ -1,1 +1,5 @@
-{ "enabled": true, "order": 33 }
+{
+  "enabled": true,
+  "order": 33,
+  "name": "delay"
+}

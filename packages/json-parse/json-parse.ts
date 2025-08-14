@@ -1,5 +1,5 @@
 import { NodePlugin } from '../@node-plugin/type'
-import { executeJsonParseNode } from '../../utils/server/nodeExecution/node/executeJsonParseNode'
+import { executeJsonParseNode } from '../executeJsonParseNode'
 
 export const jsonParsePlugin: NodePlugin = {
   name: 'json-parse',

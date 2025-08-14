@@ -1,5 +1,5 @@
 import { NodePlugin } from '../@node-plugin/type'
-import { executeSendMailNode } from '../../utils/server/nodeExecution/node/executeSendMailNode'
+import { executeSendMailNode } from './execute'
 
 export const sendMailPlugin: NodePlugin = {
   name: 'sendmail',

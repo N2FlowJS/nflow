@@ -1,4 +1,5 @@
 {
-    "enabled": false,
-    "order": 20
+  "enabled": false,
+  "order": 20,
+  "name": "generate"
 }

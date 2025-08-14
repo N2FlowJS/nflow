@@ -1,4 +1,4 @@
-import { executeNode } from './node/executeNode';
+import { executeNode } from './executeNode';
 import { EXECUTION_STATUS } from '../EXECUTION_STATUS';
 import { Flow } from '../../../models/flowTypes';
 import { FlowStateDispatcher } from '../../../packages/@flow/flow-state-dispatcher';

@@ -1,1 +1,5 @@
-{ "enabled": true, "order": 500 }
+{
+  "enabled": true,
+  "order": 500,
+  "name": "retrieval"
+}

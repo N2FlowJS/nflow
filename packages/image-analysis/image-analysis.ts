@@ -1,5 +1,5 @@
 import { NodePlugin } from '../@node-plugin/type'
-import { executeImageAnalysisNode } from '../../utils/server/nodeExecution/node/executeImageAnalysisNode'
+import { executeImageAnalysisNode } from '../executeImageAnalysisNode'
 
 export const imageAnalysisPlugin: NodePlugin = {
   name: 'imageanalysis',

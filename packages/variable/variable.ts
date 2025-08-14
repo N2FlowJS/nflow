@@ -1,5 +1,5 @@
 import { NodePlugin } from '../@node-plugin/type'
-import { executeVariableNode } from '../../utils/server/nodeExecution/node/executeVariableNode'
+import { executeVariableNode } from './executeVariableNode'
 
 export const variablePlugin: NodePlugin = {
   name: 'variable',

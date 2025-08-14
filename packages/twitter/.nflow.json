@@ -1,5 +1,6 @@
 {
-    "type": "twitter",
+  "type": "twitter",
   "enabled": true,
-  "order": 139
+  "order": 139,
+  "name": "twitter"
 }

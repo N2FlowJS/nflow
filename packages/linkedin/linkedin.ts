@@ -1,5 +1,5 @@
 import { NodePlugin } from '../@node-plugin/type'
-import { executeLinkedInNode } from '../../utils/server/nodeExecution/node/executeLinkedInNode'
+import { executeLinkedInNode } from '../executeLinkedInNode'
 
 export const linkedinPlugin: NodePlugin = {
   name: 'linkedin',

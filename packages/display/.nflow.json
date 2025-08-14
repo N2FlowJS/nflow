@@ -1,4 +1,5 @@
 {
   "enabled": true,
-  "order": 149
+  "order": 149,
+  "name": "display"
 }

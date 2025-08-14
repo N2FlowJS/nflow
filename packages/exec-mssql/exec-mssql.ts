@@ -1,5 +1,5 @@
 import { isExecMssqlNodeData } from '../../utils/client/isNode';
-import { executeExecMssqlNode } from '../../utils/server/nodeExecution/node/executeExecMssqlNode';
+import { executeExecMssqlNode } from '../executeExecMssqlNode';
 import { NodePlugin } from '../@node-plugin/type';
 
 export const execMssqlPlugin: NodePlugin = {

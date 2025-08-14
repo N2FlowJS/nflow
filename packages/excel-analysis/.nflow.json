@@ -1,4 +1,5 @@
 {
   "enabled": true,
-  "order": 161
+  "order": 161,
+  "name": "excel-analysis"
 }

@@ -1,4 +1,5 @@
 {
   "enabled": true,
-  "order": 145
+  "order": 145,
+  "name": "telegram"
 }

@@ -1,5 +1,6 @@
 {
-    "type": "weather",
+  "type": "weather",
   "enabled": true,
-  "order": 147
+  "order": 147,
+  "name": "weather"
 }

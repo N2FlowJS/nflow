@@ -1,5 +1,5 @@
 import { NodePlugin } from '../@node-plugin/type'
-import { executeFacebookNode } from '../../utils/server/nodeExecution/node/executeFacebookNode'
+import { executeFacebookNode } from '../executeFacebookNode'
 
 export const facebookPlugin: NodePlugin = {
   name: 'facebook',

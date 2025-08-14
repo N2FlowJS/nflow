@@ -1,5 +1,5 @@
 import { NodePlugin } from '../@node-plugin/type'
-import { executeInstagramNode } from '../../utils/server/nodeExecution/node/executeInstagramNode'
+import { executeInstagramNode } from '../executeInstagramNode'
 
 export const instagramPlugin: NodePlugin = {
   name: 'instagram',

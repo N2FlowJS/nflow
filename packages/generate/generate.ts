@@ -1,6 +1,6 @@
 import { NodePlugin } from '../@node-plugin/type';
 import { isGenerateNodeData } from '../../utils/client/isNode';
-import { executeGenerateNode } from '../../utils/server/nodeExecution/node/executeGenerateNode';
+import { executeGenerateNode } from '../executeGenerateNode';
 
 export const generatePlugin: NodePlugin = {
   name: 'generate',

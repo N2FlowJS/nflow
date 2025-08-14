@@ -1,4 +1,5 @@
 {
   "enabled": true,
-  "order": 110
+  "order": 110,
+  "name": "sendmail"
 }

@@ -1,5 +1,5 @@
 import { NodePlugin } from '../@node-plugin/type'
-import { executeHttpRequestNode } from '../../utils/server/nodeExecution/node/executeHttpRequestNode'
+import { executeHttpRequestNode } from '../executeHttpRequestNode'
 
 export const httpRequestPlugin: NodePlugin = {
   name: 'http-request',

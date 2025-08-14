@@ -1,6 +1,6 @@
 import { NodePlugin } from '../@node-plugin/type';
 import { isDecisionNodeData } from '../../utils/client/isNode';
-import { executeDecisionNode } from '../../utils/server/nodeExecution/node/executeDecisionNode';
+import { executeDecisionNode } from './execute';
 
 export const decisionPlugin: NodePlugin = {
   name: 'decision',

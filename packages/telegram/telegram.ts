@@ -1,5 +1,5 @@
 import { NodePlugin } from '../@node-plugin/type'
-import { executeTelegramNode } from '../../utils/server/nodeExecution/node/executeTelegramNode'
+import { executeTelegramNode } from './executeTelegramNode'
 
 export const telegramPlugin: NodePlugin = {
   name: 'telegram',

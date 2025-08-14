@@ -1,5 +1,5 @@
 import { NodePlugin } from '../@node-plugin/type'
-import { executeWhatsAppNode } from '../../utils/server/nodeExecution/node/executeWhatsAppNode'
+import { executeWhatsAppNode } from './executeWhatsAppNode'
 
 export const whatsappPlugin: NodePlugin = {
   name: 'whatsapp',

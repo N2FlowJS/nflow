@@ -1,4 +1,5 @@
 {
   "enabled": true,
-  "order": 133
+  "order": 133,
+  "name": "jira"
 }

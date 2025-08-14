@@ -1,5 +1,5 @@
 import { NodePlugin } from '../@node-plugin/type'
-import { executeGitHubNode } from '../../utils/server/nodeExecution/node/executeGitHubNode'
+import { executeGitHubNode } from '../executeGitHubNode'
 
 export const githubPlugin: NodePlugin = {
   name: 'github',

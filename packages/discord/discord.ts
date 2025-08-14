@@ -1,5 +1,5 @@
 import { NodePlugin } from '../@node-plugin/type'
-import { executeDiscordNode } from '../../utils/server/nodeExecution/node/executeDiscordNode'
+import { executeDiscordNode } from './executeDiscordNode'
 
 export const discordPlugin: NodePlugin = {
   name: 'discord',

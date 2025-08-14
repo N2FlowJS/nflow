@@ -1,1 +1,5 @@
-{ "enabled": true, "order": 601 }
+{
+  "enabled": true,
+  "order": 601,
+  "name": "text-process"
+}

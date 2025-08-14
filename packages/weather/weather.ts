@@ -1,5 +1,5 @@
 import { NodePlugin } from '../@node-plugin/type'
-import { executeWeatherNode } from '../../utils/server/nodeExecution/node/executeWeatherNode'
+import { executeWeatherNode } from './executeWeatherNode'
 
 export const weatherPlugin: NodePlugin = {
   name: 'weather',

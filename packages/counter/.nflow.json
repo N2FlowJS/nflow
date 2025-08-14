@@ -1,4 +1,5 @@
 {
   "enabled": true,
-  "order": 153
+  "order": 153,
+  "name": "counter"
 }

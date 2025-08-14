@@ -1,1 +1,5 @@
-{ "enabled": true, "order": 220 }
+{
+  "enabled": true,
+  "order": 220,
+  "name": "json-parse"
+}

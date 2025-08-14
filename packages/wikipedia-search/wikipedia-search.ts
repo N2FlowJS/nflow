@@ -1,5 +1,5 @@
 import { NodePlugin } from '../@node-plugin/type'
-import { executeWikipediaSearchNode } from '../../utils/server/nodeExecution/node/executeWikipediaSearchNode'
+import { executeWikipediaSearchNode } from './executeWikipediaSearchNode'
 
 export const wikipediaSearchPlugin: NodePlugin = {
   name: 'wikipediasearch',

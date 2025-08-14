@@ -1,5 +1,5 @@
 import { NodePlugin } from '../@node-plugin/type'
-import { executeDateTimeNode } from '../../utils/server/nodeExecution/node/executeDateTimeNode'
+import { executeDateTimeNode } from './execute'
 
 export const datetimePlugin: NodePlugin = {
   name: 'datetime',

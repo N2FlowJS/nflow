@@ -1,6 +1,6 @@
 import { NodePlugin } from '../@node-plugin/type';
 import { isInterfaceNodeData } from '../../utils/client/isNode';
-import { executeInterfaceNode } from '../../utils/server/nodeExecution/node/executeInterfaceNode';
+import { executeInterfaceNode } from '../executeInterfaceNode';
 
 export const interfacePlugin: NodePlugin = {
   name: 'interface',

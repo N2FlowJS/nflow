@@ -1,5 +1,5 @@
 import { NodePlugin } from '../@node-plugin/type'
-import { executeFileWriteNode } from '../../utils/server/nodeExecution/node/executeFileWriteNode'
+import { executeFileWriteNode } from '../executeFileWriteNode'
 
 export const fileWritePlugin: NodePlugin = {
   name: 'file-write',

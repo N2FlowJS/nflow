@@ -1,1 +1,5 @@
-{ "enabled": true, "order": 210 }
+{
+  "enabled": true,
+  "order": 210,
+  "name": "http-request"
+}

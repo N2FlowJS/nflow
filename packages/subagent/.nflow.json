@@ -1,4 +1,5 @@
 {
   "enabled": true,
-  "order": 100
+  "order": 100,
+  "name": "subagent"
 }

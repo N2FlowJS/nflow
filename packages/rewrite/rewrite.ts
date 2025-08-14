@@ -1,5 +1,5 @@
 import { NodePlugin } from '../@node-plugin/type'
-import { executeRewriteNode } from '../../utils/server/nodeExecution/node/executeRewriteNode'
+import { executeRewriteNode } from './executeRewriteNode'
 
 export const rewritePlugin: NodePlugin = {
   name: 'rewrite',

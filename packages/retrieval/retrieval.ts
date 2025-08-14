@@ -1,6 +1,6 @@
 import { NodePlugin } from '../@node-plugin/type';
 import { isRetrievalNodeData } from '../../utils/client/isNode';
-import { executeRetrievalNode } from '../../utils/server/nodeExecution/node/executeRetrievalNode';
+import { executeRetrievalNode } from './execute';
 
 export const retrievalPlugin: NodePlugin = {
   name: 'retrieval',

@@ -1,1 +1,5 @@
-{ "enabled": true, "order": 31 }
+{
+  "enabled": true,
+  "order": 31,
+  "name": "condition"
+}

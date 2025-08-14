@@ -1,1 +1,5 @@
-{ "enabled": true, "order": 401 }
+{
+  "enabled": true,
+  "order": 401,
+  "name": "file-write"
+}

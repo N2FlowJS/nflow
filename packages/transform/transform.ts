@@ -1,5 +1,5 @@
 import { NodePlugin } from '../@node-plugin/type'
-import { executeTransformNode } from '../../utils/server/nodeExecution/node/executeTransformNode'
+import { executeTransformNode } from './executeTransformNode'
 
 export const transformPlugin: NodePlugin = {
   name: 'transform',

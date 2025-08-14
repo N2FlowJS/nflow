@@ -1,5 +1,5 @@
 import { NodePlugin } from '../@node-plugin/type'
-import { executeGitLabNode } from '../../utils/server/nodeExecution/node/executeGitLabNode'
+import { executeGitLabNode } from '../executeGitLabNode'
 
 export const gitlabPlugin: NodePlugin = {
   name: 'gitlab',

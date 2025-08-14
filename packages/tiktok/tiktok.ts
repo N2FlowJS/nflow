@@ -1,5 +1,5 @@
 import { NodePlugin } from '../@node-plugin/type'
-import { executeTikTokNode } from '../../utils/server/nodeExecution/node/executeTikTokNode'
+import { executeTikTokNode } from './executeTikTokNode'
 
 export const tiktokPlugin: NodePlugin = {
   name: 'tiktok',

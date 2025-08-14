@@ -1,4 +1,5 @@
 {
   "enabled": true,
-  "order": 123
+  "order": 123,
+  "name": "wikipedia-search"
 }

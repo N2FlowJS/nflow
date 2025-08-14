@@ -1,4 +1,5 @@
 {
   "enabled": true,
-  "order": 154
+  "order": 154,
+  "name": "cache"
 }

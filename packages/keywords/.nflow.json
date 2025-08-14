@@ -1,1 +1,5 @@
-{ "enabled": true, "order": 221 }
+{
+  "enabled": true,
+  "order": 221,
+  "name": "keywords"
+}

@@ -1,4 +1,5 @@
 {
   "enabled": true,
-  "order": 138
+  "order": 138,
+  "name": "google-map"
 }

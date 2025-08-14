@@ -1,5 +1,5 @@
 import { NodePlugin } from '../@node-plugin/type'
-import { executeSubAgentNode } from '../../utils/server/nodeExecution/node/executeSubAgentNode'
+import { executeSubAgentNode } from './executeSubAgentNode'
 
 export const subAgentPlugin: NodePlugin = {
   name: 'subagent',

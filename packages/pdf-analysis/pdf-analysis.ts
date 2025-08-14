@@ -1,5 +1,5 @@
 import { NodePlugin } from '../@node-plugin/type'
-import { executePdfAnalysisNode } from '../../utils/server/nodeExecution/node/executePdfAnalysisNode'
+import { executePdfAnalysisNode } from './execute'
 
 export const pdfAnalysisPlugin: NodePlugin = {
   name: 'pdfanalysis',

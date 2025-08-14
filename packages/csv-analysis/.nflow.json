@@ -1,4 +1,5 @@
 {
   "enabled": true,
-  "order": 157
+  "order": 157,
+  "name": "csv-analysis"
 }

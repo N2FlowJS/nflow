@@ -1,5 +1,5 @@
 import { NodePlugin } from '../@node-plugin/type'
-import { executeDuckGoSearchNode } from '../../utils/server/nodeExecution/node/executeDuckGoSearchNode'
+import { executeDuckGoSearchNode } from './executeDuckGoSearchNode'
 
 export const duckGoSearchPlugin: NodePlugin = {
   name: 'duckgosearch',

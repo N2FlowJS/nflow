@@ -1,5 +1,5 @@
 import { NodePlugin } from '../@node-plugin/type'
-import { executeDelayNode } from '../../utils/server/nodeExecution/node/executeDelayNode'
+import { executeDelayNode } from './executeDelayNode'
 
 export const delayPlugin: NodePlugin = {
   name: 'delay',

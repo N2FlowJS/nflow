@@ -1,5 +1,5 @@
 import { NodePlugin } from '../@node-plugin/type'
-import { executeExcelAnalysisNode } from '../../utils/server/nodeExecution/node/executeExcelAnalysisNode'
+import { executeExcelAnalysisNode } from './execute'
 
 export const excelAnalysisPlugin: NodePlugin = {
   name: 'excelanalysis',

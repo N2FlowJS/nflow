@@ -1,5 +1,5 @@
 import { NodePlugin } from '../@node-plugin/type'
-import { executeGoogleMapNode } from '../../utils/server/nodeExecution/node/executeGoogleMapNode'
+import { executeGoogleMapNode } from '../executeGoogleMapNode'
 
 export const googleMapPlugin: NodePlugin = {
   name: 'googlemap',

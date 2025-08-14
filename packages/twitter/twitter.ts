@@ -1,5 +1,5 @@
 import { NodePlugin } from '../@node-plugin/type'
-import { executeTwitterNode } from '../../utils/server/nodeExecution/node/executeTwitterNode'
+import { executeTwitterNode } from './executeTwitterNode'
 
 export const twitterPlugin: NodePlugin = {
   name: 'twitter',

@@ -1,5 +1,5 @@
 import { NodePlugin } from '../@node-plugin/type'
-import { executeJiraNode } from '../../utils/server/nodeExecution/node/executeJiraNode'
+import { executeJiraNode } from '../executeJiraNode'
 
 export const jiraPlugin: NodePlugin = {
   name: 'jira',

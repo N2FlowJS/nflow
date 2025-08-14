@@ -1,5 +1,6 @@
 {
-    "type": "whatsapp",
+  "type": "whatsapp",
   "enabled": true,
-  "order": 146
+  "order": 146,
+  "name": "whatsapp"
 }

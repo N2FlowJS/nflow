@@ -1,5 +1,5 @@
 import { NodePlugin } from '../@node-plugin/type'
-import { executeTextProcessNode } from '../../utils/server/nodeExecution/node/executeTextProcessNode'
+import { executeTextProcessNode } from './execute'
 
 export const textProcessPlugin: NodePlugin = {
   name: 'text-process',

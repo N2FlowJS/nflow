@@ -1,1 +1,5 @@
-{ "enabled": true, "order": 201 }
+{
+  "enabled": true,
+  "order": 201,
+  "name": "exec-mysql"
+}

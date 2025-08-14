@@ -1,1 +1,5 @@
-{ "enabled": true, "order": 200 }
+{
+  "enabled": true,
+  "order": 200,
+  "name": "exec-mssql"
+}

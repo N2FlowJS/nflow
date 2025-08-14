@@ -1,5 +1,5 @@
 import { NodePlugin } from '../@node-plugin/type'
-import { executeDisplayNode } from '../../utils/server/nodeExecution/node/executeDisplayNode'
+import { executeDisplayNode } from './execute'
 
 export const displayPlugin: NodePlugin = {
   name: 'display',
