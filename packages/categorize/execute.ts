@@ -1,0 +1,242 @@
+import { getInputs, getQueryFromSource } from '../../hooks/useInputReferences';
+import { CategorizeNodeData, FlowNode, ICategory } from '../../models/flowTypes';
+import { ExecutionResult, FlowExecutionContext, FlowStateDispatcher } from '../@flow';
+import { prisma } from '../../lib/prisma';
+
+/**
+ * Handler for executing Categorize nodes
+ */
+export async function execute(
+  node: FlowNode,
+  { flowState }: FlowExecutionContext,
+  dispatcher?: FlowStateDispatcher
+): Promise<ExecutionResult> {
+  const data = node.data as CategorizeNodeData;
+  const form = data.form || {};
+
+  const inputs = getInputs(node.id, flowState, []);
+
+  console.log('inputs', inputs);
+
+  // Get the input to categorize using the shared input source resolver
+  const inputToCategorize = getQueryFromSource(inputs, flowState);
+
+  // Create node info object for consistent response
+
+  if (!inputToCategorize) {
+    throw new Error('No input available to categorize');
+  }
+
+  try {
+    // Get categories from the form
+    const categories = form.categories || [];
+    const defaultCategory = form.defaultCategory || '';
+
+    if (categories.length === 0) {
+      throw new Error('No categories defined for categorization');
+    }
+
+    // Get model ID (use default chat model if not specified)
+    const modelId = form.model;
+    let model;
+
+    if (modelId) {
+      model = await prisma.lLMModel.findUnique({
+        where: { id: modelId },
+        include: { provider: true },
+      });
+    } else {
+      model = await prisma.lLMModel.findFirst({
+        where: {
+          modelType: 'chat',
+        },
+        include: { provider: true },
+      });
+    }
+
+    if (!model) {
+      throw new Error('No suitable model found for categorization');
+    }
+
+    const categoriesDescription = categories
+      .map((c) => `- ${c.name}: ${c.description}${c.examples ? `\n  Examples: ${c.examples.join(', ')}` : ''}`)
+      .join('\n');
+
+    const prompt = `
+I need to categorize the following text into one of these categories:
+
+${categoriesDescription}
+
+Text to categorize:
+"""
+${inputToCategorize}
+"""
+
+Analyze the text and determine which category it belongs to. Respond with ONLY the category name and a confidence score between 0 and 1, in this exact JSON format:
+{"category": "category_name", "confidence": 0.95}
+`.trim();
+
+    // Process based on provider type
+    let responseText = '';
+
+    switch (model.provider.providerType) {
+      case 'openai':
+        responseText = await callOpenAIAPI(model.provider, model, prompt);
+        break;
+
+      case 'openai-compatible':
+        responseText = await callCustomAPI(model.provider, model, prompt);
+        break;
+      default:
+        return {
+          nextNodes: [],
+          status: 'error',
+          message: `Unsupported provider type: ${model.provider.providerType}`,
+          flowState,
+          nodeInfo: {
+            id: node.id,
+            name: node.data?.label || node.id,
+            type: 'categorize',
+            role: 'developer',
+          },
+          execution: {
+            output: `Unsupported provider type: ${model.provider.providerType}`,
+            nodeId: node.id,
+            nodeName: node.data?.label || node.id,
+            startTime: new Date().toISOString(),
+          },
+        };
+    }
+
+    let categoryToUse = defaultCategory;
+
+    try {
+      // Extract JSON from potential text (in case LLM adds extra explanation)
+      const jsonMatch = responseText.match(/\{[^{]*"category"[^}]*\}/);
+      if (jsonMatch) {
+        const responseJson = JSON.parse(jsonMatch[0]);
+
+        if (responseJson.category) {
+          // Find the matching category
+          const matchedCategory = categories.find((cat) => cat.name === responseJson.category);
+
+          // If no category matched, use the default category
+          categoryToUse = matchedCategory ? matchedCategory.name : defaultCategory;
+        }
+      }
+    } catch (error: unknown) {
+      console.error('Failed to parse LLM response for categorization:', error);
+      // Falls back to default category
+    }
+
+    // Find the target node for this category
+    const categoryObj = categories.find((cat: ICategory) => cat.name === categoryToUse);
+    let nextNodeId: string | null = null;
+
+    if (categoryObj && categoryObj.targetNode) {
+      nextNodeId = categoryObj.targetNode;
+    } else {
+      nextNodeId = categories.find((cat: ICategory) => cat.name === defaultCategory)?.targetNode || null;
+    }
+
+    // Use shared dispatcher if available, otherwise update local state
+    let finalState = flowState;
+
+    if (dispatcher) {
+      const outputValue = categoryObj && categoryObj.targetNode ? categoryToUse : defaultCategory;
+      dispatcher.setNodeOutput(node.id, outputValue, 'categorize');
+      dispatcher.setCurrentNode(node);
+      finalState = dispatcher.getState();
+    } else {
+      // Fallback to local state update
+      if (categoryObj && categoryObj.targetNode) {
+        flowState.components[node.id]['output'] = categoryToUse;
+      } else {
+        flowState.components[node.id]['output'] = defaultCategory;
+      }
+      flowState.components[node.id]['type'] = 'categorize';
+      flowState.components[node.id]['executionTime'] = Date.now();
+      flowState.currentNode = node;
+      finalState = flowState;
+    }
+
+    if (!nextNodeId) {
+      throw new Error(`At the Node ${node.data.label} next node found in the flow`);
+    }
+
+    return {
+      status: 'in_progress',
+      nextNodes: [nextNodeId],
+      flowState: finalState,
+      nodeInfo: {
+        id: node.id,
+        name: node.data?.label || node.id,
+        type: 'categorize',
+        role: 'developer',
+      },
+      execution: {
+        output: categoryToUse,
+        nodeId: node.id,
+        nodeName: node.data?.label || node.id,
+        startTime: new Date().toISOString(),
+      },
+    };
+  } catch (error: unknown) {
+    console.error('Error in categorize node:', error);
+    throw new Error(`Error categorizing input: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+/**
+ * Call the OpenAI API
+ */
+async function callOpenAIAPI(provider: any, model: any, prompt: string): Promise<string> {
+  const response = await fetch(provider.endpointUrl + 'chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${provider.apiKey}`,
+    },
+    body: JSON.stringify({
+      model: model.name,
+      messages: [{ role: 'user', content: prompt }],
+      temperature: 0.3, // Lower temperature for more deterministic categorization
+    }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.text();
+    throw new Error(`OpenAI API error (${response.status}): ${errorData}`);
+  }
+
+  const data = await response.json();
+  return data.choices[0].message.content;
+}
+
+/**
+ * Call a custom API endpoint
+ */
+async function callCustomAPI(provider: any, model: any, prompt: string): Promise<string> {
+  // Prepare request body based on provider configuration
+
+  const response = await fetch(provider.endpointUrl + 'chat/completions', {
+    method: 'POST',
+
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${provider.apiKey}`,
+    },
+
+    body: JSON.stringify({
+      model: model.name,
+      messages: [{ role: 'user', content: prompt }],
+    }),
+  });
+  if (!response.ok) {
+    const errorData = await response.text();
+    throw new Error(`Custom API error (${response.status}): ${errorData}`);
+  }
+
+  const data = await response.json();
+  return data.choices[0].message.content;
+}

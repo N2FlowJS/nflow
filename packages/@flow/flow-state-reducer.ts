@@ -1,5 +1,7 @@
-import { FlowComponent, FlowState } from '../../../models/flowExecutionTypes';
-import { FlowNode } from '../../../models/flowTypes';
+import { FlowComponent } from "../../models/flowExecutionTypes";
+import { FlowNode } from "../../models/flowTypes";
+import { FlowState } from "./type";
+
 
 export type FlowStateAction =
   | { type: 'UPDATE_EXECUTION_TIME'; payload: { nodeId: string; executionTime: number } }

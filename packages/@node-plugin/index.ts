@@ -1,85 +1,105 @@
-export * from './type'
-import * as fs from 'fs'
-import * as path from 'path'
+export * from './type';
+import * as fs from 'fs';
+import * as path from 'path';
 
-export type NodePluginConfigMap = Record<string, unknown>
+// ---- Types ----
+export interface NodePluginConfig {
+  enabled?: boolean;
+  order?: number;      // canonical ordering key
+  sort?: number;       // legacy key (mapped to order if order missing)
+  [k: string]: any;    // allow future extension
+}
+export type NodePluginConfigMap = Record<string, NodePluginConfig>;
+
+interface LoaderOptions {
+  rootDir?: string;    // base directory (defaults to process.cwd())
+  filename?: string;   // primary filename (defaults to .nflow.json)
+  packagesDir?: string;// override packages folder
+}
+
+const DEFAULT_CONFIG_FILENAME = '.nflow.json';
 
 /**
- * Read .nflow.json config from each package under the monorepo's packages directory.
- * Returns an object keyed by package folder name.
+ * Load plugin configuration objects from each folder inside the monorepo "packages" directory.
+ * Supports two naming patterns inside every package directory:
+ *   1) <filename>  (default: .nflow.json)
+ *   2) <pkg>.nflow.json (secondary pattern)
+ * Legacy field mapping: if only "sort" exists, it is promoted to "order".
  */
-export const getNodePluginConfig = (options?: {
-    /** A directory within the repo to start searching upward from (defaults to process.cwd()). */
-    rootDir?: string
-    /** Override the config filename to look for within each package (defaults to `.nflow.json`). */
-    filename?: string
-}): NodePluginConfigMap => {
-    const rootDir = options?.rootDir ?? process.cwd()
-    const filename = options?.filename ?? '.nflow.json'
+export function getNodePluginConfig(options?: LoaderOptions): NodePluginConfigMap {
+  const rootDir = options?.rootDir ?? process.cwd();
+  const filename = options?.filename ?? DEFAULT_CONFIG_FILENAME;
 
-    const packagesDir = findPackagesDir(rootDir)
-    if (!packagesDir) return {}
+  // Resolve packages directory (direct or by walking up)
+  const packagesDir =
+    options?.packagesDir || resolvePackagesDir(rootDir);
+  if (!packagesDir) return {};
 
-    let entries: fs.Dirent[] = []
-    try {
-        entries = fs.readdirSync(packagesDir, { withFileTypes: true })
-    } catch (_) {
-        return {}
-    }
+  let dirEntries: fs.Dirent[];
+  try {
+    dirEntries = fs.readdirSync(packagesDir, { withFileTypes: true });
+  } catch {
+    return {};
+  }
 
-    const result: NodePluginConfigMap = {}
+  const result: NodePluginConfigMap = {};
+  for (const d of dirEntries) {
+    if (!d.isDirectory()) continue;
+    const pkgName = d.name;
+    const pkgPath = path.join(packagesDir, pkgName);
+    const configPath = pickFirstExisting([
+      path.join(pkgPath, filename),
+      path.join(pkgPath, `${pkgName}.nflow.json`),
+    ]);
+    if (!configPath) continue;
 
-    for (const entry of entries) {
-        if (!entry.isDirectory()) continue
-        const pkgName = entry.name
-        const pkgPath = path.join(packagesDir, pkgName)
-
-        const primaryPath = path.join(pkgPath, filename)
-        const secondaryPath = path.join(pkgPath, `${pkgName}.nflow.json`)
-        const configPath = fs.existsSync(primaryPath)
-            ? primaryPath
-            : fs.existsSync(secondaryPath)
-                ? secondaryPath
-                : null
-
-        if (!configPath) continue
-
-        try {
-            const raw = fs.readFileSync(configPath, 'utf8')
-            const json = JSON.parse(raw)
-            result[pkgName] = json
-        } catch (err) {
-            // Skip invalid JSON but keep scanning; optionally log for diagnostics in dev
-            if (process.env.NODE_ENV !== 'production') {
-                console.warn(`[nflow] Failed to read ${configPath}:`, err)
-            }
-        }
-    }
-
-    return result
+    const cfg = readAndNormalizeConfig(configPath);
+    if (cfg) result[pkgName] = cfg;
+  }
+  return result;
 }
 
-/** Get the parsed .nflow.json for a specific package (by folder name). */
-export function getPackageNodePluginConfig(
-    packageName: string,
-    options?: { rootDir?: string; filename?: string }
-): unknown | undefined {
-    const all = getNodePluginConfig(options)
-    return all[packageName]
+/** Return the specific package config (undefined if not found). */
+export function getPackageNodePluginConfig(packageName: string, options?: LoaderOptions) {
+  return getNodePluginConfig(options)[packageName];
 }
 
-function findPackagesDir(startDir: string): string | null {
-    // Walk up from startDir to repo root, looking for a 'packages' folder
-    let current = path.resolve(startDir)
-    const { root } = path.parse(current)
+// ---- Internal helpers ----
 
-    while (true) {
-        const candidate = path.join(current, 'packages')
-        if (fs.existsSync(candidate) && fs.statSync(candidate).isDirectory()) {
-            return candidate
-        }
-        if (current === root) break
-        current = path.dirname(current)
+function resolvePackagesDir(base: string): string | null {
+  const direct = path.join(base, 'packages');
+  if (isDir(direct)) return direct;
+  // walk upward
+  let current = path.resolve(base);
+  const root = path.parse(current).root;
+  while (current !== root) {
+    const candidate = path.join(current, 'packages');
+    if (isDir(candidate)) return candidate;
+    current = path.dirname(current);
+  }
+  return null;
+}
+
+function isDir(p: string): boolean {
+  try { return fs.statSync(p).isDirectory(); } catch { return false; }
+}
+
+function pickFirstExisting(paths: string[]): string | null {
+  for (const p of paths) if (fs.existsSync(p)) return p; return null;
+}
+
+function readAndNormalizeConfig(file: string): NodePluginConfig | null {
+  try {
+    const raw = fs.readFileSync(file, 'utf8');
+    const json: NodePluginConfig = JSON.parse(raw);
+    if (json && typeof json === 'object' && json.order == null && typeof json.sort === 'number') {
+      json.order = json.sort;
     }
-    return null
+    return json;
+  } catch (err) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn(`[nflow] Failed to read ${file}:`, err);
+    }
+    return null;
+  }
 }

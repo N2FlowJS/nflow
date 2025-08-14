@@ -1,69 +1,48 @@
 import * as fs from 'fs'
+import * as os from 'os'
 import * as path from 'path'
 import { getNodePluginConfig, getPackageNodePluginConfig } from '../packages/@node-plugin'
 
-// We'll spy on fs methods instead of replacing the module to avoid readonly prop issues
-
-function dirent(name: string, isDir: boolean): fs.Dirent {
-  return {
-    name,
-    isDirectory: () => isDir,
-    isBlockDevice: () => false,
-    isCharacterDevice: () => false,
-    isFIFO: () => false,
-    isFile: () => !isDir,
-    isSocket: () => false,
-    isSymbolicLink: () => false,
-  } as unknown as fs.Dirent
-}
-
 describe('getNodePluginConfig', () => {
-  const root = 'D:/repo'
-  const packages = path.join(root, 'packages')
+  let tmpRoot: string
+  let packagesDir: string
 
   beforeEach(() => {
-    jest.restoreAllMocks()
+    tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'nflow-test-'))
+    packagesDir = path.join(tmpRoot, 'packages')
+    fs.mkdirSync(packagesDir)
 
-    jest.spyOn(fs, 'existsSync').mockImplementation((p: fs.PathLike) => {
-      const s = String(p)
-      return s === packages ||
-        s === path.join(packages, 'begin') ||
-        s === path.join(packages, 'generate') ||
-        s.endsWith('.nflow.json')
-    })
+    const beginDir = path.join(packagesDir, 'begin')
+    fs.mkdirSync(beginDir)
+    fs.writeFileSync(path.join(beginDir, '.nflow.json'), JSON.stringify({ enabled: true, order: 1 }), 'utf8')
 
-    jest.spyOn(fs, 'statSync').mockImplementation((p: fs.PathLike) => ({
-      isDirectory: () => String(p) === packages || String(p).startsWith(path.join(packages, 'begin')) || String(p).startsWith(path.join(packages, 'generate')),
-    } as any))
-
-    jest.spyOn(fs, 'readdirSync').mockImplementation(() => [
-      dirent('begin', true),
-      dirent('generate', true),
-      dirent('README.md', false),
-    ] as any)
-
-    jest.spyOn(fs, 'readFileSync').mockImplementation((p: fs.PathOrFileDescriptor, options?: any) => {
-      const s = String(p)
-      if (s.endsWith(path.join('begin', '.nflow.json'))) {
-        return JSON.stringify({ enabled: true, order: 1 }) as unknown as Buffer
-      }
-      if (s.endsWith(path.join('generate', 'generate.nflow.json'))) {
-        return JSON.stringify({ enabled: false, order: 2 }) as unknown as Buffer
-      }
-      return '{}' as unknown as Buffer
-    })
+    const generateDir = path.join(packagesDir, 'generate')
+    fs.mkdirSync(generateDir)
+    fs.writeFileSync(path.join(generateDir, 'generate.nflow.json'), JSON.stringify({ enabled: false, order: 20 }), 'utf8')
   })
 
-  it('loads configs from each package', () => {
-    const cfg = getNodePluginConfig({ rootDir: root })
+  afterEach(() => {
+    fs.rmSync(tmpRoot, { recursive: true, force: true })
+  })
+
+  it('loads configs from each package (primary + secondary naming)', () => {
+    const cfg = getNodePluginConfig({ rootDir: tmpRoot })
     expect(cfg).toEqual({
       begin: { enabled: true, order: 1 },
-      generate: { enabled: false, order: 2 },
+      generate: { enabled: false, order: 20 },
     })
   })
 
   it('returns specific package config', () => {
-    const cfg = getPackageNodePluginConfig('begin', { rootDir: root })
-    expect(cfg).toEqual({ enabled: true, order: 1 })
+    const beginCfg = getPackageNodePluginConfig('begin', { rootDir: tmpRoot })
+    expect(beginCfg).toEqual({ enabled: true, order: 1 })
+  })
+
+  it('maps legacy sort field to order when order absent', () => {
+    const legacyDir = path.join(packagesDir, 'legacy')
+    fs.mkdirSync(legacyDir)
+    fs.writeFileSync(path.join(legacyDir, '.nflow.json'), JSON.stringify({ enabled: true, sort: 7 }), 'utf8')
+    const cfg = getNodePluginConfig({ rootDir: tmpRoot })
+    expect(cfg.legacy).toEqual({ enabled: true, sort: 7, order: 7 })
   })
 })

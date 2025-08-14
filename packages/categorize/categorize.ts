@@ -1,9 +1,8 @@
-import { isCategorizeNodeData } from '../../utils/client/isNode';
-import { executeCategorizeNode } from '../../utils/server/nodeExecution/node/executeCategorizeNode';
+import { execute } from './execute';
 import { NodePlugin } from '../@node-plugin/type';
 
 export const categorizePlugin: NodePlugin = {
   name: 'categorize',
-  match: (n) => isCategorizeNodeData(n.data),
-  run: (n, c, _cb, d) => executeCategorizeNode(n, c, d),
+  match: (n) => n?.data?.type === 'categorize',
+  run: (n, c, _cb, d) => execute(n, c, d),
 } as const;
