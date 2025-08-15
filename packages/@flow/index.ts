@@ -4,4 +4,5 @@ export * from './flow-state-dispatcher';
 export * from './type';
 export * from './editor-context';
 export * from './flow-helpers';
+export { default as BaseNode } from './node/base-node';
 

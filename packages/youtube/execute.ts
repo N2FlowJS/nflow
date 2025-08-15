@@ -1,9 +1,6 @@
 import { YouTubeNodeData, FlowNode } from '../../models/flowTypes';
-import { findNextNodes } from '../@flow/find-next-node';
 import { getInputFromTemplate, processTemplate } from '../@template-processor/templateProcessor';
-import { isNodeReady } from '../@flow/is-node-ready';
-import { FlowStateDispatcher } from '../@flow/flow-state-dispatcher';
-import { ExecutionResult, FlowExecutionContext } from '../@flow';
+import { findNextNodes, isNodeReady, FlowStateDispatcher, ExecutionResult, FlowExecutionContext } from '../@flow';
 
 /**
  * Handler for executing YouTube nodes
@@ -180,7 +177,8 @@ export async function execute(
 }
 
 // Helper functions for YouTube API operations
-async function uploadYouTubeVideo(credentials: any, title: string, description: string) {
+// TODO: implement real upload; underscore params to silence unused warnings for now
+async function uploadYouTubeVideo(_credentials: any, _title: string, _description: string) {
   // Note: Video upload requires multipart upload and is complex
   // This is a simplified version - real implementation would need file handling
   throw new Error('Video upload requires file handling and multipart upload - use YouTube Studio or dedicated upload endpoint');

@@ -2,10 +2,10 @@ import { TagsOutlined } from '@ant-design/icons';
 import { Node, NodeProps, Position } from '@xyflow/react';
 import { Flex } from 'antd';
 import React from 'react';
-import { LocalKeywordsNodeData } from '../../../../models/flowTypes';
-import BaseNode from '../base-node';
+import { NativeKeywordsNodeData } from '../../../../models/flowTypes';
+import { BaseNode } from '../../../../packages/@flow';
 
-const NativeKeywordsNode = ({ data, id, selected }: NodeProps<Node<LocalKeywordsNodeData>>) => {
+const NativeKeywordsNode = ({ data, id, selected }: NodeProps<Node<NativeKeywordsNodeData>>) => {
   const { form } = data;
 
   return (

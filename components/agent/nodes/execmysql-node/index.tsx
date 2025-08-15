@@ -2,7 +2,7 @@ import { DatabaseOutlined } from '@ant-design/icons';
 import { Node, NodeProps, Position } from '@xyflow/react';
 import { Flex } from 'antd';
 import { ExecMysqlNodeData } from '../../../../models/flowTypes';
-import BaseNode from '../base-node';
+import { BaseNode } from '../../../../packages/@flow';
 import ConnectionInfo from './ConnectionInfo';
 import QueryInfo from './QueryInfo';
 
