@@ -47,7 +47,9 @@ jobs:
       - name: Create issue on failure
         if: failure()
         uses: peter-evans/create-issue-from-file@v4
+          
         with:
+          token: ${{ secrets.GITHUB_TOKEN }}
           title: "🚨 CI/CD Build Failed"
           content-filepath: .github/ISSUE_TEMPLATE/build_failed.md
           labels: bug, ci
