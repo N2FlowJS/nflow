@@ -1,1 +1,1 @@
-export * from './csv-analysis'
+export { plugin, plugin as csvAnalysisPlugin } from './plugin'

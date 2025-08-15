@@ -1,15 +1,14 @@
-import { getInputs, getQueryFromSource } from '../hooks/useInputReferences';
-import { ExecutionResult, FlowExecutionContext } from '../models/flowExecutionTypes';
-import { FlowNode, KeywordsNodeData } from '../models/flowTypes';
-import { findNextNodes } from './@flow/find-next-node';
-import { flowStateReducer } from '../flowStateReducer';
-import { FlowStateDispatcher } from './@flow/flow-state-dispatcher';
-import { getInputFromTemplate, processTemplate } from './@template-processor/templateProcessor';
-import { isNodeReady } from './@flow/is-node-ready';
-import { MessagePart } from '../models/MessagePart';
-import { llmOpenAI } from '../llm/openai';
-import { prisma } from '../lib/prisma';
-import { log } from 'console';
+import { ExecutionResult, FlowExecutionContext } from '../@flow/type';
+import { FlowNode, KeywordsNodeData } from '../../models/flowTypes';
+import { findNextNodes } from '../@flow/find-next-node';
+import { flowStateReducer } from '../@flow/flow-state-reducer';
+import { FlowStateDispatcher } from '../@flow/flow-state-dispatcher';
+import { getInputFromTemplate, processTemplate } from '../@template-processor/templateProcessor';
+import { isNodeReady } from '../@flow/is-node-ready';
+import { MessagePart } from '../../models/MessagePart';
+import { llmOpenAI } from '../../llm/openai';
+import { prisma } from '../../lib/prisma';
+import { getInputs, getQueryFromSource } from '../@flow/flow-helpers';
 
 /**
  * Handler for executing Keywords nodes
@@ -163,7 +162,7 @@ export async function executeKeywordsNode(
           },
         };
     }
-   log(`AI response for Keywords node ${node.id}: ${aiResponse}`);
+  console.log(`AI response for Keywords node ${node.id}: ${aiResponse}`);
     // Process keywords response - limit to maxResults
     const maxResults = form.maxResults || 10;
     let keywords = aiResponse

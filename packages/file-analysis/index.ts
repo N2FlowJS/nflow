@@ -1,1 +1,1 @@
-export * from './file-analysis'
+export { plugin, plugin as fileAnalysisPlugin } from './plugin'

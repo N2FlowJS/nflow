@@ -1,1 +1,1 @@
-export * from './sendmail'
+export { plugin, plugin as sendMailPlugin } from './plugin'

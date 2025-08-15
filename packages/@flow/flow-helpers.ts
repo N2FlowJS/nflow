@@ -1,4 +1,6 @@
 import { Position } from '@xyflow/react';
+// Re-export selected input reference helpers here for plugin/runtime usage
+export { getInputs, getQueryFromSource } from '../../hooks/useInputReferences';
 
 export const getPositionFromHandleId = (handleId?: string | null): Position | null => {
   if (!handleId) return null;

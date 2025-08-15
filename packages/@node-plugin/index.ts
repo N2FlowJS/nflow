@@ -1,4 +1,5 @@
 export * from './type';
+export * from './discover';
 import * as fs from 'fs';
 import * as path from 'path';
 import { LoaderOptions, NodePluginConfig, NodePluginConfigMap } from './type';

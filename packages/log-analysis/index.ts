@@ -1,1 +1,1 @@
-export * from './log-analysis'
+export { plugin, plugin as logAnalysisPlugin } from './plugin'

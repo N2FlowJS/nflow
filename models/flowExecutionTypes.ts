@@ -1,5 +1,5 @@
-import { Flow,  InputReference, NodeTypeString } from './flowTypes';
-import { MessagePart } from './MessagePart';
+import { InputReference } from '../packages/@flow';
+import {    NodeTypeString } from './flowTypes';
 
 /**
  * Represents a component in the flow execution
@@ -101,3 +101,16 @@ export interface FlowExecutionHistoryEntry {
 }
 
 export type ExecutionStatusType = 'pending' | 'running' | 'completed' | 'error';
+
+// ---- Legacy compatibility exports ----
+// Many packages still import execution-related types from this file. The canonical
+// definitions have moved to packages/@flow/type. We re-export them here to avoid
+// touching all import sites in one large refactor.
+// TODO: Migrate all imports to '../@flow/type' and then remove these re-exports.
+export type {
+  FlowState,
+  ExecutionResult,
+  FlowExecutionContext,
+  ExecutionStatus,
+  NodeInfo,
+} from '../packages/@flow/type';

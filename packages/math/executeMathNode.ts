@@ -1,9 +1,9 @@
-import { ExecutionResult, FlowExecutionContext } from '../models/flowExecutionTypes';
-import { MathNodeData, FlowNode } from '../models/flowTypes';
-import { findNextNodes } from './@flow/find-next-node';
-import { getInputFromTemplate, processTemplate } from './@template-processor/templateProcessor';
-import { isNodeReady } from './@flow/is-node-ready';
-import { FlowStateDispatcher } from './@flow/flow-state-dispatcher';
+import { ExecutionResult, FlowExecutionContext } from '../@flow/type';
+import { MathNodeData, FlowNode } from '../../models/flowTypes';
+import { findNextNodes } from '../@flow/find-next-node';
+import { getInputFromTemplate, processTemplate } from '../@template-processor/templateProcessor';
+import { isNodeReady } from '../@flow/is-node-ready';
+import { FlowStateDispatcher } from '../@flow/flow-state-dispatcher';
 
 /**
  * Handler for executing Math nodes

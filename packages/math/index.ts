@@ -1,1 +1,1 @@
-export * from './math'
+export { plugin, plugin as mathPlugin } from './plugin'

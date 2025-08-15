@@ -1,7 +1,7 @@
 import { NodePlugin } from '../@node-plugin/type'
-import { executeFileWriteNode } from '../executeFileWriteNode'
+import { executeFileWriteNode } from './execute'
 
-export const fileWritePlugin: NodePlugin = {
+export const plugin: NodePlugin = {
   name: 'file-write',
   match: (n) => n?.data?.type === 'file-write',
   run: (n, c, _cb, d) => executeFileWriteNode(n, c, d),

@@ -1,1 +1,1 @@
-export * from './pdf-analysis'
+export { plugin, plugin as pdfAnalysisPlugin } from './plugin'

@@ -1,4 +1,4 @@
-import { ExecutionResult, FlowExecutionContext } from '../../models/flowExecutionTypes';
+import { ExecutionResult, FlowExecutionContext } from '../@flow/type';
 import { VariableNodeData, FlowNode } from '../../models/flowTypes';
 import { findNextNodes } from '../@flow/find-next-node';
 import { getInputFromTemplate, processTemplate } from '../@template-processor/templateProcessor';

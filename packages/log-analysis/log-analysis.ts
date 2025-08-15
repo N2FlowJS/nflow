@@ -1,8 +1,3 @@
-import { NodePlugin } from '../@node-plugin/type'
-import { executeLogAnalysisNode } from './execute'
-
-export const logAnalysisPlugin: NodePlugin = {
-  name: 'loganalysis',
-  match: (n) => n?.data?.type === 'loganalysis',
-  run: (n, c, _cb, d) => executeLogAnalysisNode(n, c, d),
-} as const
+// Deprecated legacy entry kept temporarily for backward compatibility.
+// Use ./plugin export instead.
+export { plugin as logAnalysisPlugin } from './plugin'

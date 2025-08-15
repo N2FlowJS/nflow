@@ -43,3 +43,11 @@ jobs:
         run: |
           npm run lint
           npm run build
+
+      - name: Create issue on failure
+        if: failure()
+        uses: peter-evans/create-issue-from-file@v4
+        with:
+          title: "🚨 CI/CD Build Failed"
+          content-filepath: .github/ISSUE_TEMPLATE/build_failed.md
+          labels: bug, ci

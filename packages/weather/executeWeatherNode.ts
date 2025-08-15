@@ -1,4 +1,4 @@
-import { ExecutionResult, FlowExecutionContext } from '../../models/flowExecutionTypes';
+import { ExecutionResult, FlowExecutionContext } from '../@flow/type';
 import { WeatherNodeData, FlowNode } from '../../models/flowTypes';
 import { findNextNodes } from '../@flow/find-next-node';
 import { getInputFromTemplate, processTemplate } from '../@template-processor/templateProcessor';
@@ -311,7 +311,7 @@ async function getWeatherAlerts(form: any, location: string) {
   };
 }
 
-async function getHistoricalWeather(form: any, location: string) {
+async function getHistoricalWeather(form: any, _location: string) {
   const apiKey = form.apiKey || process.env.OPENWEATHER_API_KEY;
   
   if (!apiKey) {

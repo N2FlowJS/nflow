@@ -1,9 +1,9 @@
-import { ExecutionResult, FlowExecutionContext } from '../models/flowExecutionTypes';
-import { LogNodeData, FlowNode } from '../models/flowTypes';
-import { findNextNodes } from './@flow/find-next-node';
-import { getInputFromTemplate, processTemplate } from './@template-processor/templateProcessor';
-import { isNodeReady } from './@flow/is-node-ready';
-import { FlowStateDispatcher } from './@flow/flow-state-dispatcher';
+import { ExecutionResult, FlowExecutionContext } from '../@flow/type';
+import { LogNodeData, FlowNode } from '../../models/flowTypes';
+import { findNextNodes } from '../@flow/find-next-node';
+import { getInputFromTemplate, processTemplate } from '../@template-processor/templateProcessor';
+import { isNodeReady } from '../@flow/is-node-ready';
+import { FlowStateDispatcher } from '../@flow/flow-state-dispatcher';
 
 export async function executeLogNode(
   node: FlowNode,
