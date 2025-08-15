@@ -49,7 +49,7 @@ jobs:
         uses: peter-evans/create-issue-from-file@v4
           
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GH_PAT }}
           title: "🚨 CI/CD Build Failed"
           content-filepath: .github/ISSUE_TEMPLATE/build_failed.md
           labels: bug, ci
