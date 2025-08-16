@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { FlowNode } from '../../../models/flowTypes';
 import BeginNodeForm from './begin-node-form';
 import InterfaceNodeForm from './interface-node-form';
 import GenerateNodeForm from './generate-node-form';
-import CategorizeNodeForm from './categorize-node-form';
+import CategorizeNodeForm from '../../../packages/categorize/form';
 import RetrievalNodeForm from './retrieval-node-form';
 import DecisionNodeForm from './decision-node-form';
 import KeywordsNodeForm from './keywords-node-form';
@@ -61,8 +61,9 @@ import PdfAnalysisNodeForm from './pdf-analysis-node-form';
 import LogAnalysisNodeForm from './log-analysis-node-form';
 import ExcelAnalysisNodeForm from './excel-analysis-node-form';
 import WeChatNodeForm from './wechat-node-form';
-import AgentNodeForm from './agent-node-form';
+import AgentNodeForm from '../../../packages/agent/form/agent-node-form';
 import AgentToolsNodeForm from './agenttools-node-form';
+import { getDiscoveredNodeForms } from '../../../packages/@node-plugin/discovery/ui-discover';
 
 interface NodeFormProps {
   form: any;
@@ -71,15 +72,27 @@ interface NodeFormProps {
 }
 
 const NodeForm: React.FC<NodeFormProps> = ({ form, selectedNode, setIsDrawerOpen }) => {
+  const discoveredForms = useMemo(() => {
+    try {
+      return getDiscoveredNodeForms();
+    } catch {
+      return {} as Record<string, React.ComponentType<any>>;
+    }
+  }, []);
+
   const renderNodeForm = () => {
     if (!selectedNode) return null;
 
-    const commonProps = {
-      form,
-      selectedNode,
-      setIsDrawerOpen,
-    };
+    const key = selectedNode.type?.replace(/[^a-zA-Z0-9]/g, '') || '';
+    const DynamicForm = (discoveredForms as any)[key];
 
+    const commonProps = { form, selectedNode, setIsDrawerOpen };
+
+    if (DynamicForm) {
+      return <DynamicForm {...commonProps} />;
+    }
+
+    // Fallback to legacy static switch until all forms migrated fully
     switch (selectedNode.type) {
       case 'begin':
         return <BeginNodeForm {...commonProps} />;

@@ -20,7 +20,7 @@ import {
 } from "antd";
 import React, { useState } from "react";
 import BaseNodeForm from "./base-node-form";
-import RoleSelector from "./shared/RoleSelector";
+import RoleSelector from '@n2flowjs/flow/share/RoleSelector';
 import { useLocale } from "../../../locale";
 
 const { TextArea } = Input;

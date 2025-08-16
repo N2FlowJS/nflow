@@ -1,5 +1,6 @@
 import { NodePlugin } from '../@node-plugin/type'
-import { executeGoogleMapNode } from '../executeGoogleMapNode'
+// Updated path to existing implementation (execute.ts)
+import { executeGoogleMapNode } from './execute';
 
 export const googleMapPlugin: NodePlugin = {
   name: 'googlemap',

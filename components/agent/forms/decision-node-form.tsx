@@ -1,4 +1,4 @@
-import { usePredecessorNodes } from '../hooks/usePredecessorNodes';
+import { usePredecessorNodes } from '@n2flowjs/flow/share/usePredecessorNodes';
 import { DecisionBranch, DecisionForm, DecisionNodeData, FlowNode, NodeData } from '../../../models/flowTypes';
 import { DeleteOutlined, LinkOutlined, PlusOutlined, QuestionCircleOutlined } from '@ant-design/icons';
 import { MarkerType, useReactFlow } from '@xyflow/react'; // Import Edge type
@@ -6,7 +6,7 @@ import { Button, Card, Collapse, Form, Input, Radio, Select, Space, Tooltip, Typ
 import React, { useCallback, useEffect } from 'react';
 import BaseNodeForm from './base-node-form';
 import { FormInstance } from 'antd/lib';
-import RoleSelector from './shared/RoleSelector';
+import RoleSelector from '@n2flowjs/flow/share/RoleSelector';
 import { useLocale } from '../../../locale';
 
 const { Text } = Typography;

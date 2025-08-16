@@ -1,8 +1,9 @@
-import { FlowNode, InterfaceNodeData } from '../models/flowTypes';
-import { ExecutionResult, FlowExecutionContext } from '../models/flowExecutionTypes';
-import { findNextNodes } from './@flow/find-next-node';
-import { flowStateReducer } from '../flowStateReducer';
-import { FlowStateDispatcher } from './@flow/flow-state-dispatcher';
+import { FlowNode, InterfaceNodeData } from '../../models/flowTypes';
+import { ExecutionResult, FlowExecutionContext } from '../../models/flowExecutionTypes';
+import { findNextNodes } from '../@flow/find-next-node';
+// Corrected reducer import path
+import { flowStateReducer } from '../@flow/flow-state-reducer';
+import { FlowStateDispatcher } from '../@flow/flow-state-dispatcher';
 
 /**
  * Handler for executing Interface nodes

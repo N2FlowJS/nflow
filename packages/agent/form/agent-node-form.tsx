@@ -5,13 +5,13 @@ import {
   ApartmentOutlined,
   ToolOutlined,
 } from '@ant-design/icons';
-import BaseNodeForm from './base-node-form';
+import BaseNodeForm from '../../../components/agent/forms/base-node-form';
 import { FlowNode } from '../../../models/flowTypes';
-import RoleSelector from './shared/RoleSelector';
-import InputReferences from './shared/InputReferences';
 import { useRouter } from 'next/router';
 import { NODE_REGISTRY } from '../../../utils/client/NODE_REGISTRY';
 import { Edge, MarkerType, Position, useReactFlow } from '@xyflow/react';
+import InputReferences from '@n2flowjs/flow/share/InputReferences';
+import RoleSelector from '@n2flowjs/flow/share/RoleSelector';
 
 const { Text } = Typography;
 

@@ -66,13 +66,7 @@ export async function executeDisplayNode(
         break;
     }
 
-    const result = {
-      content: formattedContent,
-      format: form.outputFormat,
-      showAsModal: form.showAsModal || false,
-    };
-
-    const resultText = JSON.stringify(result, null, 2);
+  // Future: could expose metadata (format/showAsModal) to UI layer if needed
 
     let finalState = flowState;
 
@@ -133,3 +127,4 @@ export async function executeDisplayNode(
     };
   }
 }
+  // (Removed unused intermediate result object)

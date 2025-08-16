@@ -1,5 +1,5 @@
 import { NodePlugin } from '../@node-plugin/type';
-import { isRetrievalNodeData } from '../../utils/client/isNode';
+import { isRetrievalNodeData } from '../../utils/client/isNode'; // TODO path fix or re-export
 import { executeRetrievalNode } from './execute';
 
 export const retrievalPlugin: NodePlugin = {

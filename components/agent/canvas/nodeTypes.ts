@@ -1,5 +1,5 @@
 import { NodeTypes as ReactFlowNodeTypes } from '@xyflow/react';
-import { getDiscoveredNodeComponents } from '../../../packages/@node-plugin/ui-discover';
+import { getDiscoveredNodeComponents } from '../../../packages/@node-plugin/discovery/ui-discover';
 
 // Internal (non-package) node components
 import InterfaceNode from '../nodes/interface-node';

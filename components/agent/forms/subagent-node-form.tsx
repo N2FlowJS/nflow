@@ -3,8 +3,8 @@ import { FlowNode } from '../../../models/flowTypes';
 import { Form, Input, InputNumber, Switch, Collapse, Space, Typography, Alert, Select, Button } from 'antd';
 import React, { useState, useEffect, useCallback } from 'react';
 import BaseNodeForm from './base-node-form';
-import InputReferences from './shared/InputReferences';
-import RoleSelector from './shared/RoleSelector';
+import InputReferences from '@n2flowjs/flow/share/InputReferences';
+import RoleSelector from '@n2flowjs/flow/share/RoleSelector';
 import { useRouter } from 'next/router';
 
 const { Text } = Typography;

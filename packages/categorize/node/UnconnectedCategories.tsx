@@ -1,7 +1,7 @@
 import React from "react";
 import { Flex, Tag, Tooltip } from "antd";
 import { StarOutlined } from "@ant-design/icons";
-import { ICategory } from "../../../../models/flowTypes";
+import { ICategory } from '../../../models/flowTypes';
 
 interface UnconnectedCategoriesProps {
   categories: ICategory[];
@@ -14,7 +14,7 @@ const UnconnectedCategories: React.FC<UnconnectedCategoriesProps> = ({
 }) => {
   return (
     <Flex wrap="wrap" gap={4}>
-      {categories.map((category) => (
+  {categories.map((category: ICategory) => (
         <Tooltip 
           key={category.name}
           title={
@@ -24,7 +24,7 @@ const UnconnectedCategories: React.FC<UnconnectedCategoriesProps> = ({
                 <div style={{ marginTop: 4 }}>
                   <div>Examples:</div>
                   <ul style={{ margin: 0, paddingLeft: 16 }}>
-                    {category.examples.slice(0, 2).map((ex, i) => (
+                    {category.examples.slice(0, 2).map((ex: string, i: number) => (
                       <li key={i}>{ex}</li>
                     ))}
                     {category.examples.length > 2 && (

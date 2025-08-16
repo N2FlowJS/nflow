@@ -1,5 +1,6 @@
 import { NodePlugin } from '../@node-plugin/type'
-import { executeJiraNode } from '../executeJiraNode'
+// Updated path to existing implementation (execute.ts)
+import { executeJiraNode } from './execute';
 
 export const jiraPlugin: NodePlugin = {
   name: 'jira',

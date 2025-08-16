@@ -1,5 +1,6 @@
 import { NodePlugin } from '../@node-plugin/type'
-import { executeGoogleSearchNode } from '../executeGoogleSearchNode'
+// Updated path to existing implementation (execute.ts)
+import { executeGoogleSearchNode } from './execute';
 
 export const googleSearchPlugin: NodePlugin = {
   name: 'googlesearch',

@@ -17,9 +17,9 @@ import {
   FileTextOutlined,
   PlusOutlined
 } from "@ant-design/icons";
-import { ICategory } from "../../../../models/flowTypes";
+import { ICategory } from "../../../models/flowTypes";
 import { Node } from "@xyflow/react";
-import { useLocale } from "../../../../locale";
+import { useLocale } from "../../../locale";
 
 const { Text } = Typography;
 

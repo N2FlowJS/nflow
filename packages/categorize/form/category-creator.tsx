@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { Input, Button, Space } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
-import { ICategory } from "../../../../models/flowTypes";
-import { useLocale } from "../../../../locale";
+import { ICategory } from "../../../models/flowTypes";
+import { useLocale } from "../../../locale";
 
 interface CategoryCreatorProps {
   categories: ICategory[];

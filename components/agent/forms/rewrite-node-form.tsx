@@ -4,10 +4,10 @@ import { fetchAllLLMProviders } from '../../../services/llmService';
 import { Form, InputNumber, Select, Switch, Collapse, Space, Typography, Alert } from 'antd';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Mention, MentionsInput, SuggestionDataItem } from 'react-mentions';
-import { usePredecessorNodes } from '../hooks/usePredecessorNodes';
+import { usePredecessorNodes } from '@n2flowjs/flow/share/usePredecessorNodes';
 import BaseNodeForm from './base-node-form';
-import RoleSelector from './shared/RoleSelector';
-import InputReferences from './shared/InputReferences';
+import RoleSelector from '@n2flowjs/flow/share/RoleSelector';
+import InputReferences from '@n2flowjs/flow/share/InputReferences';
 import { useLocale } from '../../../locale';
 
 const { Text } = Typography;
@@ -20,7 +20,7 @@ interface RewriteNodeFormProps {
 
 const RewriteNodeForm: React.FC<RewriteNodeFormProps> = (props) => {
   const { selectedNode } = props;
-  const { t } = useLocale('form.nodeForm');
+  useLocale('form.nodeForm');
   const [providers, setProviders] = useState<any[]>([]);
   const [models, setModels] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);

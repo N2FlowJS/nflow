@@ -1,5 +1,5 @@
 import { DeleteOutlined, LinkOutlined } from '@ant-design/icons';
-import { usePredecessorNodes } from '../../hooks/usePredecessorNodes';
+import { usePredecessorNodes } from './usePredecessorNodes';
 import { Button, Collapse, Form, Select, Space, Tag } from 'antd';
 import React from 'react';
 
@@ -43,7 +43,7 @@ const InputReferences: React.FC<InputReferencesProps> = ({
                                                     style={{ width: 200 }}
                                                 >
                                                     <Select placeholder="Source Node">
-                                                        {predecessorNodes.map(node => (
+                                                            {predecessorNodes.map((node: any) => (
                                                             <Select.Option key={node.id} value={node.id}>
                                                                 {node.data?.form.name || node.id}
                                                             </Select.Option>

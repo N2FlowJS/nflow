@@ -5,8 +5,8 @@ import { fetchAllKnowledge } from '../../../services/knowledgeService';
 import { Form, InputNumber, Select, Slider, Spin, Typography } from 'antd';
 import React, { useEffect, useState } from 'react';
 import BaseNodeForm from './base-node-form';
-import InputReferences from './shared/InputReferences';
-import RoleSelector from './shared/RoleSelector';
+import InputReferences from '@n2flowjs/flow/share/InputReferences';
+import RoleSelector from '@n2flowjs/flow/share/RoleSelector';
 import { useLocale } from '../../../locale';
 
 interface RetrievalNodeFormProps {

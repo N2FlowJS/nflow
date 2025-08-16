@@ -3,11 +3,10 @@ import { FlowNode } from '../../../models/flowTypes';
 import { Form, Input, InputNumber, Switch, Select, Collapse, Space, Typography, Alert } from 'antd';
 import React from 'react';
 import BaseNodeForm from './base-node-form';
-import InputReferences from './shared/InputReferences';
-import RoleSelector from './shared/RoleSelector';
+import InputReferences from '@n2flowjs/flow/share/InputReferences';
+import RoleSelector from '@n2flowjs/flow/share/RoleSelector';
 import { useLocale } from '../../../locale';
 
-const { TextArea } = Input;
 const { Text } = Typography;
 
 interface ValidateNodeFormProps {
@@ -18,7 +17,7 @@ interface ValidateNodeFormProps {
 
 const ValidateNodeForm: React.FC<ValidateNodeFormProps> = (props) => {
   const { selectedNode } = props;
-  const { t } = useLocale('form.nodeForm');
+  useLocale('form.nodeForm');
 
   return (
     <BaseNodeForm {...props}>

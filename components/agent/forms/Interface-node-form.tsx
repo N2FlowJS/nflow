@@ -4,7 +4,7 @@ import { Alert, Card, Space, Typography } from 'antd';
 import React from 'react';
 import BaseNodeForm from './base-node-form';
 import { useLocale } from '../../../locale';
-import RoleSelector from './shared/RoleSelector';
+import RoleSelector from '@n2flowjs/flow/share/RoleSelector';
 
 const { Text } = Typography;
 

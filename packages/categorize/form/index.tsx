@@ -11,15 +11,15 @@ import {
   Space,
   Tag
 } from "antd";
-import { CategorizeForm, CategorizeNodeData, FlowNode, ICategory } from "../../../../models/flowTypes";
-import BaseNodeForm from "../base-node-form";
-import InputReferences from "../shared/InputReferences";
-import RoleSelector from "../shared/RoleSelector";
+import { CategorizeForm, CategorizeNodeData, FlowNode, ICategory } from '../../../models/flowTypes';
+import BaseNodeForm from "../../../components/agent/forms/base-node-form";
+import InputReferences from '@n2flowjs/flow/share/InputReferences';
+import RoleSelector from '@n2flowjs/flow/share/RoleSelector';
 import CategoryCreator from "./category-creator";
 import CategoryListItem from "./category-list-item";
 import DefaultCategorySelector from "./default-category-selector";
 import { FormInstance } from "antd/lib";
-import { useLocale } from "../../../../locale";
+import { useLocale } from "../../../locale";
 
 
 interface CategorizeNodeFormProps {

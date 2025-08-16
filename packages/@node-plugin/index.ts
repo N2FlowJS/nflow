@@ -1,5 +1,5 @@
 export * from './type';
-export * from './ui-discover';
+export * from './discovery/ui-discover';
 import * as fs from 'fs';
 import * as path from 'path';
 import { LoaderOptions, NodePluginConfig, NodePluginConfigMap } from './type';

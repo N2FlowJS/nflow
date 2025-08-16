@@ -4,10 +4,10 @@ import { fetchAllLLMProviders } from '../../../services/llmService';
 import { Collapse, Form, InputNumber, Select, Slider, Space, Spin, Typography } from 'antd';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Mention, MentionsInput, SuggestionDataItem } from 'react-mentions';
-import { usePredecessorNodes } from '../hooks/usePredecessorNodes';
+import { usePredecessorNodes } from '@n2flowjs/flow/share/usePredecessorNodes';
 import BaseNodeForm from './base-node-form';
-import RoleSelector from './shared/RoleSelector';
-import InputReferences from './shared/InputReferences';
+import RoleSelector from '@n2flowjs/flow/share/RoleSelector';
+import InputReferences from '@n2flowjs/flow/share/InputReferences';
 import { FormInstance } from 'antd/lib';
 import { useLocale } from '../../../locale';
 

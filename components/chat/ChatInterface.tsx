@@ -131,7 +131,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                 : 'in_progress',
             nodeId: result.flowState.currentNode.id,
             nodeName: result.flowState.currentNode.data.form.name,
-            nodeType: result.flowState.currentNode.type,
+            nodeType: result.flowState.currentNode.type as any,
           },
         };
 
@@ -205,7 +205,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                   : 'in_progress',
               nodeId: jsonData.flowState.currentNode.id,
               nodeName: jsonData.flowState.currentNode.data.form.name,
-              nodeType: jsonData.flowState.currentNode.type,
+              nodeType: jsonData.flowState.currentNode.type as any,
             };
             sender = jsonData.nodeInfo.role || 'assistant'; // Use role from nodeInfo if available
           }
