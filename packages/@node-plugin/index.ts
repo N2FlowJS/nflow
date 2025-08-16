@@ -1,5 +1,5 @@
 export * from './type';
-export * from './discover';
+export * from './ui-discover';
 import * as fs from 'fs';
 import * as path from 'path';
 import { LoaderOptions, NodePluginConfig, NodePluginConfigMap } from './type';
@@ -27,15 +27,36 @@ export function getNodePluginConfig(options?: LoaderOptions): NodePluginConfigMa
   for (const d of dirEntries) {
     if (!d.isDirectory()) continue;
     const pkgName = d.name;
+    // skip internal tooling packages starting with @ except allowed ones
+    if (pkgName.startsWith('@') && !['@flow', '@node-plugin', '@template-processor'].includes(pkgName)) continue;
     const pkgPath = path.join(packagesDir, pkgName);
+
     const configPath = pickFirstExisting([
       path.join(pkgPath, filename),
       path.join(pkgPath, `${pkgName}.nflow.json`),
     ]);
-    if (!configPath) continue;
 
-    const cfg = readAndNormalizeConfig(configPath);
-    if (cfg) result[pkgName] = cfg;
+    let fileCfg: NodePluginConfig | null = null;
+    if (configPath) fileCfg = readAndNormalizeConfig(configPath);
+
+    // Fallback: read package.json "nflow" field if no explicit config file
+    let pkgCfg: NodePluginConfig | null = null;
+    if (!fileCfg) {
+      const packageJsonPath = path.join(pkgPath, 'package.json');
+      try {
+        if (fs.existsSync(packageJsonPath)) {
+          const pkgJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
+          if (pkgJson && typeof pkgJson.nflow === 'object') {
+            pkgCfg = readAndNormalizeInline(pkgJson.nflow);
+          }
+        }
+      } catch {
+        // ignore bad package.json
+      }
+    }
+
+    const merged = mergeConfigs(pkgCfg, fileCfg); // file overrides package.json
+    if (merged) result[pkgName] = merged;
   }
   return result;
 }
@@ -81,4 +102,26 @@ function readAndNormalizeConfig(file: string): NodePluginConfig | null {
     }
     return null;
   }
+}
+
+function readAndNormalizeInline(obj: any): NodePluginConfig | null {
+  try {
+    if (obj && typeof obj === 'object') {
+      const json: NodePluginConfig = { ...obj };
+      if (json && json.order == null && typeof (json as any).sort === 'number') {
+        json.order = (json as any).sort;
+      }
+      return json;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+function mergeConfigs(base?: NodePluginConfig | null, override?: NodePluginConfig | null): NodePluginConfig | null {
+  if (!base && !override) return null;
+  if (!base) return override ? { ...override } : null;
+  if (!override) return { ...base };
+  return { ...base, ...override };
 }

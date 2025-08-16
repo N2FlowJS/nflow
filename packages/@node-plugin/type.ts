@@ -4,8 +4,8 @@
 // (no overlap) errors when match predicates compare against new strings
 // (e.g. 'file-read', 'http-request'). Keep this minimal structural type.
 import type { FlowNode } from "../../models/flowTypes";
-import { FlowStateDispatcher } from "../@flow/flow-state-dispatcher";
-import { ExecutionResult, FlowExecutionContext } from "../@flow/type";
+import { FlowStateDispatcher } from "@n2flowjs/flow/flow-state-dispatcher";
+import { ExecutionResult, FlowExecutionContext } from "@n2flowjs/flow/type";
 export interface NodePluginConfig {
   enabled?: boolean;
   order?: number;      // canonical ordering key

@@ -1,6 +1,6 @@
 import { RewriteNodeData, FlowNode } from '../../models/flowTypes';
 import { getInputFromTemplate, processTemplate } from '../@template-processor/templateProcessor';
-import { findNextNodes, isNodeReady, FlowStateDispatcher, ExecutionResult, FlowExecutionContext } from '../@flow';
+import { findNextNodes, isNodeReady, FlowStateDispatcher, ExecutionResult, FlowExecutionContext } from '@n2flowjs/flow';
 import { MessagePart } from '../../models/MessagePart';
 import { llmOpenAI } from '../../llm/openai';
 import { prisma } from '../../lib/prisma';

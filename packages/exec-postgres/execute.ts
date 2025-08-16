@@ -1,6 +1,6 @@
 import { ExecutionResult, FlowExecutionContext } from '../../models/flowExecutionTypes';
 import { ExecPostgresNodeData, FlowNode } from '../../models/flowTypes';
-import { findNextNodes, isNodeReady, FlowStateDispatcher } from '../@flow';
+import { findNextNodes, isNodeReady, FlowStateDispatcher } from '@n2flowjs/flow';
 import { getInputFromTemplate, processTemplate } from '../@template-processor/templateProcessor';
 import { Client } from 'pg';
 

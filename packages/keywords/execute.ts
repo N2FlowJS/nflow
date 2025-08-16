@@ -1,11 +1,11 @@
 import { FlowNode, KeywordsNodeData } from '../../models/flowTypes';
 import { getInputFromTemplate, processTemplate } from '../@template-processor/templateProcessor';
-import { findNextNodes, isNodeReady, FlowStateDispatcher, ExecutionResult, FlowExecutionContext } from '../@flow';
-import { flowStateReducer } from '../@flow/flow-state-reducer';
+import { findNextNodes, isNodeReady, FlowStateDispatcher, ExecutionResult, FlowExecutionContext } from '@n2flowjs/flow';
+import { flowStateReducer } from '@n2flowjs/flow/flow-state-reducer';
 import { MessagePart } from '../../models/MessagePart';
 import { llmOpenAI } from '../../llm/openai';
 import { prisma } from '../../lib/prisma';
-import { getInputs, getQueryFromSource } from '../@flow/flow-helpers';
+import { getInputs, getQueryFromSource } from '@n2flowjs/flow/flow-helpers';
 
 /**
  * Handler for executing Keywords nodes

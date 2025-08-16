@@ -1,6 +1,6 @@
 import { VariableNodeData, FlowNode } from '../../models/flowTypes';
 import { getInputFromTemplate, processTemplate } from '../@template-processor/templateProcessor';
-import { findNextNodes, isNodeReady, FlowStateDispatcher, ExecutionResult, FlowExecutionContext } from '../@flow';
+import { findNextNodes, isNodeReady, FlowStateDispatcher, ExecutionResult, FlowExecutionContext } from '@n2flowjs/flow';
 
 export async function executeVariableNode(
   node: FlowNode,

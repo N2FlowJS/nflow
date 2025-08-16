@@ -1,6 +1,6 @@
 import { ExecutionResult, FlowExecutionContext } from '../../models/flowExecutionTypes';
 import { ConditionGroup, DecisionBranch, DecisionCondition, DecisionNodeData, FlowNode } from '../../models/flowTypes';
-import { FlowStateDispatcher } from '../@flow/flow-state-dispatcher';
+import { FlowStateDispatcher } from '@n2flowjs/flow/flow-state-dispatcher';
 
 function getInputFromBranch(branchs: DecisionBranch[]): string[] {
   const inputs: string[] = [];

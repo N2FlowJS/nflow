@@ -2,7 +2,7 @@ import React from 'react';
 import { Position, NodeProps, Node } from '@xyflow/react';
 import { BaseNode } from '@n2flowjs/flow';
 import { ToolOutlined } from '@ant-design/icons';
-import ToolsList from '../agent-node/ToolsList';
+import ToolsList from '../../../../packages/agent/node/ToolsList';
 import { AgentToolsNodeData } from '../../../../models/flowTypes';
 import { Divider, Space, Typography } from 'antd';
 

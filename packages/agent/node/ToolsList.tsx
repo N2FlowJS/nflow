@@ -1,8 +1,8 @@
 import React, { useMemo } from 'react';
 import { Space, Tag, Tooltip, Typography, theme } from 'antd';
-import { NODE_REGISTRY } from '../../../../utils/client/NODE_REGISTRY';
+import { NODE_REGISTRY } from '../../../utils/client/NODE_REGISTRY';
 import { QuestionOutlined, ToolOutlined } from '@ant-design/icons';
-import { useNodeHeader } from '../base-node/useBaseNodeHooks';
+import { useNodeHeader } from '@n2flowjs/flow/node/base-node/useBaseNodeHooks';
 
 interface ToolsListProps {
   toolIds?: string[];

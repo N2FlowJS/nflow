@@ -1,6 +1,6 @@
 import { ExcelAnalysisNodeData, FlowNode } from '../../models/flowTypes';
 import { getInputFromTemplate, processTemplate } from '../@template-processor/templateProcessor';
-import { findNextNodes, isNodeReady, FlowStateDispatcher, ExecutionResult, FlowExecutionContext } from '../@flow';
+import { findNextNodes, isNodeReady, FlowStateDispatcher, ExecutionResult, FlowExecutionContext } from '@n2flowjs/flow';
 import * as fs from 'fs';
 
 /**

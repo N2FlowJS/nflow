@@ -1,5 +1,5 @@
 import { AgentNodeData, FlowNode } from '../../models/flowTypes'
-import { findNextNodes, FlowStateDispatcher, ExecutionResult, FlowExecutionContext } from '../@flow'
+import { findNextNodes, FlowStateDispatcher, ExecutionResult, FlowExecutionContext } from '@n2flowjs/flow'
 
 export async function executeAgentNode(
   node: FlowNode,

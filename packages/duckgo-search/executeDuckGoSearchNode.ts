@@ -1,9 +1,9 @@
 import { ExecutionResult, FlowExecutionContext } from '../../models/flowExecutionTypes';
 import { DuckGoSearchNodeData, FlowNode } from '../../models/flowTypes';
-import { findNextNodes } from '../@flow/find-next-node';
+import { findNextNodes } from '@n2flowjs/flow/find-next-node';
 import { getInputFromTemplate, processTemplate } from '../@template-processor/templateProcessor';
-import { isNodeReady } from '../@flow/is-node-ready';
-import { FlowStateDispatcher } from '../@flow/flow-state-dispatcher';
+import { isNodeReady } from '@n2flowjs/flow/is-node-ready';
+import { FlowStateDispatcher } from '@n2flowjs/flow/flow-state-dispatcher';
 
 /**
  * Handler for executing DuckDuckGo Search nodes

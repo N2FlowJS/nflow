@@ -6,7 +6,7 @@ import { PlayCircleOutlined } from '@ant-design/icons';
 import DescriptionSection from './DescriptionSection';
 import GreetingSection from './GreetingSection';
 import VariablesSection from './VariablesSection';
-import BaseNode from '../../@flow/node/base-node';
+import BaseNode from '@n2flowjs/flow/node/base-node';
 
 const BeginNode = memo(({ data, id, selected }: NodeProps<Node<BeginNodeData>>) => {
   const { form } = data;

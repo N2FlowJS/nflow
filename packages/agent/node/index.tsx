@@ -1,6 +1,6 @@
 import React from 'react';
 import { Position, NodeProps, Node } from '@xyflow/react';
-import { AgentNodeData } from '../../../../models/flowTypes';
+import { AgentNodeData } from '../../../models/flowTypes';
 import { BaseNode } from '@n2flowjs/flow';
 import { ApartmentOutlined, ToolOutlined, BranchesOutlined, ArrowRightOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import AgentConfigInfo from './AgentConfigInfo';

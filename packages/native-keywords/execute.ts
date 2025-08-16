@@ -1,6 +1,6 @@
 import { FlowNode, NativeKeywordsNodeData } from '../../models/flowTypes';
 import { getInputFromTemplate, processTemplate } from '../@template-processor/templateProcessor';
-import { findNextNodes, isNodeReady, FlowStateDispatcher, ExecutionResult, FlowExecutionContext } from '../@flow';
+import { findNextNodes, isNodeReady, FlowStateDispatcher, ExecutionResult, FlowExecutionContext } from '@n2flowjs/flow';
 
 // Base stopword lists per language (concise but effective)
 const STOPWORDS_RAW: Record<string, string[]> = {

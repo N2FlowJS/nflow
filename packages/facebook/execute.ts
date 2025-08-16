@@ -1,7 +1,7 @@
 import { ExecutionResult, FlowExecutionContext } from '../../models/flowExecutionTypes';
 import { FacebookNodeData, FlowNode } from '../../models/flowTypes';
 import { getInputFromTemplate, processTemplate } from '../@template-processor/templateProcessor';
-import { findNextNodes, isNodeReady, FlowStateDispatcher } from '../@flow';
+import { findNextNodes, isNodeReady, FlowStateDispatcher } from '@n2flowjs/flow';
 
 /**
  * Handler for executing Facebook nodes

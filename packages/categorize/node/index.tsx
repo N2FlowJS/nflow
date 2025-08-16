@@ -6,10 +6,10 @@ import UnconnectedCategories from "./UnconnectedCategories";
 import DefaultCategory from "./DefaultCategory";
 import { theme } from 'antd';
 import { CategorizeNodeData, ICategory } from "../../../models/flowTypes";
-import { useFlowEditorContext } from "../../@flow/editor-context";
-import BaseNode from "../../@flow/node/base-node";
-import { slugify } from "../../@flow/flow-helpers";
-import { getHandleStyle } from "../../@flow/node/base-node/handle-icon";
+import { useFlowEditorContext } from "@n2flowjs/flow/editor-context";
+import BaseNode from "@n2flowjs/flow/node/base-node";
+import { slugify } from "@n2flowjs/flow/flow-helpers";
+import { getHandleStyle } from "@n2flowjs/flow/node/base-node/handle-icon";
 
 const CategorizeNode = ({
   data,
