@@ -13,6 +13,11 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
+    "baseUrl": ".",
+    "paths": {
+      "@n2flowjs/flow": ["packages/@flow"],
+      "@n2flowjs/flow/*": ["packages/@flow/*"]
+    },
     "plugins": [
       {
         "name": "next"

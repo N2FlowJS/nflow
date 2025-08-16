@@ -1,7 +1,5 @@
-import { ExecutionResult, FlowExecutionContext } from '../@flow/type'
 import { AgentNodeData, FlowNode } from '../../models/flowTypes'
-import { findNextNodes } from '../@flow/find-next-node'
-import { FlowStateDispatcher } from '../@flow/flow-state-dispatcher'
+import { findNextNodes, FlowStateDispatcher, ExecutionResult, FlowExecutionContext } from '../@flow'
 
 export async function executeAgentNode(
   node: FlowNode,

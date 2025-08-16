@@ -1,7 +1,7 @@
 import React from 'react';
 import { Position, NodeProps, Node } from '@xyflow/react';
 import { SendMailNodeData } from '../../../../models/flowTypes';
-import BaseNode from '../base-node';
+import { BaseNode } from '../../../../packages/@flow';
 import { Flex } from 'antd';
 import { MailOutlined } from '@ant-design/icons';
 import MailInfo from './MailInfo';

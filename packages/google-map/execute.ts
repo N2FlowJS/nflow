@@ -1,9 +1,7 @@
-import { ExecutionResult, FlowExecutionContext } from '../models/flowExecutionTypes';
-import { GoogleMapNodeData, FlowNode } from '../models/flowTypes';
-import { findNextNodes } from './@flow/find-next-node';
-import { getInputFromTemplate, processTemplate } from './@template-processor/templateProcessor';
-import { isNodeReady } from './@flow/is-node-ready';
-import { FlowStateDispatcher } from './@flow/flow-state-dispatcher';
+import { ExecutionResult, FlowExecutionContext } from '../../models/flowExecutionTypes';
+import { GoogleMapNodeData, FlowNode } from '../../models/flowTypes';
+import { getInputFromTemplate, processTemplate } from '../@template-processor/templateProcessor';
+import { findNextNodes, isNodeReady, FlowStateDispatcher } from '../@flow';
 
 /**
  * Handler for executing Google Maps nodes

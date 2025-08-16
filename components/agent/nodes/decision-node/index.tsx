@@ -2,12 +2,12 @@ import React from "react";
 import { Handle, Position, NodeProps, Node, useReactFlow } from "@xyflow/react";
 import { QuestionOutlined } from "@ant-design/icons";
 import { DecisionNodeData } from "../../../../models/flowTypes";
-import BaseNode from "../base-node";
+import { BaseNode } from "@flow";
 import DecisionBranches from "./DecisionBranches";
 import DefaultBranch from "./DefaultBranch";
-import {  getHandleStyle } from "../base-node/handle-icon";
-import { useFlowEditorContext } from "../../../../packages/@flow/editor-context";
-import { slugify } from "../../../../packages/@flow/flow-helpers";
+import { getHandleStyle } from "@flow/node/base-node/handle-icon";
+import { useFlowEditorContext } from "@flow/editor-context";
+import { slugify } from "@flow/flow-helpers";
 import { theme } from 'antd';
 
 const DecisionNode = ({

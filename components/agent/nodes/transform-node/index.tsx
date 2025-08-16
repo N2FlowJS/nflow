@@ -1,7 +1,7 @@
 import React from 'react';
 import { Position, NodeProps, Node } from '@xyflow/react';
 import { TransformNodeData } from '../../../../models/flowTypes';
-import BaseNode from '../base-node';
+import { BaseNode } from '../../../../packages/@flow';
 import { Flex } from 'antd';
 import { SwapOutlined } from '@ant-design/icons';
 import TransformInfo from './TransformInfo';

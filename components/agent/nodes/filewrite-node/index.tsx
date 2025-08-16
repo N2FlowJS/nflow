@@ -1,7 +1,7 @@
 import React from 'react';
 import { Position, NodeProps, Node } from '@xyflow/react';
 import { FileWriteNodeData } from '../../../../models/flowTypes';
-import BaseNode from '../base-node';
+import { BaseNode } from '../../../../packages/@flow';
 import { Flex } from 'antd';
 import { SaveOutlined } from '@ant-design/icons';
 import FilePathInfo from './FilePathInfo';

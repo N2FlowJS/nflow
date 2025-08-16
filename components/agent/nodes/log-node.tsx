@@ -1,7 +1,7 @@
 import React from 'react';
 import { Position, NodeProps, Node } from '@xyflow/react';
 import { LogNodeData } from '../../../models/flowTypes';
-import BaseNode from './base-node';
+import { BaseNode } from '../../../packages/@flow';
 import { Flex, Typography, Tag } from 'antd';
 import { FileSearchOutlined } from '@ant-design/icons';
 
@@ -48,7 +48,6 @@ const LogNode = ({ data, id, selected }: NodeProps<Node<LogNodeData>>) => {
             <Text type="secondary" style={{ fontSize: '11px' }}>Level:</Text>
             <Tag 
               color={getLevelColor(form.logLevel)} 
-              size="small" 
               style={{ fontSize: '10px', margin: 0, textTransform: 'uppercase' }}
             >
               {getLevelIcon(form.logLevel)} {form.logLevel}
@@ -68,7 +67,7 @@ const LogNode = ({ data, id, selected }: NodeProps<Node<LogNodeData>>) => {
         {form?.includeTimestamp && (
           <Flex align="center" gap={6}>
             <Text type="secondary" style={{ fontSize: '11px' }}>Options:</Text>
-            <Tag color="cyan" size="small" style={{ fontSize: '10px', margin: 0 }}>
+            <Tag color="cyan" style={{ fontSize: '10px', margin: 0 }}>
               📅 Timestamp
             </Tag>
           </Flex>
@@ -77,7 +76,7 @@ const LogNode = ({ data, id, selected }: NodeProps<Node<LogNodeData>>) => {
         {form?.includeNodeInfo && (
           <Flex align="center" gap={6}>
             <Text type="secondary" style={{ fontSize: '11px' }}>Node Info:</Text>
-            <Tag color="purple" size="small" style={{ fontSize: '10px', margin: 0 }}>
+            <Tag color="purple" style={{ fontSize: '10px', margin: 0 }}>
               📍 Enabled
             </Tag>
           </Flex>
@@ -86,7 +85,7 @@ const LogNode = ({ data, id, selected }: NodeProps<Node<LogNodeData>>) => {
         {form?.includeData && (
           <Flex align="center" gap={6}>
             <Text type="secondary" style={{ fontSize: '11px' }}>Data:</Text>
-            <Tag color="gold" size="small" style={{ fontSize: '10px', margin: 0 }}>
+            <Tag color="gold" style={{ fontSize: '10px', margin: 0 }}>
               📊 Included
             </Tag>
           </Flex>

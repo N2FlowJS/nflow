@@ -2,7 +2,7 @@ import { DatabaseOutlined } from '@ant-design/icons';
 import { Node, NodeProps, Position } from '@xyflow/react';
 import { Flex } from 'antd';
 import { ExecPostgresNodeData } from '../../../../models/flowTypes';
-import { BaseNode } from '../../../../packages/@flow';
+import { BaseNode } from '@n2flowjs/flow';
 import QueryInfo from '../execmysql-node/QueryInfo';
 import ConnectionInfo from '../execmysql-node/ConnectionInfo';
 

@@ -1,10 +1,7 @@
-import { ExecutionResult, FlowExecutionContext } from '../@flow/type';
 import { FlowNode, KeywordsNodeData } from '../../models/flowTypes';
-import { findNextNodes } from '../@flow/find-next-node';
-import { flowStateReducer } from '../@flow/flow-state-reducer';
-import { FlowStateDispatcher } from '../@flow/flow-state-dispatcher';
 import { getInputFromTemplate, processTemplate } from '../@template-processor/templateProcessor';
-import { isNodeReady } from '../@flow/is-node-ready';
+import { findNextNodes, isNodeReady, FlowStateDispatcher, ExecutionResult, FlowExecutionContext } from '../@flow';
+import { flowStateReducer } from '../@flow/flow-state-reducer';
 import { MessagePart } from '../../models/MessagePart';
 import { llmOpenAI } from '../../llm/openai';
 import { prisma } from '../../lib/prisma';

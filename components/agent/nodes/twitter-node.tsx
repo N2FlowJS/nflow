@@ -1,7 +1,7 @@
 import React from 'react';
 import { Position, NodeProps, Node } from '@xyflow/react';
 import { TwitterNodeData } from '../../../models/flowTypes';
-import BaseNode from './base-node';
+import { BaseNode } from '@n2flowjs/flow';
 import { Flex, Typography, Tag } from 'antd';
 import { TwitterOutlined } from '@ant-design/icons';
 

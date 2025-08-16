@@ -1,7 +1,7 @@
 import React from 'react';
 import { Position, NodeProps, Node } from '@xyflow/react';
 import { GoogleSearchNodeData } from '../../../../models/flowTypes';
-import BaseNode from '../base-node';
+import { BaseNode } from '@n2flowjs/flow';
 import { Flex } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
 import SearchQueryInfo from './SearchQueryInfo';
