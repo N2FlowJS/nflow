@@ -1,7 +1,7 @@
 import React from 'react';
 import { Position, NodeProps, Node } from '@xyflow/react';
 import { FacebookNodeData } from '../../../../models/flowTypes';
-import { BaseNode } from '../../../../packages/@flow';
+import { BaseNode } from '@n2flowjs/flow';
 import { Flex } from 'antd';
 import { FacebookOutlined } from '@ant-design/icons';
 import FacebookConnectionInfo from './FacebookConnectionInfo';

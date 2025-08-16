@@ -2,7 +2,7 @@ import { SendOutlined } from "@ant-design/icons";
 import { InterfaceNodeData } from "../../../../models/flowTypes";
 import { Node, NodeProps, Position } from "@xyflow/react";
 import { Badge } from "antd";
-import { BaseNode } from "../../../../packages/@flow";
+import { BaseNode } from "@n2flowjs/flow";
 
 const InterfaceNode = ({
   data,

@@ -2,7 +2,7 @@ import { WechatOutlined } from '@ant-design/icons';
 import { Position, NodeProps, Node } from '@xyflow/react';
 import React from 'react';
 import { Flex, Typography, Tag } from 'antd';
-import { BaseNode } from '../../../packages/@flow';
+import { BaseNode } from '@n2flowjs/flow';
 import { WeChatNodeData } from '../../../models/flowTypes';
 
 const { Text } = Typography;

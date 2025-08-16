@@ -1,6 +1,6 @@
 import { Flow } from '../../../models/flowTypes';
 import { MessagePart } from '../../../models/MessagePart';
-import { ExecutionResult, FlowState, FlowStateDispatcher } from '../../../packages/@flow';
+import { ExecutionResult, FlowState, FlowStateDispatcher } from '@n2flowjs/flow';
 import { executeNode } from './executeNode';
 
 export async function executeCurrentNode(

@@ -1,9 +1,9 @@
 import { executeNode } from './executeNode';
 import { EXECUTION_STATUS } from '../EXECUTION_STATUS';
 import { Flow } from '../../../models/flowTypes';
-import { FlowStateDispatcher } from '../../../packages/@flow/flow-state-dispatcher';
+import { FlowStateDispatcher } from '@n2flowjs/flow/flow-state-dispatcher';
 import { MessagePart } from '../../../models/MessagePart';
-import { ExecutionResult } from '../../../packages/@flow/type';
+import { ExecutionResult } from '@n2flowjs/flow/type';
 
 export async function processNode(
   flow: Flow,

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Position, NodeProps, Node } from '@xyflow/react';
 import { SubAgentNodeData } from '../../../../models/flowTypes';
-import { BaseNode } from '../../../../packages/@flow';
+import { BaseNode } from '@n2flowjs/flow';
 import { Flex } from 'antd';
 import { TeamOutlined } from '@ant-design/icons';
 import AgentInfo from './AgentInfo';

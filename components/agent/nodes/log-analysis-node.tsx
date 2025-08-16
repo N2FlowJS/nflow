@@ -1,7 +1,7 @@
 import React from 'react';
 import { Position, NodeProps, Node } from '@xyflow/react';
 import { LogAnalysisNodeData } from '../../../models/flowTypes';
-import { BaseNode } from '../../../packages/@flow';
+import { BaseNode } from '@n2flowjs/flow';
 import { Flex, Typography, Tag } from 'antd';
 import { BugOutlined } from '@ant-design/icons';
 

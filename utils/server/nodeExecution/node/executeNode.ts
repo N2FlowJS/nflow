@@ -1,7 +1,7 @@
-import { FlowStateDispatcher } from '../../../../packages/@flow/flow-state-dispatcher';
+import { FlowStateDispatcher } from '@n2flowjs/flow/flow-state-dispatcher';
 import { NodePlugin } from '../../../../packages/@node-plugin/type';
 import { getNodePluginConfig } from '../../../../packages/@node-plugin';
-import { ExecutionResult, FlowExecutionContext } from '../../../../packages/@flow/type';
+import { ExecutionResult, FlowExecutionContext } from '@n2flowjs/flow/type';
 
 // Registry of built-in (statically bundled) plugins. Populate elsewhere before execution.
 const BUILTIN_PLUGINS: NodePlugin[] = [];

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Position, NodeProps, Node } from '@xyflow/react';
 import { DiscordNodeData } from '../../../models/flowTypes';
-import { BaseNode } from '../../../packages/@flow';
+import { BaseNode } from '@n2flowjs/flow';
 import { Flex, Typography, Tag } from 'antd';
 import { RobotOutlined } from '@ant-design/icons';
 

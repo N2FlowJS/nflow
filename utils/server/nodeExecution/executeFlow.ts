@@ -3,7 +3,7 @@ import { ExecutionResult, ExecutionStatus, FlowState } from '../../../models/flo
 import { Flow } from '../../../models/flowTypes';
 import { MessagePart } from '../../../models/MessagePart';
 import { executeCurrentNode } from './executeCurrentNode';
-import { FlowStateDispatcher } from '../../../packages/@flow/flow-state-dispatcher';
+import { FlowStateDispatcher } from '@n2flowjs/flow/flow-state-dispatcher';
 
 export async function executeFlow(
   flow: Flow,

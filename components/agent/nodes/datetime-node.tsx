@@ -1,7 +1,7 @@
 import React from 'react';
 import { Position, NodeProps, Node } from '@xyflow/react';
 import { DateTimeNodeData } from '../../../models/flowTypes';
-import { BaseNode } from '../../../packages/@flow';
+import { BaseNode } from '@n2flowjs/flow';
 import { Flex, Typography, Tag } from 'antd';
 import { FieldTimeOutlined } from '@ant-design/icons';
 

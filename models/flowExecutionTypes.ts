@@ -1,4 +1,4 @@
-import { InputReference } from '../packages/@flow';
+import { InputReference } from '@n2flowjs/flow';
 import {    NodeTypeString } from './flowTypes';
 
 /**
@@ -113,4 +113,4 @@ export type {
   FlowExecutionContext,
   ExecutionStatus,
   NodeInfo,
-} from '../packages/@flow/type';
+} from '@n2flowjs/flow/type';

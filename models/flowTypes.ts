@@ -1,6 +1,6 @@
 import { Edge, Node } from '@xyflow/react';
 import React from 'react';
-import { BaseForm, InputReference } from '../packages/@flow';
+import { BaseForm, InputReference } from '@n2flowjs/flow';
 
 // Node types mapping
 export const NODE_TYPES = {

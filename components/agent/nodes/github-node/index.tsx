@@ -1,7 +1,7 @@
 import React from 'react';
 import { Position, NodeProps, Node } from '@xyflow/react';
 import { GitHubNodeData } from '../../../../models/flowTypes';
-import { BaseNode } from '../../../../packages/@flow';
+import { BaseNode } from '@n2flowjs/flow';
 import { Flex } from 'antd';
 import { GithubOutlined } from '@ant-design/icons';
 import GitHubConnectionInfo from './GitHubConnectionInfo';
