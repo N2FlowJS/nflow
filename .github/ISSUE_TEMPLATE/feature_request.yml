@@ -1,0 +1,36 @@
+name: "✨ Feature request"
+description: Suggest a new idea or enhancement
+title: "feat: short description"
+labels: [feature]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Clearly describe the problem and the proposed solution so we can evaluate and prioritize it.
+  - type: input
+    id: summary
+    attributes:
+      label: Summary
+      placeholder: e.g. Support configuring X via UI
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Current problem / pain
+      description: What limitation or issue does this feature address?
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Describe desired behavior / UX.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional context

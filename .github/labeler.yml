@@ -1,0 +1,10 @@
+feature:
+  - any: ['**/features/**', '**/packages/**/feature/**']
+bug:
+  - any: ['**/fixes/**', '**/*bug*', '**/patches/**']
+docs:
+  - any: ['docs/**', '**/*.md']
+ci:
+  - any: ['.github/workflows/**']
+tests:
+  - any: ['__tests__/**', '**/*.test.[jt]s', '**/*.spec.[jt]s']

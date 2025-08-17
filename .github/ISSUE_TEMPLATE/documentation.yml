@@ -1,0 +1,23 @@
+name: "📝 Documentation"
+description: Improve or add documentation
+title: "docs: short description"
+labels: [docs]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Help us improve the docs for everyone.
+  - type: textarea
+    id: current
+    attributes:
+      label: Current section / snippet
+  - type: textarea
+    id: improvement
+    attributes:
+      label: Suggested improvement
+    validations:
+      required: true
+  - type: textarea
+    id: rationale
+    attributes:
+      label: Rationale / Why this helps
