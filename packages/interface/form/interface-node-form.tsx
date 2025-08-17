@@ -2,7 +2,7 @@ import { ArrowUpOutlined, CommentOutlined, InfoCircleOutlined } from '@ant-desig
 import { FlowNode } from '../../../models/flowTypes';
 import { Alert, Card, Space, Typography } from 'antd';
 import React from 'react';
-import BaseNodeForm from './base-node-form';
+import BaseNodeForm from '../../@flow/form';
 import { useLocale } from '../../../locale';
 import RoleSelector from '@n2flowjs/flow/share/RoleSelector';
 

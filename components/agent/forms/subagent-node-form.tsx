@@ -2,7 +2,7 @@ import { TeamOutlined, SettingOutlined, LinkOutlined } from '@ant-design/icons';
 import { FlowNode } from '../../../models/flowTypes';
 import { Form, Input, InputNumber, Switch, Collapse, Space, Typography, Alert, Select, Button } from 'antd';
 import React, { useState, useEffect, useCallback } from 'react';
-import BaseNodeForm from './base-node-form';
+import BaseNodeForm from '../../../packages/@flow/form';
 import InputReferences from '@n2flowjs/flow/share/InputReferences';
 import RoleSelector from '@n2flowjs/flow/share/RoleSelector';
 import { useRouter } from 'next/router';

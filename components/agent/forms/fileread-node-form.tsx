@@ -3,7 +3,7 @@ import { Alert, Collapse, Form, Input, InputNumber, Select, Space, Typography } 
 import React from 'react';
 import { useLocale } from '../../../locale';
 import { FlowNode } from '../../../models/flowTypes';
-import BaseNodeForm from './base-node-form';
+import BaseNodeForm from '../../../packages/@flow/form';
 import InputReferences from '@n2flowjs/flow/share/InputReferences';
 import RoleSelector from '@n2flowjs/flow/share/RoleSelector';
 

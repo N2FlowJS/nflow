@@ -29,7 +29,7 @@ import CustomEdge from '../edges/CustomEdge';
 import { isConnectionAllowed } from '../../../utils/client/connectionRules';
 import { NODE_REGISTRY } from '../../../utils/client/NODE_REGISTRY';
 import { parseFlowConfig } from '../../../utils/server/parseFlowConfig';
-import { nodeTypes } from './nodeTypes';
+import { nodeTypes } from '../nodes/node-types';
 import { FlowEditorContext, FlowEditorContextType } from '../../../packages/@flow/editor-context';
 import { useConversationStateLoader } from './hooks/useConversationStateLoader';
 import { useEdgeCleanup } from './hooks/useEdgeCleanup';

@@ -1,1 +1,1 @@
-export { default } from '../../../components/agent/nodes/cache-node';
+export { default } from './cache-node';

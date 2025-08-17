@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { Form, Select, Space, Typography, Alert } from 'antd';
 import { ToolOutlined } from '@ant-design/icons';
-import BaseNodeForm from '../../../components/agent/forms/base-node-form';
+import BaseNodeForm from '../../@flow/form';
 import { FlowNode } from '../../../models/flowTypes';
 import { NODE_REGISTRY } from '../../../utils/client/NODE_REGISTRY';
 import { useReactFlow } from '@xyflow/react';

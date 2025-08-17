@@ -1,1 +1,1 @@
-export { default } from '../../../components/agent/nodes/instagram-node';
+export { default } from './instagram-node';

@@ -2,7 +2,7 @@ import { FacebookOutlined, SettingOutlined, LinkOutlined } from '@ant-design/ico
 import { FlowNode } from '../../../models/flowTypes';
 import { Form, Input, Select, Collapse, Space, Typography, Alert, Switch, DatePicker } from 'antd';
 import React from 'react';
-import BaseNodeForm from './base-node-form';
+import BaseNodeForm from '../../../packages/@flow/form';
 import InputReferences from '@n2flowjs/flow/share/InputReferences';
 import RoleSelector from '@n2flowjs/flow/share/RoleSelector';
 import { useLocale } from '../../../locale';

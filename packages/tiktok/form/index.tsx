@@ -1,1 +1,1 @@
-export { default } from '../../../components/agent/forms/tiktok-node-form';
+export { default } from './tiktok-node-form';

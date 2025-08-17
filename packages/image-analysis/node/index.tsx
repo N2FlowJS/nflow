@@ -1,1 +1,1 @@
-export { default } from '../../../components/agent/nodes/image-analysis-node';
+export { default } from './image-analysis-node';

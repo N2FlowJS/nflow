@@ -5,7 +5,7 @@ import { Collapse, Form, InputNumber, Select, Slider, Space, Spin, Typography } 
 import React, { useEffect, useMemo, useState } from 'react';
 import { Mention, MentionsInput, SuggestionDataItem } from 'react-mentions';
 import { usePredecessorNodes } from '@n2flowjs/flow/share/usePredecessorNodes';
-import BaseNodeForm from './base-node-form';
+import BaseNodeForm from '../../../packages/@flow/form';
 import RoleSelector from '@n2flowjs/flow/share/RoleSelector';
 import InputReferences from '@n2flowjs/flow/share/InputReferences';
 import { FormInstance } from 'antd/lib';

@@ -4,7 +4,7 @@ import { IKnowledge } from '../../../models/IKnowledge';
 import { fetchAllKnowledge } from '../../../services/knowledgeService';
 import { Form, InputNumber, Select, Slider, Spin, Typography } from 'antd';
 import React, { useEffect, useState } from 'react';
-import BaseNodeForm from './base-node-form';
+import BaseNodeForm from '../../../packages/@flow/form';
 import InputReferences from '@n2flowjs/flow/share/InputReferences';
 import RoleSelector from '@n2flowjs/flow/share/RoleSelector';
 import { useLocale } from '../../../locale';

@@ -5,7 +5,7 @@ import {
   ApartmentOutlined,
   ToolOutlined,
 } from '@ant-design/icons';
-import BaseNodeForm from '../../../components/agent/forms/base-node-form';
+import BaseNodeForm from '../../@flow/form';
 import { FlowNode } from '../../../models/flowTypes';
 import { useRouter } from 'next/router';
 import { NODE_REGISTRY } from '../../../utils/client/NODE_REGISTRY';

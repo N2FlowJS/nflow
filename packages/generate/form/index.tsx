@@ -1,1 +1,1 @@
-export { default } from '../../../components/agent/forms/generate-node-form';
+export { default } from './generate-node-form';
