@@ -1,1 +1,1 @@
-export { default } from '../../../components/agent/forms/youtube-node-form';
+export { default } from './youtube-node-form';

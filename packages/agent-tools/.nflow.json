@@ -1,0 +1,13 @@
+{
+  "enabled": true,
+  "order": 33,
+  "name": "agent-tools",
+  "title": "Agent Tools",
+  "version": "0.1.0",
+  "description": "Provides tool selection and orchestration for the Agent node. Allows enabling/disabling available tools dynamically within a flow.",
+  "entry": "index.ts",
+  "type": "node",
+  "tags": ["agent", "tools", "orchestration"],
+  "author": "nflow",
+  "license": "MIT"
+}

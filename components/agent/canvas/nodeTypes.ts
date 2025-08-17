@@ -13,7 +13,7 @@ import ExecMssqlNode from '../nodes/execmssql-node';
 import ExecPostgresNode from '../nodes/execpostgres-node';
 import SubAgentNode from '../nodes/subagent-node';
 import SendMailNode from '../nodes/sendmail-node';
-import GoogleSearchNode from '../nodes/googlesearch-node';
+import GoogleSearchNode from '../../../packages/google-search/node';
 import BingSearchNode from '../nodes/bingsearch-node';
 import DuckGoSearchNode from '../nodes/duckgosearch-node';
 import WikipediaSearchNode from '../nodes/wikipediasearch-node';

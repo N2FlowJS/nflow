@@ -16,7 +16,8 @@
     "test:file": "mocha -r ts-node/register \"**/textChunker.test.ts\"",
     "run:docs": "docsify serve docs",
     "test": "jest",
-    "test:watch": "jest --watch"
+  "test:watch": "jest --watch",
+  "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "keywords": [
     "n2flowjs",
