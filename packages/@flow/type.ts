@@ -76,3 +76,15 @@ export interface BaseForm {
   role?: 'developer' | 'assistant' | 'system' | 'user';
   inputRefs?: InputReference[]; // Add support for input references
 }
+
+
+// Generic Base Node Data with form type parameter
+export type BaseNodeData<TForm = unknown> = {
+  label: string;
+  id: string;
+  position: { x: number; y: number };
+  type: NodeTypeString;
+  [key: string]: unknown;
+  form: TForm;
+};
+

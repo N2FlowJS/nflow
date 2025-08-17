@@ -1,14 +1,15 @@
 import { EditOutlined, RobotOutlined, SettingOutlined } from '@ant-design/icons';
 import { FlowNode } from '../../../models/flowTypes';
-import { fetchAllLLMProviders } from '../../../services/llmService';
+// import { fetchAllLLMProviders } from '../../../services/llmService'; // replaced by hook
 import { Form, InputNumber, Select, Switch, Collapse, Space, Typography, Alert } from 'antd';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { Mention, MentionsInput, SuggestionDataItem } from 'react-mentions';
 import { usePredecessorNodes } from '@n2flowjs/flow/share/usePredecessorNodes';
 import BaseNodeForm from '../../@flow/form';
 import RoleSelector from '@n2flowjs/flow/share/RoleSelector';
 import InputReferences from '@n2flowjs/flow/share/InputReferences';
 import { useLocale } from '../../../locale';
+import { useLLMChatModels } from '../../../hooks/useLLMChatModels';
 
 const { Text } = Typography;
 
@@ -18,13 +19,10 @@ interface RewriteNodeFormProps {
   setIsDrawerOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const RewriteNodeForm: React.FC<RewriteNodeFormProps> = (props) => {
+const RewriteNodeFormComponent: React.FC<RewriteNodeFormProps> = (props) => {
   const { selectedNode } = props;
   useLocale('form.nodeForm');
-  const [providers, setProviders] = useState<any[]>([]);
-  const [models, setModels] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { groupedModels, loading, error } = useLLMChatModels();
 
   const { predecessorVariables } = usePredecessorNodes(selectedNode.id);
 
@@ -34,46 +32,7 @@ const RewriteNodeForm: React.FC<RewriteNodeFormProps> = (props) => {
     { id: 'userInput', display: 'userInput' },
   ], [predecessorVariables]);
 
-  const loadModels = React.useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const providersData = await fetchAllLLMProviders();
-      setProviders(providersData);
-
-      const allModels = providersData.flatMap((provider) =>
-        (provider.models || [])
-          .filter((model) => model.modelType === 'chat')
-          .map((model) => ({
-            id: model.id,
-            name: model.name,
-            providerId: provider.id,
-            providerName: provider.providerType,
-          }))
-      );
-
-      setModels(allModels);
-    } catch (err) {
-      console.error('Failed to load models:', err);
-      setError('Failed to load AI models');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    loadModels();
-  }, [loadModels]);
-
-  const groupedModels = providers
-    .map((provider) => {
-      const providerModels = models.filter((model) => model.providerId === provider.id);
-      return {
-        provider,
-        models: providerModels,
-      };
-    })
-    .filter((group) => group.models.length > 0);
+  // Model grouping provided by hook
 
   return (
     <BaseNodeForm {...props}>
@@ -117,7 +76,7 @@ const RewriteNodeForm: React.FC<RewriteNodeFormProps> = (props) => {
         defaultActiveKey={['settings', 'prompt']}
         bordered={false}
         expandIconPosition="end"
-        items={[
+        items={useMemo(() => ([
           {
             key: 'settings',
             label: (
@@ -185,7 +144,10 @@ const RewriteNodeForm: React.FC<RewriteNodeFormProps> = (props) => {
                 <MentionsInput
                   value={props.form.getFieldValue('prompt') || ''}
                   onChange={(event) => {
-                    props.form.setFieldsValue({ prompt: event.target.value });
+                    const val = (event as any).target?.value ?? '';
+                    if (props.form.getFieldValue('prompt') !== val) {
+                      props.form.setFieldsValue({ prompt: val });
+                    }
                   }}
                   style={{
                     control: {
@@ -228,7 +190,7 @@ const RewriteNodeForm: React.FC<RewriteNodeFormProps> = (props) => {
               </Form.Item>
             ),
           },
-        ]}
+        ]), [allVariables, props.form])}
       />
 
       <RoleSelector />
@@ -236,5 +198,9 @@ const RewriteNodeForm: React.FC<RewriteNodeFormProps> = (props) => {
     </BaseNodeForm>
   );
 };
+
+const RewriteNodeForm = React.memo(RewriteNodeFormComponent, (prev, next) => (
+  prev.selectedNode.id === next.selectedNode.id && prev.form === next.form && prev.setIsDrawerOpen === next.setIsDrawerOpen
+));
 
 export default RewriteNodeForm;

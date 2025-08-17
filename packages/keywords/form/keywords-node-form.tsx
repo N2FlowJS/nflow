@@ -1,15 +1,17 @@
-import { FileTextOutlined } from '@ant-design/icons';
-import { FlowNode, } from '../../../models/flowTypes'; // Import Edge type
+import { TagsOutlined } from '@ant-design/icons';
+import { FlowNode } from '../../../models/flowTypes';
+// import { fetchAllLLMProviders } from '../../../services/llmService'; // replaced by hook
 import { Collapse, Form, InputNumber, Select, Slider, Space, Spin, Typography } from 'antd';
 import React, { useMemo } from 'react';
 import { Mention, MentionsInput, SuggestionDataItem } from 'react-mentions';
 import { usePredecessorNodes } from '@n2flowjs/flow/share/usePredecessorNodes';
 import BaseNodeForm from '../../@flow/form';
 import RoleSelector from '@n2flowjs/flow/share/RoleSelector';
+import InputReferences from '@n2flowjs/flow/share/InputReferences';
 import { FormInstance } from 'antd/lib';
 import { useLocale } from '../../../locale';
 import { useLLMChatModels } from '../../../hooks/useLLMChatModels';
-import { GenerateForm } from '../types';
+import { KeywordsForm } from '../types';
 
 const { Text } = Typography;
 
@@ -21,7 +23,7 @@ const mentionsInputStyle = {
     lineHeight: 1.5715,
     border: '1px solid #d9d9d9',
     borderRadius: '2px',
-    minHeight: 150, // Match TextArea rows={10} roughly
+    minHeight: 150,
   },
   '&multiLine': {
     control: {
@@ -33,7 +35,7 @@ const mentionsInputStyle = {
     },
     input: {
       padding: '9px 11px',
-      outline: 'none', // Remove focus outline
+      outline: 'none',
     },
   },
   suggestions: {
@@ -53,14 +55,13 @@ const mentionsInputStyle = {
       transition: 'background-color 0.3s',
       cursor: 'pointer',
       '&focused': {
-        backgroundColor: '#e6f7ff', // Ant Design primary color with low opacity
-        color: '#1890ff', // Ant Design primary color
+        backgroundColor: '#e6f7ff',
+        color: '#1890ff',
       },
     },
   },
 };
 
-// Custom style for suggestion items
 const mentionItemStyle = {
   display: 'flex',
   justifyContent: 'space-between',
@@ -68,19 +69,19 @@ const mentionItemStyle = {
   width: '100%',
 };
 
-interface GenerateNodeFormProps {
-  form: FormInstance<GenerateForm>;
+interface KeywordsNodeFormProps {
+  form: FormInstance<KeywordsForm>;
   selectedNode: FlowNode;
   setIsDrawerOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const GenerateNodeFormComponent: React.FC<GenerateNodeFormProps> = (props) => {
+const KeywordsNodeFormComponent: React.FC<KeywordsNodeFormProps> = (props) => {
   const { selectedNode } = props;
   const { t } = useLocale('form.nodeForm');
 
   const { groupedModels, models, loading, error } = useLLMChatModels();
 
-  // Use our new hook to get variables
+  // Use our hook to get variables
   const { predecessorVariables } = usePredecessorNodes(selectedNode.id);
 
   // Use predecessor variables directly
@@ -96,7 +97,7 @@ const GenerateNodeFormComponent: React.FC<GenerateNodeFormProps> = (props) => {
       <Form.Item
         name="model"
         label={t('modelLabel')}
-        extra={t('modelExtraGenerate')}
+        extra={t('modelExtraKeywords')}
         rules={[{ required: true, message: t('modelRequired') }]}>
         {loading ? (
           <div style={{ textAlign: 'center', padding: '20px 0' }}>
@@ -126,7 +127,31 @@ const GenerateNodeFormComponent: React.FC<GenerateNodeFormProps> = (props) => {
           </Select>
         )}
       </Form.Item>
-  <Form.Item name="numberHistory" label={t('numberHistoryLabel')} rules={[{ required: true }]}>
+
+  <Form.Item name="maxResults" label={t('maxKeywordsLabel')} rules={[{ required: true }]}>
+        <Form.Item shouldUpdate>
+      {({ getFieldValue, setFieldsValue }) => (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+              <Slider
+                min={1}
+                max={50}
+                style={{ flex: 1 }}
+                value={getFieldValue('maxResults')}
+        onChange={(value) => { if (getFieldValue('maxResults') !== value) setFieldsValue({ maxResults: value }); }}
+                marks={{ 1: '1', 25: '25', 50: '50' }}
+              />
+              <InputNumber
+                min={1}
+                max={50}
+                value={getFieldValue('maxResults')}
+        onChange={(value) => { if (getFieldValue('maxResults') !== value) setFieldsValue({ maxResults: value }); }}
+                style={{ width: 70 }}
+              />
+            </div>
+          )}
+        </Form.Item>
+      </Form.Item>
+      <Form.Item name="numberHistory" label={t('numberHistoryLabel')} rules={[{ required: true }]}>
         <Form.Item shouldUpdate>
       {({ getFieldValue, setFieldsValue }) => (
             <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
@@ -149,74 +174,72 @@ const GenerateNodeFormComponent: React.FC<GenerateNodeFormProps> = (props) => {
           )}
         </Form.Item>
       </Form.Item>
+
       <RoleSelector />
 
       <Collapse
-        defaultActiveKey={['prompt', 'output']}
+        defaultActiveKey={['prompt']}
         bordered={false}
         expandIconPosition="end"
-        items={[
-          {
-            key: 'prompt',
-            label: (
-              <Space>
-                <FileTextOutlined />
-                <span>{t('promptLabel')}</span>
-              </Space>
-            ),
-            children: (
-              <>
-                <Form.Item
-                  name="prompt"
-                  // No label needed as it's in the Panel header
-                  rules={[{ required: true, message: t('promptRequired') }]}
-                  // Use getValueFromEvent to correctly handle MentionsInput onChange
-                  getValueFromEvent={(event) => event.target.value}>
-                  <MentionsInput
-                    style={mentionsInputStyle} // Apply custom styles
-                    placeholder={t('promptPlaceholder')}
-                    a11ySuggestionsListLabel={'Suggested variables'}
-                    allowSpaceInQuery={true} // Allows searching for multi-word variables if needed
-                    // Control the component value
-                    onChange={(event: unknown, value: string) => {
-                      console.log(event);
-
-                      if (props.form.getFieldValue('prompt') !== value) props.form.setFieldsValue({ prompt: value });
-                    }} // Update form on change
-                  >
-                    <Mention
-                      trigger="@" // Use @ to trigger suggestions
-                      data={allVariables} // Provide the variable data
-                      markup="{{__id__}}" // Define how the mention is inserted (using Ant Design variable style)
-                      displayTransform={(id: string) => {
-                        // Find the variable with this id to get its display name
-                        const variable = allVariables.find((v) => v.id === id);
-                        return `@${variable ? variable.display : id}`;
-                      }} // Show display name in mentions
-                      appendSpaceOnAdd={true} // Add a space after inserting a mention
-                      renderSuggestion={(suggestion: SuggestionDataItem) => (
-                        <div style={mentionItemStyle}>
-                          <div>
-                            <b>{suggestion.display}</b>
-                          </div>
-                          <div style={{ color: '#8c8c8c', fontSize: '0.85em', marginLeft: '8px' }}>{suggestion.id}</div>
+        items={useMemo(() => ([{
+          key: 'prompt',
+          label: (
+            <Space>
+              <TagsOutlined />
+              <span>{t('keywordsPromptLabel')}</span>
+            </Space>
+          ),
+          children: (
+            <>
+              <Form.Item
+                name="prompt"
+                rules={[{ required: true, message: t('keywordsPromptRequired') }]}
+                getValueFromEvent={(event) => event.target.value}>
+                <MentionsInput
+                  style={mentionsInputStyle}
+                  placeholder={t('keywordsPromptPlaceholder')}
+                  a11ySuggestionsListLabel={'Suggested variables'}
+                  allowSpaceInQuery={true}
+                  onChange={(_, value: string) => {
+                    // Only update if different to avoid loop
+                    if (props.form.getFieldValue('prompt') !== value) {
+                      props.form.setFieldsValue({ prompt: value });
+                    }
+                  }}>
+                  <Mention
+                    trigger="@"
+                    data={allVariables}
+                    markup="{{__id__}}"
+                    displayTransform={(id: string) => {
+                      const variable = allVariables.find((v) => v.id === id);
+                      return `@${variable ? variable.display : id}`;
+                    }}
+                    style={{ backgroundColor: '#f6ffed' }}
+                    appendSpaceOnAdd={true}
+                    renderSuggestion={(suggestion: SuggestionDataItem) => (
+                      <div style={mentionItemStyle}>
+                        <div>
+                          <b>{suggestion.display}</b>
                         </div>
-                      )}
-                    />
-                  </MentionsInput>
-                </Form.Item>
-                <div style={{ fontSize: '0.9em', color: '#888', marginTop: 8 }}>{t('variablesHelpTextGenerate')}</div>
-              </>
-            ),
-          },
-        ]}
+                        <div style={{ color: '#8c8c8c', fontSize: '0.85em', marginLeft: '8px' }}>{suggestion.id}</div>
+                      </div>
+                    )}
+                  />
+                </MentionsInput>
+              </Form.Item>
+              <div style={{ fontSize: '0.9em', color: '#888', marginTop: 8 }}>{t('variablesHelpTextKeywords')}</div>
+            </>
+          ),
+        }]), [t, allVariables, props.form])}
       />
+
+      <InputReferences form={props.form} nodeid={selectedNode.id} />
     </BaseNodeForm>
   );
 };
 
-const GenerateNodeForm = React.memo(GenerateNodeFormComponent, (prev, next) => (
+const KeywordsNodeForm = React.memo(KeywordsNodeFormComponent, (prev, next) => (
   prev.selectedNode.id === next.selectedNode.id && prev.form === next.form && prev.setIsDrawerOpen === next.setIsDrawerOpen
 ));
 
-export default GenerateNodeForm;
+export default KeywordsNodeForm;

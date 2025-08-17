@@ -1,1 +1,98 @@
-export { default } from '../../../components/agent/nodes/keywords-node';
+import React, { useEffect, useState } from 'react';
+import { Position, NodeProps, Node } from '@xyflow/react';
+import { KeywordsNodeData } from '../../../models/flowTypes';
+import { BaseNode } from '@n2flowjs/flow';
+import { Flex, Tooltip, Spin } from 'antd';
+import { TagsOutlined, InfoCircleOutlined } from '@ant-design/icons';
+import ModelInfo from '../../generate/node/ModelInfo';
+import PromptInfo from '../../generate/node/PromptInfo';
+import KeywordsInfo from './KeywordsInfo';
+import { fetchLLMModelById } from '../../../services/llmService';
+import HistoryChatSize from '../../@flow/share/history-chat-size';
+
+const KeywordsNode = ({ data, id, selected }: NodeProps<Node<KeywordsNodeData>>) => {
+  const { form } = data;
+  const [modelDetails, setModelDetails] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch model details when the model ID changes
+  useEffect(() => {
+    if (form?.model && typeof form.model === 'string' && form.model.length > 10) {
+      // Assume we have a model ID if string is longer than 10 chars
+      setLoading(true);
+      setError(null);
+
+      fetchLLMModelById(form.model)
+        .then((modelData) => {
+          setModelDetails(modelData);
+        })
+        .catch((err) => {
+          console.error('Error fetching model details:', err);
+          setError('Failed to load model information');
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    }
+  }, [form?.model]);
+
+  // Get an appropriate model display name
+  const getModelDisplayName = () => {
+    if (loading) return 'Loading...';
+    if (error) return 'Error loading model';
+    if (!form?.model) return 'No model selected';
+
+    if (modelDetails?.name) return modelDetails.name;
+
+    // Fall back to the model ID or name from the form
+    return form.model;
+  };
+
+  const getProviderName = () => {
+    if (modelDetails?.provider?.name) {
+      return modelDetails.provider.name;
+    }
+    return null;
+  };
+
+  return (
+    <BaseNode
+      data={data}
+      id={id}
+      selected={selected}
+      handlePositions={{
+        input: [Position.Left, Position.Top],
+        output: [Position.Right, Position.Bottom],
+      }}
+      icon={<TagsOutlined style={{ color: '#722ed1' }} />}
+      role={form?.role}>
+      <Flex vertical gap={8}>
+        <Flex align="center" justify="space-between">
+          {loading ? (
+            <Spin size="small" />
+          ) : (
+            <ModelInfo
+              model={getModelDisplayName()}
+              provider={getProviderName()}
+              contextWindow={modelDetails?.contextWindow}
+            />
+          )}
+
+          {error && (
+            <Tooltip title={error}>
+              <InfoCircleOutlined style={{ color: '#ff4d4f' }} />
+            </Tooltip>
+          )}
+        </Flex>
+
+        <PromptInfo prompt={form?.prompt || ''} />
+        <HistoryChatSize numberHistory={form?.numberHistory || 0} />
+
+        <KeywordsInfo maxResults={form?.maxResults || 10} />
+      </Flex>
+    </BaseNode>
+  );
+};
+
+export default KeywordsNode;

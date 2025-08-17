@@ -1,6 +1,28 @@
 import { Edge, Node } from '@xyflow/react';
 import React from 'react';
-import { BaseForm, InputReference } from '@n2flowjs/flow';
+import { BaseForm, BaseNodeData, InputReference } from '@n2flowjs/flow';
+// Decentralized node specific forms & data
+import { GenerateForm, GenerateNodeData } from '../packages/generate/types';
+import { KeywordsForm, KeywordsNodeData } from '../packages/keywords/types';
+import { RewriteForm, RewriteNodeData } from '../packages/rewrite/types';
+import { GoogleSearchForm, GoogleSearchNodeData } from '../packages/google-search/types';
+import { SlackNodeData } from '../packages/slack/types';
+import { MattermostNodeData } from '../packages/mattermost/types';
+import { DiscordNodeData } from '../packages/discord/types';
+import { TelegramNodeData } from '../packages/telegram/types';
+import { LinkedInNodeData } from '../packages/linkedin/types';
+import { InstagramNodeData } from '../packages/instagram/types';
+import { WhatsAppNodeData } from '../packages/whatsapp/types';
+import { JiraNodeData } from '../packages/jira/types';
+import { GitHubNodeData } from '../packages/github/types';
+import { GitLabNodeData } from '../packages/gitlab/types';
+import { ConfluenceNodeData } from '../packages/confluence/types';
+import { FacebookNodeData } from '../packages/facebook/types';
+import { GoogleMapNodeData } from '../packages/googlemap/types';
+import { TwitterNodeData } from '../packages/twitter/types';
+import { BingSearchForm, BingSearchNodeData } from '../packages/bing-search/types';
+import { DuckGoSearchForm, DuckGoSearchNodeData } from '../packages/duckgo-search/types';
+import { WikipediaSearchForm, WikipediaSearchNodeData } from '../packages/wikipedia-search/types';
 
 // Node types mapping
 export const NODE_TYPES = {
@@ -74,17 +96,6 @@ export const NODE_TYPES = {
 export type NodeTypeString = string & {};
 
 
-// Generic Base Node Data with form type parameter
-export type BaseNodeData<TForm = unknown> = {
-  label: string;
-  id: string;
-  position: { x: number; y: number };
-  type: NodeTypeString;
-  [key: string]: unknown;
-  form: TForm;
-  _lastUpdate?: number; // Add timestamp field for forcing re-renders
-};
-
 
 // Form types for each node
 export interface BeginForm extends BaseForm {
@@ -101,17 +112,7 @@ export interface InterfaceForm extends BaseForm {
   displayFormat?: 'text' | 'markdown' | 'html';
 }
 
-export interface GenerateForm extends BaseForm {
-  prompt: string;
-  numberHistory: number;
-  model: string;
-}
-export interface KeywordsForm extends BaseForm {
-  model: string;
-  prompt: string;
-  maxResults: number;
-  numberHistory: number;
-}
+// GenerateForm & KeywordsForm moved to package type files
 
 export interface NativeKeywordsForm extends BaseForm {
   text: string; // template with ${var}
@@ -219,38 +220,9 @@ export interface SendMailForm extends BaseForm {
   smtpSecure?: boolean;
   useSystemConfig?: boolean;
 }
+// (external) GoogleSearchForm, WikipediaSearchForm
 
-export interface GoogleSearchForm extends BaseForm {
-  name: string;
-  description?: string;
-  query: string;
-  maxResults?: number;
-  safeSearch?: 'off' | 'moderate' | 'strict';
-  language?: string;
-  country?: string;
-  apiKey?: string;
-  searchEngineId?: string;
-  useSystemConfig?: boolean;
-}
-
-export interface WikipediaSearchForm extends BaseForm {
-  name: string;
-  description?: string;
-  query: string;
-  maxResults?: number;
-  language?: string;
-  summaryOnly?: boolean;
-}
-
-export interface RewriteForm extends BaseForm {
-  name: string;
-  description?: string;
-  model: string;
-  prompt: string;
-  numberHistory: number;
-  preserveMeaning?: boolean;
-  outputStyle?: 'formal' | 'casual' | 'professional' | 'concise' | 'detailed';
-}
+// RewriteForm moved to package type file
 
 export interface HttpRequestForm extends BaseForm {
   name: string;
@@ -382,9 +354,6 @@ export type InterfaceNodeData = BaseNodeData<InterfaceForm> & {
   type: 'interface';
 };
 
-export type GenerateNodeData = BaseNodeData<GenerateForm> & {
-  type: 'generate';
-};
 
 export type CategorizeNodeData = BaseNodeData<CategorizeForm> & {
   type: 'categorize';
@@ -395,9 +364,6 @@ export type DecisionNodeData = BaseNodeData<DecisionForm> & {
 
 export type RetrievalNodeData = BaseNodeData<RetrievalForm> & {
   type: 'retrieval';
-};
-export type KeywordsNodeData = BaseNodeData<KeywordsForm> & {
-  type: 'keywords';
 };
 export type ExecMysqlNodeData = BaseNodeData<ExecMysqlForm> & {
   type: 'execmysql';
@@ -421,21 +387,8 @@ export type NativeKeywordsNodeData = BaseNodeData<NativeKeywordsForm> & {
 export type SendMailNodeData = BaseNodeData<SendMailForm> & {
   type: 'sendmail';
 };
-export type GoogleSearchNodeData = BaseNodeData<GoogleSearchForm> & {
-  type: 'googlesearch';
-};
-export type BingSearchNodeData = BaseNodeData<BingSearchForm> & {
-  type: 'bingsearch';
-};
-export type DuckGoSearchNodeData = BaseNodeData<DuckGoSearchForm> & {
-  type: 'duckgosearch';
-};
-export type WikipediaSearchNodeData = BaseNodeData<WikipediaSearchForm> & {
-  type: 'wikipediasearch';
-};
-export type RewriteNodeData = BaseNodeData<RewriteForm> & {
-  type: 'rewrite';
-};
+// (external) GoogleSearchNodeData, BingSearchNodeData, DuckGoSearchNodeData, WikipediaSearchNodeData
+// GenerateNodeData / KeywordsNodeData / RewriteNodeData moved to package type files
 export type HttpRequestNodeData = BaseNodeData<HttpRequestForm> & {
   type: 'httprequest';
 };
@@ -472,54 +425,26 @@ export type DateTimeNodeData = BaseNodeData<DateTimeForm> & {
 export type ConditionNodeData = BaseNodeData<ConditionForm> & {
   type: 'condition';
 };
-export type MattermostNodeData = BaseNodeData<MattermostForm> & {
-  type: 'mattermost';
-};
-export type SlackNodeData = BaseNodeData<SlackForm> & {
-  type: 'slack';
-};
-export type JiraNodeData = BaseNodeData<JiraForm> & {
-  type: 'jira';
-};
-export type GitLabNodeData = BaseNodeData<GitLabForm> & {
-  type: 'gitlab';
-};
-export type ConfluenceNodeData = BaseNodeData<ConfluenceForm> & {
-  type: 'confluence';
-};
-export type GitHubNodeData = BaseNodeData<GitHubForm> & {
-  type: 'github';
-};
-export type FacebookNodeData = BaseNodeData<FacebookForm> & {
-  type: 'facebook';
-};
-export type GoogleMapNodeData = BaseNodeData<GoogleMapForm> & {
-  type: 'googlemap';
-};
-export type TwitterNodeData = BaseNodeData<TwitterForm> & {
-  type: 'twitter';
-};
-export type InstagramNodeData = BaseNodeData<InstagramForm> & {
-  type: 'instagram';
-};
-export type LinkedInNodeData = BaseNodeData<LinkedInForm> & {
-  type: 'linkedin';
-};
+// (external) MattermostNodeData
+// (external) SlackNodeData
+// (external) JiraNodeData
+// (external) GitLabNodeData
+// (external) ConfluenceNodeData
+// (external) GitHubNodeData
+// (external) FacebookNodeData
+// (external) GoogleMapNodeData
+// (external) TwitterNodeData
+// (external) InstagramNodeData
+// (external) LinkedInNodeData
 export type YouTubeNodeData = BaseNodeData<YouTubeForm> & {
   type: 'youtube';
 };
 export type TikTokNodeData = BaseNodeData<TikTokForm> & {
   type: 'tiktok';
 };
-export type DiscordNodeData = BaseNodeData<DiscordForm> & {
-  type: 'discord';
-};
-export type TelegramNodeData = BaseNodeData<TelegramForm> & {
-  type: 'telegram';
-};
-export type WhatsAppNodeData = BaseNodeData<WhatsAppForm> & {
-  type: 'whatsapp';
-};
+// (external) DiscordNodeData
+// (external) TelegramNodeData
+// (external) WhatsAppNodeData
 export type WeatherNodeData = BaseNodeData<WeatherForm> & {
   type: 'weather';
 };
@@ -580,22 +505,22 @@ export type NodeData =
   | (BaseNodeData<MathForm> & { type: 'math' })
   | (BaseNodeData<DateTimeForm> & { type: 'datetime' })
   | (BaseNodeData<ConditionForm> & { type: 'condition' })
-  | (BaseNodeData<MattermostForm> & { type: 'mattermost' })
-  | (BaseNodeData<SlackForm> & { type: 'slack' })
-  | (BaseNodeData<JiraForm> & { type: 'jira' })
-  | (BaseNodeData<GitLabForm> & { type: 'gitlab' })
-  | (BaseNodeData<ConfluenceForm> & { type: 'confluence' })
-  | (BaseNodeData<GitHubForm> & { type: 'github' })
-  | (BaseNodeData<FacebookForm> & { type: 'facebook' })
-  | (BaseNodeData<GoogleMapForm> & { type: 'googlemap' })
-  | (BaseNodeData<TwitterForm> & { type: 'twitter' })
-  | (BaseNodeData<InstagramForm> & { type: 'instagram' })
-  | (BaseNodeData<LinkedInForm> & { type: 'linkedin' })
+  | MattermostNodeData
+  | SlackNodeData
+  | JiraNodeData
+  | GitLabNodeData
+  | ConfluenceNodeData
+  | GitHubNodeData
+  | FacebookNodeData
+  | GoogleMapNodeData
+  | TwitterNodeData
+  | InstagramNodeData
+  | LinkedInNodeData
   | (BaseNodeData<YouTubeForm> & { type: 'youtube' })
   | (BaseNodeData<TikTokForm> & { type: 'tiktok' })
-  | (BaseNodeData<DiscordForm> & { type: 'discord' })
-  | (BaseNodeData<TelegramForm> & { type: 'telegram' })
-  | (BaseNodeData<WhatsAppForm> & { type: 'whatsapp' })
+  | DiscordNodeData
+  | TelegramNodeData
+  | WhatsAppNodeData
   | (BaseNodeData<WeatherForm> & { type: 'weather' })
   | (BaseNodeData<DisplayForm> & { type: 'display' })
   | (BaseNodeData<LoopForm> & { type: 'loop' })
@@ -769,31 +694,9 @@ export interface NodeConfig {
   data: Partial<NodeData>;
 }
 
-export interface MattermostForm extends BaseForm {
-  name: string;
-  description?: string;
-  action: 'send_message' | 'create_channel' | 'get_channels' | 'get_users';
-  serverUrl: string;
-  accessToken: string;
-  channelId?: string;
-  channelName?: string;
-  message?: string;
-  username?: string;
-  teamId?: string;
-}
+// (external) MattermostForm
 
-export interface SlackForm extends BaseForm {
-  name: string;
-  description?: string;
-  action: 'send_message' | 'create_channel' | 'get_channels' | 'get_users' | 'upload_file';
-  botToken: string;
-  channelId?: string;
-  channelName?: string;
-  message?: string;
-  username?: string;
-  filePath?: string;
-  fileName?: string;
-}
+// (external) SlackForm
 
 export interface JiraForm extends BaseForm {
   name: string;
@@ -812,136 +715,20 @@ export interface JiraForm extends BaseForm {
   comment?: string;
 }
 
-export interface GitLabForm extends BaseForm {
-  name: string;
-  description?: string;
-  action: 'create_issue' | 'create_merge_request' | 'get_project' | 'get_issues' | 'create_comment';
-  serverUrl: string;
-  accessToken: string;
-  projectId?: string;
-  title?: string;
-  issueIid?: string;
-  sourceBranch?: string;
-  targetBranch?: string;
-  assigneeId?: string;
-  labels?: string[];
-  comment?: string;
-}
+// (external) GitLabForm
 
-export interface ConfluenceForm extends BaseForm {
-  name: string;
-  description?: string;
-  action: 'create_page' | 'update_page' | 'get_page' | 'search_pages' | 'add_comment' | 'get_spaces';
-  serverUrl: string;
-  username: string;
-  apiToken: string;
-  spaceKey?: string;
-  pageId?: string;
-  parentPageId?: string;
-  title?: string;
-  content?: string;
-  searchQuery?: string;
-  comment?: string;
-}
+// (external) ConfluenceForm
 
-export interface GitHubForm extends BaseForm {
-  name: string;
-  description?: string;
-  action:
-    | 'create_issue'
-    | 'create_pull_request'
-    | 'get_repository'
-    | 'get_issues'
-    | 'add_comment'
-    | 'get_pull_requests'
-    | 'merge_pull_request';
-  token: string;
-  owner: string;
-  repository: string;
-  issueNumber?: string;
-  pullNumber?: string;
-  title?: string;
-  body?: string;
-  head?: string;
-  base?: string;
-  comment?: string;
-  labels?: string[];
-  assignees?: string[];
-}
+// (external) JiraForm
+// (external) GitHubForm
 
-export interface FacebookForm extends BaseForm {
-  name: string;
-  description?: string;
-  action: 'create_post' | 'get_page_info' | 'get_posts' | 'create_comment' | 'get_page_insights' | 'upload_photo';
-  accessToken: string;
-  pageId?: string;
-  postId?: string;
-  message?: string;
-  photoUrl?: string;
-  comment?: string;
-  link?: string;
-  scheduled?: boolean;
-  scheduledTime?: string;
-}
+// (external) FacebookForm
 
-export interface GoogleMapForm extends BaseForm {
-  name: string;
-  description?: string;
-  action: 'geocode' | 'reverse_geocode' | 'directions' | 'places_search' | 'place_details' | 'distance_matrix';
-  apiKey: string;
-  address?: string;
-  latitude?: string;
-  longitude?: string;
-  origin?: string;
-  destination?: string;
-  travelMode?: 'driving' | 'walking' | 'bicycling' | 'transit';
-  query?: string;
-  placeId?: string;
-  radius?: number;
-  type?: string;
-}
+// (external) GoogleMapForm
 
-export interface TwitterForm extends BaseForm {
-  name: string;
-  description?: string;
-  action: 'create_tweet' | 'get_tweets' | 'get_user_info' | 'follow_user' | 'like_tweet' | 'retweet' | 'get_mentions';
-  apiKey: string;
-  apiSecret: string;
-  accessToken: string;
-  accessTokenSecret: string;
-  tweetText?: string;
-  userId?: string;
-  username?: string;
-  tweetId?: string;
-  query?: string;
-  maxResults?: number;
-}
+// (external) TwitterForm
 
-export interface InstagramForm extends BaseForm {
-  name: string;
-  description?: string;
-  action: 'create_post' | 'get_posts' | 'get_user_info' | 'get_media' | 'create_story' | 'get_insights';
-  accessToken: string;
-  userId?: string;
-  mediaUrl?: string;
-  caption?: string;
-  mediaType?: 'image' | 'video' | 'carousel';
-  storyMediaUrl?: string;
-}
-
-export interface LinkedInForm extends BaseForm {
-  name: string;
-  description?: string;
-  action: 'create_post' | 'get_profile' | 'get_company_info' | 'create_article' | 'get_connections';
-  accessToken: string;
-  personId?: string;
-  companyId?: string;
-  postText?: string;
-  articleTitle?: string;
-  articleContent?: string;
-  mediaUrl?: string;
-  visibility?: 'public' | 'connections';
-}
+// (external) TelegramForm
 
 export interface YouTubeForm extends BaseForm {
   name: string;
@@ -973,77 +760,11 @@ export interface TikTokForm extends BaseForm {
   privacy?: 'public' | 'friends' | 'private';
 }
 
-export interface DiscordForm extends BaseForm {
-  name: string;
-  description?: string;
-  action: 'send_message' | 'create_channel' | 'get_messages' | 'send_embed' | 'manage_roles' | 'get_guild_info';
-  botToken: string;
-  channelId?: string;
-  guildId?: string;
-  message?: string;
-  embedTitle?: string;
-  embedDescription?: string;
-  embedColor?: string;
-  userId?: string;
-  roleId?: string;
-}
+// (external) DiscordForm
+// (external) TelegramForm
 
-export interface TelegramForm extends BaseForm {
-  name: string;
-  description?: string;
-  action: 'send_message' | 'send_photo' | 'send_document' | 'get_updates' | 'create_poll' | 'send_location';
-  botToken: string;
-  chatId?: string;
-  message?: string;
-  photoUrl?: string;
-  documentUrl?: string;
-  pollQuestion?: string;
-  pollOptions?: string[];
-  latitude?: string;
-  longitude?: string;
-  parseMode?: 'Markdown' | 'HTML';
-}
-
-export interface WhatsAppForm extends BaseForm {
-  name: string;
-  description?: string;
-  action: 'send_message' | 'send_media' | 'send_template' | 'get_media' | 'mark_read';
-  accessToken: string;
-  phoneNumberId: string;
-  recipientPhone: string;
-  message?: string;
-  mediaId?: string;
-  mediaUrl?: string;
-  templateName?: string;
-  templateLanguage?: string;
-  templateParameters?: string[];
-  mediaType?: 'image' | 'video' | 'audio' | 'document';
-}
-
-export interface BingSearchForm extends BaseForm {
-  name: string;
-  description?: string;
-  query: string;
-  maxResults?: number;
-  safeSearch?: 'off' | 'moderate' | 'strict';
-  language?: string;
-  country?: string;
-  apiKey?: string;
-  useSystemConfig?: boolean;
-  searchType?: 'web' | 'images' | 'news' | 'videos';
-}
-
-export interface DuckGoSearchForm extends BaseForm {
-  name: string;
-  description?: string;
-  query: string;
-  maxResults?: number;
-  safeSearch?: 'off' | 'moderate' | 'strict';
-  region?: string;
-  searchType?: 'web' | 'images' | 'news' | 'videos';
-  noHTML?: boolean;
-  noRedirect?: boolean;
-}
+// (external) WhatsAppForm
+// (external) BingSearchForm, DuckGoSearchForm
 
 export interface WeatherForm extends BaseForm {
   name: string;

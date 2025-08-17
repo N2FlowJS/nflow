@@ -1,1 +1,1 @@
-export { default } from '../../../components/agent/nodes/counter-node';
+export { default } from './counter-node';

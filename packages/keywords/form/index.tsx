@@ -1,1 +1,1 @@
-export { default } from '../../../components/agent/forms/keywords-node-form';
+export { default } from './keywords-node-form';

@@ -1,1 +1,1 @@
-export { default } from '../../../components/agent/nodes/csv-analysis-node';
+export { default } from './csv-analysis-node';
