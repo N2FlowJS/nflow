@@ -1,1 +1,1 @@
-export { default } from '../../../components/agent/forms/webhook-node-form';
+export { default } from './webhook-node-form';

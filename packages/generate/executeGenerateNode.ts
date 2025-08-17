@@ -1,6 +1,6 @@
 import { FlowNode, GenerateNodeData } from '../../models/flowTypes';
 import { ExecutionResult, FlowExecutionContext } from '../../models/flowExecutionTypes';
-import { getInputFromTemplate, processTemplate } from '../@template-processor/templateProcessor';
+import { getInputFromTemplate, processTemplate } from '@n2flowjs/template-processor/templateProcessor';
 import { findNextNodes, isNodeReady, FlowStateDispatcher } from '@n2flowjs/flow';
 import { prisma } from '../../lib/prisma';
 import { MessagePart } from '../../models/MessagePart';

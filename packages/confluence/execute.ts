@@ -1,6 +1,6 @@
 import { ConfluenceNodeData, FlowNode } from '../../models/flowTypes';
 import { findNextNodes } from '../@flow';
-import { getInputFromTemplate, processTemplate } from '../@template-processor/templateProcessor';
+import { getInputFromTemplate, processTemplate } from '@n2flowjs/template-processor/templateProcessor';
 import { isNodeReady } from '../@flow';
 import { FlowStateDispatcher } from '../@flow';
 import { ExecutionResult, FlowExecutionContext } from '../@flow';

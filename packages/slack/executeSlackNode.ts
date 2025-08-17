@@ -1,5 +1,5 @@
 import { SlackNodeData, FlowNode } from '../../models/flowTypes';
-import { getInputFromTemplate, processTemplate } from '../@template-processor/templateProcessor';
+import { getInputFromTemplate, processTemplate } from '@n2flowjs/template-processor/templateProcessor';
 import { findNextNodes, isNodeReady, FlowStateDispatcher, ExecutionResult, FlowExecutionContext } from '@n2flowjs/flow';
 
 /**

@@ -2,7 +2,7 @@ import { InstagramOutlined, SettingOutlined, KeyOutlined } from '@ant-design/ico
 import { FlowNode } from '../../../models/flowTypes';
 import { Form, Input, Select, Collapse, Space, Typography, Alert } from 'antd';
 import React from 'react';
-import BaseNodeForm from '../../../packages/@flow/form';
+import BaseNodeForm from '../../@flow/form';
 import InputReferences from '@n2flowjs/flow/share/InputReferences';
 import RoleSelector from '@n2flowjs/flow/share/RoleSelector';
 

@@ -1,1 +1,1 @@
-export { default } from '../../../components/agent/forms/instagram-node-form';
+export { default } from './instagram-node-form';

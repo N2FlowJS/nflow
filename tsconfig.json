@@ -16,7 +16,9 @@
     "baseUrl": ".",
     "paths": {
       "@n2flowjs/flow": ["packages/@flow"],
-      "@n2flowjs/flow/*": ["packages/@flow/*"]
+      "@n2flowjs/flow/*": ["packages/@flow/*"],
+      "@n2flowjs/template-processor/*": ["packages/@template-processor/*"],
+      "@n2flowjs/template-processor": ["packages/@template-processor"]
     },
     "plugins": [
       {

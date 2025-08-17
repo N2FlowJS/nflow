@@ -1,7 +1,7 @@
 import { ExecutionResult, FlowExecutionContext } from '../../models/flowExecutionTypes';
 import { ExecMssqlNodeData, FlowNode } from '../../models/flowTypes';
 import { findNextNodes, isNodeReady, FlowStateDispatcher } from '@n2flowjs/flow';
-import { getInputFromTemplate, processTemplate } from '../@template-processor/templateProcessor';
+import { getInputFromTemplate, processTemplate } from '@n2flowjs/template-processor/templateProcessor';
 
 /**
  * Handler for executing Microsoft SQL Server nodes

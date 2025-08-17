@@ -1,1 +1,1 @@
-export { default } from '../../../components/agent/forms/slack-node-form';
+export { default } from './slack-node-form';

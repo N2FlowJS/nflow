@@ -1,1 +1,1 @@
-export { default } from '../../../components/agent/forms/twitter-node-form';
+export { default } from './twitter-node-form';

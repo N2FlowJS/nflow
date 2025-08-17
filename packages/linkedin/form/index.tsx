@@ -1,1 +1,1 @@
-export { default } from '../../../components/agent/forms/linkedin-node-form';
+export { default } from './linkedin-node-form';

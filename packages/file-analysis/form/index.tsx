@@ -1,1 +1,1 @@
-export { default } from '../../../components/agent/forms/file-analysis-node-form';
+export { default } from './file-analysis-node-form';
