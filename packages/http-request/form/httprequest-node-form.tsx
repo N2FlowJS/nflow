@@ -2,7 +2,7 @@ import { ApiOutlined, SettingOutlined, CodeOutlined } from '@ant-design/icons';
 import { FlowNode } from '../../../models/flowTypes';
 import { Form, Input, Select, InputNumber, Switch, Collapse, Space, Typography, Alert, Button } from 'antd';
 import React from 'react';
-import BaseNodeForm from '../../../packages/@flow/form';
+import BaseNodeForm from '../../@flow/form';
 import InputReferences from '@n2flowjs/flow/share/InputReferences';
 import RoleSelector from '@n2flowjs/flow/share/RoleSelector';
 import { useLocale } from '../../../locale';

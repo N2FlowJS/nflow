@@ -1,1 +1,1 @@
-export { default } from '../../../components/agent/forms/wechat-node-form';
+export { default } from './wechat-node-form';

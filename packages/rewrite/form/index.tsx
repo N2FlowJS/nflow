@@ -1,1 +1,1 @@
-export { default } from '../node/rewrite-node-form';
+export { default } from './rewrite-node-form';

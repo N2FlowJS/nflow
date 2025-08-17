@@ -1,1 +1,1 @@
-export { default } from '../../../components/agent/forms/httprequest-node-form';
+export { default } from './httprequest-node-form';

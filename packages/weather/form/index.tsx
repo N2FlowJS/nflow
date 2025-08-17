@@ -1,1 +1,1 @@
-export { default } from '../../../components/agent/forms/weather-node-form';
+export { default } from './weather-node-form';

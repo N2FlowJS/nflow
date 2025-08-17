@@ -1,1 +1,1 @@
-export { default } from '../../../components/agent/forms/whatsapp-node-form';
+export { default } from './whatsapp-node-form';
