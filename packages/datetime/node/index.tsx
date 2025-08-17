@@ -1,1 +1,1 @@
-export { default } from '../../../components/agent/nodes/datetime-node';
+export { default } from './datetime-node';

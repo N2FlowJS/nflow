@@ -1,1 +1,1 @@
-export { default } from '../../../components/agent/nodes/jsonparse-node';
+export { default } from './jsonparse-node';

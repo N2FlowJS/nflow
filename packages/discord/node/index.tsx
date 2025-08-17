@@ -1,1 +1,1 @@
-export { default } from '../../../components/agent/nodes/discord-node';
+export { default } from './discord-node';

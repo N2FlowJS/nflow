@@ -4,10 +4,8 @@
 
 import type React from 'react';
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const fs: typeof import('fs') = require('fs');
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 const path: typeof import('path') = require('path');
+const fs: typeof import('fs') = require('fs');
 
 function normalizeKey(pkgName: string) { return pkgName.replace(/-+/g, ''); }
 
@@ -27,7 +25,7 @@ export function scanNodeComponents(): Record<string, React.ComponentType<any>> {
     const chosen = index || nodeLike;
     if (!chosen) continue;
     try {
-  const mod = (eval('require') as NodeRequire)(path.join(nodeDir, chosen));
+  const mod = (eval('require') as NodeJS.Require)(path.join(nodeDir, chosen));
       const comp = (mod && (mod.default || Object.values(mod)[0])) as React.ComponentType<any> | undefined;
       if (comp) map[normalizeKey(pkg)] = comp;
     } catch {
@@ -54,9 +52,7 @@ export function scanNodeForms(force?: boolean): Record<string, React.ComponentTy
     const chosen = index || files[0];
     if (!chosen) continue;
     try {
-  // See note above re: eval('require') to avoid Next bundler dynamic import resolution errors.
-  // eslint-disable-next-line @typescript-eslint/no-implied-eval, @typescript-eslint/no-var-requires
-  const mod = (eval('require') as NodeRequire)(path.join(formDir, chosen));
+  const mod = (eval('require') as NodeJS.Require)(path.join(formDir, chosen));
       const comp = (mod && (mod.default || Object.values(mod)[0])) as React.ComponentType<any> | undefined;
       if (comp) map[normalizeKey(pkg)] = comp;
     } catch {

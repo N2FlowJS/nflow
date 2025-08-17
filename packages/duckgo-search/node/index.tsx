@@ -1,1 +1,1 @@
-export { default } from '../../../components/agent/nodes/duckgosearch-node';
+export { default } from './duckgosearch-node';

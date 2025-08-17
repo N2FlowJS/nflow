@@ -1,1 +1,1 @@
-export { default } from '../../../components/agent/nodes/display-node';
+export { default } from './display-node';

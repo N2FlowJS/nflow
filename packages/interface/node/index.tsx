@@ -1,1 +1,1 @@
-export { default } from '../../../components/agent/nodes/interface-node';
+export { default } from './interface-node';

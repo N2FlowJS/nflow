@@ -1,1 +1,1 @@
-export { default } from '../../../components/agent/nodes/execmssql-node';
+export { default } from './execmssql-node';

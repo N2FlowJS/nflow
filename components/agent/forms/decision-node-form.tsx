@@ -3,7 +3,7 @@ import { DecisionBranch, DecisionForm, DecisionNodeData, FlowNode, NodeData } fr
 import { DeleteOutlined, LinkOutlined, PlusOutlined, QuestionCircleOutlined } from '@ant-design/icons';
 import { MarkerType, useReactFlow } from '@xyflow/react'; // Import Edge type
 import { Button, Card, Collapse, Form, Input, Radio, Select, Space, Tooltip, Typography } from 'antd';
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import BaseNodeForm from '../../../packages/@flow/form';
 import { FormInstance } from 'antd/lib';
 import RoleSelector from '@n2flowjs/flow/share/RoleSelector';
@@ -163,7 +163,16 @@ const DecisionNodeForm: React.FC<DecisionNodeFormProps> = ({ form, selectedNode,
   const syncEdgesWithBranches = useBranchEdgeSync(selectedNode.id);
 
   // Auto-sync edges when form fields change (live feedback without waiting for save)
+  // Avoid infinite loops: only sync when meaningful branch/defaultTarget changes (content-level diff)
+  const lastSigRef = useRef<string>('');
   useEffect(() => {
+    // build a minimal signature (order + targetNode + branch name + number of groups/conditions)
+    const branchSig = Array.isArray(branches)
+      ? branches.map((b: any) => `${b?.name || ''}|${b?.targetNode || ''}|${(b?.groups||[]).length}`).join(';')
+      : '';
+    const sig = `${defaultTarget || ''}::${branchSig}`;
+    if (sig === lastSigRef.current) return; // no meaningful change
+    lastSigRef.current = sig;
     syncEdgesWithBranches({ defaultTarget, branches });
   }, [defaultTarget, branches, syncEdgesWithBranches]);
 

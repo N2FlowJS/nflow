@@ -7,7 +7,7 @@ const dynamicNodeCache: Record<string, React.ComponentType<any>> = {};
 
 // Helper: normalize a raw node type / package name into the discovery key (mirrors server scan)
 function normalizeKey(raw: string) {
-  return (raw || '').replace(/[^a-zA-Z0-9]/g, ''); // remove non-alphanumerics (similar to NodeForm logic)
+  return (raw || '').replace(/[^a-zA-Z0-9\-]/g, ''); // remove non-alphanumerics (similar to NodeForm logic)
 }
 
 // Load whatever has already been discovered (server scan or window injection)
@@ -18,6 +18,8 @@ function loadDiscovered(): Record<string, React.ComponentType<any>> {
 
 // Attempt a dynamic (client) import for a given raw type / package name.
 async function tryDynamicImport(rawType: string): Promise<React.ComponentType<any> | null> {
+  console.log(`Trying dynamic import for: ${rawType}`);
+
   const key = normalizeKey(rawType);
   if (dynamicNodeCache[key]) return dynamicNodeCache[key];
   const candidates = Array.from(new Set([rawType, key]));

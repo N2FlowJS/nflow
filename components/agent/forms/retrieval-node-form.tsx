@@ -3,7 +3,7 @@ import { FlowNode } from '../../../models/flowTypes';
 import { IKnowledge } from '../../../models/IKnowledge';
 import { fetchAllKnowledge } from '../../../services/knowledgeService';
 import { Form, InputNumber, Select, Slider, Spin, Typography } from 'antd';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import BaseNodeForm from '../../../packages/@flow/form';
 import InputReferences from '@n2flowjs/flow/share/InputReferences';
 import RoleSelector from '@n2flowjs/flow/share/RoleSelector';
@@ -15,7 +15,7 @@ interface RetrievalNodeFormProps {
   setIsDrawerOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const RetrievalNodeForm: React.FC<RetrievalNodeFormProps> = (props) => {
+const RetrievalNodeFormComponent: React.FC<RetrievalNodeFormProps> = (props) => {
   const { selectedNode } = props;
   const [knowledgeBases, setKnowledgeBases] = useState<IKnowledge[]>([]);
   const [loading, setLoading] = useState(false);
@@ -40,6 +40,15 @@ const RetrievalNodeForm: React.FC<RetrievalNodeFormProps> = (props) => {
     loadKnowledgeBases();
   }, [loadKnowledgeBases]);
 
+  const kbOptions = useMemo(() => knowledgeBases.map((kb) => (
+    <Select.Option key={kb.id} value={kb.id} label={kb.name}>
+      <div style={{ display: 'flex', alignItems: 'center' }}>
+        <DatabaseOutlined style={{ marginRight: 8 }} />
+        <span>{kb.name}</span>
+      </div>
+    </Select.Option>
+  )), [knowledgeBases]);
+
   return (
     <BaseNodeForm {...props}>
       <Form.Item
@@ -62,14 +71,7 @@ const RetrievalNodeForm: React.FC<RetrievalNodeFormProps> = (props) => {
             )
           }
           optionLabelProp="label">
-          {knowledgeBases.map((kb) => (
-            <Select.Option key={kb.id} value={kb.id} label={kb.name}>
-              <div style={{ display: 'flex', alignItems: 'center' }}>
-                <DatabaseOutlined style={{ marginRight: 8 }} />
-                <span>{kb.name}</span>
-              </div>
-            </Select.Option>
-          ))}
+          {kbOptions}
         </Select>
       </Form.Item>
 
@@ -82,14 +84,18 @@ const RetrievalNodeForm: React.FC<RetrievalNodeFormProps> = (props) => {
                 max={20}
                 style={{ flex: 1 }}
                 value={getFieldValue('maxResults')}
-                onChange={(value) => setFieldsValue({ maxResults: value })}
+                onChange={(value) => {
+                  if (getFieldValue('maxResults') !== value) setFieldsValue({ maxResults: value });
+                }}
                 marks={{ 1: '1', 20: '20' }}
               />
               <InputNumber
                 min={1}
                 max={20}
                 value={getFieldValue('maxResults')}
-                onChange={(value) => setFieldsValue({ maxResults: value })}
+                onChange={(value) => {
+                  if (getFieldValue('maxResults') !== value) setFieldsValue({ maxResults: value });
+                }}
                 style={{ width: 70 }}
               />
             </div>
@@ -102,5 +108,9 @@ const RetrievalNodeForm: React.FC<RetrievalNodeFormProps> = (props) => {
     </BaseNodeForm>
   );
 };
+
+const RetrievalNodeForm = React.memo(RetrievalNodeFormComponent, (prev, next) => (
+  prev.selectedNode.id === next.selectedNode.id && prev.form === next.form && prev.setIsDrawerOpen === next.setIsDrawerOpen
+));
 
 export default RetrievalNodeForm;
