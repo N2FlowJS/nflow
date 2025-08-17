@@ -30,15 +30,13 @@ concurrency:
 
 jobs:
   build-test-deploy:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     env:
       NODE_VERSION: 20.x
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
   # (Optional) Add a changes detection step later if needed
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -131,7 +129,7 @@ jobs:
 
   issue-auto-label:
     if: github.event_name == 'issues'
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     steps:
       - name: Add labels based on title
         run: |
