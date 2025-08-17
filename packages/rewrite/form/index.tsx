@@ -1,1 +1,1 @@
-export { default } from '../../../components/agent/forms/rewrite-node-form';
+export { default } from '../node/rewrite-node-form';

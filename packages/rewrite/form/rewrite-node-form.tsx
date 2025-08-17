@@ -5,7 +5,7 @@ import { Form, InputNumber, Select, Switch, Collapse, Space, Typography, Alert }
 import React, { useEffect, useMemo, useState } from 'react';
 import { Mention, MentionsInput, SuggestionDataItem } from 'react-mentions';
 import { usePredecessorNodes } from '@n2flowjs/flow/share/usePredecessorNodes';
-import BaseNodeForm from '../../../packages/@flow/form';
+import BaseNodeForm from '../../@flow/form';
 import RoleSelector from '@n2flowjs/flow/share/RoleSelector';
 import InputReferences from '@n2flowjs/flow/share/InputReferences';
 import { useLocale } from '../../../locale';

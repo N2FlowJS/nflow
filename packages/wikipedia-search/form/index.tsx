@@ -1,1 +1,1 @@
-export { default } from '../../../components/agent/forms/wikipedia-search-node-form';
+export { default } from './wikipedia-search-node-form';
