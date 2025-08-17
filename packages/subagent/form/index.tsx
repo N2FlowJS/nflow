@@ -1,1 +1,1 @@
-export { default } from '../../../components/agent/forms/subagent-node-form';
+export { default } from './subagent-node-form';

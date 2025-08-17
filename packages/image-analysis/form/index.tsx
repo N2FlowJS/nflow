@@ -1,1 +1,1 @@
-export { default } from '../../../components/agent/forms/image-analysis-node-form';
+export { default } from './image-analysis-node-form';
