@@ -1,1 +1,1 @@
-export { default } from '../../../components/agent/nodes/log-node';
+export { default } from './log-node';

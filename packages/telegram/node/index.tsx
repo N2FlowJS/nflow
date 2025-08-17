@@ -1,1 +1,1 @@
-export { default } from '../../../components/agent/nodes/telegram-node';
+export { default } from './telegram-node';

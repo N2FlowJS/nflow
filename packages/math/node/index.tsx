@@ -1,1 +1,1 @@
-export { default } from '../../../components/agent/nodes/math-node';
+export { default } from './math-node';

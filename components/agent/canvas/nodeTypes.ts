@@ -35,25 +35,25 @@ import GitHubNode from '../nodes/github-node';
 import FacebookNode from '../nodes/facebook-node';
 import GoogleMapNode from '../nodes/googlemap-node';
 import InstagramNode from '../nodes/instagram-node';
-import LinkedInNode from '../nodes/linkedin-node';
+import LinkedInNode from '../../../packages/linkedin/node/linkedin-node';
 import DiscordNode from '../nodes/discord-node';
-import TelegramNode from '../nodes/telegram-node';
+import TelegramNode from '../../../packages/telegram/node/telegram-node';
 import DateTimeNode from '../nodes/datetime-node';
-import MathNode from '../nodes/math-node';
+import MathNode from '../../../packages/math/node/math-node';
 import DisplayNode from '../nodes/display-node';
-import LoopNode from '../nodes/loop-node';
+import LoopNode from '../../../packages/loop/node/loop-node';
 import CodeNode from '../nodes/code-node';
-import TemplateNode from '../nodes/template-node';
+import TemplateNode from '../../../packages/template/node/template-node';
 import CounterNode from '../nodes/counter-node';
 import CacheNode from '../nodes/cache-node';
-import LogNode from '../nodes/log-node';
+import LogNode from '../../../packages/log/node/log-node';
 import FileAnalysisNode from '../nodes/file-analysis-node';
 import CsvAnalysisNode from '../nodes/csv-analysis-node';
 import ImageAnalysisNode from '../nodes/image-analysis-node';
-import PdfAnalysisNode from '../nodes/pdf-analysis-node';
-import LogAnalysisNode from '../nodes/log-analysis-node';
+import PdfAnalysisNode from '../../../packages/pdf-analysis/node/pdf-analysis-node';
+import LogAnalysisNode from '../../../packages/log-analysis/node/log-analysis-node';
 import AgentNode from '../../../packages/agent/node';
-import AgentToolsNode from '../nodes/agenttools-node';
+import AgentToolsNode from '../../../packages/agent-tools/node';
 
 // No direct package node imports; discovered dynamically on server, injected on client.
 

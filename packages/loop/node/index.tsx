@@ -1,1 +1,1 @@
-export { default } from '../../../components/agent/nodes/loop-node';
+export { default } from './loop-node';
