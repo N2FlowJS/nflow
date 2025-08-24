@@ -1,6 +1,6 @@
 import React from 'react';
 import { Position, NodeProps, Node } from '@xyflow/react';
-import { WebhookNodeData } from '../../../../models/flowTypes';
+import { WebhookNodeData } from '../types';
 import { BaseNode } from '@n2flowjs/flow';
 import { LinkOutlined } from '@ant-design/icons';
 import WebhookInfo from './WebhookInfo';

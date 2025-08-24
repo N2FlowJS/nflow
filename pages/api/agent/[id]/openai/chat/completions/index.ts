@@ -1,7 +1,9 @@
 // This file is part of the Flow Execution API for handling flow execution requests in a Next.js application.
 
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { BeginForm, BeginNode, Flow, NODE_TYPES } from '../../../../../../../models/flowTypes';
+import type { Flow } from '../../../../../../../models/flowTypes';
+import type { BeginNodeData } from '../../../../../../../packages/begin/types';
+import { NODE_TYPES } from '../../../../../../../models/flowTypes';
 import { MessagePart } from '../../../../../../../models/MessagePart';
 import { OpenAIError, OpenAIExecutionResult } from '../../../../../../../models/flow';
 import type { ExecutionResult } from '../../../../../../../models/flowExecutionTypes';
@@ -16,7 +18,7 @@ import {
   getConversationMessages,
 } from '../../../../../../../database/persistConversationState';
 import { transformToOpenAIFormat } from '../../../../../../../utils/server/transformToOpenAIFormat';
-import { FlowNode } from '../../../../../../../models/flowTypes';
+import type { FlowNode } from '../../../../../../../models/flowTypes';
 
 export default async function handler(
   req: NextApiRequest,
@@ -46,14 +48,12 @@ export default async function handler(
     let flowState = conversationId ? await getConversationFlowState(conversationId) : undefined;
 
     if (!flowState) {
-      const beginNode = flowConfig.nodes.find((node: FlowNode) => node.type === NODE_TYPES.begin) as
-        | BeginNode
-        | undefined;
+  const beginNode = flowConfig.nodes.find((node: FlowNode) => node.type === NODE_TYPES.begin);
       if (!beginNode)
         return sendErrorResponse(res, 400, 'No begin node found in flow', 'invalid_request_error', 'invalid_flow');
       flowState = createInitialFlowState({ beginNode, variables, flowConfig });
       const newId = await saveConversationToDatabase({ flowState, agentId: flowId, id: conversationId });
-      message.content = (beginNode.data.form as BeginForm)?.greeting || 'Hello!';
+  message.content = (beginNode.data as BeginNodeData).form?.greeting || 'Hello!';
       message.role = 'system';
       if (newId !== conversationId) conversationId = newId;
     }

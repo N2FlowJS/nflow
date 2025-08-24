@@ -32,14 +32,11 @@ const InstagramNode = ({ data, id, selected }: NodeProps<Node<InstagramNodeData>
           </Flex>
         )}
 
-        {form?.mediaType && (
+        {form?.mediaUrl && (
           <Flex align="center" gap={6}>
             <Text type="secondary" style={{ fontSize: '11px' }}>Media:</Text>
-            <Tag 
-              color={form.mediaType === 'image' ? 'green' : form.mediaType === 'video' ? 'orange' : 'purple'} 
-              style={{ fontSize: '10px', margin: 0, textTransform: 'capitalize' }}
-            >
-              {form.mediaType}
+            <Tag color="purple" style={{ fontSize: '10px', margin: 0 }}>
+              Attached
             </Tag>
           </Flex>
         )}

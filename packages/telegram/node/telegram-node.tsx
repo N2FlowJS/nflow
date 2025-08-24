@@ -75,17 +75,13 @@ const TelegramNode = ({ data, id, selected }: NodeProps<Node<TelegramNodeData>>)
           </Flex>
         )}
 
-        {form?.parseMode && (
+        {form?.caption && (
           <Flex align="center" gap={6}>
             <Text type="secondary" style={{ fontSize: '11px' }}>
-              Format:
+              Caption:
             </Text>
-            <Tag
-              color={form.parseMode === 'Markdown' ? 'blue' : 'orange'}
-            
-              style={{ fontSize: '10px', margin: 0 }}
-            >
-              {form.parseMode}
+            <Tag color="blue" style={{ fontSize: '10px', margin: 0 }}>
+              Provided
             </Tag>
           </Flex>
         )}

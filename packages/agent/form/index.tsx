@@ -6,12 +6,12 @@ import {
   ToolOutlined,
 } from '@ant-design/icons';
 import BaseNodeForm from '../../@flow/form';
-import { FlowNode } from '../../../models/flowTypes';
 import { useRouter } from 'next/router';
 import { NODE_REGISTRY } from '../../../utils/client/NODE_REGISTRY';
 import { Edge, MarkerType, Position, useReactFlow } from '@xyflow/react';
 import InputReferences from '@n2flowjs/flow/share/InputReferences';
 import RoleSelector from '@n2flowjs/flow/share/RoleSelector';
+import { FlowNode } from 'models/nodeDataMap';
 
 const { Text } = Typography;
 
@@ -236,7 +236,7 @@ const AgentNodeForm: React.FC<AgentNodeFormProps> = (props) => {
             id: toolsNodeId,
             label: 'Agent Tools',
             position: toolsNodePosition,
-            type: 'agenttools',
+            type: 'agent-tools',
             form: {
               role: 'developer',
               name: 'Agent Tools',

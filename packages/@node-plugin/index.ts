@@ -1,5 +1,6 @@
 export * from './type';
 export * from './discovery/ui-discover';
+import { getClientNodeTypes } from './discovery/ui-discover';
 import { LoaderOptions, NodePluginConfig, NodePluginConfigMap } from './type';
 
 // NOTE: Keep this file server-safe. We lazily require fs/path so accidental client import stays light.
@@ -135,3 +136,32 @@ export const _internalNodePlugin = {
   normalizeConfigShape,
   mergeConfigs,
 };
+
+// Build a dynamic set of node type keys from installed packages (server-only).
+// We transform package folder names like "http-request" => type key "httprequest".
+export function getDynamicNodeTypeKeys(options?: LoaderOptions): string[] {
+  if (!isNodeEnv()) return [];
+  const path = lazyPath();
+  const fs = lazyFs();
+  const packagesDir = options?.packagesDir || resolvePackagesDir(options?.rootDir ?? process.cwd(), fs, path);
+  if (!packagesDir) return [];
+  try {
+    const entries: Array<import('fs').Dirent> = fs.readdirSync(packagesDir, { withFileTypes: true });
+    const names = entries.filter((d: import('fs').Dirent) => d.isDirectory?.()).map((d: import('fs').Dirent) => d.name);
+    return names
+      .filter((n: string) => !n.startsWith('@') || INTERNAL_ALLOW.has(n))
+      .map((n: string) => n.replace(/-+/g, ''));
+  } catch {
+    return [];
+  }
+}
+
+// Cross-env convenience: get node type keys on client (via UI registry) or server (via FS scan)
+export function getAllNodeTypeKeys(options?: LoaderOptions): string[] {
+  // Browser
+  if (typeof window !== 'undefined') {
+    try { return Object.keys(getClientNodeTypes() as Record<string, unknown>); } catch { return []; }
+  }
+  // Server / Node
+  return getDynamicNodeTypeKeys(options);
+}

@@ -18,13 +18,11 @@ import { Card, Drawer, Form, Layout, Modal, Button } from 'antd';
 import React, { memo, useCallback, useMemo, useState } from 'react';
 
 import NodeForm from '../forms/node-form';
-// Removed NodePalette
 
 import { useFlowState } from '../../../context/FlowStateContext';
 import { FlowNode, NodeTypeString } from '../../../models/flowTypes';
 import { useTheme } from '../../../theme';
 import CustomEdge from '../edges/CustomEdge';
-// Additional node imports would be added
 
 import { NODE_REGISTRY } from '../../../utils/client/NODE_REGISTRY';
 import { parseFlowConfig } from '../../../utils/server/parseFlowConfig';

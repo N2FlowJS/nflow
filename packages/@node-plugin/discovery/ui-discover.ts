@@ -34,3 +34,20 @@ export function getDiscoveredNodeForms(opts?: { force?: boolean }): Record<strin
 }
 
 export function reloadDiscoveredNodeForms() { return getDiscoveredNodeForms({ force: true }); }
+
+// Build a node types map on the client by leveraging discovered components
+export function getClientNodeTypes(): Record<string, Comp> {
+  return getDiscoveredNodeComponents();
+}
+
+// Convenience: dynamic node type keys on client
+export function getClientNodeTypeKeys(): string[] {
+  return Object.keys(getClientNodeTypes());
+}
+
+// Convenience: NODE_TYPES-like map on client
+export function getClientNODE_TYPES(): Record<string, string> {
+  const map: Record<string, string> = {};
+  for (const k of getClientNodeTypeKeys()) map[k] = k;
+  return map;
+}

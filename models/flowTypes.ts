@@ -66,80 +66,32 @@ export type { CounterNodeData } from '../packages/counter/types';
 export type { CacheNodeData } from '../packages/cache/types';
 export type { LogNodeData } from '../packages/log/types';
 export type { WeChatNodeData } from '../packages/wechat/types';
-// AgentNodeData imported via generated union if needed
-// Generated aggregate union (FlowNode + AllNodeData)
-// Flow node types are now derived via module augmentation of NodeDataMap
 import type { AllNodeData, FlowNode } from './nodeDataMap';
+import { getDynamicNodeTypeKeys } from '../packages/@node-plugin';
 export type { FlowNode } from './nodeDataMap';
 
 // Node types mapping
-export const NODE_TYPES = {
+// Always include core built-ins, then merge dynamic keys from @node-plugin on the server.
+const STATIC_NODE_TYPES = {
   begin: 'begin',
   interface: 'interface',
   generate: 'generate',
-  categorize: 'categorize',
-  retrieval: 'retrieval',
-  decision: 'decision',
-  keywords: 'keywords',
-  execmysql: 'execmysql',
-  execmssql: 'execmssql',
-  execpostgres: 'execpostgres',
-  subagent: 'subagent',
-  agent: 'agent',
-  sendmail: 'sendmail',
-  googlesearch: 'googlesearch',
-  bingsearch: 'bingsearch',
-  duckgosearch: 'duckgosearch',
-  wikipediasearch: 'wikipediasearch',
-  rewrite: 'rewrite',
-  httprequest: 'httprequest',
-  transform: 'transform',
-  fileread: 'fileread',
-  filewrite: 'filewrite',
-  delay: 'delay',
-  webhook: 'webhook',
-  jsonparse: 'jsonparse',
-  textprocess: 'textprocess',
-  validate: 'validate',
-  math: 'math',
-  datetime: 'datetime',
-  condition: 'condition',
-  mattermost: 'mattermost',
-  slack: 'slack',
-  jira: 'jira',
-  gitlab: 'gitlab',
-  confluence: 'confluence',
-  github: 'github',
-  facebook: 'facebook',
-  googlemap: 'googlemap',
-  twitter: 'twitter',
-  instagram: 'instagram',
-  linkedin: 'linkedin',
-  youtube: 'youtube',
-  tiktok: 'tiktok',
-  discord: 'discord',
-  telegram: 'telegram',
-  whatsapp: 'whatsapp',
-  weather: 'weather',
-  agenttools: 'agenttools',
-  display: 'display',
-  loop: 'loop',
-  variable: 'variable',
-  code: 'code',
-  template: 'template',
-  counter: 'counter',
-  cache: 'cache',
-  log: 'log',
-  fileanalysis: 'fileanalysis',
-  csvanalysis: 'csvanalysis',
-  imageanalysis: 'imageanalysis',
-  pdfanalysis: 'pdfanalysis',
-  loganalysis: 'loganalysis',
-  excelanalysis: 'excelanalysis',
-  // Chinese platform nodes
-  wechat: 'wechat',
-  nativekeywords: 'nativekeywords',
 } as const;
+
+const DYNAMIC_KEYS = (() => {
+  try {
+    return getDynamicNodeTypeKeys();
+  } catch {
+    return [] as string[];
+  }
+})();
+
+export const NODE_TYPES = Object.freeze(
+  DYNAMIC_KEYS.reduce((acc, k) => {
+    (acc as Record<string, string>)[k] = k;
+    return acc;
+  }, { ...STATIC_NODE_TYPES } as Record<string, string>)
+);
 // Allow dynamic plugin node types while preserving autocomplete for built-ins
 export type NodeTypeString = string & {};
 
@@ -222,8 +174,3 @@ export interface JiraForm extends BaseForm {
   priority?: string;
   comment?: string;
 }
-
-// NOTE: All concrete form & node data interfaces now live in their respective
-// package `types.ts` files. This central file only aggregates & provides unions.
-
-// Specific Node<...> aliases removed; use FlowNode with type guards instead.

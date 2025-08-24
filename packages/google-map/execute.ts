@@ -1,5 +1,5 @@
 import { ExecutionResult, FlowExecutionContext } from '../../models/flowExecutionTypes';
-import { GoogleMapNodeData } from '../googlemap/types';
+import { GoogleMapNodeData } from './types';
 import { FlowNode } from '../../models/flowTypes';
 import { getInputFromTemplate, processTemplate } from '@n2flowjs/template-processor/templateProcessor';
 import { findNextNodes, isNodeReady, FlowStateDispatcher } from '@n2flowjs/flow';

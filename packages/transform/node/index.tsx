@@ -4,7 +4,7 @@ import { TransformNodeData } from '../types';
 import { BaseNode } from '@n2flowjs/flow';
 import { Flex } from 'antd';
 import { SwapOutlined } from '@ant-design/icons';
-import TransformInfo from './transform-node/TransformInfo';
+import TransformInfo from './TransformInfo';
 import TransformLogic from './TransformLogic';
 
 const TransformNode = ({ data, id, selected }: NodeProps<Node<TransformNodeData>>) => {

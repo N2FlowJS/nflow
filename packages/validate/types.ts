@@ -18,7 +18,7 @@ export type ValidateNodeData = BaseNodeData<ValidateForm> & { type: 'validate' }
 
 
 // Auto-added augmentation for NodeDataMap
-declare module '../../models/nodeDataMap' {
+declare module '@n2flowjs/flow' {
   interface NodeDataMap {
     ValidateNodeData: ValidateNodeData;
   }

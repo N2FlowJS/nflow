@@ -1,1 +1,1 @@
-export { default } from '../../../components/agent/forms/jira-node-form';
+export { default } from './jira-node-form';

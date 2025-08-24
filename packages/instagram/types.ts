@@ -12,6 +12,7 @@ export interface InstagramForm extends BaseForm {
   mediaUrl?: string;
   hashtag?: string;
   maxResults?: number;
+  mediaType?: string;
 }
 
 export type InstagramNodeData = BaseNodeData<InstagramForm> & { type: 'instagram' };

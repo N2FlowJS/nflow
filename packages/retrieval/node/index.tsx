@@ -4,7 +4,7 @@ import { RetrievalNodeData } from '../types';
 import { BaseNode } from '@n2flowjs/flow';
 import { Flex } from 'antd';
 import { DatabaseOutlined } from '@ant-design/icons';
-import KnowledgeBaseInfo from './retrieval-node/KnowledgeBaseInfo';
+import KnowledgeBaseInfo from './KnowledgeBaseInfo';
 import ResultsInfo from './ResultsInfo';
 
 const RetrievalNode = ({ data, id, selected }: NodeProps<Node<RetrievalNodeData>>) => {

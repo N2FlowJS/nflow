@@ -1,10 +1,10 @@
-import { BeginNode, Flow, FlowNode, NodeTypeString } from '../../models/flowTypes';
+import { Flow, FlowNode, NodeTypeString } from '../../models/flowTypes';
 import { FlowState } from '../../models/flowExecutionTypes';
 
 // Create an initial flow state
 
 type InitialFlowStateProps = {
-  beginNode: BeginNode;
+  beginNode: FlowNode;
   variables?: Record<string, any>;
   flowConfig: Flow;
 };
