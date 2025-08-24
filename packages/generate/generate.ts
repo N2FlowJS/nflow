@@ -1,9 +1,8 @@
 import { NodePlugin } from '../@node-plugin/type';
-import { isGenerateNodeData } from '../../utils/client/isNode'; // TODO path fix or re-export
 import { executeGenerateNode } from './executeGenerateNode';
 
 export const generatePlugin: NodePlugin = {
   name: 'generate',
-  match: (n) => isGenerateNodeData(n.data),
+  match: (n) => n.data?.type === 'generate',
   run: (n, c, cb, d) => executeGenerateNode(n, c, cb, d),
 } as const;

@@ -1,4 +1,5 @@
-import { ConditionNodeData, FlowNode } from '../../models/flowTypes';
+import type { FlowNode } from '../../models/nodeDataMap';
+import type { ConditionNodeData, ConditionForm } from './types';
 import { findNextNodes } from '../@flow/find-next-node';
 import { getInputFromTemplate, processTemplate } from '@n2flowjs/template-processor/templateProcessor';
 import { isNodeReady } from '../@flow/is-node-ready';
@@ -14,14 +15,18 @@ export async function execute(
   dispatcher?: FlowStateDispatcher
 ): Promise<ExecutionResult> {
   const data = node.data as ConditionNodeData;
-  const form = data.form || {};
+  const form = (data.form || {}) as ConditionForm;
   const startTime = new Date().toISOString();
 
   // Extract variables from left and right value templates
-  const inputs: string[] = [
-    ...getInputFromTemplate(form.leftValue || ''),
-    ...getInputFromTemplate(form.rightValue || ''),
-  ];
+  // Collect inputs from all expression templates
+  const inputs: string[] = [];
+  form.expressions?.forEach(expr => {
+    inputs.push(...getInputFromTemplate(expr.left || ''));
+    if (typeof expr.right === 'string') {
+      inputs.push(...getInputFromTemplate(expr.right || ''));
+    }
+  });
   
   const ready = isNodeReady(inputs, flowState);
   
@@ -56,96 +61,55 @@ export async function execute(
 
   try {
     // Validate required fields
-    if (!form.leftValue || form.leftValue.trim() === '') {
-      throw new Error('No left value specified for condition');
-    }
-    
-    if (!form.rightValue || form.rightValue.trim() === '') {
-      throw new Error('No right value specified for condition');
+    if (!form.expressions || form.expressions.length === 0) {
+      throw new Error('No expressions defined for condition');
     }
 
-    // Process templates
-    const processedLeftValue = processTemplate(form.leftValue, vars);
-    const processedRightValue = processTemplate(form.rightValue, vars);
+    // Evaluate each expression sequentially
+    const results = form.expressions.map(expr => {
+      const leftProcessed = processTemplate(expr.left, vars);
+      let rightProcessed: any;
+      if (typeof expr.right === 'string') {
+        rightProcessed = processTemplate(String(expr.right), vars);
+      } else {
+        rightProcessed = expr.right;
+      }
 
-    console.log(`Executing Condition node: ${node.id} comparing "${processedLeftValue}" ${form.operator} "${processedRightValue}"`);
-
-    // Convert values based on data type
-    let leftVal: any = processedLeftValue;
-    let rightVal: any = processedRightValue;
-
-    switch (form.dataType) {
-      case 'number':
-        leftVal = parseFloat(processedLeftValue);
-        rightVal = parseFloat(processedRightValue);
-        if (isNaN(leftVal) || isNaN(rightVal)) {
-          throw new Error('Invalid number values for numeric comparison');
+      const op = expr.operator;
+      let outcome = false;
+      switch (op) {
+        case '==': outcome = leftProcessed == rightProcessed; break; // intentional non-strict for template flexibility
+        case '!=': outcome = leftProcessed != rightProcessed; break;
+        case '>': outcome = Number(leftProcessed) > Number(rightProcessed); break;
+        case '>=': outcome = Number(leftProcessed) >= Number(rightProcessed); break;
+        case '<': outcome = Number(leftProcessed) < Number(rightProcessed); break;
+        case '<=': outcome = Number(leftProcessed) <= Number(rightProcessed); break;
+        case 'contains': outcome = String(leftProcessed).includes(String(rightProcessed)); break;
+        case 'not_contains': outcome = !String(leftProcessed).includes(String(rightProcessed)); break;
+        case 'starts_with': outcome = String(leftProcessed).startsWith(String(rightProcessed)); break;
+        case 'ends_with': outcome = String(leftProcessed).endsWith(String(rightProcessed)); break;
+        case 'regex': {
+          const regex = new RegExp(String(rightProcessed));
+          outcome = regex.test(String(leftProcessed));
+          break;
         }
-        break;
-      case 'boolean':
-        leftVal = processedLeftValue.toLowerCase() === 'true';
-        rightVal = processedRightValue.toLowerCase() === 'true';
-        break;
-      case 'date':
-        leftVal = new Date(processedLeftValue);
-        rightVal = new Date(processedRightValue);
-        if (isNaN(leftVal.getTime()) || isNaN(rightVal.getTime())) {
-          throw new Error('Invalid date values for date comparison');
-        }
-        break;
-      case 'string':
-      default:
-        // Keep as strings
-        break;
-    }
+        case 'in': outcome = Array.isArray(expr.right) ? expr.right.includes(leftProcessed) : String(rightProcessed).split(',').includes(leftProcessed); break;
+        case 'not_in': outcome = Array.isArray(expr.right) ? !expr.right.includes(leftProcessed) : !String(rightProcessed).split(',').includes(leftProcessed); break;
+        default:
+          throw new Error(`Unsupported operator: ${op}`);
+      }
+      return outcome;
+    });
 
-    // Perform comparison
-    let conditionResult = false;
-
-    switch (form.operator) {
-      case 'equals':
-        conditionResult = leftVal === rightVal;
-        break;
-      case 'notEquals':
-        conditionResult = leftVal !== rightVal;
-        break;
-      case 'greaterThan':
-        conditionResult = leftVal > rightVal;
-        break;
-      case 'lessThan':
-        conditionResult = leftVal < rightVal;
-        break;
-      case 'contains':
-        conditionResult = String(leftVal).includes(String(rightVal));
-        break;
-      case 'startsWith':
-        conditionResult = String(leftVal).startsWith(String(rightVal));
-        break;
-      case 'endsWith':
-        conditionResult = String(leftVal).endsWith(String(rightVal));
-        break;
-      case 'regex':
-        try {
-          const regex = new RegExp(String(rightVal));
-          conditionResult = regex.test(String(leftVal));
-        } catch (error) {
-          throw new Error(`Invalid regex pattern: ${rightVal}`);
-        }
-        break;
-      default:
-        throw new Error(`Unsupported operator: ${form.operator}`);
-    }
-
-    // Get result based on condition
-    const result = conditionResult ? form.trueValue : form.falseValue;
-    
-    console.log(`Condition node completed: ${node.id} = ${conditionResult} -> "${result}"`);
+    const conditionResult = form.logic === 'all' ? results.every(Boolean) : results.some(Boolean);
+    const result = String(conditionResult);
+    console.log(`Condition node completed: ${node.id} => ${result}`);
 
     // Use shared dispatcher if available
     let finalState = flowState;
 
     if (dispatcher) {
-      dispatcher.setNodeOutput(node.id, result, 'condition');
+  dispatcher.setNodeOutput(node.id, result, 'condition');
       dispatcher.setCurrentNode(node);
       finalState = dispatcher.getState();
     } else {

@@ -1,4 +1,4 @@
-import { AgentNodeData, FlowNode } from '../../models/flowTypes'
+import type { FlowNode, SubAgentNodeData } from '../../models/flowTypes'
 import { findNextNodes, FlowStateDispatcher, ExecutionResult, FlowExecutionContext } from '@n2flowjs/flow'
 
 export async function executeAgentNode(
@@ -6,7 +6,7 @@ export async function executeAgentNode(
   { flow, flowState }: FlowExecutionContext,
   dispatcher?: FlowStateDispatcher
 ): Promise<ExecutionResult> {
-  const data = node.data as AgentNodeData
+  const data = node.data as SubAgentNodeData
   const startTime = new Date().toISOString()
 
   try {

@@ -1,4 +1,5 @@
-import { VariableNodeData, FlowNode } from '../../models/flowTypes';
+import { VariableNodeData } from './types';
+import { FlowNode } from '../../models/flowTypes';
 import { getInputFromTemplate, processTemplate } from '@n2flowjs/template-processor/templateProcessor';
 import { findNextNodes, isNodeReady, FlowStateDispatcher, ExecutionResult, FlowExecutionContext } from '@n2flowjs/flow';
 

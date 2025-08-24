@@ -1,6 +1,6 @@
 import React from 'react';
 import { Position, NodeProps, Node } from '@xyflow/react';
-import { WhatsAppNodeData } from '../../../models/flowTypes';
+import { WhatsAppNodeData } from '../types';
 import { BaseNode } from '@n2flowjs/flow';
 import { Flex, Typography, Tag } from 'antd';
 import { WhatsAppOutlined } from '@ant-design/icons';

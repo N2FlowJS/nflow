@@ -15,3 +15,11 @@ export interface LinkedInForm extends BaseForm {
 }
 
 export type LinkedInNodeData = BaseNodeData<LinkedInForm> & { type: 'linkedin' };
+
+
+// Auto-added augmentation for NodeDataMap
+declare module '../../models/nodeDataMap' {
+  interface NodeDataMap {
+    LinkedInNodeData: LinkedInNodeData;
+  }
+}

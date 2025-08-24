@@ -1,6 +1,6 @@
 import React from 'react';
 import { Position, NodeProps, Node } from '@xyflow/react';
-import { TransformNodeData } from '../../../models/flowTypes';
+import { TransformNodeData } from '../types';
 import { BaseNode } from '@n2flowjs/flow';
 import { Flex } from 'antd';
 import { SwapOutlined } from '@ant-design/icons';

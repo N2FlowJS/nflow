@@ -5,7 +5,8 @@ import { Flex } from 'antd';
 import { CheckCircleOutlined } from '@ant-design/icons';
 import ValidationInfo from './ValidationInfo';
 import ConstraintsInfo from './ConstraintsInfo';
-import { ValidateNodeData } from 'models/flowTypes';
+// Use decentralized validate node types
+import { ValidateNodeData } from '../../validate/types';
 
 const ValidateNode = ({ data, id, selected }: NodeProps<Node<ValidateNodeData>>) => {
   const { form } = data;

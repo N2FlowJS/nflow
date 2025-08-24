@@ -16,3 +16,11 @@ export interface DiscordForm extends BaseForm {
 }
 
 export type DiscordNodeData = BaseNodeData<DiscordForm> & { type: 'discord' };
+
+
+// Auto-added augmentation for NodeDataMap
+declare module '../../models/nodeDataMap' {
+  interface NodeDataMap {
+    DiscordNodeData: DiscordNodeData;
+  }
+}

@@ -10,3 +10,11 @@ export interface WikipediaSearchForm extends BaseForm {
 }
 
 export type WikipediaSearchNodeData = BaseNodeData<WikipediaSearchForm> & { type: 'wikipediasearch' };
+
+
+// Auto-added augmentation for NodeDataMap
+declare module '../../models/nodeDataMap' {
+  interface NodeDataMap {
+    WikipediaSearchNodeData: WikipediaSearchNodeData;
+  }
+}

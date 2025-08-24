@@ -1,4 +1,5 @@
-import { SubAgentNodeData, FlowNode } from '../../models/flowTypes';
+import { SubAgentNodeData } from './types';
+import { FlowNode } from '../../models/flowTypes';
 import { getInputFromTemplate, processTemplate } from '@n2flowjs/template-processor/templateProcessor';
 import { findNextNodes, FlowStateDispatcher, ExecutionResult, FlowExecutionContext } from '@n2flowjs/flow';
 

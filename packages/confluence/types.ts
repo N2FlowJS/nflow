@@ -17,3 +17,11 @@ export interface ConfluenceForm extends BaseForm {
 }
 
 export type ConfluenceNodeData = BaseNodeData<ConfluenceForm> & { type: 'confluence' };
+
+
+// Auto-added augmentation for NodeDataMap
+declare module '../../models/nodeDataMap' {
+  interface NodeDataMap {
+    ConfluenceNodeData: ConfluenceNodeData;
+  }
+}

@@ -1,7 +1,8 @@
 import { ExecutionResult, FlowExecutionContext } from '../../models/flowExecutionTypes';
-import { FlowNode, AgentToolsNodeData } from '../../models/flowTypes';
+import { FlowNode,  } from '../../models/flowTypes';
 import { findNextNodes } from '@n2flowjs/flow/find-next-node';
 import { FlowStateDispatcher } from '@n2flowjs/flow/flow-state-dispatcher';
+import { AgentToolsNodeData } from './types';
 
 /**
  * Execute AgentTools node: simply expose selected tool IDs for downstream Agent nodes.

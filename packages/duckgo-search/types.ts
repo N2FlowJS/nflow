@@ -13,3 +13,11 @@ export interface DuckGoSearchForm extends BaseForm {
 }
 
 export type DuckGoSearchNodeData = BaseNodeData<DuckGoSearchForm> & { type: 'duckgosearch' };
+
+
+// Auto-added augmentation for NodeDataMap
+declare module '../../models/nodeDataMap' {
+  interface NodeDataMap {
+    DuckGoSearchNodeData: DuckGoSearchNodeData;
+  }
+}

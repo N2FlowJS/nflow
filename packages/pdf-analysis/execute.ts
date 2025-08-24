@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { FlowNode, PdfAnalysisNodeData } from '../../models/flowTypes';
+import { PdfAnalysisNodeData } from './types';
+import { FlowNode } from '../../models/flowTypes';
 import { ExecutionResult, findNextNodes, FlowExecutionContext, FlowStateDispatcher, isNodeReady } from '@n2flowjs/flow';
 import { getInputFromTemplate, processTemplate } from '@n2flowjs/template-processor/templateProcessor';
 

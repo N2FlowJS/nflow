@@ -1,4 +1,5 @@
-import { FlowNode, KeywordsNodeData } from '../../models/flowTypes';
+import { FlowNode } from '../../models/flowTypes';
+import { KeywordsNodeData } from './types';
 import { getInputFromTemplate, processTemplate } from '@n2flowjs/template-processor/templateProcessor';
 import { findNextNodes, isNodeReady, FlowStateDispatcher, ExecutionResult, FlowExecutionContext } from '@n2flowjs/flow';
 import { flowStateReducer } from '@n2flowjs/flow/flow-state-reducer';

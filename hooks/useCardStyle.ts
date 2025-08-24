@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { NodeConfig } from '../models/flowTypes';
+import { NodeConfig } from '../models/core-flow-types';
 
 interface UseCardStyleProps {
   selected: boolean;

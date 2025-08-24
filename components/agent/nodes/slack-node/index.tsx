@@ -1,6 +1,6 @@
 import React from 'react';
 import { Position, NodeProps, Node } from '@xyflow/react';
-import { SlackNodeData } from '../../../../models/flowTypes';
+import { SlackNodeData } from '../../../../packages/slack/types';
 import { BaseNode } from '@n2flowjs/flow';
 import { Flex } from 'antd';
 import { SlackOutlined } from '@ant-design/icons';

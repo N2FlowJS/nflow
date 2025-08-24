@@ -3,7 +3,7 @@ import { Position, NodeProps, Node } from '@xyflow/react';
 import React from 'react';
 import { Flex, Typography, Tag } from 'antd';
 import { BaseNode } from '@n2flowjs/flow';
-import { WeChatNodeData } from '../../../models/flowTypes';
+import { WeChatNodeData } from '../types';
 
 const { Text } = Typography;
 

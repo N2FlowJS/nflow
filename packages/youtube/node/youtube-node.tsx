@@ -1,6 +1,6 @@
 import React from 'react';
 import { Position, NodeProps, Node } from '@xyflow/react';
-import { YouTubeNodeData } from '../../../models/flowTypes';
+import { YouTubeNodeData } from '../types';
 import { BaseNode } from '@n2flowjs/flow';
 import { Flex, Typography, Tag } from 'antd';
 import { YoutubeOutlined } from '@ant-design/icons';

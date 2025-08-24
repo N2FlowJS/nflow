@@ -1,6 +1,6 @@
 import React from 'react';
 import { Position, NodeProps, Node } from '@xyflow/react';
-import { GenerateNodeData } from '../../../models/flowTypes';
+import { GenerateNodeData } from '../types';
 import { BaseNode } from '@n2flowjs/flow';
 import { Flex, Tooltip, Spin } from 'antd';
 import { RobotOutlined, InfoCircleOutlined } from '@ant-design/icons';

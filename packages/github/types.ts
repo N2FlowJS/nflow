@@ -26,3 +26,11 @@ export interface GitHubForm extends BaseForm {
 }
 
 export type GitHubNodeData = BaseNodeData<GitHubForm> & { type: 'github' };
+
+
+// Auto-added augmentation for NodeDataMap
+declare module '../../models/nodeDataMap' {
+  interface NodeDataMap {
+    GitHubNodeData: GitHubNodeData;
+  }
+}

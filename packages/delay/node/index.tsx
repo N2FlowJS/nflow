@@ -1,6 +1,6 @@
 import React from 'react';
 import { Position, NodeProps, Node } from '@xyflow/react';
-import { DelayNodeData } from '../../../models/flowTypes';
+import { DelayNodeData } from '../types';
 import { BaseNode } from '@n2flowjs/flow';
 import { ClockCircleOutlined } from '@ant-design/icons';
 import DelayInfo from './DelayInfo';

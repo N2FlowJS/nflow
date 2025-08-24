@@ -18,3 +18,11 @@ export interface GoogleMapForm extends BaseForm {
 }
 
 export type GoogleMapNodeData = BaseNodeData<GoogleMapForm> & { type: 'googlemap' };
+
+
+// Auto-added augmentation for NodeDataMap
+declare module '../../models/nodeDataMap' {
+  interface NodeDataMap {
+    GoogleMapNodeData: GoogleMapNodeData;
+  }
+}

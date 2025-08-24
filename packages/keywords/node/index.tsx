@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Position, NodeProps, Node } from '@xyflow/react';
-import { KeywordsNodeData } from '../../../models/flowTypes';
+import { KeywordsNodeData } from '../types';
 import { BaseNode } from '@n2flowjs/flow';
 import { Flex, Tooltip, Spin } from 'antd';
 import { TagsOutlined, InfoCircleOutlined } from '@ant-design/icons';

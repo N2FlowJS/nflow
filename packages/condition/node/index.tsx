@@ -1,6 +1,6 @@
 import React from 'react';
 import { Position, NodeProps, Node } from '@xyflow/react';
-import { ConditionNodeData } from '../../../../models/flowTypes';
+import type { ConditionNodeData } from '../types';
 import { BaseNode } from '@n2flowjs/flow';
 import { Flex } from 'antd';
 import { BranchesOutlined } from '@ant-design/icons';
@@ -23,15 +23,17 @@ const ConditionNode = ({ data, id, selected }: NodeProps<Node<ConditionNodeData>
       role={data.form?.role}
     >
       <Flex vertical gap={8}>
-        <ComparisonInfo 
-          leftValue={form?.leftValue || ''}
-          operator={form?.operator || 'equals'}
-          rightValue={form?.rightValue || ''}
-          dataType={form?.dataType || 'string'}
-        />
-        <ResultsInfo 
-          trueValue={form?.trueValue || 'Success'}
-          falseValue={form?.falseValue || 'Failed'}
+        {form?.expressions?.[0] && (
+          <ComparisonInfo
+            leftValue={form.expressions[0].left || ''}
+            operator={form.expressions[0].operator}
+            rightValue={String(form.expressions[0].right ?? '')}
+            dataType={'string'}
+          />
+        )}
+        <ResultsInfo
+          trueValue={form?.logic === 'all' ? 'All True' : 'Any True'}
+          falseValue={form?.logic === 'all' ? 'Some False' : 'All False'}
         />
       </Flex>
     </BaseNode>

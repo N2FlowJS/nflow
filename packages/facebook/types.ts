@@ -16,3 +16,11 @@ export interface FacebookForm extends BaseForm {
 }
 
 export type FacebookNodeData = BaseNodeData<FacebookForm> & { type: 'facebook' };
+
+
+// Auto-added augmentation for NodeDataMap
+declare module '../../models/nodeDataMap' {
+  interface NodeDataMap {
+    FacebookNodeData: FacebookNodeData;
+  }
+}

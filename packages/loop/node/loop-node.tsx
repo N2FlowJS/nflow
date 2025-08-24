@@ -1,6 +1,6 @@
 import React from 'react';
 import { Position, NodeProps, Node } from '@xyflow/react';
-import { LoopNodeData } from '../../../models/flowTypes';
+import { LoopNodeData } from '../types';
 import { BaseNode } from '@n2flowjs/flow';
 import { Flex, Typography, Tag } from 'antd';
 import { ReloadOutlined } from '@ant-design/icons';

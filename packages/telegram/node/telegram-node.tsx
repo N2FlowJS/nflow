@@ -1,6 +1,6 @@
 import React from 'react';
 import { Position, NodeProps, Node } from '@xyflow/react';
-import { TelegramNodeData } from '../../../models/flowTypes';
+import { TelegramNodeData } from '../types';
 import { BaseNode } from '@n2flowjs/flow';
 import { Flex, Typography, Tag } from 'antd';
 import { PhoneOutlined } from '@ant-design/icons';

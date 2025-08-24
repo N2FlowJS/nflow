@@ -1,6 +1,6 @@
 import React from 'react';
 import { Position, NodeProps, Node } from '@xyflow/react';
-import { TikTokNodeData } from '../../../models/flowTypes';
+import { TikTokNodeData } from '../types';
 import { BaseNode } from '@n2flowjs/flow';
 import { Flex, Typography, Tag } from 'antd';
 import { CustomerServiceOutlined } from '@ant-design/icons';

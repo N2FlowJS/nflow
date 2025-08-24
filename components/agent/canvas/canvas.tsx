@@ -26,7 +26,6 @@ import { useTheme } from '../../../theme';
 import CustomEdge from '../edges/CustomEdge';
 // Additional node imports would be added
 
-import { isConnectionAllowed } from '../../../utils/client/connectionRules';
 import { NODE_REGISTRY } from '../../../utils/client/NODE_REGISTRY';
 import { parseFlowConfig } from '../../../utils/server/parseFlowConfig';
 import { nodeTypes } from '../nodes/node-types';
@@ -143,16 +142,8 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flowConfig, onStartConversation
   );
 
   const availableNextTypes = useMemo(() => {
-    if (nextStepCtx) {
-      const sourceType = nextStepCtx.nodeType;
-      return Object.entries(NODE_REGISTRY).filter(([type]) =>
-        isConnectionAllowed(sourceType, type as NodeTypeString)
-      ) as Array<[NodeTypeString, any]>;
-    }
-    // Initial state (no source). Allow "begin" and types connectable from begin
-    return Object.entries(NODE_REGISTRY).filter(
-      ([type]) => type === 'begin' || isConnectionAllowed('begin' as NodeTypeString, type as NodeTypeString)
-    ) as Array<[NodeTypeString, any]>;
+    // With rules removed, just list all (future: delegate filtering to plugin layer)
+    return Object.entries(NODE_REGISTRY) as Array<[NodeTypeString, any]>;
   }, [nextStepCtx]);
 
   useConversationStateLoader(activeConversationId, setFlowState);

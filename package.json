@@ -15,7 +15,9 @@
     "clean": "node scripts/cleanup.js",
     "test:file": "mocha -r ts-node/register \"**/textChunker.test.ts\"",
     "run:docs": "docsify serve docs",
-    "test": "jest",
+  "test": "jest",
+  "generate:flow-node-union": "ts-node scripts/generateFlowNodeUnion.ts",
+  "augment:nodes": "ts-node scripts/augmentNodeDataMap.ts",
   "test:watch": "jest --watch",
   "typecheck": "tsc -p tsconfig.json --noEmit"
   },

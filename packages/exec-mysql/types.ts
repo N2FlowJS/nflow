@@ -1,0 +1,23 @@
+import { BaseForm, BaseNodeData } from '@n2flowjs/flow';
+
+export interface ExecMysqlForm extends BaseForm {
+  name: string;
+  description?: string;
+  query: string;
+  server: string;
+  port: number;
+  user: string;
+  password: string;
+  database: string;
+  timeout?: number;
+  maxRows?: number;
+}
+export type ExecMysqlNodeData = BaseNodeData<ExecMysqlForm> & { type: 'execmysql' };
+
+
+// Auto-added augmentation for NodeDataMap
+declare module '../../models/nodeDataMap' {
+  interface NodeDataMap {
+    ExecMysqlNodeData: ExecMysqlNodeData;
+  }
+}

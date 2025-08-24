@@ -5,7 +5,7 @@ import ConnectedCategories from "./ConnectedCategories";
 import UnconnectedCategories from "./UnconnectedCategories";
 import DefaultCategory from "./DefaultCategory";
 import { theme } from 'antd';
-import { CategorizeNodeData, ICategory } from "../../../models/flowTypes";
+import { CategorizeNodeData, ICategory } from "../../categorize/types";
 import { useFlowEditorContext } from "@n2flowjs/flow/editor-context";
 import BaseNode from "@n2flowjs/flow/node/base-node";
 import { slugify } from "@n2flowjs/flow/flow-helpers";

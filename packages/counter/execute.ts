@@ -1,4 +1,5 @@
-import { CounterNodeData, FlowNode } from '../../models/flowTypes';
+import { CounterNodeData } from './types';
+import { FlowNode } from '../../models/flowTypes';
 import { ExecutionResult, findNextNodes, FlowExecutionContext, FlowStateDispatcher } from '@n2flowjs/flow';
 
 // In-memory counter storage (in production, this could be database or Redis)

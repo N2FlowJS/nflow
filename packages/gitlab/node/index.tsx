@@ -1,6 +1,6 @@
 import React from 'react';
 import { Position, NodeProps, Node } from '@xyflow/react';
-import { GitLabNodeData } from '../../../models/flowTypes';
+import { GitLabNodeData } from '../types';
 import { BaseNode } from '@n2flowjs/flow';
 import { Flex } from 'antd';
 import { GitlabOutlined } from '@ant-design/icons';

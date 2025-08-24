@@ -14,3 +14,11 @@ export interface SlackForm extends BaseForm {
 }
 
 export type SlackNodeData = BaseNodeData<SlackForm> & { type: 'slack' };
+
+
+// Auto-added augmentation for NodeDataMap
+declare module '../../models/nodeDataMap' {
+  interface NodeDataMap {
+    SlackNodeData: SlackNodeData;
+  }
+}

@@ -1,7 +1,6 @@
 import { useCallback } from 'react';
 import { Connection, Edge } from '@xyflow/react';
-import { FlowNode, NodeTypeString } from '../../../../models/flowTypes';
-import { isConnectionAllowed } from '../../../../utils/client/connectionRules';
+import { FlowNode } from '../../../../models/flowTypes';
 
 export const useValidConnection = (nodes: FlowNode[]) => {
   return useCallback(
@@ -10,9 +9,7 @@ export const useValidConnection = (nodes: FlowNode[]) => {
       const targetNode = nodes.find((node) => node.id === params.target);
 
       if (sourceNode && targetNode) {
-        const sourceType = sourceNode.type as NodeTypeString;
-        const targetType = targetNode.type as NodeTypeString;
-        return isConnectionAllowed(sourceType, targetType);
+  return true; // always allow
       }
 
       return false;

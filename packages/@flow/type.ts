@@ -1,6 +1,7 @@
 import { FlowComponent, FlowExecutionHistoryEntry } from '../../models/flowExecutionTypes';
-import { Flow, FlowNode, NodeTypeString } from '../../models/flowTypes';
+import { Flow, NodeTypeString } from '../../models/flowTypes';
 import { MessagePart } from '../../models/MessagePart';
+import type { FlowNode } from '../../models/nodeDataMap';
 
 export interface NodeInfo {
   id: string;

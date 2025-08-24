@@ -14,3 +14,11 @@ export interface MattermostForm extends BaseForm {
 }
 
 export type MattermostNodeData = BaseNodeData<MattermostForm> & { type: 'mattermost' };
+
+
+// Auto-added augmentation for NodeDataMap
+declare module '../../models/nodeDataMap' {
+  interface NodeDataMap {
+    MattermostNodeData: MattermostNodeData;
+  }
+}

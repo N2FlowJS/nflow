@@ -1,6 +1,6 @@
 import React from 'react';
 import { Position, NodeProps, Node } from '@xyflow/react';
-import { WeatherNodeData } from '../../../models/flowTypes';
+import { WeatherNodeData } from '../types';
 import { BaseNode } from '@n2flowjs/flow';
 import { Flex, Typography, Tag } from 'antd';
 import { CloudOutlined } from '@ant-design/icons';

@@ -11,3 +11,11 @@ export interface RewriteForm extends BaseForm {
 }
 
 export type RewriteNodeData = BaseNodeData<RewriteForm> & { type: 'rewrite' };
+
+
+// Auto-added augmentation for NodeDataMap
+declare module '../../models/nodeDataMap' {
+  interface NodeDataMap {
+    RewriteNodeData: RewriteNodeData;
+  }
+}

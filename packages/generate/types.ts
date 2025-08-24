@@ -7,3 +7,9 @@ export interface GenerateForm extends BaseForm {
 }
 
 export type GenerateNodeData = BaseNodeData<GenerateForm> & { type: 'generate' };
+
+declare module '../../models/nodeDataMap' {
+  interface NodeDataMap {
+    generate: GenerateNodeData;
+  }
+}

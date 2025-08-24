@@ -1,5 +1,5 @@
 import React from 'react';
-import { NodeTypeString, NodeConfig } from '../../models/flowTypes';
+import { NodeTypeString, NodeConfig } from '../../models/core-flow-types';
 import { RobotOutlined } from '@ant-design/icons';
 // IMPORTANT: Do NOT import '../../packages/@node-plugin' here because it uses fs/path.
 // We resolve plugin config lazily inside a guarded function to keep the client bundle clean.

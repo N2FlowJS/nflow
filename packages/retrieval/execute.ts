@@ -1,7 +1,8 @@
 import { getInputs, getQueryFromSource } from '../../hooks/useInputReferences';
 import { searchSimilarContent } from '../../lib/services/vectorSearchService';
 import { ExecutionResult, FlowExecutionContext } from '../../models/flowExecutionTypes';
-import { FlowNode, RetrievalNodeData } from '../../models/flowTypes';
+import { RetrievalNodeData } from './types';
+import { FlowNode } from '../../models/flowTypes';
 import { findNextNodes, FlowStateDispatcher } from '@n2flowjs/flow';
 import { flowStateReducer } from '@n2flowjs/flow/flow-state-reducer';
 

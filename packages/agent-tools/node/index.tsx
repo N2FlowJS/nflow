@@ -3,7 +3,7 @@ import { Position, NodeProps, Node } from '@xyflow/react';
 import { BaseNode } from '@n2flowjs/flow';
 import { ToolOutlined } from '@ant-design/icons';
 import ToolsList from '../../agent/node/ToolsList';
-import { AgentToolsNodeData } from '../../../models/flowTypes';
+import { AgentToolsNodeData } from '../types';
 import { Divider, Space, Typography } from 'antd';
 
 const AgentToolsNode = ({ data, id, selected }: NodeProps<Node<AgentToolsNodeData>>) => {

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Position, NodeProps, Node } from '@xyflow/react';
-import { ConfluenceNodeData } from '../../../../models/flowTypes';
+import { ConfluenceNodeData } from '../../../../packages/confluence/types';
 import { BaseNode } from '@n2flowjs/flow';
 import { Flex } from 'antd';
 import { FileTextOutlined } from '@ant-design/icons';

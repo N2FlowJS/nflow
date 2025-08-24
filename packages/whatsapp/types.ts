@@ -17,3 +17,11 @@ export interface WhatsAppForm extends BaseForm {
 }
 
 export type WhatsAppNodeData = BaseNodeData<WhatsAppForm> & { type: 'whatsapp' };
+
+
+// Auto-added augmentation for NodeDataMap
+declare module '../../models/nodeDataMap' {
+  interface NodeDataMap {
+    WhatsAppNodeData: WhatsAppNodeData;
+  }
+}

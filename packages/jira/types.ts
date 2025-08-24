@@ -19,3 +19,11 @@ export interface JiraForm extends BaseForm {
 }
 
 export type JiraNodeData = BaseNodeData<JiraForm> & { type: 'jira' };
+
+
+// Auto-added augmentation for NodeDataMap
+declare module '../../models/nodeDataMap' {
+  interface NodeDataMap {
+    JiraNodeData: JiraNodeData;
+  }
+}

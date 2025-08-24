@@ -1,6 +1,6 @@
 import React from 'react';
 import { Position, NodeProps, Node } from '@xyflow/react';
-import { ImageAnalysisNodeData } from '../../../models/flowTypes';
+import { ImageAnalysisNodeData } from '../types';
 import { BaseNode } from '@n2flowjs/flow';
 import { Flex, Typography, Tag } from 'antd';
 import { PictureOutlined } from '@ant-design/icons';

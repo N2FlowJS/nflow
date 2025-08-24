@@ -14,3 +14,11 @@ export interface GoogleSearchForm extends BaseForm {
 }
 
 export type GoogleSearchNodeData = BaseNodeData<GoogleSearchForm> & { type: 'googlesearch' };
+
+
+// Auto-added augmentation for NodeDataMap
+declare module '../../models/nodeDataMap' {
+  interface NodeDataMap {
+    GoogleSearchNodeData: GoogleSearchNodeData;
+  }
+}

@@ -15,3 +15,11 @@ export interface InstagramForm extends BaseForm {
 }
 
 export type InstagramNodeData = BaseNodeData<InstagramForm> & { type: 'instagram' };
+
+
+// Auto-added augmentation for NodeDataMap
+declare module '../../models/nodeDataMap' {
+  interface NodeDataMap {
+    InstagramNodeData: InstagramNodeData;
+  }
+}

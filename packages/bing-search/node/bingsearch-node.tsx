@@ -1,6 +1,6 @@
 import React from 'react';
 import { Position, NodeProps, Node } from '@xyflow/react';
-import { BingSearchNodeData } from '../../../models/flowTypes';
+import { BingSearchNodeData } from '../types';
 import { BaseNode } from '@n2flowjs/flow';
 import { Flex, Typography, Tag } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';

@@ -17,3 +17,11 @@ export interface TelegramForm extends BaseForm {
 }
 
 export type TelegramNodeData = BaseNodeData<TelegramForm> & { type: 'telegram' };
+
+
+// Auto-added augmentation for NodeDataMap
+declare module '../../models/nodeDataMap' {
+  interface NodeDataMap {
+    TelegramNodeData: TelegramNodeData;
+  }
+}

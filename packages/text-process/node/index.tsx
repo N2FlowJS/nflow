@@ -1,6 +1,6 @@
 import React from 'react';
 import { Position, NodeProps, Node } from '@xyflow/react';
-import { TextProcessNodeData } from '../../../models/flowTypes';
+import { TextProcessNodeData } from '../types';
 import { BaseNode } from '@n2flowjs/flow';
 import { Flex } from 'antd';
 import { FontSizeOutlined } from '@ant-design/icons';

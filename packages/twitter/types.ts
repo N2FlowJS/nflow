@@ -17,3 +17,11 @@ export interface TwitterForm extends BaseForm {
 }
 
 export type TwitterNodeData = BaseNodeData<TwitterForm> & { type: 'twitter' };
+
+
+// Auto-added augmentation for NodeDataMap
+declare module '../../models/nodeDataMap' {
+  interface NodeDataMap {
+    TwitterNodeData: TwitterNodeData;
+  }
+}

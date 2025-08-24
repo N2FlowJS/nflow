@@ -72,9 +72,6 @@ export async function executeInstagramNode(
         result = await createInstagramPost(form, processedCaption, processedMediaUrl);
         break;
 
-      case 'get_posts':
-        result = await getInstagramPosts(form);
-        break;
 
       case 'get_user_info':
         result = await getInstagramUserInfo(form);
@@ -84,16 +81,6 @@ export async function executeInstagramNode(
         result = await getInstagramMedia(form);
         break;
 
-      case 'create_story':
-        if (!form.storyMediaUrl) {
-          throw new Error('Story media URL is required for creating stories');
-        }
-        result = await createInstagramStory(form);
-        break;
-
-      case 'get_insights':
-        result = await getInstagramInsights(form);
-        break;
 
       default:
         throw new Error(`Unsupported Instagram action: ${form.action}`);
@@ -212,19 +199,6 @@ async function createInstagramPost(credentials: any, caption: string, mediaUrl: 
   return await publishResponse.json();
 }
 
-async function getInstagramPosts(form: any) {
-  const url = new URL(`https://graph.facebook.com/v18.0/${form.userId}/media`);
-  url.searchParams.append('fields', 'id,caption,media_type,media_url,timestamp,permalink');
-  url.searchParams.append('access_token', form.accessToken);
-
-  const response = await fetch(url.toString());
-
-  if (!response.ok) {
-    throw new Error(`Instagram API error: ${response.status}`);
-  }
-
-  return await response.json();
-}
 
 async function getInstagramUserInfo(form: any) {
   const url = new URL(`https://graph.facebook.com/v18.0/${form.userId || 'me'}`);
@@ -254,56 +228,4 @@ async function getInstagramMedia(form: any) {
   return await response.json();
 }
 
-async function createInstagramStory(form: any) {
-  const response = await fetch(`https://graph.facebook.com/v18.0/${form.userId}/media`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      image_url: form.storyMediaUrl,
-      media_type: 'STORIES',
-      access_token: form.accessToken,
-    }),
-  });
 
-  if (!response.ok) {
-    const errorData = await response.text();
-    throw new Error(`Instagram story creation error (${response.status}): ${errorData}`);
-  }
-
-  const mediaData = await response.json();
-
-  // Publish the story
-  const publishResponse = await fetch(`https://graph.facebook.com/v18.0/${form.userId}/media_publish`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      creation_id: mediaData.id,
-      access_token: form.accessToken,
-    }),
-  });
-
-  if (!publishResponse.ok) {
-    throw new Error(`Instagram story publish error: ${publishResponse.status}`);
-  }
-
-  return await publishResponse.json();
-}
-
-async function getInstagramInsights(form: any) {
-  const url = new URL(`https://graph.facebook.com/v18.0/${form.userId}/insights`);
-  url.searchParams.append('metric', 'impressions,reach,profile_views');
-  url.searchParams.append('period', 'day');
-  url.searchParams.append('access_token', form.accessToken);
-
-  const response = await fetch(url.toString());
-
-  if (!response.ok) {
-    throw new Error(`Instagram insights error: ${response.status}`);
-  }
-
-  return await response.json();
-}

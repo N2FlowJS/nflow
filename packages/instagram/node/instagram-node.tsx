@@ -1,6 +1,6 @@
 import React from 'react';
 import { Position, NodeProps, Node } from '@xyflow/react';
-import { InstagramNodeData } from '../../../models/flowTypes';
+import { InstagramNodeData } from '../types';
 import { BaseNode } from '@n2flowjs/flow';
 import { Flex, Typography, Tag } from 'antd';
 import { InstagramOutlined } from '@ant-design/icons';

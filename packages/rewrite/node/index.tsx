@@ -1,6 +1,6 @@
 import React from 'react';
 import { Position, NodeProps, Node } from '@xyflow/react';
-import { RewriteNodeData } from '../../../models/flowTypes';
+import { RewriteNodeData } from '../types';
 import { BaseNode } from '@n2flowjs/flow';
 import { Flex } from 'antd';
 import { EditOutlined } from '@ant-design/icons';

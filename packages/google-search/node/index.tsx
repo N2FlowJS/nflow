@@ -1,6 +1,6 @@
 import React from 'react';
 import { Position, NodeProps, Node } from '@xyflow/react';
-import { GoogleSearchNodeData } from '../../../models/flowTypes';
+import { GoogleSearchNodeData } from '../types';
 import { BaseNode } from '@n2flowjs/flow';
 import { Flex } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';

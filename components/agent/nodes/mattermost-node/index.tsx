@@ -1,6 +1,6 @@
 import React from 'react';
 import { Position, NodeProps, Node } from '@xyflow/react';
-import { MattermostNodeData } from '../../../../models/flowTypes';
+import { MattermostNodeData } from '../../../../packages/mattermost/types';
 import { BaseNode } from '@n2flowjs/flow';
 import { Flex } from 'antd';
 import { MessageOutlined } from '@ant-design/icons';

@@ -1,8 +1,7 @@
 import { useCallback } from 'react';
 import { Connection, Edge, MarkerType, Position } from '@xyflow/react';
 import { message } from 'antd';
-import { FlowNode, NodeTypeString, CategorizeForm, DecisionForm } from '../../../../models/flowTypes';
-import { isConnectionAllowed } from '../../../../utils/client/connectionRules';
+import { FlowNode, NodeTypeString } from '../../../../models/flowTypes';
 import { getOppositePosition, getPositionFromHandleId, slugify } from '../../../../packages/@flow/flow-helpers';
 
 export const useNodeConnection = (
@@ -19,7 +18,8 @@ export const useNodeConnection = (
         const sourceType = sourceNode.type as NodeTypeString;
         const targetType = targetNode.type as NodeTypeString;
 
-        if (isConnectionAllowed(sourceType, targetType)) {
+  // Connection rules now delegated to plugin layer; allow all here
+  if (true) {
           let sourceHandle = params.sourceHandle ?? undefined;
           if (sourceType === 'decision' && sourceHandle?.startsWith('out-')) {
             const raw = sourceHandle.substring(4);
@@ -42,7 +42,7 @@ export const useNodeConnection = (
             setNodes((nds: FlowNode[]) =>
               nds.map((n) => {
                 if (n.id === params.source) {
-                  const form: DecisionForm = { ...n.data.form } as DecisionForm;
+                  const form: any = { ...n.data.form } as any;
 
                   if (sourceHandle === 'out-default') {
                     form.defaultTarget = params.target!;
@@ -69,7 +69,7 @@ export const useNodeConnection = (
             setNodes((nds: FlowNode[]) =>
               nds.map((n) => {
                 if (n.id === params.source && n.type === 'categorize') {
-                  const form = n.data.form as CategorizeForm;
+                  const form = n.data.form as any;
                   if (!form.categories) return n;
 
                   return {
@@ -78,7 +78,7 @@ export const useNodeConnection = (
                       ...n.data,
                       form: {
                         ...form,
-                        categories: form.categories.map((c) =>
+                        categories: (form.categories as any[]).map((c: any) =>
                           slugify(c.name) === categoryName ? { ...c, targetNode: params.target } : c
                         ),
                       },

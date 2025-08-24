@@ -17,3 +17,11 @@ export interface GitLabForm extends BaseForm {
 }
 
 export type GitLabNodeData = BaseNodeData<GitLabForm> & { type: 'gitlab' };
+
+
+// Auto-added augmentation for NodeDataMap
+declare module '../../models/nodeDataMap' {
+  interface NodeDataMap {
+    GitLabNodeData: GitLabNodeData;
+  }
+}

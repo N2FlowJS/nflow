@@ -1,6 +1,6 @@
 import React from 'react';
 import { Position, NodeProps, Node } from '@xyflow/react';
-import { GoogleMapNodeData } from '../../../models/flowTypes';
+import { GoogleMapNodeData } from '../../../packages/googlemap/types';
 import { BaseNode } from '@n2flowjs/flow';
 import { Flex } from 'antd';
 import { EnvironmentOutlined } from '@ant-design/icons';

@@ -14,3 +14,11 @@ export interface BingSearchForm extends BaseForm {
 }
 
 export type BingSearchNodeData = BaseNodeData<BingSearchForm> & { type: 'bingsearch' };
+
+
+// Auto-added augmentation for NodeDataMap
+declare module '../../models/nodeDataMap' {
+  interface NodeDataMap {
+    BingSearchNodeData: BingSearchNodeData;
+  }
+}
