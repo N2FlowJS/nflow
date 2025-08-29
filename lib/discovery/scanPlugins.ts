@@ -7,7 +7,7 @@ import type React from 'react';
 const path: typeof import('path') = require('path');
 const fs: typeof import('fs') = require('fs');
 
-function normalizeKey(pkgName: string) { return pkgName.replace(/-+/g, ''); }
+function normalizeKey(pkgName: string) { return pkgName }
 
 export function scanNodeComponents(): Record<string, React.ComponentType<any>> {
   const pkgsDir = path.join(process.cwd(), 'packages');

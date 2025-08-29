@@ -5,7 +5,7 @@ import { RobotOutlined } from '@ant-design/icons';
 // We resolve plugin config lazily inside a guarded function to keep the client bundle clean.
 
 
-function normalizeKey(name: string) { return name.replace(/[^a-zA-Z0-9]/g, '').toLowerCase(); }
+function normalizeKey(name: string) { return name.replace(/[^a-zA-Z0-9\-]/g, '').toLowerCase(); }
 
 function safeGetPluginConfig(): Record<string, any> {
   // 1. Client: read pre-hydrated global (can be injected server-side) or fallback empty

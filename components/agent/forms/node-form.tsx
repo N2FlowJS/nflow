@@ -24,7 +24,7 @@ const NodeForm: React.FC<NodeFormProps> = ({ form, selectedNode, setIsDrawerOpen
   useEffect(() => {
     if (!selectedNode?.type) return;
     const rawType = selectedNode.type;
-    const key = rawType.replace(/[^a-zA-Z0-9]/g, '');
+    const key = rawType.replace(/[^a-zA-Z0-9\-]/g, '');
     if ((discoveredForms as any)[key] || dynamicFormCache[key]) return; // already have it
     const candidates = Array.from(new Set([rawType, key]));
     let cancelled = false;
@@ -50,7 +50,7 @@ const NodeForm: React.FC<NodeFormProps> = ({ form, selectedNode, setIsDrawerOpen
   }, [selectedNode?.type, discoveredForms]);
 
   if (!selectedNode) return null;
-  const key = selectedNode.type?.replace(/[^a-zA-Z0-9]/g, '') || '';
+  const key = selectedNode.type?.replace(/[^a-zA-Z0-9\-]/g, '') || '';
   const DynamicForm: React.ComponentType<any> | undefined = (discoveredForms as any)[key]  || dynamicFormCache[key];
   const commonProps = { form, selectedNode, setIsDrawerOpen };
 

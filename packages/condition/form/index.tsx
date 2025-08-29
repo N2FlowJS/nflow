@@ -1,13 +1,11 @@
-import { BranchesOutlined, SettingOutlined, CodeTwoTone } from '@ant-design/icons';
 import { FlowNode } from '../../../models/flowTypes';
-import { Form, Input, Select, Collapse, Space, Typography, Alert } from 'antd';
+import TextInputField from '../../@input/TextInputField';
+import TextAreaField from '../../@input/TextAreaField';
+import DropdownField from '../../@input/DropdownField';
 import React from 'react';
 import BaseNodeForm from '../../@flow/form';
 import InputReferences from '@n2flowjs/flow/share/InputReferences';
 import RoleSelector from '@n2flowjs/flow/share/RoleSelector';
-
-const { TextArea } = Input;
-const { Text } = Typography;
 
 interface ConditionNodeFormProps {
   form: any;
@@ -20,146 +18,97 @@ const ConditionNodeForm: React.FC<ConditionNodeFormProps> = (props) => {
 
   return (
     <BaseNodeForm {...props}>
-      <Alert
-        message="Condition Node"
-        description="Compare values and return different results based on the condition. Perfect for simple if-then logic in your flows."
-        type="info"
-        showIcon
-        icon={<BranchesOutlined />}
-        style={{ marginBottom: 16 }}
-      />
+      <div style={{ padding: '12px', backgroundColor: '#e6f7ff', border: '1px solid #91d5ff', borderRadius: '6px', marginBottom: '16px' }}>
+        <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>Condition Node</div>
+        <div>Compare values and return different results based on the condition. Perfect for simple if-then logic in your flows.</div>
+      </div>
 
-      <Collapse
-        defaultActiveKey={['comparison', 'results', 'settings']}
-        bordered={false}
-        expandIconPosition="end"
-        items={[
-          {
-            key: 'comparison',
-            label: (
-              <Text strong>
-                <CodeTwoTone style={{ marginRight: 8 }} />
-                Comparison Configuration
-              </Text>
-            ),
-            children: (
-              <Space direction="vertical" style={{ width: '100%' }} size="middle">
-                <Form.Item
-                  name="leftValue"
-                  label="Left Value"
-                  help="First value to compare. Use {{variableName}} syntax to reference variables from previous nodes."
-                  rules={[{ required: true, message: 'Please specify the left value' }]}
-                >
-                  <Input placeholder="{{value1}}" />
-                </Form.Item>
+      <div style={{ marginBottom: '16px' }}>
+        <div style={{ fontWeight: 'bold', marginBottom: '12px', fontSize: '16px' }}>
+          Comparison Configuration
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <TextInputField
+            name="leftValue"
+            label="Left Value"
+            required
+            placeholder="{{value1}}"
+          />
 
-                <Form.Item
-                  name="operator"
-                  label="Comparison Operator"
-                  help="How to compare the left and right values"
-                  initialValue="equals"
-                  rules={[{ required: true, message: 'Please select an operator' }]}
-                >
-                  <Select>
-                    <Select.Option value="equals">Equals (=)</Select.Option>
-                    <Select.Option value="notEquals">Not Equals (≠)</Select.Option>
-                    <Select.Option value="greaterThan">Greater Than (&gt;)</Select.Option>
-                    <Select.Option value="lessThan">Less Than (&lt;)</Select.Option>
-                    <Select.Option value="contains">Contains</Select.Option>
-                    <Select.Option value="startsWith">Starts With</Select.Option>
-                    <Select.Option value="endsWith">Ends With</Select.Option>
-                    <Select.Option value="regex">Regex Match</Select.Option>
-                  </Select>
-                </Form.Item>
+          <DropdownField
+            name="operator"
+            label="Comparison Operator"
+            required
+            options={[
+              { label: 'Equals (=)', value: 'equals' },
+              { label: 'Not Equals (≠)', value: 'notEquals' },
+              { label: 'Greater Than (>)', value: 'greaterThan' },
+              { label: 'Less Than (<)', value: 'lessThan' },
+              { label: 'Contains', value: 'contains' },
+              { label: 'Starts With', value: 'startsWith' },
+              { label: 'Ends With', value: 'endsWith' },
+              { label: 'Regex Match', value: 'regex' }
+            ]}
+          />
 
-                <Form.Item
-                  name="rightValue"
-                  label="Right Value"
-                  help="Second value to compare against. Use {{variableName}} syntax to reference variables."
-                  rules={[{ required: true, message: 'Please specify the right value' }]}
-                >
-                  <Input placeholder="{{value2}} or direct value" />
-                </Form.Item>
-              </Space>
-            ),
-          },
-          {
-            key: 'results',
-            label: (
-              <Text strong>
-                <BranchesOutlined style={{ marginRight: 8 }} />
-                Result Values
-              </Text>
-            ),
-            children: (
-              <Space direction="vertical" style={{ width: '100%' }} size="middle">
-                <Form.Item
-                  name="trueValue"
-                  label="True Result"
-                  help="Value to return when the condition is true"
-                  rules={[{ required: true, message: 'Please specify the true result' }]}
-                  initialValue="Success"
-                >
-                  <TextArea
-                    rows={3}
-                    placeholder="Value when condition is true"
-                  />
-                </Form.Item>
+          <TextInputField
+            name="rightValue"
+            label="Right Value"
+            required
+            placeholder="{{value2}} or direct value"
+          />
+        </div>
+      </div>
 
-                <Form.Item
-                  name="falseValue"
-                  label="False Result"
-                  help="Value to return when the condition is false"
-                  rules={[{ required: true, message: 'Please specify the false result' }]}
-                  initialValue="Failed"
-                >
-                  <TextArea
-                    rows={3}
-                    placeholder="Value when condition is false"
-                  />
-                </Form.Item>
-              </Space>
-            ),
-          },
-          {
-            key: 'settings',
-            label: (
-              <Text strong>
-                <SettingOutlined style={{ marginRight: 8 }} />
-                Data Type Settings
-              </Text>
-            ),
-            children: (
-              <Form.Item
-                name="dataType"
-                label="Data Type"
-                help="How to interpret the values for comparison"
-                initialValue="string"
-              >
-                <Select>
-                  <Select.Option value="string">String (Text)</Select.Option>
-                  <Select.Option value="number">Number</Select.Option>
-                  <Select.Option value="boolean">Boolean (true/false)</Select.Option>
-                  <Select.Option value="date">Date</Select.Option>
-                </Select>
-              </Form.Item>
-            ),
-          },
-        ]}
-      />
+      <div style={{ marginBottom: '16px' }}>
+        <div style={{ fontWeight: 'bold', marginBottom: '12px', fontSize: '16px' }}>
+          Result Values
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <TextAreaField
+            name="trueValue"
+            label="True Result"
+            required
+            rows={3}
+            placeholder="Value when condition is true"
+          />
 
-      <Alert
-        message="Usage Examples"
-        description={
-          <div>
-            <p><strong>Text comparison:</strong> Check if user input contains &quot;help&quot;</p>
-            <p><strong>Number comparison:</strong> Compare scores or counts</p>
-            <p><strong>Status checks:</strong> Route based on previous node results</p>
-          </div>
-        }
-        type="info"
-        style={{ marginTop: 16, marginBottom: 16 }}
-      />
+          <TextAreaField
+            name="falseValue"
+            label="False Result"
+            required
+            rows={3}
+            placeholder="Value when condition is false"
+          />
+        </div>
+      </div>
+
+      <div style={{ marginBottom: '16px' }}>
+        <div style={{ fontWeight: 'bold', marginBottom: '12px', fontSize: '16px' }}>
+          Data Type Settings
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <DropdownField
+            name="dataType"
+            label="Data Type"
+            options={[
+              { label: 'String (Text)', value: 'string' },
+              { label: 'Number', value: 'number' },
+              { label: 'Boolean (true/false)', value: 'boolean' },
+              { label: 'Date', value: 'date' }
+            ]}
+          />
+        </div>
+      </div>
+
+      <div style={{ padding: '12px', backgroundColor: '#e6f7ff', border: '1px solid #91d5ff', borderRadius: '6px', marginTop: '16px', marginBottom: '16px' }}>
+        <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>Usage Examples</div>
+        <div>
+          <p><strong>Text comparison:</strong> Check if user input contains "help"</p>
+          <p><strong>Number comparison:</strong> Compare scores or counts</p>
+          <p><strong>Status checks:</strong> Route based on previous node results</p>
+        </div>
+      </div>
 
       <RoleSelector />
       <InputReferences form={props.form} nodeid={selectedNode.id} />

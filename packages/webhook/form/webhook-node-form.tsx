@@ -1,13 +1,11 @@
-import { LinkOutlined, SettingOutlined, CodeOutlined } from '@ant-design/icons';
 import { FlowNode } from '../../../models/flowTypes';
-import { Form, Input, InputNumber, Select, Collapse, Space, Typography, Alert, Button } from 'antd';
+import TextInputField from '../../@input/TextInputField';
+import TextAreaField from '../../@input/TextAreaField';
+import DropdownField from '../../@input/DropdownField';
 import React from 'react';
 import BaseNodeForm from '../../@flow/form';
 import InputReferences from '@n2flowjs/flow/share/InputReferences';
 import RoleSelector from '@n2flowjs/flow/share/RoleSelector';
-
-const { TextArea } = Input;
-const { Text } = Typography;
 
 interface WebhookNodeFormProps {
   form: any;
@@ -20,148 +18,76 @@ const WebhookNodeForm: React.FC<WebhookNodeFormProps> = (props) => {
 
   return (
     <BaseNodeForm {...props}>
-      <Alert
-        message="Webhook Node"
-        description="Send data to external webhook endpoints. Perfect for integrating with third-party services and triggering external workflows."
-        type="info"
-        showIcon
-        icon={<LinkOutlined />}
-        style={{ marginBottom: 16 }}
-      />
+      <div style={{ padding: '12px', backgroundColor: '#e6f7ff', border: '1px solid #91d5ff', borderRadius: '6px', marginBottom: '16px' }}>
+        <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>Webhook Node</div>
+        <div>Send data to external webhook endpoints. Perfect for integrating with third-party services and triggering external workflows.</div>
+      </div>
 
-      <Collapse
-        defaultActiveKey={['webhook', 'payload', 'settings']}
-        bordered={false}
-        expandIconPosition="end"
-        items={[
-          {
-            key: 'webhook',
-            label: (
-              <Text strong>
-                <LinkOutlined style={{ marginRight: 8 }} />
-                Webhook Configuration
-              </Text>
-            ),
-            children: (
-              <Space direction="vertical" style={{ width: '100%' }} size="middle">
-                <Form.Item
-                  name="webhookUrl"
-                  label="Webhook URL"
-                  help="The endpoint URL to send the webhook to. Use {{variableName}} for dynamic URLs."
-                  rules={[{ required: true, message: 'Please specify the webhook URL' }]}
-                >
-                  <Input placeholder="https://hooks.example.com/webhook" />
-                </Form.Item>
+      <div style={{ marginBottom: '16px' }}>
+        <div style={{ fontWeight: 'bold', marginBottom: '12px', fontSize: '16px' }}>
+          Webhook Configuration
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <TextInputField
+            name="webhookUrl"
+            label="Webhook URL"
+            required
+            placeholder="https://hooks.example.com/webhook"
+          />
 
-                <Form.Item
-                  name="method"
-                  label="HTTP Method"
-                  help="HTTP method to use for the webhook request"
-                  initialValue="POST"
-                  rules={[{ required: true, message: 'Please select an HTTP method' }]}
-                >
-                  <Select>
-                    <Select.Option value="POST">POST</Select.Option>
-                    <Select.Option value="PUT">PUT</Select.Option>
-                    <Select.Option value="GET">GET</Select.Option>
-                  </Select>
-                </Form.Item>
-              </Space>
-            ),
-          },
-          {
-            key: 'payload',
-            label: (
-              <Text strong>
-                <CodeOutlined style={{ marginRight: 8 }} />
-                Payload & Headers
-              </Text>
-            ),
-            children: (
-              <Space direction="vertical" style={{ width: '100%' }} size="middle">
-                <Form.Item
-                  name="payload"
-                  label="Request Payload"
-                  help="Data to send in the webhook request. Use {{variableName}} to reference variables from previous nodes."
-                  rules={[{ required: true, message: 'Please specify the payload' }]}
-                >
-                  <TextArea
-                    rows={6}
-                    placeholder='{"message": "{{dataToSend}}", "timestamp": "{{currentTime}}"}'
-                  />
-                </Form.Item>
+          <DropdownField
+            name="method"
+            label="HTTP Method"
+            required
+            options={[
+              { label: 'POST', value: 'POST' },
+              { label: 'PUT', value: 'PUT' },
+              { label: 'GET', value: 'GET' }
+            ]}
+          />
+        </div>
+      </div>
 
-                <Form.List name="headers">
-                  {(fields, { add, remove }) => (
-                    <>
-                      <div style={{ marginBottom: 8 }}>
-                        <Text strong>Custom Headers</Text>
-                      </div>
-                      {fields.map(({ key, name, ...restField }) => (
-                        <Space key={key} style={{ display: 'flex', marginBottom: 8 }} align="baseline">
-                          <Form.Item
-                            {...restField}
-                            name={[name, 'key']}
-                            rules={[{ required: true, message: 'Missing header name' }]}
-                          >
-                            <Input placeholder="Header name" />
-                          </Form.Item>
-                          <Form.Item
-                            {...restField}
-                            name={[name, 'value']}
-                            rules={[{ required: true, message: 'Missing header value' }]}
-                          >
-                            <Input placeholder="Header value" />
-                          </Form.Item>
-                          <Button type="link" onClick={() => remove(name)}>
-                            Remove
-                          </Button>
-                        </Space>
-                      ))}
-                      <Form.Item>
-                        <Button type="dashed" onClick={() => add()} block>
-                          Add Custom Header
-                        </Button>
-                      </Form.Item>
-                    </>
-                  )}
-                </Form.List>
-              </Space>
-            ),
-          },
-          {
-            key: 'settings',
-            label: (
-              <Text strong>
-                <SettingOutlined style={{ marginRight: 8 }} />
-                Advanced Settings
-              </Text>
-            ),
-            children: (
-              <Form.Item
-                name="retryCount"
-                label="Retry Count"
-                help="Number of times to retry the webhook if it fails"
-                initialValue={3}
-              >
-                <InputNumber
-                  min={0}
-                  max={10}
-                  style={{ width: '100%' }}
-                  placeholder="3"
-                />
-              </Form.Item>
-            ),
-          },
-        ]}
-      />
+      <div style={{ marginBottom: '16px' }}>
+        <div style={{ fontWeight: 'bold', marginBottom: '12px', fontSize: '16px' }}>
+          Payload & Headers
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <TextAreaField
+            name="payload"
+            label="Request Payload"
+            required
+            rows={6}
+            placeholder='{"message": "{{dataToSend}}", "timestamp": "{{currentTime}}"}'
+          />
 
-      <Alert
-        message="Security Notice"
-        description="Webhook payloads may contain sensitive data. Ensure the webhook endpoint is secure and trusted."
-        type="warning"
-        style={{ marginTop: 16, marginBottom: 16 }}
-      />
+          <TextAreaField
+            name="headers"
+            label="Custom Headers (JSON)"
+            rows={4}
+            placeholder='{"Authorization": "Bearer {{token}}", "Content-Type": "application/json"}'
+          />
+        </div>
+      </div>
+
+      <div style={{ marginBottom: '16px' }}>
+        <div style={{ fontWeight: 'bold', marginBottom: '12px', fontSize: '16px' }}>
+          Advanced Settings
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <TextInputField
+            name="retryCount"
+            label="Retry Count"
+            type="number"
+            placeholder="3"
+          />
+        </div>
+      </div>
+
+      <div style={{ padding: '12px', backgroundColor: '#fff7e6', border: '1px solid #ffd591', borderRadius: '6px', marginTop: '16px', marginBottom: '16px' }}>
+        <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>Security Notice</div>
+        <div>Webhook payloads may contain sensitive data. Ensure the webhook endpoint is secure and trusted.</div>
+      </div>
 
       <RoleSelector />
       <InputReferences form={props.form} nodeid={selectedNode.id} />

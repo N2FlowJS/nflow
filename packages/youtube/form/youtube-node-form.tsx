@@ -1,12 +1,15 @@
 import { YoutubeOutlined, SettingOutlined, KeyOutlined } from '@ant-design/icons';
 import { FlowNode } from '../../../models/flowTypes';
-import { Form, Input, Select, Collapse, Space, Typography, Alert } from 'antd';
+import { Collapse, Space, Typography, Alert } from 'antd';
+import TextInputField from '../../@input/TextInputField';
+import TextAreaField from '../../@input/TextAreaField';
+import DropdownField from '../../@input/DropdownField';
 import React from 'react';
 import BaseNodeForm from '../../@flow/form';
 import InputReferences from '@n2flowjs/flow/share/InputReferences';
 import RoleSelector from '@n2flowjs/flow/share/RoleSelector';
 
-const { TextArea } = Input;
+// ...existing code...
 const { Text } = Typography;
 
 interface YouTubeNodeFormProps {
@@ -43,13 +46,13 @@ const YouTubeNodeForm: React.FC<YouTubeNodeFormProps> = (props) => {
               </Text>
             ),
             children: (
-              <Form.Item
+              <TextInputField
                 name="apiKey"
                 label="YouTube API Key"
-                rules={[{ required: true, message: 'Please enter YouTube API key' }]}
-              >
-                <Input.Password placeholder="Your YouTube Data API v3 key" />
-              </Form.Item>
+                required
+                type="password"
+                placeholder="Your YouTube Data API v3 key"
+              />
             ),
           },
           {
@@ -61,22 +64,19 @@ const YouTubeNodeForm: React.FC<YouTubeNodeFormProps> = (props) => {
               </Text>
             ),
             children: (
-              <Form.Item
+              <DropdownField
                 name="action"
                 label="Action Type"
-                help="Choose what YouTube operation to perform"
-                initialValue="get_videos"
-                rules={[{ required: true, message: 'Please select an action' }]}
-              >
-                <Select>
-                  <Select.Option value="upload_video">Upload Video</Select.Option>
-                  <Select.Option value="get_videos">Get Videos</Select.Option>
-                  <Select.Option value="get_channel_info">Get Channel Info</Select.Option>
-                  <Select.Option value="create_playlist">Create Playlist</Select.Option>
-                  <Select.Option value="get_comments">Get Comments</Select.Option>
-                  <Select.Option value="get_analytics">Get Analytics</Select.Option>
-                </Select>
-              </Form.Item>
+                required
+                options={[
+                  { label: 'Upload Video', value: 'upload_video' },
+                  { label: 'Get Videos', value: 'get_videos' },
+                  { label: 'Get Channel Info', value: 'get_channel_info' },
+                  { label: 'Create Playlist', value: 'create_playlist' },
+                  { label: 'Get Comments', value: 'get_comments' },
+                  { label: 'Get Analytics', value: 'get_analytics' }
+                ]}
+              />
             ),
           },
           {
@@ -88,114 +88,55 @@ const YouTubeNodeForm: React.FC<YouTubeNodeFormProps> = (props) => {
               </Text>
             ),
             children: (
-              <Form.Item shouldUpdate>
-                {({ getFieldValue }) => {
-                  const action = getFieldValue('action');
-                  
-                  return (
-                    <Space direction="vertical" style={{ width: '100%' }} size="middle">
-                      {action === 'upload_video' && (
-                        <>
-                          <Form.Item
-                            name="videoFile"
-                            label="Video File Path"
-                            help="Path to the video file to upload"
-                            rules={[{ required: true, message: 'Please enter video file path' }]}
-                          >
-                            <Input placeholder="/path/to/video.mp4" />
-                          </Form.Item>
-                          <Form.Item
-                            name="title"
-                            label="Video Title"
-                            help="Title of the video"
-                            rules={[{ required: true, message: 'Please enter video title' }]}
-                          >
-                            <Input placeholder="{{videoTitle}} or video title" />
-                          </Form.Item>
-                          <Form.Item
-                            name="videoDescription"
-                            label="Video Description"
-                            help="Description of the video"
-                          >
-                            <TextArea
-                              rows={4}
-                              placeholder="{{videoDescription}} or video description..."
-                            />
-                          </Form.Item>
-                          <Form.Item
-                            name="privacy"
-                            label="Privacy Status"
-                            help="Video privacy setting"
-                            initialValue="private"
-                          >
-                            <Select>
-                              <Select.Option value="public">Public</Select.Option>
-                              <Select.Option value="private">Private</Select.Option>
-                              <Select.Option value="unlisted">Unlisted</Select.Option>
-                            </Select>
-                          </Form.Item>
-                        </>
-                      )}
-                      
-                      {action === 'get_channel_info' && (
-                        <Form.Item
-                          name="channelId"
-                          label="Channel ID"
-                          help="YouTube channel ID to get information about"
-                          rules={[{ required: true, message: 'Please enter channel ID' }]}
-                        >
-                          <Input placeholder="UCChannelId123" />
-                        </Form.Item>
-                      )}
-                      
-                      {action === 'create_playlist' && (
-                        <>
-                          <Form.Item
-                            name="playlistTitle"
-                            label="Playlist Title"
-                            help="Title of the new playlist"
-                            rules={[{ required: true, message: 'Please enter playlist title' }]}
-                          >
-                            <Input placeholder="{{playlistTitle}} or playlist title" />
-                          </Form.Item>
-                          <Form.Item
-                            name="playlistDescription"
-                            label="Playlist Description"
-                            help="Description of the playlist"
-                          >
-                            <TextArea
-                              rows={3}
-                              placeholder="Playlist description..."
-                            />
-                          </Form.Item>
-                        </>
-                      )}
-                      
-                      {action === 'get_comments' && (
-                        <Form.Item
-                          name="videoId"
-                          label="Video ID"
-                          help="YouTube video ID to get comments from"
-                          rules={[{ required: true, message: 'Please enter video ID' }]}
-                        >
-                          <Input placeholder="dQw4w9WgXcQ" />
-                        </Form.Item>
-                      )}
-                      
-                      {action === 'get_analytics' && (
-                        <Form.Item
-                          name="channelId"
-                          label="Channel ID"
-                          help="Channel ID for analytics data"
-                          rules={[{ required: true, message: 'Please enter channel ID' }]}
-                        >
-                          <Input placeholder="UCChannelId123" />
-                        </Form.Item>
-                      )}
-                    </Space>
-                  );
-                }}
-              </Form.Item>
+              <Space direction="vertical" style={{ width: '100%' }} size="middle">
+                {/* Always show all fields for simplicity. For conditional, use form logic. */}
+                <TextInputField
+                  name="videoFile"
+                  label="Video File Path"
+                  placeholder="/path/to/video.mp4"
+                />
+                <TextInputField
+                  name="title"
+                  label="Video Title"
+                  placeholder="{{videoTitle}} or video title"
+                />
+                <TextAreaField
+                  name="videoDescription"
+                  label="Video Description"
+                  rows={4}
+                  placeholder="{{videoDescription}} or video description..."
+                />
+                <DropdownField
+                  name="privacy"
+                  label="Privacy Status"
+                  options={[
+                    { label: 'Public', value: 'public' },
+                    { label: 'Private', value: 'private' },
+                    { label: 'Unlisted', value: 'unlisted' }
+                  ]}
+                />
+                <TextInputField
+                  name="channelId"
+                  label="Channel ID"
+                  placeholder="UCChannelId123"
+                />
+                <TextInputField
+                  name="playlistTitle"
+                  label="Playlist Title"
+                  placeholder="{{playlistTitle}} or playlist title"
+                />
+                <TextAreaField
+                  name="playlistDescription"
+                  label="Playlist Description"
+                  rows={3}
+                  placeholder="Playlist description..."
+                />
+                <TextInputField
+                  name="videoId"
+                  label="Video ID"
+                  placeholder="dQw4w9WgXcQ"
+                />
+              </Space>
             ),
           },
         ]}

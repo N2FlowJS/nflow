@@ -1,11 +1,12 @@
 import { FilePdfOutlined, SettingOutlined, FileTextOutlined } from '@ant-design/icons';
 import { FlowNode } from '../../../models/flowTypes';
-import { Form, Input, Select, Switch, Collapse, Space, Typography, Alert } from 'antd';
+import { Form, Switch, Collapse, Space, Typography, Alert } from 'antd';
 import React from 'react';
 import BaseNodeForm from '../../../packages/@flow/form';
 import InputReferences from '@n2flowjs/flow/share/InputReferences';
 import RoleSelector from '@n2flowjs/flow/share/RoleSelector';
 import { useLocale } from '../../../locale';
+import { TextInputField, DropdownField } from '../../../packages/@input';
 
 const { Text } = Typography;
 
@@ -45,43 +46,36 @@ const PdfAnalysisNodeForm: React.FC<PdfAnalysisNodeFormProps> = (props) => {
             ),
             children: (
               <Space direction="vertical" style={{ width: '100%' }} size="middle">
-                <Form.Item
+                <TextInputField
                   name="pdfPath"
                   label={t('pdfPathLabel')}
-                  help={t('pdfPathHelp')}
-                  rules={[{ required: true, message: 'Please enter PDF file path' }]}
-                >
-                  <Input placeholder="/path/to/document.pdf or {{pdfPath}}" />
-                </Form.Item>
+                  placeholder="/path/to/document.pdf or {{pdfPath}}"
+                  required
+                />
 
-                <Form.Item
+                <DropdownField
                   name="operation"
                   label={t('operationLabel')}
-                  help={t('operationHelp')}
-                  initialValue="extract_text"
-                  rules={[{ required: true, message: 'Please select an operation' }]}
-                >
-                  <Select>
-                    <Select.Option value="extract_text">{t('extractTextOperation')}</Select.Option>
-                    <Select.Option value="extract_metadata">{t('extractMetadataOperation')}</Select.Option>
-                    <Select.Option value="extract_images">{t('extractImagesOperation')}</Select.Option>
-                    <Select.Option value="split_pages">{t('splitPagesOperation')}</Select.Option>
-                    <Select.Option value="merge_pdfs">{t('mergePdfsOperation')}</Select.Option>
-                  </Select>
-                </Form.Item>
+                  options={[
+                    { value: 'extract_text', label: t('extractTextOperation') },
+                    { value: 'extract_metadata', label: t('extractMetadataOperation') },
+                    { value: 'extract_images', label: t('extractImagesOperation') },
+                    { value: 'split_pages', label: t('splitPagesOperation') },
+                    { value: 'merge_pdfs', label: t('mergePdfsOperation') }
+                  ]}
+                  required
+                />
 
                 <Form.Item shouldUpdate>
                   {({ getFieldValue }) => {
                     const operation = getFieldValue('operation');
                     
                     return ['extract_text', 'split_pages'].includes(operation) ? (
-                      <Form.Item
+                      <TextInputField
                         name="pageRange"
                         label={t('pageRangeLabel')}
-                        help={t('pageRangeHelp')}
-                      >
-                        <Input placeholder="1-5 or 1,3,5 or leave empty for all pages" />
-                      </Form.Item>
+                        placeholder="1-5 or 1,3,5 or leave empty for all pages"
+                      />
                     ) : null;
                   }}
                 </Form.Item>
@@ -91,13 +85,11 @@ const PdfAnalysisNodeForm: React.FC<PdfAnalysisNodeFormProps> = (props) => {
                     const operation = getFieldValue('operation');
                     
                     return ['extract_images', 'split_pages'].includes(operation) ? (
-                      <Form.Item
+                      <TextInputField
                         name="outputDir"
                         label={t('outputDirLabel')}
-                        help={t('outputDirHelp')}
-                      >
-                        <Input placeholder="/path/to/output/directory" />
-                      </Form.Item>
+                        placeholder="/path/to/output/directory"
+                      />
                     ) : null;
                   }}
                 </Form.Item>

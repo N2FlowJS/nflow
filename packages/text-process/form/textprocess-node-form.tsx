@@ -1,12 +1,13 @@
 import { FontSizeOutlined, SettingOutlined, CodeOutlined } from '@ant-design/icons';
 import { FlowNode } from '../../../models/flowTypes';
-import { Form, Input, Select, Collapse, Space, Typography, Alert } from 'antd';
+import { Collapse, Space, Typography, Alert } from 'antd';
+import TextInputField from '../../@input/TextInputField';
+import TextAreaField from '../../@input/TextAreaField';
+import DropdownField from '../../@input/DropdownField';
 import React from 'react';
 import BaseNodeForm from '../../@flow/form';
 import InputReferences from '@n2flowjs/flow/share/InputReferences';
 import RoleSelector from '@n2flowjs/flow/share/RoleSelector';
-
-const { TextArea } = Input;
 const { Text } = Typography;
 
 interface TextProcessNodeFormProps {
@@ -43,17 +44,13 @@ const TextProcessNodeForm: React.FC<TextProcessNodeFormProps> = (props) => {
               </Text>
             ),
             children: (
-              <Form.Item
+              <TextAreaField
                 name="inputText"
                 label="Input Text"
-                help="Text to process. Use {{variableName}} syntax to reference variables from previous nodes."
-                rules={[{ required: true, message: 'Please specify the input text' }]}
-              >
-                <TextArea
-                  rows={3}
-                  placeholder="{{textInput}} or direct text"
-                />
-              </Form.Item>
+                required
+                rows={3}
+                placeholder="{{textInput}} or direct text"
+              />
             ),
           },
           {
@@ -65,24 +62,21 @@ const TextProcessNodeForm: React.FC<TextProcessNodeFormProps> = (props) => {
               </Text>
             ),
             children: (
-              <Form.Item
+              <DropdownField
                 name="operation"
                 label="Operation Type"
-                help="Choose the text processing operation to perform"
-                initialValue="trim"
-                rules={[{ required: true, message: 'Please select an operation' }]}
-              >
-                <Select>
-                  <Select.Option value="uppercase">Uppercase - Convert to UPPERCASE</Select.Option>
-                  <Select.Option value="lowercase">Lowercase - Convert to lowercase</Select.Option>
-                  <Select.Option value="trim">Trim - Remove leading/trailing spaces</Select.Option>
-                  <Select.Option value="replace">Replace - Replace text patterns</Select.Option>
-                  <Select.Option value="split">Split - Split text into array</Select.Option>
-                  <Select.Option value="join">Join - Join array into text</Select.Option>
-                  <Select.Option value="regex">Regex - Extract using regex pattern</Select.Option>
-                  <Select.Option value="length">Length - Get text length</Select.Option>
-                </Select>
-              </Form.Item>
+                required
+                options={[
+                  { label: 'Uppercase - Convert to UPPERCASE', value: 'uppercase' },
+                  { label: 'Lowercase - Convert to lowercase', value: 'lowercase' },
+                  { label: 'Trim - Remove leading/trailing spaces', value: 'trim' },
+                  { label: 'Replace - Replace text patterns', value: 'replace' },
+                  { label: 'Split - Split text into array', value: 'split' },
+                  { label: 'Join - Join array into text', value: 'join' },
+                  { label: 'Regex - Extract using regex pattern', value: 'regex' },
+                  { label: 'Length - Get text length', value: 'length' }
+                ]}
+              />
             ),
           },
           {
@@ -94,86 +88,33 @@ const TextProcessNodeForm: React.FC<TextProcessNodeFormProps> = (props) => {
               </Text>
             ),
             children: (
-              <Form.Item shouldUpdate>
-                {({ getFieldValue }) => {
-                  const operation = getFieldValue('operation');
-                  
-                  return (
-                    <Space direction="vertical" style={{ width: '100%' }} size="middle">
-                      {operation === 'replace' && (
-                        <>
-                          <Form.Item
-                            name="searchValue"
-                            label="Search Value"
-                            help="Text to search for"
-                            rules={[{ required: true, message: 'Please enter search value' }]}
-                          >
-                            <Input placeholder="Text to find" />
-                          </Form.Item>
-                          <Form.Item
-                            name="replaceValue"
-                            label="Replace Value"
-                            help="Text to replace with (can be empty)"
-                          >
-                            <Input placeholder="Replacement text" />
-                          </Form.Item>
-                        </>
-                      )}
-                      
-                      {operation === 'split' && (
-                        <Form.Item
-                          name="separator"
-                          label="Separator"
-                          help="Character or string to split on"
-                          rules={[{ required: true, message: 'Please enter separator' }]}
-                        >
-                          <Input placeholder="," />
-                        </Form.Item>
-                      )}
-                      
-                      {operation === 'join' && (
-                        <Form.Item
-                          name="separator"
-                          label="Separator"
-                          help="Character or string to join with"
-                          initialValue=","
-                        >
-                          <Input placeholder="," />
-                        </Form.Item>
-                      )}
-                      
-                      {operation === 'regex' && (
-                        <>
-                          <Form.Item
-                            name="regexPattern"
-                            label="Regex Pattern"
-                            help="Regular expression pattern to match"
-                            rules={[{ required: true, message: 'Please enter regex pattern' }]}
-                          >
-                            <Input placeholder="[a-zA-Z0-9]+" />
-                          </Form.Item>
-                          <Form.Item
-                            name="regexFlags"
-                            label="Regex Flags"
-                            help="Regex flags (g, i, m, etc.)"
-                            initialValue="g"
-                          >
-                            <Input placeholder="g" />
-                          </Form.Item>
-                        </>
-                      )}
-                      
-                      {!['replace', 'split', 'join', 'regex'].includes(operation) && (
-                        <Alert
-                          message="No additional parameters needed"
-                          description="This operation doesn't require additional parameters."
-                          type="info"
-                        />
-                      )}
-                    </Space>
-                  );
-                }}
-              </Form.Item>
+              <Space direction="vertical" style={{ width: '100%' }} size="middle">
+                <TextInputField
+                  name="searchValue"
+                  label="Search Value"
+                  placeholder="Text to find"
+                />
+                <TextInputField
+                  name="replaceValue"
+                  label="Replace Value"
+                  placeholder="Replacement text"
+                />
+                <TextInputField
+                  name="separator"
+                  label="Separator"
+                  placeholder=","
+                />
+                <TextInputField
+                  name="regexPattern"
+                  label="Regex Pattern"
+                  placeholder="[a-zA-Z0-9]+"
+                />
+                <TextInputField
+                  name="regexFlags"
+                  label="Regex Flags"
+                  placeholder="g"
+                />
+              </Space>
             ),
           },
         ]}

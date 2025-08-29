@@ -1,12 +1,13 @@
 import { CustomerServiceOutlined, SettingOutlined, KeyOutlined } from '@ant-design/icons';
 import { FlowNode } from '../../../models/flowTypes';
-import { Form, Input, Select, Collapse, Space, Typography, Alert, InputNumber } from 'antd';
+import { Collapse, Space, Typography, Alert } from 'antd';
+import TextInputField from '../../@input/TextInputField';
+import TextAreaField from '../../@input/TextAreaField';
+import DropdownField from '../../@input/DropdownField';
 import React from 'react';
 import BaseNodeForm from '../../@flow/form';
 import InputReferences from '@n2flowjs/flow/share/InputReferences';
 import RoleSelector from '@n2flowjs/flow/share/RoleSelector';
-
-const { TextArea } = Input;
 const { Text } = Typography;
 
 interface TikTokNodeFormProps {
@@ -43,13 +44,13 @@ const TikTokNodeForm: React.FC<TikTokNodeFormProps> = (props) => {
               </Text>
             ),
             children: (
-              <Form.Item
+              <TextInputField
                 name="accessToken"
                 label="Access Token"
-                rules={[{ required: true, message: 'Please enter TikTok access token' }]}
-              >
-                <Input.Password placeholder="Your TikTok for Developers access token" />
-              </Form.Item>
+                required
+                type="password"
+                placeholder="Your TikTok for Developers access token"
+              />
             ),
           },
           {
@@ -61,20 +62,17 @@ const TikTokNodeForm: React.FC<TikTokNodeFormProps> = (props) => {
               </Text>
             ),
             children: (
-              <Form.Item
+              <DropdownField
                 name="action"
                 label="Action Type"
-                help="Choose what TikTok operation to perform"
-                initialValue="get_user_info"
-                rules={[{ required: true, message: 'Please select an action' }]}
-              >
-                <Select>
-                  <Select.Option value="upload_video">Upload Video</Select.Option>
-                  <Select.Option value="get_user_info">Get User Info</Select.Option>
-                  <Select.Option value="get_videos">Get Videos</Select.Option>
-                  <Select.Option value="get_hashtag_videos">Get Hashtag Videos</Select.Option>
-                </Select>
-              </Form.Item>
+                required
+                options={[
+                  { label: 'Upload Video', value: 'upload_video' },
+                  { label: 'Get User Info', value: 'get_user_info' },
+                  { label: 'Get Videos', value: 'get_videos' },
+                  { label: 'Get Hashtag Videos', value: 'get_hashtag_videos' }
+                ]}
+              />
             ),
           },
           {
@@ -86,93 +84,44 @@ const TikTokNodeForm: React.FC<TikTokNodeFormProps> = (props) => {
               </Text>
             ),
             children: (
-              <Form.Item shouldUpdate>
-                {({ getFieldValue }) => {
-                  const action = getFieldValue('action');
-                  
-                  return (
-                    <Space direction="vertical" style={{ width: '100%' }} size="middle">
-                      {action === 'upload_video' && (
-                        <>
-                          <Form.Item
-                            name="videoFile"
-                            label="Video File Path"
-                            help="Path to the video file to upload"
-                            rules={[{ required: true, message: 'Please enter video file path' }]}
-                          >
-                            <Input placeholder="/path/to/video.mp4" />
-                          </Form.Item>
-                          <Form.Item
-                            name="caption"
-                            label="Caption"
-                            help="Caption for the TikTok video"
-                          >
-                            <TextArea
-                              rows={3}
-                              placeholder="{{tikTokCaption}} or video caption..."
-                            />
-                          </Form.Item>
-                          <Form.Item
-                            name="privacy"
-                            label="Privacy Setting"
-                            help="Who can see this video"
-                            initialValue="public"
-                          >
-                            <Select>
-                              <Select.Option value="public">Public</Select.Option>
-                              <Select.Option value="friends">Friends Only</Select.Option>
-                              <Select.Option value="private">Private</Select.Option>
-                            </Select>
-                          </Form.Item>
-                        </>
-                      )}
-                      
-                      {action === 'get_user_info' && (
-                        <Form.Item
-                          name="userId"
-                          label="User ID"
-                          help="TikTok user ID to get information about"
-                          rules={[{ required: true, message: 'Please enter user ID' }]}
-                        >
-                          <Input placeholder="TikTok user ID" />
-                        </Form.Item>
-                      )}
-                      
-                      {action === 'get_videos' && (
-                        <Form.Item
-                          name="maxResults"
-                          label="Max Results"
-                          help="Maximum number of videos to retrieve"
-                          initialValue={10}
-                        >
-                          <InputNumber min={1} max={50} style={{ width: '100%' }} />
-                        </Form.Item>
-                      )}
-                      
-                      {action === 'get_hashtag_videos' && (
-                        <>
-                          <Form.Item
-                            name="hashtag"
-                            label="Hashtag"
-                            help="Hashtag to search for (without #)"
-                            rules={[{ required: true, message: 'Please enter hashtag' }]}
-                          >
-                            <Input placeholder="trending" />
-                          </Form.Item>
-                          <Form.Item
-                            name="maxResults"
-                            label="Max Results"
-                            help="Maximum number of videos to retrieve"
-                            initialValue={10}
-                          >
-                            <InputNumber min={1} max={50} style={{ width: '100%' }} />
-                          </Form.Item>
-                        </>
-                      )}
-                    </Space>
-                  );
-                }}
-              </Form.Item>
+              <Space direction="vertical" style={{ width: '100%' }} size="middle">
+                <TextInputField
+                  name="videoFile"
+                  label="Video File Path"
+                  placeholder="/path/to/video.mp4"
+                />
+                <TextAreaField
+                  name="caption"
+                  label="Caption"
+                  rows={3}
+                  placeholder="{{tikTokCaption}} or video caption..."
+                />
+                <DropdownField
+                  name="privacy"
+                  label="Privacy Setting"
+                  options={[
+                    { label: 'Public', value: 'public' },
+                    { label: 'Friends Only', value: 'friends' },
+                    { label: 'Private', value: 'private' }
+                  ]}
+                />
+                <TextInputField
+                  name="userId"
+                  label="User ID"
+                  placeholder="TikTok user ID"
+                />
+                <TextInputField
+                  name="maxResults"
+                  label="Max Results"
+                  type="number"
+                  placeholder="10"
+                />
+                <TextInputField
+                  name="hashtag"
+                  label="Hashtag"
+                  placeholder="trending"
+                />
+              </Space>
             ),
           },
         ]}

@@ -4,7 +4,7 @@ export interface AgentToolsForm extends BaseForm {
   toolIds: string[];
 }
 
-export type AgentToolsNodeData = BaseNodeData<AgentToolsForm> & { type: 'agenttools' };
+export type AgentToolsNodeData = BaseNodeData<AgentToolsForm> & { type: 'agent-tools' };
 
 
 // Auto-added augmentation for NodeDataMap

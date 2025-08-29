@@ -1,13 +1,12 @@
-import { TeamOutlined, SettingOutlined, LinkOutlined } from '@ant-design/icons';
 import { FlowNode } from '../../../models/flowTypes';
-import { Form, Input, InputNumber, Switch, Collapse, Space, Typography, Alert, Select, Button } from 'antd';
+import TextInputField from '../../@input/TextInputField';
+import TextAreaField from '../../@input/TextAreaField';
+import DropdownField from '../../@input/DropdownField';
 import React, { useState, useEffect, useCallback } from 'react';
 import BaseNodeForm from '../../@flow/form';
 import InputReferences from '@n2flowjs/flow/share/InputReferences';
 import RoleSelector from '@n2flowjs/flow/share/RoleSelector';
 import { useRouter } from 'next/router';
-
-const { Text } = Typography;
 
 interface SubAgentNodeFormProps {
   form: any;
@@ -76,143 +75,77 @@ const SubAgentNodeForm: React.FC<SubAgentNodeFormProps> = (props) => {
     loadAgents();
   }, [loadAgents]);
 
+  const agentOptions = agents.map(agent => ({
+    label: agent.name,
+    value: agent.id
+  }));
+
   return (
     <BaseNodeForm {...props}>
-      <Alert
-        message="Sub Agent Node"
-        description="Execute another agent/flow as a sub-process and return its results to continue the current flow."
-        type="info"
-        showIcon
-        icon={<TeamOutlined />}
-        style={{ marginBottom: 16 }}
-      />
+      <div style={{ padding: '12px', backgroundColor: '#e6f7ff', border: '1px solid #91d5ff', borderRadius: '6px', marginBottom: '16px' }}>
+        <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>Sub Agent Node</div>
+        <div>Execute another agent/flow as a sub-process and return its results to continue the current flow.</div>
+      </div>
 
-      <Collapse
-        defaultActiveKey={['agent', 'config', 'variables']}
-        bordered={false}
-        expandIconPosition="end"
-        items={[
-          {
-            key: 'agent',
-            label: (
-              <Text strong>
-                <TeamOutlined style={{ marginRight: 8 }} />
-                Agent Selection
-              </Text>
-            ),
-            children: (
-              <Space direction="vertical" style={{ width: '100%' }} size="middle">
-                <Form.Item
-                  name="agentId"
-                  label="Target Agent"
-                  rules={[{ required: true, message: 'Please select an agent' }]}>
-                  <Select
-                    placeholder="Select an agent to execute"
-                    loading={loading}
-                    showSearch
-                    filterOption={(input, option) =>
-                      (option?.children as unknown as string)?.toLowerCase().includes(input.toLowerCase())
-                    }
-                    onChange={(_value, option: any) => {
-                      props.form.setFieldsValue({
-                        agentName: option?.children || '',
-                      });
-                    }}>
-                    {agents.map((agent) => (
-                      <Select.Option key={agent.id} value={agent.id}>
-                        {agent.name}
-                      </Select.Option>
-                    ))}
-                  </Select>
-                </Form.Item>
+      <div style={{ marginBottom: '16px' }}>
+        <div style={{ fontWeight: 'bold', marginBottom: '12px', fontSize: '16px' }}>
+          Agent Selection
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <DropdownField
+            name="agentId"
+            label="Target Agent"
+            required
+            options={agentOptions}
+            placeholder={loading ? "Loading agents..." : "Select an agent to execute"}
+          />
+          <TextInputField
+            name="agentName"
+            label="Agent Name"
+            placeholder="Agent display name (auto-filled)"
+          />
+        </div>
+      </div>
 
-                <Form.Item name="agentName" label="Agent Name" help="Display name for the selected agent">
-                  <Input placeholder="Agent display name" disabled />
-                </Form.Item>
-              </Space>
-            ),
-          },
-          {
-            key: 'config',
-            label: (
-              <Text strong>
-                <SettingOutlined style={{ marginRight: 8 }} />
-                Execution Settings
-              </Text>
-            ),
-            children: (
-              <Space direction="vertical" style={{ width: '100%' }} size="middle">
-                <Form.Item
-                  name="timeout"
-                  label="Execution Timeout (seconds)"
-                  help="Maximum time to wait for sub-agent execution"
-                  initialValue={300}>
-                  <InputNumber min={30} max={1800} style={{ width: '100%' }} placeholder="300" />
-                </Form.Item>
+      <div style={{ marginBottom: '16px' }}>
+        <div style={{ fontWeight: 'bold', marginBottom: '12px', fontSize: '16px' }}>
+          Execution Settings
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <TextInputField
+            name="timeout"
+            label="Execution Timeout (seconds)"
+            placeholder="300"
+          />
+          <DropdownField
+            name="inheritContext"
+            label="Inherit Context"
+            options={[
+              { label: 'Inherit conversation context', value: 'true' },
+              { label: 'Start with clean context', value: 'false' }
+            ]}
+          />
+        </div>
+      </div>
 
-                <Form.Item
-                  name="inheritContext"
-                  label="Inherit Context"
-                  help="Whether the sub-agent should inherit conversation context from the current flow"
-                  valuePropName="checked"
-                  initialValue={true}>
-                  <Switch />
-                </Form.Item>
-              </Space>
-            ),
-          },
-          {
-            key: 'variables',
-            label: (
-              <Text strong>
-                <LinkOutlined style={{ marginRight: 8 }} />
-                Variable Mapping
-              </Text>
-            ),
-            children: (
-              <div>
-                <Alert
-                  message="Variable Mapping"
-                  description="Map variables from the current flow to the sub-agent. Use ${variableName} syntax to reference variables from previous nodes."
-                  type="info"
-                  style={{ marginBottom: 16 }}
-                />
-
-                <Form.List name="variableMappings">
-                  {(fields, { add, remove }) => (
-                    <>
-                      {fields.map(({ key, name, ...restField }) => (
-                        <Space key={key} style={{ display: 'flex', marginBottom: 8 }} align="baseline">
-                          <Form.Item
-                            {...restField}
-                            name={[name, 'key']}
-                            rules={[{ required: true, message: 'Missing variable name' }]}>
-                            <Input placeholder="Variable name" />
-                          </Form.Item>
-                          <Form.Item
-                            {...restField}
-                            name={[name, 'value']}
-                            rules={[{ required: true, message: 'Missing variable value' }]}>
-                            <Input placeholder="Value or ${reference}" />
-                          </Form.Item>
-                          <Button type="link" onClick={() => remove(name)}>
-                            Remove
-                          </Button>
-                        </Space>
-                      ))}
-                      <Form.Item>
-                        <Button type="dashed" onClick={() => add()} block>
-                          Add Variable Mapping
-                        </Button>
-                      </Form.Item>
-                    </>
-                  )}
-                </Form.List>
-              </div>
-            ),
-          },
-        ]}
-      />
+      <div style={{ marginBottom: '16px' }}>
+        <div style={{ fontWeight: 'bold', marginBottom: '12px', fontSize: '16px' }}>
+          Variable Mapping
+        </div>
+        <div style={{ padding: '12px', backgroundColor: '#f6ffed', border: '1px solid #b7eb8f', borderRadius: '6px', marginBottom: '16px' }}>
+          <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>Variable Mapping</div>
+          <div>Map variables from the current flow to the sub-agent. Use ${`{variableName}`} syntax to reference variables from previous nodes.</div>
+        </div>
+        <TextAreaField
+          name="variableMappings"
+          label="Variable Mappings (JSON)"
+          rows={6}
+          placeholder={`[
+  {"key": "userName", "value": "\${userName}"},
+  {"key": "orderId", "value": "\${orderId}"}
+]`}
+        />
+      </div>
 
       <RoleSelector />
       <InputReferences form={props.form} nodeid={selectedNode.id} />

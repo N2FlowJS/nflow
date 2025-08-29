@@ -1,14 +1,12 @@
-import { DatabaseOutlined, CodeOutlined, SecurityScanOutlined } from '@ant-design/icons';
 import { FlowNode } from '../../../models/flowTypes';
-import { Form, Input, InputNumber, Switch, Collapse, Space, Typography, Alert } from 'antd';
+import TextInputField from '../../../packages/@input/TextInputField';
+import TextAreaField from '../../../packages/@input/TextAreaField';
+import DropdownField from '../../../packages/@input/DropdownField';
 import React from 'react';
 import BaseNodeForm from '../../../packages/@flow/form';
 import InputReferences from '@n2flowjs/flow/share/InputReferences';
 import RoleSelector from '@n2flowjs/flow/share/RoleSelector';
 import { useLocale } from '../../../locale';
-
-const { TextArea } = Input;
-const { Text } = Typography;
 
 interface ExecMssqlNodeFormProps {
   form: any;
@@ -22,156 +20,97 @@ const ExecMssqlNodeForm: React.FC<ExecMssqlNodeFormProps> = (props) => {
 
   return (
     <BaseNodeForm {...props}>
-      <Alert
-        message="Microsoft SQL Server Execution Node"
-        description="Execute T-SQL queries against a Microsoft SQL Server database and return results for further processing."
-        type="info"
-        showIcon
-        icon={<DatabaseOutlined />}
-        style={{ marginBottom: 16 }}
-      />
+      <div style={{ padding: '12px', backgroundColor: '#e6f7ff', border: '1px solid #91d5ff', borderRadius: '6px', marginBottom: '16px' }}>
+        <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>Microsoft SQL Server Execution Node</div>
+        <div>Execute T-SQL queries against a Microsoft SQL Server database and return results for further processing.</div>
+      </div>
 
-      <Collapse
-        defaultActiveKey={['connection', 'query', 'settings']}
-        bordered={false}
-        expandIconPosition="end"
-        items={[
-          {
-            key: 'connection',
-            label: (
-              <Text strong>
-                <SecurityScanOutlined style={{ marginRight: 8 }} />
-                Database Connection
-              </Text>
-            ),
-            children: (
-              <Space direction="vertical" style={{ width: '100%' }} size="middle">
-                <Form.Item
-                  name="server"
-                  label="Server Host"
-                  rules={[{ required: true, message: 'Please enter server host' }]}
-                >
-                  <Input placeholder="localhost or server instance" />
-                </Form.Item>
+      <div style={{ marginBottom: '16px' }}>
+        <div style={{ fontWeight: 'bold', marginBottom: '12px', fontSize: '16px' }}>
+          Database Connection
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <TextInputField
+            name="server"
+            label="Server Host"
+            required
+            placeholder="localhost or server instance"
+          />
 
-                <Form.Item
-                  name="port"
-                  label="Port"
-                  rules={[{ required: true, message: 'Please enter port number' }]}
-                  initialValue={1433}
-                >
-                  <InputNumber
-                    min={1}
-                    max={65535}
-                    style={{ width: '100%' }}
-                    placeholder="1433"
-                  />
-                </Form.Item>
+          <TextInputField
+            name="port"
+            label="Port"
+            required
+            placeholder="1433"
+            type="number"
+          />
 
-                <Form.Item
-                  name="database"
-                  label="Database Name"
-                  rules={[{ required: true, message: 'Please enter database name' }]}
-                >
-                  <Input placeholder="Database name" />
-                </Form.Item>
+          <TextInputField
+            name="database"
+            label="Database Name"
+            required
+            placeholder="Database name"
+          />
 
-                <Form.Item
-                  name="user"
-                  label="Username"
-                  rules={[{ required: true, message: 'Please enter username' }]}
-                >
-                  <Input placeholder="SQL Server username" />
-                </Form.Item>
+          <TextInputField
+            name="user"
+            label="Username"
+            required
+            placeholder="SQL Server username"
+          />
 
-                <Form.Item
-                  name="password"
-                  label="Password"
-                  rules={[{ required: true, message: 'Please enter password' }]}
-                >
-                  <Input.Password placeholder="SQL Server password" />
-                </Form.Item>
+          <TextInputField
+            name="password"
+            label="Password"
+            required
+            placeholder="SQL Server password"
+            type="password"
+          />
 
-                <Form.Item
-                  name="trustServerCertificate"
-                  label="Trust Server Certificate"
-                  help="Enable for development environments with self-signed certificates"
-                  valuePropName="checked"
-                  initialValue={true}
-                >
-                  <Switch />
-                </Form.Item>
-              </Space>
-            ),
-          },
-          {
-            key: 'query',
-            label: (
-              <Text strong>
-                <CodeOutlined style={{ marginRight: 8 }} />
-                T-SQL Query
-              </Text>
-            ),
-            children: (
-              <Form.Item
-                name="query"
-                label="T-SQL Query"
-                help="Enter your T-SQL query. Use variables from previous nodes with {{variableName}} syntax."
-                rules={[
-                  { required: true, message: 'Please enter T-SQL query' },
-                  { min: 10, message: 'Query must be at least 10 characters long' }
-                ]}
-              >
-                <TextArea
-                  rows={6}
-                  placeholder="SELECT * FROM users WHERE id = {{userId}}"
-                  style={{ fontFamily: 'monospace' }}
-                />
-              </Form.Item>
-            ),
-          },
-          {
-            key: 'settings',
-            label: (
-              <Text strong>
-                <DatabaseOutlined style={{ marginRight: 8 }} />
-                Execution Settings
-              </Text>
-            ),
-            children: (
-              <Space direction="vertical" style={{ width: '100%' }} size="middle">
-                <Form.Item
-                  name="timeout"
-                  label="Query Timeout (seconds)"
-                  help="Maximum time to wait for query execution"
-                  initialValue={30}
-                >
-                  <InputNumber
-                    min={5}
-                    max={300}
-                    style={{ width: '100%' }}
-                    placeholder="30"
-                  />
-                </Form.Item>
+          <DropdownField
+            name="trustServerCertificate"
+            label="Trust Server Certificate"
+            options={[
+              { label: 'Yes', value: 'true' },
+              { label: 'No', value: 'false' }
+            ]}
+          />
+        </div>
+      </div>
 
-                <Form.Item
-                  name="maxRows"
-                  label="Maximum Rows"
-                  help="Maximum number of rows to return from the query"
-                  initialValue={100}
-                >
-                  <InputNumber
-                    min={1}
-                    max={10000}
-                    style={{ width: '100%' }}
-                    placeholder="100"
-                  />
-                </Form.Item>
-              </Space>
-            ),
-          },
-        ]}
-      />
+      <div style={{ marginBottom: '16px' }}>
+        <div style={{ fontWeight: 'bold', marginBottom: '12px', fontSize: '16px' }}>
+          T-SQL Query
+        </div>
+        <TextAreaField
+          name="query"
+          label="T-SQL Query"
+          required
+          placeholder="SELECT * FROM users WHERE id = {{userId}}"
+          rows={6}
+        />
+      </div>
+
+      <div style={{ marginBottom: '16px' }}>
+        <div style={{ fontWeight: 'bold', marginBottom: '12px', fontSize: '16px' }}>
+          Execution Settings
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <TextInputField
+            name="timeout"
+            label="Query Timeout (seconds)"
+            placeholder="30"
+            type="number"
+          />
+
+          <TextInputField
+            name="maxRows"
+            label="Maximum Rows"
+            placeholder="100"
+            type="number"
+          />
+        </div>
+      </div>
 
       <RoleSelector />
       <InputReferences form={props.form} nodeid={selectedNode.id} />

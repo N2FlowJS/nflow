@@ -1,11 +1,12 @@
 import { FileExcelOutlined, SettingOutlined, TableOutlined } from '@ant-design/icons';
 import { FlowNode } from '../../../models/flowTypes';
-import { Form, Input, Select, Switch, Collapse, Space, Typography, Alert } from 'antd';
+import { Form, Switch, Collapse, Space, Typography, Alert } from 'antd';
 import React from 'react';
 import BaseNodeForm from '../../../packages/@flow/form';
 import InputReferences from '@n2flowjs/flow/share/InputReferences';
 import RoleSelector from '@n2flowjs/flow/share/RoleSelector';
 import { useLocale } from '../../../locale';
+import { TextInputField, DropdownField } from '../../../packages/@input';
 
 const { Text } = Typography;
 
@@ -45,46 +46,37 @@ const ExcelAnalysisNodeForm: React.FC<ExcelAnalysisNodeFormProps> = (props) => {
             ),
             children: (
               <Space direction="vertical" style={{ width: '100%' }} size="middle">
-                <Form.Item
+                <TextInputField
                   name="filePath"
                   label={t('filePathLabel')}
-                  help={t('filePathHelp')}
-                  rules={[{ required: true, message: 'Please enter Excel file path' }]}
-                >
-                  <Input placeholder="/path/to/spreadsheet.xlsx or {{excelPath}}" />
-                </Form.Item>
+                  placeholder="/path/to/spreadsheet.xlsx or {{excelPath}}"
+                  required
+                />
 
-                <Form.Item
+                <DropdownField
                   name="operation"
                   label={t('operationLabel')}
-                  help={t('operationHelp')}
-                  initialValue="read_sheets"
-                  rules={[{ required: true, message: 'Please select an operation' }]}
-                >
-                  <Select>
-                    <Select.Option value="read_sheets">{t('readSheetsOperation')}</Select.Option>
-                    <Select.Option value="analyze_data">{t('analyzeDataOperation')}</Select.Option>
-                    <Select.Option value="pivot_table">{t('pivotTableOperation')}</Select.Option>
-                    <Select.Option value="chart_data">{t('chartDataOperation')}</Select.Option>
-                    <Select.Option value="validate_formulas">{t('validateFormulasOperation')}</Select.Option>
-                  </Select>
-                </Form.Item>
+                  options={[
+                    { value: 'read_sheets', label: t('readSheetsOperation') },
+                    { value: 'analyze_data', label: t('analyzeDataOperation') },
+                    { value: 'pivot_table', label: t('pivotTableOperation') },
+                    { value: 'chart_data', label: t('chartDataOperation') },
+                    { value: 'validate_formulas', label: t('validateFormulasOperation') }
+                  ]}
+                  required
+                />
 
-                <Form.Item
+                <TextInputField
                   name="sheetName"
                   label={t('sheetNameLabel')}
-                  help={t('sheetNameHelp')}
-                >
-                  <Input placeholder="Sheet1 or leave empty for all sheets" />
-                </Form.Item>
+                  placeholder="Sheet1 or leave empty for all sheets"
+                />
 
-                <Form.Item
+                <TextInputField
                   name="cellRange"
                   label={t('cellRangeLabel')}
-                  help={t('cellRangeHelp')}
-                >
-                  <Input placeholder="A1:C10 or leave empty for entire sheet" />
-                </Form.Item>
+                  placeholder="A1:C10 or leave empty for entire sheet"
+                />
               </Space>
             ),
           },

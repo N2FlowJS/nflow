@@ -1,13 +1,11 @@
-import { MessageOutlined, SettingOutlined, LinkOutlined } from '@ant-design/icons';
 import { FlowNode } from '../../../models/flowTypes';
-import { Form, Input, Select, Collapse, Space, Typography, Alert } from 'antd';
-import React from 'react';
+import TextInputField from '../../../packages/@input/TextInputField';
+import TextAreaField from '../../../packages/@input/TextAreaField';
+import DropdownField from '../../../packages/@input/DropdownField';
+import React, { useState, useEffect } from 'react';
 import BaseNodeForm from '../../../packages/@flow/form';
 import InputReferences from '@n2flowjs/flow/share/InputReferences';
 import RoleSelector from '@n2flowjs/flow/share/RoleSelector';
-
-const { TextArea } = Input;
-const { Text } = Typography;
 
 interface MattermostNodeFormProps {
   form: any;
@@ -17,165 +15,127 @@ interface MattermostNodeFormProps {
 
 const MattermostNodeForm: React.FC<MattermostNodeFormProps> = (props) => {
   const { selectedNode } = props;
+  const [action, setAction] = useState('');
+
+  useEffect(() => {
+    // Watch for changes in the action field
+    const subscription = props.form?.getFieldValue && (() => {
+      const currentAction = props.form.getFieldValue('action');
+      if (currentAction !== action) {
+        setAction(currentAction || '');
+      }
+    });
+
+    // Initial value
+    const initialAction = props.form?.getFieldValue ? props.form.getFieldValue('action') : '';
+    setAction(initialAction || '');
+
+    return subscription;
+  }, [props.form, action]);
 
   return (
     <BaseNodeForm {...props}>
-      <Alert
-        message="Mattermost Node"
-        description="Interact with Mattermost for team communication. Send messages, create channels, and manage team collaboration."
-        type="info"
-        showIcon
-        icon={<MessageOutlined />}
-        style={{ marginBottom: 16 }}
-      />
+      <div style={{ padding: '12px', backgroundColor: '#e6f7ff', border: '1px solid #91d5ff', borderRadius: '6px', marginBottom: '16px' }}>
+        <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>Mattermost Node</div>
+        <div>Interact with Mattermost for team communication. Send messages, create channels, and manage team collaboration.</div>
+      </div>
 
-      <Collapse
-        defaultActiveKey={['connection', 'action', 'parameters']}
-        bordered={false}
-        expandIconPosition="end"
-        items={[
-          {
-            key: 'connection',
-            label: (
-              <Text strong>
-                <LinkOutlined style={{ marginRight: 8 }} />
-                Connection Settings
-              </Text>
-            ),
-            children: (
-              <Space direction="vertical" style={{ width: '100%' }} size="middle">
-                <Form.Item
-                  name="serverUrl"
-                  label="Mattermost Server URL"
-                  help="Your Mattermost server URL (e.g., https://mattermost.company.com)"
-                  rules={[{ required: true, message: 'Please enter the server URL' }]}
-                >
-                  <Input placeholder="https://your-mattermost.com" />
-                </Form.Item>
+      <div style={{ marginBottom: '16px' }}>
+        <div style={{ fontWeight: 'bold', marginBottom: '12px', fontSize: '16px' }}>
+          Connection Settings
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <TextInputField
+            name="serverUrl"
+            label="Mattermost Server URL"
+            required
+            placeholder="https://your-mattermost.com"
+          />
+          <TextInputField
+            name="accessToken"
+            label="Access Token"
+            required
+            type="password"
+            placeholder="Access token"
+          />
+        </div>
+      </div>
 
-                <Form.Item
-                  name="accessToken"
-                  label="Access Token"
-                  help="Personal access token or bot token for authentication"
-                  rules={[{ required: true, message: 'Please enter the access token' }]}
-                >
-                  <Input.Password placeholder="Access token" />
-                </Form.Item>
-              </Space>
-            ),
-          },
-          {
-            key: 'action',
-            label: (
-              <Text strong>
-                <SettingOutlined style={{ marginRight: 8 }} />
-                Action Configuration
-              </Text>
-            ),
-            children: (
-              <Space direction="vertical" style={{ width: '100%' }} size="middle">
-                <Form.Item
-                  name="action"
-                  label="Action Type"
-                  help="Choose what action to perform"
-                  initialValue="send_message"
-                  rules={[{ required: true, message: 'Please select an action' }]}
-                >
-                  <Select>
-                    <Select.Option value="send_message">Send Message</Select.Option>
-                    <Select.Option value="create_channel">Create Channel</Select.Option>
-                    <Select.Option value="get_channels">Get Channels List</Select.Option>
-                    <Select.Option value="get_users">Get Users List</Select.Option>
-                  </Select>
-                </Form.Item>
-              </Space>
-            ),
-          },
-          {
-            key: 'parameters',
-            label: (
-              <Text strong>
-                <MessageOutlined style={{ marginRight: 8 }} />
-                Action Parameters
-              </Text>
-            ),
-            children: (
-              <Form.Item shouldUpdate>
-                {({ getFieldValue }) => {
-                  const action = getFieldValue('action');
-                  
-                  return (
-                    <Space direction="vertical" style={{ width: '100%' }} size="middle">
-                      {(action === 'send_message') && (
-                        <>
-                          <Form.Item
-                            name="channelId"
-                            label="Channel ID"
-                            help="Mattermost channel ID to send message to"
-                          >
-                            <Input placeholder="Channel ID" />
-                          </Form.Item>
-                          <Form.Item
-                            name="message"
-                            label="Message Content"
-                            help="Message to send. Use {{variableName}} to reference variables."
-                            rules={[{ required: true, message: 'Please enter message content' }]}
-                          >
-                            <TextArea
-                              rows={4}
-                              placeholder="{{messageContent}} or direct message"
-                            />
-                          </Form.Item>
-                        </>
-                      )}
-                      
-                      {action === 'create_channel' && (
-                        <>
-                          <Form.Item
-                            name="teamId"
-                            label="Team ID"
-                            help="Team ID where the channel will be created"
-                            rules={[{ required: true, message: 'Please enter team ID' }]}
-                          >
-                            <Input placeholder="Team ID" />
-                          </Form.Item>
-                          <Form.Item
-                            name="channelName"
-                            label="Channel Name"
-                            help="Name for the new channel"
-                            rules={[{ required: true, message: 'Please enter channel name' }]}
-                          >
-                            <Input placeholder="{{channelName}} or direct name" />
-                          </Form.Item>
-                        </>
-                      )}
-                      
-                      {action === 'get_channels' && (
-                        <Form.Item
-                          name="teamId"
-                          label="Team ID"
-                          help="Team ID to get channels from"
-                          rules={[{ required: true, message: 'Please enter team ID' }]}
-                        >
-                          <Input placeholder="Team ID" />
-                        </Form.Item>
-                      )}
-                      
-                      {action === 'get_users' && (
-                        <Alert
-                          message="No additional parameters needed"
-                          description="This action retrieves all users from the Mattermost server."
-                          type="info"
-                        />
-                      )}
-                    </Space>
-                  );
-                }}
-              </Form.Item>
-            ),
-          },
-        ]}
-      />
+      <div style={{ marginBottom: '16px' }}>
+        <div style={{ fontWeight: 'bold', marginBottom: '12px', fontSize: '16px' }}>
+          Action Configuration
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <DropdownField
+            name="action"
+            label="Action Type"
+            required
+            options={[
+              { label: 'Send Message', value: 'send_message' },
+              { label: 'Create Channel', value: 'create_channel' },
+              { label: 'Get Channels List', value: 'get_channels' },
+              { label: 'Get Users List', value: 'get_users' }
+            ]}
+          />
+        </div>
+      </div>
+
+      <div style={{ marginBottom: '16px' }}>
+        <div style={{ fontWeight: 'bold', marginBottom: '12px', fontSize: '16px' }}>
+          Action Parameters
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {action === 'send_message' && (
+            <>
+              <TextInputField
+                name="channelId"
+                label="Channel ID"
+                placeholder="Channel ID"
+              />
+              <TextAreaField
+                name="message"
+                label="Message Content"
+                required
+                rows={4}
+                placeholder="{{messageContent}} or direct message"
+              />
+            </>
+          )}
+
+          {action === 'create_channel' && (
+            <>
+              <TextInputField
+                name="teamId"
+                label="Team ID"
+                required
+                placeholder="Team ID"
+              />
+              <TextInputField
+                name="channelName"
+                label="Channel Name"
+                required
+                placeholder="{{channelName}} or direct name"
+              />
+            </>
+          )}
+
+          {action === 'get_channels' && (
+            <TextInputField
+              name="teamId"
+              label="Team ID"
+              required
+              placeholder="Team ID"
+            />
+          )}
+
+          {action === 'get_users' && (
+            <div style={{ padding: '12px', backgroundColor: '#f6ffed', border: '1px solid #b7eb8f', borderRadius: '6px' }}>
+              <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>No additional parameters needed</div>
+              <div>This action retrieves all users from the Mattermost server.</div>
+            </div>
+          )}
+        </div>
+      </div>
 
       <RoleSelector />
       <InputReferences form={props.form} nodeid={selectedNode.id} />

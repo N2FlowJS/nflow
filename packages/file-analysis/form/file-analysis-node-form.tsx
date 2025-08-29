@@ -1,13 +1,11 @@
-import { FileSearchOutlined, SettingOutlined, FolderOpenOutlined } from '@ant-design/icons';
 import { FlowNode } from '../../../models/flowTypes';
-import { Form, Input, Select, Switch, Collapse, Space, Typography, Alert, Tag } from 'antd';
+import TextInputField from '../../@input/TextInputField';
+import DropdownField from '../../@input/DropdownField';
 import React from 'react';
 import BaseNodeForm from '../../@flow/form';
 import InputReferences from '@n2flowjs/flow/share/InputReferences';
 import RoleSelector from '@n2flowjs/flow/share/RoleSelector';
 import { useLocale } from '../../../locale';
-
-const { Text } = Typography;
 
 interface FileAnalysisNodeFormProps {
   form: any;
@@ -21,145 +19,107 @@ const FileAnalysisNodeForm: React.FC<FileAnalysisNodeFormProps> = (props) => {
 
   return (
     <BaseNodeForm {...props}>
-      <Alert
-        message={t('title')}
-        description={t('description')}
-        type="info"
-        showIcon
-        icon={<FileSearchOutlined />}
-        style={{ marginBottom: 16 }}
-      />
+      <div style={{ padding: '12px', backgroundColor: '#e6f7ff', border: '1px solid #91d5ff', borderRadius: '6px', marginBottom: '16px' }}>
+        <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>{t('title')}</div>
+        <div>{t('description')}</div>
+      </div>
 
-      <Collapse
-        defaultActiveKey={['analysis', 'options']}
-        bordered={false}
-        expandIconPosition="end"
-        items={[
-          {
-            key: 'analysis',
-            label: (
-              <Text strong>
-                <FolderOpenOutlined style={{ marginRight: 8 }} />
-                {t('configurationLabel')}
-              </Text>
-            ),
-            children: (
-              <Space direction="vertical" style={{ width: '100%' }} size="middle">
-                <Form.Item
-                  name="filePath"
-                  label={t('filePathLabel')}
-                  help={t('filePathHelp')}
-                  rules={[{ required: true, message: 'Please enter file or directory path' }]}
-                >
-                  <Input placeholder="/path/to/file.txt or {{filePath}}" />
-                </Form.Item>
+      <div style={{ marginBottom: '16px' }}>
+        <div style={{ fontWeight: 'bold', marginBottom: '12px', fontSize: '16px' }}>
+          {t('configurationLabel')}
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <TextInputField
+            name="filePath"
+            label={t('filePathLabel')}
+            required
+            placeholder="/path/to/file.txt or {{filePath}}"
+          />
 
-                <Form.Item
-                  name="analysisType"
-                  label={t('analysisTypeLabel')}
-                  help={t('analysisTypeHelp')}
-                  initialValue="metadata"
-                  rules={[{ required: true, message: 'Please select analysis type' }]}
-                >
-                  <Select>
-                    <Select.Option value="metadata">{t('metadataAnalysis')}</Select.Option>
-                    <Select.Option value="content">{t('contentAnalysis')}</Select.Option>
-                    <Select.Option value="structure">{t('structureAnalysis')}</Select.Option>
-                    <Select.Option value="security">{t('securityAnalysis')}</Select.Option>
-                    <Select.Option value="quality">{t('qualityAnalysis')}</Select.Option>
-                  </Select>
-                </Form.Item>
+          <DropdownField
+            name="analysisType"
+            label={t('analysisTypeLabel')}
+            required
+            options={[
+              { label: t('metadataAnalysis'), value: 'metadata' },
+              { label: t('contentAnalysis'), value: 'content' },
+              { label: t('structureAnalysis'), value: 'structure' },
+              { label: t('securityAnalysis'), value: 'security' },
+              { label: t('qualityAnalysis'), value: 'quality' }
+            ]}
+          />
 
-                <Form.Item
-                  name="outputFormat"
-                  label={t('outputFormatLabel')}
-                  help={t('outputFormatHelp')}
-                  initialValue="json"
-                >
-                  <Select>
-                    <Select.Option value="json">JSON</Select.Option>
-                    <Select.Option value="csv">CSV</Select.Option>
-                    <Select.Option value="xml">XML</Select.Option>
-                    <Select.Option value="text">Text</Select.Option>
-                  </Select>
-                </Form.Item>
-              </Space>
-            ),
-          },
-          {
-            key: 'options',
-            label: (
-              <Text strong>
-                <SettingOutlined style={{ marginRight: 8 }} />
-                Analysis Options
-              </Text>
-            ),
-            children: (
-              <Space direction="vertical" style={{ width: '100%' }} size="middle">
-                <Form.Item
-                  name="includeHidden"
-                  label={t('includeHiddenLabel')}
-                  help={t('includeHiddenHelp')}
-                  valuePropName="checked"
-                  initialValue={false}
-                >
-                  <Switch />
-                </Form.Item>
+          <DropdownField
+            name="outputFormat"
+            label={t('outputFormatLabel')}
+            options={[
+              { label: 'JSON', value: 'json' },
+              { label: 'CSV', value: 'csv' },
+              { label: 'XML', value: 'xml' },
+              { label: 'Text', value: 'text' }
+            ]}
+          />
+        </div>
+      </div>
 
-                <Form.Item
-                  name="recursive"
-                  label={t('recursiveLabel')}
-                  help={t('recursiveHelp')}
-                  valuePropName="checked"
-                  initialValue={false}
-                >
-                  <Switch />
-                </Form.Item>
+      <div style={{ marginBottom: '16px' }}>
+        <div style={{ fontWeight: 'bold', marginBottom: '12px', fontSize: '16px' }}>
+          Analysis Options
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <DropdownField
+            name="includeHidden"
+            label={t('includeHiddenLabel')}
+            options={[
+              { label: 'Yes', value: 'true' },
+              { label: 'No', value: 'false' }
+            ]}
+          />
 
-                <Form.Item
-                  name="fileTypes"
-                  label={t('fileTypesLabel')}
-                  help={t('fileTypesHelp')}
-                >
-                  <Select mode="tags" placeholder="Leave empty for all types">
-                    <Select.Option value=".txt">Text Files (.txt)</Select.Option>
-                    <Select.Option value=".pdf">PDF Files (.pdf)</Select.Option>
-                    <Select.Option value=".jpg">Image Files (.jpg)</Select.Option>
-                    <Select.Option value=".csv">CSV Files (.csv)</Select.Option>
-                    <Select.Option value=".json">JSON Files (.json)</Select.Option>
-                  </Select>
-                </Form.Item>
-              </Space>
-            ),
-          },
-        ]}
-      />
+          <DropdownField
+            name="recursive"
+            label={t('recursiveLabel')}
+            options={[
+              { label: 'Yes', value: 'true' },
+              { label: 'No', value: 'false' }
+            ]}
+          />
 
-      <Alert
-        message={t('analysisTypesTitle')}
-        description={
-          <div>
-            <p>{t('analysisTypesDescription')}</p>
-            <div style={{ marginTop: 8 }}>
-              <Tag color="blue">Metadata</Tag> - File properties, size, dates
-            </div>
-            <div style={{ marginTop: 4 }}>
-              <Tag color="green">Content</Tag> - Text analysis, line count, preview
-            </div>
-            <div style={{ marginTop: 4 }}>
-              <Tag color="orange">Structure</Tag> - Directory tree, file organization
-            </div>
-            <div style={{ marginTop: 4 }}>
-              <Tag color="red">Security</Tag> - Risk assessment, suspicious patterns
-            </div>
-            <div style={{ marginTop: 4 }}>
-              <Tag color="purple">Quality</Tag> - Naming conventions, best practices
-            </div>
+          <DropdownField
+            name="fileTypes"
+            label={t('fileTypesLabel')}
+            options={[
+              { label: 'Text Files (.txt)', value: '.txt' },
+              { label: 'PDF Files (.pdf)', value: '.pdf' },
+              { label: 'Image Files (.jpg)', value: '.jpg' },
+              { label: 'CSV Files (.csv)', value: '.csv' },
+              { label: 'JSON Files (.json)', value: '.json' }
+            ]}
+          />
+        </div>
+      </div>
+
+      <div style={{ padding: '12px', backgroundColor: '#e6f7ff', border: '1px solid #91d5ff', borderRadius: '6px', marginTop: '16px', marginBottom: '16px' }}>
+        <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>{t('analysisTypesTitle')}</div>
+        <div style={{ marginBottom: '8px' }}>{t('analysisTypesDescription')}</div>
+        <div>
+          <div style={{ marginTop: '8px' }}>
+            <span style={{ backgroundColor: '#1890ff', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: '12px' }}>Metadata</span> - File properties, size, dates
           </div>
-        }
-        type="info"
-        style={{ marginTop: 16, marginBottom: 16 }}
-      />
+          <div style={{ marginTop: '4px' }}>
+            <span style={{ backgroundColor: '#52c41a', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: '12px' }}>Content</span> - Text analysis, line count, preview
+          </div>
+          <div style={{ marginTop: '4px' }}>
+            <span style={{ backgroundColor: '#fa8c16', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: '12px' }}>Structure</span> - Directory tree, file organization
+          </div>
+          <div style={{ marginTop: '4px' }}>
+            <span style={{ backgroundColor: '#f5222d', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: '12px' }}>Security</span> - Risk assessment, suspicious patterns
+          </div>
+          <div style={{ marginTop: '4px' }}>
+            <span style={{ backgroundColor: '#722ed1', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: '12px' }}>Quality</span> - Naming conventions, best practices
+          </div>
+        </div>
+      </div>
 
       <RoleSelector />
       <InputReferences form={props.form} nodeid={selectedNode.id} />

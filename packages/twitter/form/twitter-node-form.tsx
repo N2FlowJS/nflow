@@ -1,13 +1,14 @@
 import { TwitterOutlined, SettingOutlined, KeyOutlined } from '@ant-design/icons';
 import { FlowNode } from '../../../models/flowTypes';
-import { Form, Input, Select, Collapse, Space, Typography, Alert, InputNumber } from 'antd';
+import { Collapse, Space, Typography, Alert } from 'antd';
+import TextInputField from '../../@input/TextInputField';
+import TextAreaField from '../../@input/TextAreaField';
+import DropdownField from '../../@input/DropdownField';
 import React from 'react';
 import BaseNodeForm from '../../@flow/form';
 import InputReferences from '@n2flowjs/flow/share/InputReferences';
 import RoleSelector from '@n2flowjs/flow/share/RoleSelector';
 import { useLocale } from '../../../locale';
-
-const { TextArea } = Input;
 const { Text } = Typography;
 
 interface TwitterNodeFormProps {
@@ -46,34 +47,34 @@ const TwitterNodeForm: React.FC<TwitterNodeFormProps> = (props) => {
             ),
             children: (
               <Space direction="vertical" style={{ width: '100%' }} size="middle">
-                <Form.Item
+                <TextInputField
                   name="apiKey"
                   label="API Key"
-                  rules={[{ required: true, message: 'Please enter Twitter API key' }]}
-                >
-                  <Input.Password placeholder="Your Twitter API key" />
-                </Form.Item>
-                <Form.Item
+                  required
+                  type="password"
+                  placeholder="Your Twitter API key"
+                />
+                <TextInputField
                   name="apiSecret"
                   label="API Secret"
-                  rules={[{ required: true, message: 'Please enter Twitter API secret' }]}
-                >
-                  <Input.Password placeholder="Your Twitter API secret" />
-                </Form.Item>
-                <Form.Item
+                  required
+                  type="password"
+                  placeholder="Your Twitter API secret"
+                />
+                <TextInputField
                   name="accessToken"
                   label="Access Token"
-                  rules={[{ required: true, message: 'Please enter access token' }]}
-                >
-                  <Input.Password placeholder="Your access token" />
-                </Form.Item>
-                <Form.Item
+                  required
+                  type="password"
+                  placeholder="Your access token"
+                />
+                <TextInputField
                   name="accessTokenSecret"
                   label="Access Token Secret"
-                  rules={[{ required: true, message: 'Please enter access token secret' }]}
-                >
-                  <Input.Password placeholder="Your access token secret" />
-                </Form.Item>
+                  required
+                  type="password"
+                  placeholder="Your access token secret"
+                />
               </Space>
             ),
           },
@@ -86,23 +87,20 @@ const TwitterNodeForm: React.FC<TwitterNodeFormProps> = (props) => {
               </Text>
             ),
             children: (
-              <Form.Item
+              <DropdownField
                 name="action"
                 label="Action Type"
-                help="Choose what Twitter operation to perform"
-                initialValue="create_tweet"
-                rules={[{ required: true, message: 'Please select an action' }]}
-              >
-                <Select>
-                  <Select.Option value="create_tweet">Create Tweet</Select.Option>
-                  <Select.Option value="get_tweets">Get Tweets</Select.Option>
-                  <Select.Option value="get_user_info">Get User Info</Select.Option>
-                  <Select.Option value="follow_user">Follow User</Select.Option>
-                  <Select.Option value="like_tweet">Like Tweet</Select.Option>
-                  <Select.Option value="retweet">Retweet</Select.Option>
-                  <Select.Option value="get_mentions">Get Mentions</Select.Option>
-                </Select>
-              </Form.Item>
+                required
+                options={[
+                  { label: 'Create Tweet', value: 'create_tweet' },
+                  { label: 'Get Tweets', value: 'get_tweets' },
+                  { label: 'Get User Info', value: 'get_user_info' },
+                  { label: 'Follow User', value: 'follow_user' },
+                  { label: 'Like Tweet', value: 'like_tweet' },
+                  { label: 'Retweet', value: 'retweet' },
+                  { label: 'Get Mentions', value: 'get_mentions' }
+                ]}
+              />
             ),
           },
           {
@@ -114,97 +112,40 @@ const TwitterNodeForm: React.FC<TwitterNodeFormProps> = (props) => {
               </Text>
             ),
             children: (
-              <Form.Item shouldUpdate>
-                {({ getFieldValue }) => {
-                  const action = getFieldValue('action');
-                  
-                  return (
-                    <Space direction="vertical" style={{ width: '100%' }} size="middle">
-                      {action === 'create_tweet' && (
-                        <Form.Item
-                          name="tweetText"
-                          label="Tweet Text"
-                          help="Content of the tweet (max 280 characters)"
-                          rules={[
-                            { required: true, message: 'Please enter tweet text' },
-                            { max: 280, message: 'Tweet cannot exceed 280 characters' }
-                          ]}
-                        >
-                          <TextArea
-                            rows={4}
-                            placeholder="{{tweetContent}} or your tweet text..."
-                            showCount
-                            maxLength={280}
-                          />
-                        </Form.Item>
-                      )}
-                      
-                      {(action === 'get_tweets' || action === 'get_mentions') && (
-                        <>
-                          <Form.Item
-                            name="username"
-                            label="Username"
-                            help="Twitter username (without @)"
-                          >
-                            <Input placeholder="username" />
-                          </Form.Item>
-                          <Form.Item
-                            name="maxResults"
-                            label="Max Results"
-                            help="Maximum number of tweets to retrieve"
-                            initialValue={10}
-                          >
-                            <InputNumber min={1} max={100} style={{ width: '100%' }} />
-                          </Form.Item>
-                        </>
-                      )}
-                      
-                      {action === 'get_user_info' && (
-                        <Form.Item
-                          name="username"
-                          label="Username"
-                          help="Twitter username to get information about"
-                          rules={[{ required: true, message: 'Please enter username' }]}
-                        >
-                          <Input placeholder="username" />
-                        </Form.Item>
-                      )}
-                      
-                      {action === 'follow_user' && (
-                        <Form.Item
-                          name="userId"
-                          label="User ID"
-                          help="Twitter user ID to follow"
-                          rules={[{ required: true, message: 'Please enter user ID' }]}
-                        >
-                          <Input placeholder="123456789" />
-                        </Form.Item>
-                      )}
-                      
-                      {(action === 'like_tweet' || action === 'retweet') && (
-                        <Form.Item
-                          name="tweetId"
-                          label="Tweet ID"
-                          help="ID of the tweet to interact with"
-                          rules={[{ required: true, message: 'Please enter tweet ID' }]}
-                        >
-                          <Input placeholder="1234567890123456789" />
-                        </Form.Item>
-                      )}
-                      
-                      {action === 'get_tweets' && (
-                        <Form.Item
-                          name="query"
-                          label="Search Query (Optional)"
-                          help="Search query to filter tweets"
-                        >
-                          <Input placeholder="hashtag OR keyword" />
-                        </Form.Item>
-                      )}
-                    </Space>
-                  );
-                }}
-              </Form.Item>
+              <Space direction="vertical" style={{ width: '100%' }} size="middle">
+                <TextAreaField
+                  name="tweetText"
+                  label="Tweet Text"
+                  rows={4}
+                  placeholder="{{tweetContent}} or your tweet text..."
+                />
+                <TextInputField
+                  name="username"
+                  label="Username"
+                  placeholder="username"
+                />
+                <TextInputField
+                  name="maxResults"
+                  label="Max Results"
+                  type="number"
+                  placeholder="10"
+                />
+                <TextInputField
+                  name="userId"
+                  label="User ID"
+                  placeholder="123456789"
+                />
+                <TextInputField
+                  name="tweetId"
+                  label="Tweet ID"
+                  placeholder="1234567890123456789"
+                />
+                <TextInputField
+                  name="query"
+                  label="Search Query (Optional)"
+                  placeholder="hashtag OR keyword"
+                />
+              </Space>
             ),
           },
         ]}

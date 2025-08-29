@@ -1,14 +1,11 @@
-import { MailOutlined, SettingOutlined, CloudServerOutlined } from '@ant-design/icons';
 import { FlowNode } from '../../../models/flowTypes';
-import { Form, Input, InputNumber, Switch, Collapse, Space, Typography, Alert } from 'antd';
-import React from 'react';
+import TextInputField from '../../../packages/@input/TextInputField';
+import TextAreaField from '../../../packages/@input/TextAreaField';
+import DropdownField from '../../../packages/@input/DropdownField';
+import React, { useState, useEffect } from 'react';
 import BaseNodeForm from '../../../packages/@flow/form';
 import InputReferences from '@n2flowjs/flow/share/InputReferences';
 import RoleSelector from '@n2flowjs/flow/share/RoleSelector';
-import { useLocale } from '../../../locale';
-
-const { TextArea } = Input;
-const { Text } = Typography;
 
 interface SendMailNodeFormProps {
   form: any;
@@ -18,92 +15,72 @@ interface SendMailNodeFormProps {
 
 const SendMailNodeForm: React.FC<SendMailNodeFormProps> = (props) => {
   const { selectedNode } = props;
-  useLocale('form.nodeForm');
+  const [useSystemConfig, setUseSystemConfig] = useState(true);
+
+  useEffect(() => {
+    // Watch for changes in the useSystemConfig field
+    const subscription = props.form?.getFieldValue && (() => {
+      const currentValue = props.form.getFieldValue('useSystemConfig');
+      if (currentValue !== useSystemConfig) {
+        setUseSystemConfig(currentValue === 'true' || currentValue === true);
+      }
+    });
+
+    // Initial value
+    const initialValue = props.form?.getFieldValue ? props.form.getFieldValue('useSystemConfig') : 'true';
+    setUseSystemConfig(initialValue === 'true' || initialValue === true);
+
+    return subscription;
+  }, [props.form, useSystemConfig]);
 
   return (
     <BaseNodeForm {...props}>
-      <Alert
-        message="Send Mail Node"
-        description="Send emails with dynamic content using SMTP configuration. Supports both plain text and HTML emails."
-        type="info"
-        showIcon
-        icon={<MailOutlined />}
-        style={{ marginBottom: 16 }}
-      />
+      <div style={{ padding: '12px', backgroundColor: '#e6f7ff', border: '1px solid #91d5ff', borderRadius: '6px', marginBottom: '16px' }}>
+        <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>Send Mail Node</div>
+        <div>Send emails with dynamic content using SMTP configuration. Supports both plain text and HTML emails.</div>
+      </div>
 
-      <Collapse
-        defaultActiveKey={['email', 'content', 'smtp']}
-        bordered={false}
-        expandIconPosition="end"
-        items={[
-          {
-            key: 'email',
-            label: (
-              <Text strong>
-                <MailOutlined style={{ marginRight: 8 }} />
-                Email Recipients
-              </Text>
-            ),
-            children: (
-              <Space direction="vertical" style={{ width: '100%' }} size="middle">
-                <Form.Item
-                  name="to"
-                  label="To (Required)"
-                  help="Recipient email addresses, separated by commas. Use variables like {{email}} for dynamic recipients."
-                  rules={[
-                    { required: true, message: 'Please enter recipient email addresses' },
-                    { type: 'string', message: 'Please enter valid email format' }
-                  ]}
-                >
-                  <Input placeholder="user@example.com, {{userEmail}}" />
-                </Form.Item>
+      <div style={{ marginBottom: '16px' }}>
+        <div style={{ fontWeight: 'bold', marginBottom: '12px', fontSize: '16px' }}>
+          Email Recipients
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <TextInputField
+            name="to"
+            label="To (Required)"
+            required
+            placeholder="user@example.com, {{userEmail}}"
+          />
+          <TextInputField
+            name="cc"
+            label="CC (Optional)"
+            placeholder="manager@example.com"
+          />
+          <TextInputField
+            name="bcc"
+            label="BCC (Optional)"
+            placeholder="admin@example.com"
+          />
+        </div>
+      </div>
 
-                <Form.Item
-                  name="cc"
-                  label="CC (Optional)"
-                  help="Carbon copy recipients, separated by commas"
-                >
-                  <Input placeholder="manager@example.com" />
-                </Form.Item>
-
-                <Form.Item
-                  name="bcc"
-                  label="BCC (Optional)"
-                  help="Blind carbon copy recipients, separated by commas"
-                >
-                  <Input placeholder="admin@example.com" />
-                </Form.Item>
-              </Space>
-            ),
-          },
-          {
-            key: 'content',
-            label: (
-              <Text strong>
-                <SettingOutlined style={{ marginRight: 8 }} />
-                Email Content
-              </Text>
-            ),
-            children: (
-              <Space direction="vertical" style={{ width: '100%' }} size="middle">
-                <Form.Item
-                  name="subject"
-                  label="Subject"
-                  help="Email subject line. Use variables like {{title}} for dynamic content."
-                  rules={[{ required: true, message: 'Please enter email subject' }]}
-                >
-                  <Input placeholder="Notification: {{eventName}}" />
-                </Form.Item>
-
-                <Form.Item
-                  name="body"
-                  label="Email Body"
-                  help="Email content. Use variables from previous nodes with {{variableName}} syntax."
-                  rules={[{ required: true, message: 'Please enter email content' }]}
-                >
-                  <TextArea
-                    rows={8}
-                    placeholder={`Hello {{userName}},
+      <div style={{ marginBottom: '16px' }}>
+        <div style={{ fontWeight: 'bold', marginBottom: '12px', fontSize: '16px' }}>
+          Email Content
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <TextInputField
+            name="subject"
+            label="Subject"
+            required
+            placeholder="Notification: {{eventName}}"
+          />
+          <TextAreaField
+            name="body"
+            label="Email Body"
+            required
+            rows={8}
+            placeholder={`Hello {{userName}},
 
 This is an automated notification from your flow.
 
@@ -114,102 +91,71 @@ Details:
 
 Best regards,
 Your Automation System`}
-                  />
-                </Form.Item>
+          />
+          <DropdownField
+            name="isHtml"
+            label="Email Format"
+            options={[
+              { label: 'Plain Text', value: 'false' },
+              { label: 'HTML Format', value: 'true' }
+            ]}
+          />
+        </div>
+      </div>
 
-                <Form.Item
-                  name="isHtml"
-                  label="HTML Format"
-                  help="Enable HTML formatting for rich email content"
-                  valuePropName="checked"
-                  initialValue={false}
-                >
-                  <Switch />
-                </Form.Item>
-              </Space>
-            ),
-          },
-          {
-            key: 'smtp',
-            label: (
-              <Text strong>
-                <CloudServerOutlined style={{ marginRight: 8 }} />
-                SMTP Configuration
-              </Text>
-            ),
-            children: (
-              <Space direction="vertical" style={{ width: '100%' }} size="middle">
-                <Form.Item
-                  name="useSystemConfig"
-                  label="Use System SMTP Configuration"
-                  help="Use the default system SMTP settings instead of custom configuration"
-                  valuePropName="checked"
-                  initialValue={true}
-                >
-                  <Switch />
-                </Form.Item>
+      <div style={{ marginBottom: '16px' }}>
+        <div style={{ fontWeight: 'bold', marginBottom: '12px', fontSize: '16px' }}>
+          SMTP Configuration
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <DropdownField
+            name="useSystemConfig"
+            label="SMTP Configuration"
+            options={[
+              { label: 'Use System SMTP Configuration', value: 'true' },
+              { label: 'Use Custom SMTP Configuration', value: 'false' }
+            ]}
+          />
 
-                <Form.Item shouldUpdate>
-                  {({ getFieldValue }) => {
-                    const useSystemConfig = getFieldValue('useSystemConfig');
-                    return !useSystemConfig ? (
-                      <Space direction="vertical" style={{ width: '100%' }} size="middle">
-                        <Form.Item
-                          name="smtpHost"
-                          label="SMTP Host"
-                          rules={[{ required: !useSystemConfig, message: 'Please enter SMTP host' }]}
-                        >
-                          <Input placeholder="smtp.gmail.com" />
-                        </Form.Item>
-
-                        <Form.Item
-                          name="smtpPort"
-                          label="SMTP Port"
-                          rules={[{ required: !useSystemConfig, message: 'Please enter SMTP port' }]}
-                          initialValue={587}
-                        >
-                          <InputNumber
-                            min={1}
-                            max={65535}
-                            style={{ width: '100%' }}
-                            placeholder="587"
-                          />
-                        </Form.Item>
-
-                        <Form.Item
-                          name="smtpUser"
-                          label="SMTP Username"
-                          rules={[{ required: !useSystemConfig, message: 'Please enter SMTP username' }]}
-                        >
-                          <Input placeholder="your-email@gmail.com" />
-                        </Form.Item>
-
-                        <Form.Item
-                          name="smtpPassword"
-                          label="SMTP Password"
-                          rules={[{ required: !useSystemConfig, message: 'Please enter SMTP password' }]}
-                        >
-                          <Input.Password placeholder="App password or email password" />
-                        </Form.Item>
-
-                        <Form.Item
-                          name="smtpSecure"
-                          label="Use TLS/SSL"
-                          help="Enable secure connection (recommended for most providers)"
-                          valuePropName="checked"
-                          initialValue={true}
-                        >
-                          <Switch />
-                        </Form.Item>
-                      </Space>
-                    ) : null;
-                  }}
-                </Form.Item>
-              </Space>
-            ),
-          },
-        ]}
-      />
+          {!useSystemConfig && (
+            <>
+              <TextInputField
+                name="smtpHost"
+                label="SMTP Host"
+                required
+                placeholder="smtp.gmail.com"
+              />
+              <TextInputField
+                name="smtpPort"
+                label="SMTP Port"
+                required
+                placeholder="587"
+              />
+              <TextInputField
+                name="smtpUser"
+                label="SMTP Username"
+                required
+                placeholder="your-email@gmail.com"
+              />
+              <TextInputField
+                name="smtpPassword"
+                label="SMTP Password"
+                required
+                type="password"
+                placeholder="App password or email password"
+              />
+              <DropdownField
+                name="smtpSecure"
+                label="Connection Security"
+                options={[
+                  { label: 'Use TLS/SSL (Recommended)', value: 'true' },
+                  { label: 'No Encryption', value: 'false' }
+                ]}
+              />
+            </>
+          )}
+        </div>
+      </div>
 
       <RoleSelector />
       <InputReferences form={props.form} nodeid={selectedNode.id} />

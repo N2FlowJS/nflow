@@ -51,7 +51,7 @@ export async function execute(
 			nodeInfo: {
 				id: node.id,
 				name: data.label || node.id,
-				type: 'agenttools',
+				type: 'agent-tools',
 				role: form.role || 'developer',
 			},
 			execution: {
@@ -72,7 +72,7 @@ export async function execute(
 			nodeInfo: {
 				id: node.id,
 				name: data.label || node.id,
-				type: 'agenttools',
+				type: 'agent-tools',
 				role: form.role || 'developer',
 			},
 			execution: {

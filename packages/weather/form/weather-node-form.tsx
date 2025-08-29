@@ -1,6 +1,8 @@
-import { CloudOutlined, SettingOutlined, KeyOutlined, EnvironmentOutlined } from '@ant-design/icons';
+import { CloudOutlined, SettingOutlined, KeyOutlined } from '@ant-design/icons';
 import { FlowNode } from '../../../models/flowTypes';
-import { Form, Input, Select, InputNumber, Switch, Collapse, Space, Typography, Alert } from 'antd';
+import { Collapse, Space, Typography, Alert } from 'antd';
+import TextInputField from '../../@input/TextInputField';
+import DropdownField from '../../@input/DropdownField';
 import React from 'react';
 import BaseNodeForm from '../../@flow/form';
 import InputReferences from '@n2flowjs/flow/share/InputReferences';
@@ -43,54 +45,32 @@ const WeatherNodeForm: React.FC<WeatherNodeFormProps> = (props) => {
             ),
             children: (
               <Space direction="vertical" style={{ width: '100%' }} size="middle">
-                <Form.Item
+                <DropdownField
                   name="action"
                   label="Weather Action"
-                  help="Type of weather information to retrieve"
-                  initialValue="current_weather"
-                  rules={[{ required: true, message: 'Please select weather action' }]}
-                >
-                  <Select>
-                    <Select.Option value="current_weather">Current Weather</Select.Option>
-                    <Select.Option value="forecast">Weather Forecast</Select.Option>
-                    <Select.Option value="weather_alerts">Weather Alerts</Select.Option>
-                    <Select.Option value="historical_weather" disabled>Historical Weather (Premium)</Select.Option>
-                  </Select>
-                </Form.Item>
+                  required
+                  options={[
+                    { label: 'Current Weather', value: 'current_weather' },
+                    { label: 'Weather Forecast', value: 'forecast' },
+                    { label: 'Weather Alerts', value: 'weather_alerts' },
+                    { label: 'Historical Weather (Premium)', value: 'historical_weather' }
+                  ]}
+                />
 
-                <Form.Item
+                <TextInputField
                   name="location"
                   label="Location"
-                  help="City name, coordinates, or use {{variableName}} for dynamic location"
-                  rules={[{ required: true, message: 'Please enter a location' }]}
-                >
-                  <Input
-                    placeholder="{{location}} OR London, UK OR 40.7128,-74.0060"
-                    prefix={<EnvironmentOutlined />}
-                  />
-                </Form.Item>
+                  required
+                  placeholder="{{location}} OR London, UK OR 40.7128,-74.0060"
+                />
 
-                <Form.Item shouldUpdate>
-                  {({ getFieldValue }) => {
-                    const action = getFieldValue('action');
-                    
-                    return action === 'forecast' ? (
-                      <Form.Item
-                        name="days"
-                        label="Forecast Days"
-                        help="Number of days for forecast (1-5)"
-                        initialValue={5}
-                        rules={[{ required: true, type: 'number', min: 1, max: 5 }]}
-                      >
-                        <InputNumber
-                          min={1}
-                          max={5}
-                          style={{ width: '100%' }}
-                        />
-                      </Form.Item>
-                    ) : null;
-                  }}
-                </Form.Item>
+                {/* Forecast Days only for 'forecast' action */}
+                <TextInputField
+                  name="days"
+                  label="Forecast Days"
+                  type="number"
+                  placeholder="Number of days (1-5)"
+                />
               </Space>
             ),
           },
@@ -104,58 +84,50 @@ const WeatherNodeForm: React.FC<WeatherNodeFormProps> = (props) => {
             ),
             children: (
               <Space direction="vertical" style={{ width: '100%' }} size="middle">
-                <Form.Item
+                <DropdownField
                   name="units"
                   label="Temperature Units"
-                  help="Units for temperature and measurements"
-                  initialValue="metric"
-                >
-                  <Select>
-                    <Select.Option value="metric">Metric (°C, m/s, km/h)</Select.Option>
-                    <Select.Option value="imperial">Imperial (°F, mph)</Select.Option>
-                    <Select.Option value="kelvin">Kelvin (K)</Select.Option>
-                  </Select>
-                </Form.Item>
+                  options={[
+                    { label: 'Metric (°C, m/s, km/h)', value: 'metric' },
+                    { label: 'Imperial (°F, mph)', value: 'imperial' },
+                    { label: 'Kelvin (K)', value: 'kelvin' }
+                  ]}
+                />
 
-                <Form.Item
+                <DropdownField
                   name="language"
                   label="Language"
-                  help="Language for weather descriptions"
-                  initialValue="en"
-                >
-                  <Select>
-                    <Select.Option value="en">English</Select.Option>
-                    <Select.Option value="es">Spanish</Select.Option>
-                    <Select.Option value="fr">French</Select.Option>
-                    <Select.Option value="de">German</Select.Option>
-                    <Select.Option value="it">Italian</Select.Option>
-                    <Select.Option value="pt">Portuguese</Select.Option>
-                    <Select.Option value="ja">Japanese</Select.Option>
-                    <Select.Option value="ko">Korean</Select.Option>
-                    <Select.Option value="zh">Chinese</Select.Option>
-                    <Select.Option value="vi">Vietnamese</Select.Option>
-                  </Select>
-                </Form.Item>
+                  options={[
+                    { label: 'English', value: 'en' },
+                    { label: 'Spanish', value: 'es' },
+                    { label: 'French', value: 'fr' },
+                    { label: 'German', value: 'de' },
+                    { label: 'Italian', value: 'it' },
+                    { label: 'Portuguese', value: 'pt' },
+                    { label: 'Japanese', value: 'ja' },
+                    { label: 'Korean', value: 'ko' },
+                    { label: 'Chinese', value: 'zh' },
+                    { label: 'Vietnamese', value: 'vi' }
+                  ]}
+                />
 
-                <Form.Item
+                <DropdownField
                   name="includeHourly"
                   label="Include Hourly Data"
-                  help="Include hourly weather data in forecast"
-                  valuePropName="checked"
-                  initialValue={false}
-                >
-                  <Switch />
-                </Form.Item>
+                  options={[
+                    { label: 'Yes', value: 'true' },
+                    { label: 'No', value: 'false' }
+                  ]}
+                />
 
-                <Form.Item
+                <DropdownField
                   name="includeAlerts"
                   label="Include Weather Alerts"
-                  help="Include severe weather alerts when available"
-                  valuePropName="checked"
-                  initialValue={true}
-                >
-                  <Switch />
-                </Form.Item>
+                  options={[
+                    { label: 'Yes', value: 'true' },
+                    { label: 'No', value: 'false' }
+                  ]}
+                />
               </Space>
             ),
           },
@@ -169,32 +141,21 @@ const WeatherNodeForm: React.FC<WeatherNodeFormProps> = (props) => {
             ),
             children: (
               <Space direction="vertical" style={{ width: '100%' }} size="middle">
-                <Form.Item
+                <DropdownField
                   name="useSystemConfig"
                   label="Use System Configuration"
-                  help="Use system-wide API key instead of custom key"
-                  valuePropName="checked"
-                  initialValue={true}
-                >
-                  <Switch />
-                </Form.Item>
+                  options={[
+                    { label: 'Yes', value: 'true' },
+                    { label: 'No', value: 'false' }
+                  ]}
+                />
 
-                <Form.Item shouldUpdate>
-                  {({ getFieldValue }) => {
-                    const useSystemConfig = getFieldValue('useSystemConfig');
-                    
-                    return !useSystemConfig ? (
-                      <Form.Item
-                        name="apiKey"
-                        label="OpenWeatherMap API Key"
-                        help="Your OpenWeatherMap API key"
-                        rules={[{ required: true, message: 'Please enter your OpenWeatherMap API key' }]}
-                      >
-                        <Input.Password placeholder="Enter your OpenWeatherMap API key" />
-                      </Form.Item>
-                    ) : null;
-                  }}
-                </Form.Item>
+                <TextInputField
+                  name="apiKey"
+                  label="OpenWeatherMap API Key"
+                  type="password"
+                  placeholder="Enter your OpenWeatherMap API key"
+                />
               </Space>
             ),
           },

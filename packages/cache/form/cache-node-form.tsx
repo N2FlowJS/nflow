@@ -1,13 +1,11 @@
-import { InboxOutlined, SettingOutlined, DatabaseOutlined } from '@ant-design/icons';
 import { FlowNode } from '../../../models/flowTypes';
-import { Form, Input, Select, InputNumber, Collapse, Space, Typography, Alert } from 'antd';
-import React from 'react';
+import TextInputField from '../../@input/TextInputField';
+import DropdownField from '../../@input/DropdownField';
+import React, { useState, useEffect } from 'react';
 import BaseNodeForm from '../../@flow/form';
 import InputReferences from '@n2flowjs/flow/share/InputReferences';
 import RoleSelector from '@n2flowjs/flow/share/RoleSelector';
 import { useLocale } from '../../../locale';
-
-const { Text } = Typography;
 
 interface CacheNodeFormProps {
   form: any;
@@ -18,147 +16,101 @@ interface CacheNodeFormProps {
 const CacheNodeForm: React.FC<CacheNodeFormProps> = (props) => {
   const { selectedNode } = props;
   const { t } = useLocale('cacheNode');
+  const [operation, setOperation] = useState('');
+
+  useEffect(() => {
+    // Watch for changes in the operation field
+    const subscription = props.form?.getFieldValue && (() => {
+      const currentOperation = props.form.getFieldValue('operation');
+      if (currentOperation !== operation) {
+        setOperation(currentOperation || '');
+      }
+    });
+
+    // Initial value
+    const initialOperation = props.form?.getFieldValue ? props.form.getFieldValue('operation') : '';
+    setOperation(initialOperation || '');
+
+    return subscription;
+  }, [props.form, operation]);
 
   return (
     <BaseNodeForm {...props}>
-      <Alert
-        message={t('title')}
-        description={t('description')}
-        type="info"
-        showIcon
-        icon={<InboxOutlined />}
-        style={{ marginBottom: 16 }}
-      />
+      <div style={{ padding: '12px', backgroundColor: '#e6f7ff', border: '1px solid #91d5ff', borderRadius: '6px', marginBottom: '16px' }}>
+        <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>{t('title')}</div>
+        <div>{t('description')}</div>
+      </div>
 
-      <Collapse
-        defaultActiveKey={['cache', 'config']}
-        bordered={false}
-        expandIconPosition="end"
-        items={[
-          {
-            key: 'cache',
-            label: (
-              <Text strong>
-                <DatabaseOutlined style={{ marginRight: 8 }} />
-                {t('configurationLabel')}
-              </Text>
-            ),
-            children: (
-              <Space direction="vertical" style={{ width: '100%' }} size="middle">
-                <Form.Item
-                  name="operation"
-                  label={t('operationLabel')}
-                  help={t('operationHelp')}
-                  initialValue="get"
-                  rules={[{ required: true, message: 'Please select an operation' }]}
-                >
-                  <Select>
-                    <Select.Option value="set">{t('setOperation')}</Select.Option>
-                    <Select.Option value="get">{t('getOperation')}</Select.Option>
-                    <Select.Option value="delete">{t('deleteOperation')}</Select.Option>
-                    <Select.Option value="clear">{t('clearOperation')}</Select.Option>
-                  </Select>
-                </Form.Item>
+      <div style={{ marginBottom: '16px' }}>
+        <div style={{ fontWeight: 'bold', marginBottom: '12px', fontSize: '16px' }}>
+          {t('configurationLabel')}
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <DropdownField
+            name="operation"
+            label={t('operationLabel')}
+            required
+            options={[
+              { label: t('setOperation'), value: 'set' },
+              { label: t('getOperation'), value: 'get' },
+              { label: t('deleteOperation'), value: 'delete' },
+              { label: t('clearOperation'), value: 'clear' }
+            ]}
+          />
 
-                <Form.Item
-                  name="cacheKey"
-                  label={t('cacheKeyLabel')}
-                  help={t('cacheKeyHelp')}
-                  rules={[{ required: true, message: 'Please enter cache key' }]}
-                >
-                  <Input placeholder="dataKey_{{userId}}" />
-                </Form.Item>
+          <TextInputField
+            name="cacheKey"
+            label={t('cacheKeyLabel')}
+            required
+            placeholder="dataKey_{{userId}}"
+          />
 
-                <Form.Item shouldUpdate>
-                  {({ getFieldValue }) => {
-                    const operation = getFieldValue('operation');
-                    
-                    return operation === 'set' ? (
-                      <Form.Item
-                        name="cacheValue"
-                        label={t('cacheValueLabel')}
-                        help={t('cacheValueHelp')}
-                        rules={[{ required: true, message: 'Please enter cache value' }]}
-                      >
-                        <Input placeholder="{{dataToCache}}" />
-                      </Form.Item>
-                    ) : null;
-                  }}
-                </Form.Item>
+          {operation === 'set' && (
+            <TextInputField
+              name="cacheValue"
+              label={t('cacheValueLabel')}
+              required
+              placeholder="{{dataToCache}}"
+            />
+          )}
 
-                <Form.Item shouldUpdate>
-                  {({ getFieldValue }) => {
-                    const operation = getFieldValue('operation');
-                    
-                    return operation === 'get' ? (
-                      <Form.Item
-                        name="defaultValue"
-                        label={t('defaultValueLabel')}
-                        help={t('defaultValueHelp')}
-                      >
-                        <Input placeholder="{}" />
-                      </Form.Item>
-                    ) : null;
-                  }}
-                </Form.Item>
-              </Space>
-            ),
-          },
-          {
-            key: 'config',
-            label: (
-              <Text strong>
-                <SettingOutlined style={{ marginRight: 8 }} />
-                Cache Settings
-              </Text>
-            ),
-            children: (
-              <Space direction="vertical" style={{ width: '100%' }} size="middle">
-                <Form.Item shouldUpdate>
-                  {({ getFieldValue }) => {
-                    const operation = getFieldValue('operation');
-                    
-                    return operation === 'set' ? (
-                      <Form.Item
-                        name="ttl"
-                        label={t('ttlLabel')}
-                        help={t('ttlHelp')}
-                        initialValue={3600}
-                        rules={[{ required: true, type: 'number', min: 0 }]}
-                      >
-                        <InputNumber
-                          min={0}
-                          style={{ width: '100%' }}
-                          placeholder="3600"
-                          formatter={(value) => `${value} seconds`}
-                          parser={(value) => value?.replace(' seconds', '') as any}
-                        />
-                      </Form.Item>
-                    ) : null;
-                  }}
-                </Form.Item>
-              </Space>
-            ),
-          },
-        ]}
-      />
+          {operation === 'get' && (
+            <TextInputField
+              name="defaultValue"
+              label={t('defaultValueLabel')}
+              placeholder="{}"
+            />
+          )}
+        </div>
+      </div>
 
-      <Alert
-        message={t('examplesTitle')}
-        description={
-          <div>
-            <p>{t('examplesDescription')}</p>
-            <ul>
-              <li>{t('example1')}</li>
-              <li>{t('example2')}</li>
-              <li>{t('example3')}</li>
-              <li>{t('example4')}</li>
-            </ul>
-          </div>
-        }
-        type="info"
-        style={{ marginTop: 16, marginBottom: 16 }}
-      />
+      <div style={{ marginBottom: '16px' }}>
+        <div style={{ fontWeight: 'bold', marginBottom: '12px', fontSize: '16px' }}>
+          Cache Settings
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {operation === 'set' && (
+            <TextInputField
+              name="ttl"
+              label={t('ttlLabel')}
+              required
+              type="number"
+              placeholder="3600"
+            />
+          )}
+        </div>
+      </div>
+
+      <div style={{ padding: '12px', backgroundColor: '#e6f7ff', border: '1px solid #91d5ff', borderRadius: '6px', marginTop: '16px', marginBottom: '16px' }}>
+        <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>{t('examplesTitle')}</div>
+        <div style={{ marginBottom: '8px' }}>{t('examplesDescription')}</div>
+        <ul>
+          <li>{t('example1')}</li>
+          <li>{t('example2')}</li>
+          <li>{t('example3')}</li>
+          <li>{t('example4')}</li>
+        </ul>
+      </div>
 
       <RoleSelector />
       <InputReferences form={props.form} nodeid={selectedNode.id} />

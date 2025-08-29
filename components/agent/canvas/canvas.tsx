@@ -14,7 +14,7 @@ import {
   useReactFlow,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { Card, Drawer, Form, Layout, Modal, Button } from 'antd';
+import { Drawer, Form, Layout, Button } from 'antd';
 import React, { memo, useCallback, useMemo, useState } from 'react';
 
 import NodeForm from '../forms/node-form';
@@ -39,6 +39,7 @@ import { useDragOverHandler } from './hooks/useDragOverHandler';
 import { useNodeClickHandler } from './hooks/useNodeClickHandler';
 import { useEdgesWithDragFlag } from './hooks/useEdgesWithDragFlag';
 import { getOppositePosition, slugify } from '../../../packages/@flow/flow-helpers';
+import NextNodeModal from './NextNodeModal';
 
 const edgeTypes: EdgeTypes = {
   default: CustomEdge,
@@ -466,38 +467,13 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flowConfig, onStartConversation
           <NodeForm form={nodeForm} selectedNode={selectedNode} setIsDrawerOpen={setIsDrawerOpen} />
         </Drawer>
 
-        <Modal
-          title={modalTitle}
+        <NextNodeModal
           open={isNextStepOpen}
-          onCancel={() => {
-            setIsNextStepOpen(false);
-            setNextStepCtx(null);
-          }}
-          footer={null}>
-          <div style={{ maxHeight: 400, overflow: 'auto' }}>
-            {availableNextTypes.map(([type, config]) => (
-              <Card
-                key={type}
-                onClick={() => addNextNode(type as NodeTypeString)}
-                style={{
-                  borderRadius: 6,
-                  padding: '10px 12px',
-                  marginBottom: 10,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 10,
-                }}>
-                <span style={{ fontSize: 20 }}>{config.icon}</span>
-                <div>
-                  <div style={{ fontWeight: 600 }}>{config.data.form?.name || type}</div>
-                  <div style={{ fontSize: 12, color: '#888' }}>{config.data.form?.description || ''}</div>
-                </div>
-              </Card>
-            ))}
-            {availableNextTypes.length === 0 && <div style={{ color: '#999' }}>No compatible nodes</div>}
-          </div>
-        </Modal>
+          title={modalTitle}
+          items={availableNextTypes}
+          onCancel={() => { setIsNextStepOpen(false); setNextStepCtx(null); }}
+          onSelect={(type) => addNextNode(type)}
+        />
       </Layout>
     </FlowEditorContext.Provider>
   );

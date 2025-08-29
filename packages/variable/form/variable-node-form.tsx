@@ -1,13 +1,11 @@
-import { SettingOutlined, EditOutlined } from '@ant-design/icons';
 import { FlowNode } from '../../../models/flowTypes';
-import { Form, Input, Select, Collapse, Space, Typography, Alert } from 'antd';
+import TextInputField from '../../@input/TextInputField';
+import DropdownField from '../../@input/DropdownField';
 import React from 'react';
 import BaseNodeForm from '../../@flow/form';
 import InputReferences from '@n2flowjs/flow/share/InputReferences';
 import RoleSelector from '@n2flowjs/flow/share/RoleSelector';
 import { useLocale } from '../../../locale';
-
-const { Text } = Typography;
 
 interface VariableNodeFormProps {
   form: any;
@@ -21,108 +19,59 @@ const VariableNodeForm: React.FC<VariableNodeFormProps> = (props) => {
 
   return (
     <BaseNodeForm {...props}>
-      <Alert
-        message={t('title')}
-        description={t('description')}
-        type="info"
-        showIcon
-        icon={<SettingOutlined />}
-        style={{ marginBottom: 16 }}
-      />
+      <div style={{ padding: '12px', backgroundColor: '#e6f7ff', border: '1px solid #91d5ff', borderRadius: '6px', marginBottom: '16px' }}>
+        <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>{t('title')}</div>
+        <div>{t('description')}</div>
+      </div>
 
-      <Collapse
-        defaultActiveKey={['variable']}
-        bordered={false}
-        expandIconPosition="end"
-        items={[
-          {
-            key: 'variable',
-            label: (
-              <Text strong>
-                <EditOutlined style={{ marginRight: 8 }} />
-                {t('configurationLabel')}
-              </Text>
-            ),
-            children: (
-              <Space direction="vertical" style={{ width: '100%' }} size="middle">
-                <Form.Item
-                  name="operation"
-                  label={t('operationLabel')}
-                  help={t('operationHelp')}
-                  initialValue="set"
-                  rules={[{ required: true, message: 'Please select an operation' }]}
-                >
-                  <Select>
-                    <Select.Option value="set">{t('setOperation')}</Select.Option>
-                    <Select.Option value="get">{t('getOperation')}</Select.Option>
-                    <Select.Option value="delete">{t('deleteOperation')}</Select.Option>
-                    <Select.Option value="append">{t('appendOperation')}</Select.Option>
-                  </Select>
-                </Form.Item>
+      <div style={{ marginBottom: '16px' }}>
+        <div style={{ fontWeight: 'bold', marginBottom: '12px', fontSize: '16px' }}>
+          {t('configurationLabel')}
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <DropdownField
+            name="operation"
+            label={t('operationLabel')}
+            required
+            options={[
+              { label: t('setOperation'), value: 'set' },
+              { label: t('getOperation'), value: 'get' },
+              { label: t('deleteOperation'), value: 'delete' },
+              { label: t('appendOperation'), value: 'append' }
+            ]}
+          />
 
-                <Form.Item
-                  name="variableName"
-                  label={t('variableNameLabel')}
-                  help={t('variableNameHelp')}
-                  rules={[{ required: true, message: 'Please enter variable name' }]}
-                >
-                  <Input placeholder="myVariable" />
-                </Form.Item>
+          <TextInputField
+            name="variableName"
+            label={t('variableNameLabel')}
+            required
+            placeholder="myVariable"
+          />
 
-                <Form.Item shouldUpdate>
-                  {({ getFieldValue }) => {
-                    const operation = getFieldValue('operation');
-                    
-                    return ['set', 'append'].includes(operation) ? (
-                      <Form.Item
-                        name="variableValue"
-                        label={t('variableValueLabel')}
-                        help={t('variableValueHelp')}
-                        rules={[{ required: true, message: 'Please enter variable value' }]}
-                      >
-                        <Input placeholder="{{inputValue}}" />
-                      </Form.Item>
-                    ) : null;
-                  }}
-                </Form.Item>
+          <TextInputField
+            name="variableValue"
+            label={t('variableValueLabel')}
+            placeholder="{{inputValue}}"
+          />
 
-                <Form.Item shouldUpdate>
-                  {({ getFieldValue }) => {
-                    const operation = getFieldValue('operation');
-                    
-                    return operation === 'get' ? (
-                      <Form.Item
-                        name="defaultValue"
-                        label={t('defaultValueLabel')}
-                        help={t('defaultValueHelp')}
-                      >
-                        <Input placeholder="Default value if variable doesn't exist" />
-                      </Form.Item>
-                    ) : null;
-                  }}
-                </Form.Item>
-              </Space>
-            ),
-          },
-        ]}
-      />
+          <TextInputField
+            name="defaultValue"
+            label={t('defaultValueLabel')}
+            placeholder="Default value if variable doesn't exist"
+          />
+        </div>
+      </div>
 
-      <Alert
-        message={t('examplesTitle')}
-        description={
-          <div>
-            <p>{t('examplesDescription')}</p>
-            <ul>
-              <li>{t('example1')}</li>
-              <li>{t('example2')}</li>
-              <li>{t('example3')}</li>
-              <li>{t('example4')}</li>
-            </ul>
-          </div>
-        }
-        type="info"
-        style={{ marginTop: 16, marginBottom: 16 }}
-      />
+      <div style={{ padding: '12px', backgroundColor: '#e6f7ff', border: '1px solid #91d5ff', borderRadius: '6px', marginTop: '16px', marginBottom: '16px' }}>
+        <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>{t('examplesTitle')}</div>
+        <div style={{ marginBottom: '8px' }}>{t('examplesDescription')}</div>
+        <ul>
+          <li>{t('example1')}</li>
+          <li>{t('example2')}</li>
+          <li>{t('example3')}</li>
+          <li>{t('example4')}</li>
+        </ul>
+      </div>
 
       <RoleSelector />
       <InputReferences form={props.form} nodeid={selectedNode.id} />

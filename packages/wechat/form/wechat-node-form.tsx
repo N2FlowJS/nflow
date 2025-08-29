@@ -1,12 +1,14 @@
 import { WechatOutlined, SettingOutlined, LinkOutlined, MessageOutlined } from '@ant-design/icons';
 import { FlowNode } from '../../../models/flowTypes';
-import { Form, Input, Select, Collapse, Space, Typography, Alert } from 'antd';
+import { Collapse, Space, Typography, Alert } from 'antd';
+import TextInputField from '../../@input/TextInputField';
+import TextAreaField from '../../@input/TextAreaField';
+import DropdownField from '../../@input/DropdownField';
 import React from 'react';
 import BaseNodeForm from '../../@flow/form';
 import InputReferences from '@n2flowjs/flow/share/InputReferences';
 import RoleSelector from '@n2flowjs/flow/share/RoleSelector';
 
-const { TextArea } = Input;
 const { Text } = Typography;
 
 interface WeChatNodeFormProps {
@@ -44,31 +46,25 @@ const WeChatNodeForm: React.FC<WeChatNodeFormProps> = (props) => {
             ),
             children: (
               <Space direction="vertical" style={{ width: '100%' }} size="middle">
-                <Form.Item
+                <TextInputField
                   name="appId"
                   label="App ID"
-                  help="WeChat Official Account App ID"
-                  rules={[{ required: true, message: 'Please enter the App ID' }]}
-                >
-                  <Input placeholder="wxxxxxxxxxxxxxxxxxxx" />
-                </Form.Item>
-
-                <Form.Item
+                  required
+                  placeholder="wxxxxxxxxxxxxxxxxxxx"
+                />
+                <TextInputField
                   name="appSecret"
                   label="App Secret"
-                  help="WeChat Official Account App Secret"
-                  rules={[{ required: true, message: 'Please enter the App Secret' }]}
-                >
-                  <Input.Password placeholder="App Secret" />
-                </Form.Item>
-
-                <Form.Item
+                  required
+                  type="password"
+                  placeholder="App Secret"
+                />
+                <TextInputField
                   name="accessToken"
                   label="Access Token (Optional)"
-                  help="If not provided, will be automatically generated using App ID and Secret"
-                >
-                  <Input.Password placeholder="Access Token (optional)" />
-                </Form.Item>
+                  type="password"
+                  placeholder="Access Token (optional)"
+                />
               </Space>
             ),
           },
@@ -81,22 +77,19 @@ const WeChatNodeForm: React.FC<WeChatNodeFormProps> = (props) => {
               </Text>
             ),
             children: (
-              <Form.Item
+              <DropdownField
                 name="action"
                 label="WeChat Action"
-                help="Choose what action to perform"
-                initialValue="send_message"
-                rules={[{ required: true, message: 'Please select an action' }]}
-              >
-                <Select>
-                  <Select.Option value="send_message">Send Message</Select.Option>
-                  <Select.Option value="send_template">Send Template Message</Select.Option>
-                  <Select.Option value="get_user_info">Get User Info</Select.Option>
-                  <Select.Option value="create_menu">Create Menu</Select.Option>
-                  <Select.Option value="get_qr_code">Generate QR Code</Select.Option>
-                  <Select.Option value="send_mini_program">Send Mini Program</Select.Option>
-                </Select>
-              </Form.Item>
+                required
+                options={[
+                  { label: 'Send Message', value: 'send_message' },
+                  { label: 'Send Template Message', value: 'send_template' },
+                  { label: 'Get User Info', value: 'get_user_info' },
+                  { label: 'Create Menu', value: 'create_menu' },
+                  { label: 'Generate QR Code', value: 'get_qr_code' },
+                  { label: 'Send Mini Program', value: 'send_mini_program' }
+                ]}
+              />
             ),
           },
           {
@@ -108,103 +101,45 @@ const WeChatNodeForm: React.FC<WeChatNodeFormProps> = (props) => {
               </Text>
             ),
             children: (
-              <Form.Item shouldUpdate>
-                {({ getFieldValue }) => {
-                  const action = getFieldValue('action');
-                  
-                  return (
-                    <Space direction="vertical" style={{ width: '100%' }} size="middle">
-                      {(action === 'send_message' || action === 'send_template' || action === 'get_user_info' || action === 'send_mini_program') && (
-                        <Form.Item
-                          name="openId"
-                          label="User OpenID"
-                          help="WeChat user's OpenID"
-                          rules={[{ required: true, message: 'Please enter user OpenID' }]}
-                        >
-                          <Input placeholder="{{userOpenId}} or direct OpenID" />
-                        </Form.Item>
-                      )}
-                      
-                      {action === 'send_message' && (
-                        <Form.Item
-                          name="message"
-                          label="Message Content"
-                          help="Text message to send to user"
-                          rules={[{ required: true, message: 'Please enter message content' }]}
-                        >
-                          <TextArea
-                            rows={4}
-                            placeholder="{{messageContent}} or direct message"
-                          />
-                        </Form.Item>
-                      )}
-                      
-                      {action === 'send_template' && (
-                        <Form.Item
-                          name="templateId"
-                          label="Template ID"
-                          help="WeChat template message ID"
-                          rules={[{ required: true, message: 'Please enter template ID' }]}
-                        >
-                          <Input placeholder="Template ID" />
-                        </Form.Item>
-                      )}
-                      
-                      {action === 'create_menu' && (
-                        <Form.Item
-                          name="menuData"
-                          label="Menu JSON Data"
-                          help="JSON structure for WeChat menu"
-                          rules={[{ required: true, message: 'Please enter menu data' }]}
-                        >
-                          <TextArea
-                            rows={6}
-                            placeholder='{"button":[{"type":"click","name":"Menu Item","key":"V1001_MENU"}]}'
-                          />
-                        </Form.Item>
-                      )}
-                      
-                      {action === 'get_qr_code' && (
-                        <Form.Item
-                          name="scene"
-                          label="QR Code Scene"
-                          help="Scene identifier for the QR code"
-                        >
-                          <Input placeholder="{{qrScene}} or scene identifier" />
-                        </Form.Item>
-                      )}
-                      
-                      {action === 'send_mini_program' && (
-                        <>
-                          <Form.Item
-                            name="miniProgramAppId"
-                            label="Mini Program App ID"
-                            help="App ID of the Mini Program"
-                            rules={[{ required: true, message: 'Please enter Mini Program App ID' }]}
-                          >
-                            <Input placeholder="Mini Program App ID" />
-                          </Form.Item>
-                          <Form.Item
-                            name="miniProgramPath"
-                            label="Mini Program Path"
-                            help="Path within the Mini Program (optional)"
-                          >
-                            <Input placeholder="pages/index/index" />
-                          </Form.Item>
-                        </>
-                      )}
-                      
-                      {action === 'get_user_info' && (
-                        <Alert
-                          message="User Information"
-                          description="This action retrieves user profile information including nickname, avatar, and subscription status."
-                          type="info"
-                        />
-                      )}
-                    </Space>
-                  );
-                }}
-              </Form.Item>
+              <Space direction="vertical" style={{ width: '100%' }} size="middle">
+                <TextInputField
+                  name="openId"
+                  label="User OpenID"
+                  placeholder="{{userOpenId}} or direct OpenID"
+                />
+                <TextAreaField
+                  name="message"
+                  label="Message Content"
+                  rows={4}
+                  placeholder="{{messageContent}} or direct message"
+                />
+                <TextInputField
+                  name="templateId"
+                  label="Template ID"
+                  placeholder="Template ID"
+                />
+                <TextAreaField
+                  name="menuData"
+                  label="Menu JSON Data"
+                  rows={6}
+                  placeholder='{"button":[{"type":"click","name":"Menu Item","key":"V1001_MENU"}]}'
+                />
+                <TextInputField
+                  name="scene"
+                  label="QR Code Scene"
+                  placeholder="{{qrScene}} or scene identifier"
+                />
+                <TextInputField
+                  name="miniProgramAppId"
+                  label="Mini Program App ID"
+                  placeholder="Mini Program App ID"
+                />
+                <TextInputField
+                  name="miniProgramPath"
+                  label="Mini Program Path"
+                  placeholder="pages/index/index"
+                />
+              </Space>
             ),
           },
         ]}

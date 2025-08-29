@@ -50,6 +50,8 @@ export function getNodePluginConfig(options?: LoaderOptions): NodePluginConfigMa
   for (const d of entries) {
     if (!d.isDirectory?.()) continue;
     const pkgName = d.name;
+    console.log('Found package:', pkgName);
+
     if (pkgName.startsWith('@') && !INTERNAL_ALLOW.has(pkgName)) continue;
     const pkgPath = path.join(packagesDir, pkgName);
     const cfg = loadPackageConfig(pkgPath, pkgName, filename, fs, path);
@@ -150,7 +152,7 @@ export function getDynamicNodeTypeKeys(options?: LoaderOptions): string[] {
     const names = entries.filter((d: import('fs').Dirent) => d.isDirectory?.()).map((d: import('fs').Dirent) => d.name);
     return names
       .filter((n: string) => !n.startsWith('@') || INTERNAL_ALLOW.has(n))
-      .map((n: string) => n.replace(/-+/g, ''));
+      .map((n: string) => n);
   } catch {
     return [];
   }

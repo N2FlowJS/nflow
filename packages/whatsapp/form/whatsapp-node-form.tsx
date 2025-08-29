@@ -1,12 +1,15 @@
 import { WhatsAppOutlined, SettingOutlined, KeyOutlined } from '@ant-design/icons';
 import { FlowNode } from '../../../models/flowTypes';
-import { Form, Input, Select, Collapse, Space, Typography, Alert } from 'antd';
+import { Collapse, Space, Typography, Alert } from 'antd';
+import TextInputField from '../../@input/TextInputField';
+import TextAreaField from '../../@input/TextAreaField';
+import DropdownField from '../../@input/DropdownField';
 import React from 'react';
 import BaseNodeForm from '../../@flow/form';
 import InputReferences from '@n2flowjs/flow/share/InputReferences';
 import RoleSelector from '@n2flowjs/flow/share/RoleSelector';
 
-const { TextArea } = Input;
+// ...existing code...
 const { Text } = Typography;
 
 interface WhatsAppNodeFormProps {
@@ -44,20 +47,19 @@ const WhatsAppNodeForm: React.FC<WhatsAppNodeFormProps> = (props) => {
             ),
             children: (
               <Space direction="vertical" style={{ width: '100%' }} size="middle">
-                <Form.Item
+                <TextInputField
                   name="accessToken"
                   label="Access Token"
-                  rules={[{ required: true, message: 'Please enter WhatsApp access token' }]}
-                >
-                  <Input.Password placeholder="Your WhatsApp Business API access token" />
-                </Form.Item>
-                <Form.Item
+                  required
+                  type="password"
+                  placeholder="Your WhatsApp Business API access token"
+                />
+                <TextInputField
                   name="phoneNumberId"
                   label="Phone Number ID"
-                  rules={[{ required: true, message: 'Please enter phone number ID' }]}
-                >
-                  <Input placeholder="WhatsApp Business phone number ID" />
-                </Form.Item>
+                  required
+                  placeholder="WhatsApp Business phone number ID"
+                />
               </Space>
             ),
           },
@@ -70,21 +72,18 @@ const WhatsAppNodeForm: React.FC<WhatsAppNodeFormProps> = (props) => {
               </Text>
             ),
             children: (
-              <Form.Item
+              <DropdownField
                 name="action"
                 label="Action Type"
-                help="Choose what WhatsApp operation to perform"
-                initialValue="send_message"
-                rules={[{ required: true, message: 'Please select an action' }]}
-              >
-                <Select>
-                  <Select.Option value="send_message">Send Message</Select.Option>
-                  <Select.Option value="send_media">Send Media</Select.Option>
-                  <Select.Option value="send_template">Send Template</Select.Option>
-                  <Select.Option value="get_media">Get Media</Select.Option>
-                  <Select.Option value="mark_read">Mark as Read</Select.Option>
-                </Select>
-              </Form.Item>
+                required
+                options={[
+                  { label: 'Send Message', value: 'send_message' },
+                  { label: 'Send Media', value: 'send_media' },
+                  { label: 'Send Template', value: 'send_template' },
+                  { label: 'Get Media', value: 'get_media' },
+                  { label: 'Mark as Read', value: 'mark_read' }
+                ]}
+              />
             ),
           },
           {
@@ -96,127 +95,54 @@ const WhatsAppNodeForm: React.FC<WhatsAppNodeFormProps> = (props) => {
               </Text>
             ),
             children: (
-              <Form.Item shouldUpdate>
-                {({ getFieldValue }) => {
-                  const action = getFieldValue('action');
-                  
-                  return (
-                    <Space direction="vertical" style={{ width: '100%' }} size="middle">
-                      {(action === 'send_message' || action === 'send_media' || action === 'send_template' || action === 'mark_read') && (
-                        <Form.Item
-                          name="recipientPhone"
-                          label="Recipient Phone"
-                          help="Phone number in international format (without +)"
-                          rules={[{ required: true, message: 'Please enter recipient phone number' }]}
-                        >
-                          <Input placeholder="1234567890" />
-                        </Form.Item>
-                      )}
-                      
-                      {action === 'send_message' && (
-                        <Form.Item
-                          name="message"
-                          label="Message"
-                          help="Message content to send"
-                          rules={[{ required: true, message: 'Please enter message' }]}
-                        >
-                          <TextArea
-                            rows={4}
-                            placeholder="{{whatsappMessage}} or your message..."
-                          />
-                        </Form.Item>
-                      )}
-                      
-                      {action === 'send_media' && (
-                        <>
-                          <Form.Item
-                            name="mediaType"
-                            label="Media Type"
-                            help="Type of media to send"
-                            initialValue="image"
-                            rules={[{ required: true, message: 'Please select media type' }]}
-                          >
-                            <Select>
-                              <Select.Option value="image">Image</Select.Option>
-                              <Select.Option value="video">Video</Select.Option>
-                              <Select.Option value="audio">Audio</Select.Option>
-                              <Select.Option value="document">Document</Select.Option>
-                            </Select>
-                          </Form.Item>
-                          <Form.Item
-                            name="mediaUrl"
-                            label="Media URL"
-                            help="URL of the media file to send"
-                          >
-                            <Input placeholder="https://example.com/media.jpg" />
-                          </Form.Item>
-                          <Form.Item
-                            name="mediaId"
-                            label="Media ID (Alternative)"
-                            help="WhatsApp media ID if already uploaded"
-                          >
-                            <Input placeholder="Media ID from WhatsApp" />
-                          </Form.Item>
-                        </>
-                      )}
-                      
-                      {action === 'send_template' && (
-                        <>
-                          <Form.Item
-                            name="templateName"
-                            label="Template Name"
-                            help="Name of the approved message template"
-                            rules={[{ required: true, message: 'Please enter template name' }]}
-                          >
-                            <Input placeholder="hello_world" />
-                          </Form.Item>
-                          <Form.Item
-                            name="templateLanguage"
-                            label="Template Language"
-                            help="Language code for the template"
-                            initialValue="en_US"
-                            rules={[{ required: true, message: 'Please enter template language' }]}
-                          >
-                            <Input placeholder="en_US" />
-                          </Form.Item>
-                          <Form.List name="templateParameters">
-                            {(fields, { add, remove }) => (
-                              <>
-                                {fields.map(({ key, name, ...restField }) => (
-                                  <Space key={key} style={{ display: 'flex', marginBottom: 8 }} align="baseline">
-                                    <Form.Item
-                                      {...restField}
-                                      name={name}
-                                      rules={[{ required: true, message: 'Missing parameter' }]}
-                                    >
-                                      <Input placeholder="Template parameter value" />
-                                    </Form.Item>
-                                    <a onClick={() => remove(name)}>Remove</a>
-                                  </Space>
-                                ))}
-                                <Form.Item>
-                                  <a onClick={() => add()}>Add Template Parameter</a>
-                                </Form.Item>
-                              </>
-                            )}
-                          </Form.List>
-                        </>
-                      )}
-                      
-                      {action === 'get_media' && (
-                        <Form.Item
-                          name="mediaId"
-                          label="Media ID"
-                          help="WhatsApp media ID to retrieve"
-                          rules={[{ required: true, message: 'Please enter media ID' }]}
-                        >
-                          <Input placeholder="Media ID from WhatsApp" />
-                        </Form.Item>
-                      )}
-                    </Space>
-                  );
-                }}
-              </Form.Item>
+              <Space direction="vertical" style={{ width: '100%' }} size="middle">
+                <TextInputField
+                  name="recipientPhone"
+                  label="Recipient Phone"
+                  placeholder="1234567890"
+                />
+                <TextAreaField
+                  name="message"
+                  label="Message"
+                  rows={4}
+                  placeholder="{{whatsappMessage}} or your message..."
+                />
+                <DropdownField
+                  name="mediaType"
+                  label="Media Type"
+                  options={[
+                    { label: 'Image', value: 'image' },
+                    { label: 'Video', value: 'video' },
+                    { label: 'Audio', value: 'audio' },
+                    { label: 'Document', value: 'document' }
+                  ]}
+                />
+                <TextInputField
+                  name="mediaUrl"
+                  label="Media URL"
+                  placeholder="https://example.com/media.jpg"
+                />
+                <TextInputField
+                  name="mediaId"
+                  label="Media ID (Alternative)"
+                  placeholder="Media ID from WhatsApp"
+                />
+                <TextInputField
+                  name="templateName"
+                  label="Template Name"
+                  placeholder="hello_world"
+                />
+                <TextInputField
+                  name="templateLanguage"
+                  label="Template Language"
+                  placeholder="en_US"
+                />
+                <TextInputField
+                  name="templateParameter"
+                  label="Template Parameter"
+                  placeholder="Template parameter value"
+                />
+              </Space>
             ),
           },
         ]}
