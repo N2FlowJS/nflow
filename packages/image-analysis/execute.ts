@@ -1,6 +1,6 @@
 import { ExecutionResult, FlowExecutionContext } from '../../models/flowExecutionTypes';
 import { ImageAnalysisNodeData, FlowNode } from '../../models/flowTypes';
-import { getInputFromTemplate, processTemplate } from '@n2flowjs/template-processor/templateProcessor';
+import { getInputFromTemplate, processTemplate } from '@n2flowjs/template/template';
 import { findNextNodes, isNodeReady, FlowStateDispatcher } from '@n2flowjs/flow';
 import * as fs from 'fs';
 import * as path from 'path';

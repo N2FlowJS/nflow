@@ -3,13 +3,9 @@ export * from './discovery/ui-discover';
 import { getClientNodeTypes } from './discovery/ui-discover';
 import { LoaderOptions, NodePluginConfig, NodePluginConfigMap } from './type';
 
-// NOTE: Keep this file server-safe. We lazily require fs/path so accidental client import stays light.
-// A dedicated browser stub (browser.ts) already exports empty impls; prefer importing that on client.
-
 const DEFAULT_CONFIG_FILENAME = '.nflow.json';
 const INTERNAL_ALLOW = new Set(['@flow', '@node-plugin', '@template-processor']);
 
-// In‑memory cache (invalidated manually) to avoid repeated disk scans per request.
 let _cache: { map: NodePluginConfigMap; ts: number } | null = null;
 let _cacheKey = '';
 
@@ -19,16 +15,16 @@ function isNodeEnv() {
 
 function lazyFs() {
   if (!isNodeEnv()) return null as any;
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
   return require('fs') as typeof import('fs');
 }
 function lazyPath() {
   if (!isNodeEnv()) return null as any;
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
   return require('path') as typeof import('path');
 }
 
-export function invalidateNodePluginConfigCache() { _cache = null; }
+export function invalidateNodePluginConfigCache() {
+  _cache = null;
+}
 
 export function getNodePluginConfig(options?: LoaderOptions): NodePluginConfigMap {
   if (!isNodeEnv()) return {}; // never attempt on browser
@@ -44,7 +40,11 @@ export function getNodePluginConfig(options?: LoaderOptions): NodePluginConfigMa
   if (_cache && _cacheKey === newKey) return _cache.map; // simple cache
 
   let entries: any[] = [];
-  try { entries = fs.readdirSync(packagesDir, { withFileTypes: true }); } catch { return {}; }
+  try {
+    entries = fs.readdirSync(packagesDir, { withFileTypes: true });
+  } catch {
+    return {};
+  }
 
   const map: NodePluginConfigMap = {};
   for (const d of entries) {
@@ -58,7 +58,8 @@ export function getNodePluginConfig(options?: LoaderOptions): NodePluginConfigMa
     if (cfg) map[pkgName] = cfg;
   }
 
-  _cache = { map, ts: Date.now() }; _cacheKey = newKey;
+  _cache = { map, ts: Date.now() };
+  _cacheKey = newKey;
   return map;
 }
 
@@ -80,15 +81,27 @@ function resolvePackagesDir(base: string, fs: typeof import('fs'), path: typeof 
   return null;
 }
 
-function isDir(p: string, fs: typeof import('fs')) { try { return fs.statSync(p).isDirectory(); } catch { return false; } }
+function isDir(p: string, fs: typeof import('fs')) {
+  try {
+    return fs.statSync(p).isDirectory();
+  } catch {
+    return false;
+  }
+}
 
-function pickFirstExisting(paths: string[], fs: typeof import('fs')) { for (const p of paths) if (fs.existsSync(p)) return p; return null; }
+function pickFirstExisting(paths: string[], fs: typeof import('fs')) {
+  for (const p of paths) if (fs.existsSync(p)) return p;
+  return null;
+}
 
-function loadPackageConfig(pkgPath: string, pkgName: string, filename: string, fs: typeof import('fs'), path: typeof import('path')): NodePluginConfig | null {
-  const configPath = pickFirstExisting([
-    path.join(pkgPath, filename),
-    path.join(pkgPath, `${pkgName}.nflow.json`),
-  ], fs);
+function loadPackageConfig(
+  pkgPath: string,
+  pkgName: string,
+  filename: string,
+  fs: typeof import('fs'),
+  path: typeof import('path')
+): NodePluginConfig | null {
+  const configPath = pickFirstExisting([path.join(pkgPath, filename), path.join(pkgPath, `${pkgName}.nflow.json`)], fs);
 
   let fileCfg: NodePluginConfig | null = null;
   if (configPath) fileCfg = readAndNormalizeFile(configPath, fs);
@@ -102,7 +115,9 @@ function loadPackageConfig(pkgPath: string, pkgName: string, filename: string, f
         const pkgJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
         if (pkgJson && typeof pkgJson.nflow === 'object') pkgCfg = normalizeConfigShape(pkgJson.nflow);
       }
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   }
   return mergeConfigs(pkgCfg, fileCfg);
 }
@@ -150,9 +165,7 @@ export function getDynamicNodeTypeKeys(options?: LoaderOptions): string[] {
   try {
     const entries: Array<import('fs').Dirent> = fs.readdirSync(packagesDir, { withFileTypes: true });
     const names = entries.filter((d: import('fs').Dirent) => d.isDirectory?.()).map((d: import('fs').Dirent) => d.name);
-    return names
-      .filter((n: string) => !n.startsWith('@') || INTERNAL_ALLOW.has(n))
-      .map((n: string) => n);
+    return names.filter((n: string) => !n.startsWith('@') || INTERNAL_ALLOW.has(n)).map((n: string) => n);
   } catch {
     return [];
   }
@@ -162,7 +175,11 @@ export function getDynamicNodeTypeKeys(options?: LoaderOptions): string[] {
 export function getAllNodeTypeKeys(options?: LoaderOptions): string[] {
   // Browser
   if (typeof window !== 'undefined') {
-    try { return Object.keys(getClientNodeTypes() as Record<string, unknown>); } catch { return []; }
+    try {
+      return Object.keys(getClientNodeTypes() as Record<string, unknown>);
+    } catch {
+      return [];
+    }
   }
   // Server / Node
   return getDynamicNodeTypeKeys(options);

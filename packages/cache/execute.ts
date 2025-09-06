@@ -1,6 +1,6 @@
 import { CacheNodeData, FlowNode } from '../../models/flowTypes';
 import { findNextNodes } from '../@flow/find-next-node';
-import { getInputFromTemplate, processTemplate } from '@n2flowjs/template-processor/templateProcessor';
+import { getInputFromTemplate, processTemplate } from '@n2flowjs/template/template';
 import { isNodeReady } from '../@flow/is-node-ready';
 import { FlowStateDispatcher } from '../@flow/flow-state-dispatcher';
 import { ExecutionResult, FlowExecutionContext } from '../@flow';

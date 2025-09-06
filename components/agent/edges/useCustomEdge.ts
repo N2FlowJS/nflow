@@ -18,7 +18,6 @@ export const useCustomEdge = (props: EdgeProps<CustomEdgeData>) => {
     targetPosition,
     style = {},
     markerEnd,
-    data,
     source,
     target,
   } = props;
@@ -35,7 +34,6 @@ export const useCustomEdge = (props: EdgeProps<CustomEdgeData>) => {
 
   const { token } = theme.useToken();
   const isExecutedEdge = useEdgeExecutionStatus(source, target);
-  const isDragging = (data as any)?.isDragging;
 
   const effectiveStyle = useMemo(() => {
     const color = isExecutedEdge ? '#52c41a' : (style as any).stroke || token.colorBorder;
@@ -50,6 +48,5 @@ export const useCustomEdge = (props: EdgeProps<CustomEdgeData>) => {
     labelY,
     markerEnd,
     effectiveStyle,
-    isDragging,
   } as const;
 };

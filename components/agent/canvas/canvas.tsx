@@ -1,6 +1,7 @@
 import { CommentOutlined, SaveOutlined } from '@ant-design/icons';
 import {
   Background,
+  BackgroundVariant,
   ConnectionLineType,
   ControlButton,
   Controls,
@@ -14,7 +15,7 @@ import {
   useReactFlow,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { Drawer, Form, Layout, Button } from 'antd';
+import { Modal, Form, Layout, Button } from 'antd';
 import React, { memo, useCallback, useMemo, useState } from 'react';
 
 import NodeForm from '../../../packages/@flow/share/DynamicNodeForm';
@@ -26,7 +27,6 @@ import CustomEdge from '../edges/CustomEdge';
 
 import { NODE_REGISTRY } from '../../../utils/client/NODE_REGISTRY';
 import { parseFlowConfig } from '../../../utils/server/parseFlowConfig';
-import { getClientNodeTypes } from '../../../packages/@node-plugin/discovery/ui-discover';
 import { FlowEditorContext, FlowEditorContextType } from '../../../packages/@flow/editor-context';
 import { useConversationStateLoader } from './hooks/useConversationStateLoader';
 import { useEdgeCleanup } from './hooks/useEdgeCleanup';
@@ -37,10 +37,11 @@ import { useValidConnection } from './hooks/useValidConnection';
 import { useNodeDropper } from './hooks/useNodeDropper';
 import { useDragOverHandler } from './hooks/useDragOverHandler';
 import { useNodeClickHandler } from './hooks/useNodeClickHandler';
-import { useEdgesWithDragFlag } from './hooks/useEdgesWithDragFlag';
 import { getOppositePosition, slugify } from '../../../packages/@flow/flow-helpers';
 import NextNodeModal from './NextNodeModal';
 import { nodeTypes } from '../nodes';
+import { DragContext } from './DragContext';
+import { useFlowEditorPerf } from './hooks/useFlowEditorPerf';
 
 const edgeTypes: EdgeTypes = {
   default: CustomEdge,
@@ -53,6 +54,9 @@ interface FlowEditorProps {
   onStartConversation?: () => void;
   agentId?: string;
   activeConversationId?: string;
+  // Performance toggles
+  onlyRenderVisibleElements?: boolean;
+  showEdgeMarkers?: boolean;
 }
 
 const { Content } = Layout;
@@ -69,18 +73,25 @@ type NextStepContext = {
   sourceH: number;
 } | null;
 
-const FlowEditor: React.FC<FlowEditorProps> = ({ flowConfig, onStartConversation, agentId, activeConversationId }) => {
+const FlowEditor: React.FC<FlowEditorProps> = ({
+  flowConfig,
+  onStartConversation,
+  agentId,
+  activeConversationId,
+  onlyRenderVisibleElements: onlyRenderVisibleElementsProp = true,
+  showEdgeMarkers = true,
+}) => {
   const { theme } = useTheme();
-  const initialFlow = parseFlowConfig(flowConfig);
+  const initialFlow = useMemo(() => parseFlowConfig(flowConfig), [flowConfig]);
   const [nodes, setNodes, onNodesChange] = useNodesState(initialFlow.nodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialFlow.edges);
   const [selectedNode, setSelectedNode] = useState<FlowNode | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [nodeForm] = Form.useForm();
   const { screenToFlowPosition } = useReactFlow();
+  const idCounter = React.useRef(0);
   // Removed palette state
-  // Add lightweight drag flag
-  const [isDragging, setIsDragging] = useState(false);
+  // (Perf handled by useFlowEditorPerf)
 
   const { setFlowState } = useFlowState();
 
@@ -144,7 +155,7 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flowConfig, onStartConversation
   const availableNextTypes = useMemo(() => {
     // With rules removed, just list all (future: delegate filtering to plugin layer)
     return Object.entries(NODE_REGISTRY) as Array<[NodeTypeString, any]>;
-  }, [nextStepCtx]);
+  }, []);
 
   useConversationStateLoader(activeConversationId, setFlowState);
   useEdgeCleanup(nodes, setEdges);
@@ -182,6 +193,9 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flowConfig, onStartConversation
     setIsNextStepOpen(true);
   }, []);
 
+  const genNodeId = useCallback(() => `node_${Date.now()}_${idCounter.current++}`, []);
+  const genEdgeId = useCallback(() => `edge_${Date.now()}_${idCounter.current++}`, []);
+
   const addNextNode = useCallback(
     (nodeType: NodeTypeString) => {
       // Initial add (no source context)
@@ -207,7 +221,7 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flowConfig, onStartConversation
         }
 
         const newNode: FlowNode = {
-          id: `node_${Date.now()}`,
+          id: genNodeId(),
           type: nodeType,
           data: {
             ...defaultData,
@@ -288,7 +302,7 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flowConfig, onStartConversation
       }
 
       const newNode: FlowNode = {
-        id: `node_${Date.now()}`,
+        id: genNodeId(),
         type: nodeType,
         data: {
           ...defaultData,
@@ -299,8 +313,6 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flowConfig, onStartConversation
         },
         position: pos,
       };
-
-      setNodes((nds) => [...nds, newNode]);
 
       // Choose target handle: SubAgent -> Top; otherwise opposite of clicked source handle; fallback Top
       let targetHandle: string | undefined;
@@ -313,20 +325,21 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flowConfig, onStartConversation
 
       const sourceHandle = nextStepCtx.handleId;
       const newEdge: Edge = {
-        id: `edge-${nextStepCtx.nodeId}-to-${newNode.id}`,
+        id: genEdgeId(),
         source: nextStepCtx.nodeId,
         sourceHandle,
         target: newNode.id,
         ...(targetHandle ? { targetHandle } : {}),
         type: 'default',
-        markerEnd: { type: MarkerType.ArrowClosed },
+        ...(showEdgeMarkers ? { markerEnd: { type: MarkerType.ArrowClosed } } : {}),
       } as Edge;
 
-      // If source is categorize, persist routing in form
-      if (nextStepCtx.nodeType === 'categorize' && sourceHandle?.startsWith('out-')) {
-        const categoryName = sourceHandle.substring(4);
-        setNodes((nds) =>
-          nds.map((n) => {
+      // Single-pass nodes update: append new node and conditionally mutate source node form
+      setNodes((nds) => {
+        const next = [...nds, newNode];
+        if (nextStepCtx.nodeType === 'categorize' && sourceHandle?.startsWith('out-')) {
+          const categoryName = sourceHandle.substring(4);
+          return next.map((n) => {
             if (n.id !== nextStepCtx.nodeId || n.type !== 'categorize') return n;
             const form = n.data.form as any;
             if (!Array.isArray(form?.categories)) return n;
@@ -342,15 +355,11 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flowConfig, onStartConversation
                 },
               },
             } as FlowNode;
-          })
-        );
-      }
-
-      // If source is decision, persist target in form (branch or default)
-      if (nextStepCtx.nodeType === 'decision' && sourceHandle) {
-        const branchName = sourceHandle.startsWith('out-') ? sourceHandle.substring(4) : '';
-        setNodes((nds) =>
-          nds.map((n) => {
+          });
+        }
+        if (nextStepCtx.nodeType === 'decision' && sourceHandle) {
+          const branchName = sourceHandle.startsWith('out-') ? sourceHandle.substring(4) : '';
+          return next.map((n) => {
             if (n.id !== nextStepCtx.nodeId || n.type !== 'decision') return n;
             const form: any = { ...(n.data.form || {}) };
             if (branchName === 'default') {
@@ -361,9 +370,10 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flowConfig, onStartConversation
               );
             }
             return { ...n, data: { ...n.data, form } } as FlowNode;
-          })
-        );
-      }
+          });
+        }
+        return next;
+      });
 
       setEdges((eds) => [...eds, newEdge]);
 
@@ -373,56 +383,90 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flowConfig, onStartConversation
     [nextStepCtx, nodes, setNodes, setEdges, screenToFlowPosition, getDirVector, estimateSize, snapToGrid, collides]
   );
 
+  // Inject delete handler once per change of handler identity without recreating edge objects unnecessarily
   React.useEffect(() => {
     setEdges((currentEdges) =>
-      currentEdges.map((edge) => ({
-        ...edge,
-        data: { ...edge.data, onDelete: onEdgeDelete },
-      }))
+      currentEdges.map((edge) => {
+        if (edge.data && edge.data.onDelete === onEdgeDelete) return edge;
+        return { ...edge, data: { ...(edge.data || {}), onDelete: onEdgeDelete } };
+      })
     );
   }, [onEdgeDelete, setEdges]);
 
-  // Replace inline useMemo with the hook
-  const edgesForRender = useEdgesWithDragFlag(edges, isDragging);
+  // Performance and UX hook
+  const {
+    isDragging,
+    handleNodeDragStart,
+    handleNodeDrag,
+    handleNodeDragStop,
+    handleNodesChange,
+    handleEdgesChange,
+    proOptions,
+    defaultEdgeOptions,
+    edgesForRender,
+  } = useFlowEditorPerf({
+    onNodesChange,
+    onEdgesChange,
+    onEdgeDelete,
+    edges,
+  });
+
+  // Gate edge markers at render time for existing edges
+  const edgesForRenderWithMarkers = useMemo(() => {
+    if (showEdgeMarkers) return edgesForRender;
+    return edgesForRender.map((e) => ({ ...e, markerEnd: undefined }));
+  }, [edgesForRender, showEdgeMarkers]);
 
   const modalTitle = nextStepCtx ? 'Select Next Step' : 'Add First Node';
+  const onDrawerClose = useCallback(() => nodeForm.submit(), [nodeForm]);
+  const drawerWidth = useMemo(() => {
+    if (typeof window === 'undefined') return '45%';
+    return window.innerWidth > 768 ? '45%' : '80%';
+  }, []);
+
+  const flowEditorCtxValue = useMemo(
+    () => ({ openConfigDrawer, deleteNode, openNextStepModal }),
+    [openConfigDrawer, deleteNode, openNextStepModal]
+  );
 
   return (
-    <FlowEditorContext.Provider value={{ openConfigDrawer, deleteNode, openNextStepModal }}>
+    <FlowEditorContext.Provider value={flowEditorCtxValue}>
       <Layout style={{ height: '100%', position: 'relative' }}>
-
         <Content style={{ position: 'relative' }}>
+          <DragContext.Provider value={isDragging}>
           <ReactFlow
             colorMode={theme}
             nodes={nodes}
-            edges={edgesForRender}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
+            edges={edgesForRenderWithMarkers}
+            onNodesChange={handleNodesChange}
+            onEdgesChange={handleEdgesChange}
             onConnect={onConnect}
             onDrop={onDrop}
             onDragOver={onDragOver}
             onNodeClick={onNodeClick}
-            onNodeDragStart={() => setIsDragging(true)}
-            onNodeDragStop={() => setIsDragging(false)}
+            onNodeDragStart={handleNodeDragStart}
+            onNodeDrag={handleNodeDrag}
+            onNodeDragStop={handleNodeDragStop}
             connectionLineType={ConnectionLineType.Bezier}
             isValidConnection={isValidConnection}
             fitView
             nodeOrigin={[0.5, 0]}
             nodeTypes={nodeTypes}
             edgeTypes={edgeTypes}
-            snapToGrid={true}
-            defaultEdgeOptions={{
-              type: 'default',
-              data: {
-                onDelete: onEdgeDelete,
-              },
-            }}>
+            snapToGrid={false}
+            selectionOnDrag={false}
+            autoPanOnNodeDrag={true}
+            onlyRenderVisibleElements={onlyRenderVisibleElementsProp}
+            proOptions={proOptions}
+            defaultEdgeOptions={defaultEdgeOptions}
+          >
             <Controls
               orientation="horizontal"
               position="top-left"
               showZoom={true}
               showFitView={true}
-              showInteractive={true}>
+              showInteractive={true}
+            >
               <ControlButton onClick={handleSaveFlow}>
                 <SaveOutlined />
               </ControlButton>
@@ -430,8 +474,9 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flowConfig, onStartConversation
                 <CommentOutlined />
               </ControlButton>
             </Controls>
-            <Background />
+            <Background variant={BackgroundVariant.Dots} gap={24} size={1} />
           </ReactFlow>
+          </DragContext.Provider>
 
           {noNodes && !isNextStepOpen && (
             <div
@@ -450,26 +495,35 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flowConfig, onStartConversation
           )}
         </Content>
 
-        <Drawer
+        <Modal
           title="Node Configuration"
-          placement="right"
-          onClose={() => nodeForm.submit()}
           open={isDrawerOpen}
-          width={window.innerWidth > 768 ? '45%' : '80%'}
+          onCancel={onDrawerClose}
+          // Preserve auto-save on close behavior
+          afterClose={undefined}
+          destroyOnClose
+          width={drawerWidth}
+          footer={null}
           styles={{
             body: {
               paddingTop: 12,
               paddingBottom: 60,
             },
-          }}>
-          <NodeForm form={nodeForm} selectedNode={selectedNode} setIsDrawerOpen={setIsDrawerOpen} />
-        </Drawer>
+          }}
+        >
+          {isDrawerOpen && (
+            <NodeForm form={nodeForm} selectedNode={selectedNode} setIsDrawerOpen={setIsDrawerOpen} />
+          )}
+        </Modal>
 
         <NextNodeModal
           open={isNextStepOpen}
           title={modalTitle}
           items={availableNextTypes}
-          onCancel={() => { setIsNextStepOpen(false); setNextStepCtx(null); }}
+          onCancel={() => {
+            setIsNextStepOpen(false);
+            setNextStepCtx(null);
+          }}
           onSelect={(type) => addNextNode(type)}
         />
       </Layout>

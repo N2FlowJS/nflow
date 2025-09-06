@@ -1,5 +1,5 @@
 import { ReactFlowProvider } from '@xyflow/react';
-import { Drawer, Skeleton, Spin, message } from 'antd';
+import { Modal, Skeleton, Spin, message } from 'antd';
 import { useRouter } from 'next/router';
 import React, { useEffect, useState } from 'react';
 import FlowEditor from '../../components/agent/canvas/canvas';
@@ -81,25 +81,30 @@ export default function FlowEditorPage() {
             activeConversationId={isChatOpen ? undefined : currentConversationId}
           />
         </ReactFlowProvider>
-        <Drawer
+        <Modal
           title="Test Chat"
-          placement="right"
-          width={isMobile ? '90%' : '50%'}
           open={isChatOpen}
-          onClose={() => setIsChatOpen(false)}>
-          <ChatInterface
-            agentId={agent?.id}
-            flowConfig={agent?.flowConfig}
-            id={currentConversationId}
-            onConversationCreated={handleConversationCreated}
-            onConversationUpdated={handleConversationUpdated}
-            onNewChatStarted={handleNewChatStarted}
-            variables={{
-              agentName: agent?.name,
-              userDisplayName: user?.name || 'User',
-            }}
-          />
-        </Drawer>
+          onCancel={() => setIsChatOpen(false)}
+          width={isMobile ? '90%' : '50%'}
+          footer={null}
+          destroyOnClose
+          styles={{ body: { padding: 0 } }}
+        >
+          <div style={{ height: '70vh', display: 'flex', flexDirection: 'column' }}>
+            <ChatInterface
+              agentId={agent?.id}
+              flowConfig={agent?.flowConfig}
+              id={currentConversationId}
+              onConversationCreated={handleConversationCreated}
+              onConversationUpdated={handleConversationUpdated}
+              onNewChatStarted={handleNewChatStarted}
+              variables={{
+                agentName: agent?.name,
+                userDisplayName: user?.name || 'User',
+              }}
+            />
+          </div>
+        </Modal>
       </FlowStateProvider>
     </MainLayout>
   );

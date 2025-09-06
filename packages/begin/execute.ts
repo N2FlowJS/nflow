@@ -1,5 +1,5 @@
 import { FlowNode, BeginNodeData } from '../../models/flowTypes';
-import { processTemplate } from '@n2flowjs/template-processor/templateProcessor';
+import { processTemplate } from '@n2flowjs/template/template';
 import { findNextNodes } from '../@flow/find-next-node';
 import { FlowStateDispatcher } from '../@flow/flow-state-dispatcher';
 import { ExecutionResult, FlowExecutionContext } from '../@flow/type';

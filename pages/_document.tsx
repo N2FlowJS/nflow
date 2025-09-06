@@ -1,9 +1,7 @@
 import Document, { Html, Head, Main, NextScript, DocumentContext } from 'next/document';
 
-// Lazy require server-only module (uses fs/path) inside getInitialProps
 async function loadPluginConfig() {
 	try {
-		// eslint-disable-next-line @typescript-eslint/no-require-imports
 		const mod = require('../packages/@node-plugin');
 		if (mod.getNodePluginConfig) return mod.getNodePluginConfig();
 	} catch {

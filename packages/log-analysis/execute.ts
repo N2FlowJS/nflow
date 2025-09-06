@@ -1,5 +1,5 @@
 import { LogAnalysisNodeData, FlowNode } from '../../models/flowTypes';
-import { getInputFromTemplate, processTemplate } from '@n2flowjs/template-processor/templateProcessor';
+import { getInputFromTemplate, processTemplate } from '@n2flowjs/template/template';
 import { findNextNodes, isNodeReady, FlowStateDispatcher, ExecutionResult, FlowExecutionContext } from '@n2flowjs/flow';
 import * as fs from 'fs';
 

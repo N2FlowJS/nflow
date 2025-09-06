@@ -3,7 +3,7 @@ import * as path from 'path';
 import { PdfAnalysisNodeData } from './types';
 import { FlowNode } from '../../models/flowTypes';
 import { ExecutionResult, findNextNodes, FlowExecutionContext, FlowStateDispatcher, isNodeReady } from '@n2flowjs/flow';
-import { getInputFromTemplate, processTemplate } from '@n2flowjs/template-processor/templateProcessor';
+import { getInputFromTemplate, processTemplate } from '@n2flowjs/template/template';
 
 /**
  * Handler for executing PDF Analysis nodes

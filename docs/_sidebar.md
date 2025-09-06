@@ -19,5 +19,6 @@
 - **Integration & Extensibility**
   - [Integration Guide](integration-guide.md)
   - [Plugin Development Guide](plugin-development.md)
+  - [Node Package Template](node-package-template.md)
 - **Performance & Operations**
   - [Performance Tuning Guide](performance-tuning.md)

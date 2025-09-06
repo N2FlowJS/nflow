@@ -17,8 +17,10 @@
     "paths": {
       "@n2flowjs/flow": ["packages/@flow"],
       "@n2flowjs/flow/*": ["packages/@flow/*"],
-      "@n2flowjs/template-processor/*": ["packages/@template-processor/*"],
-      "@n2flowjs/template-processor": ["packages/@template-processor"]
+      "@n2flowjs/template/*": ["packages/@template/*"],
+      "@n2flowjs/template": ["packages/@template"],
+      "@n2flowjs/input": ["packages/@input"],
+      "@n2flowjs/input/*": ["packages/@input/*"]
     },
     "plugins": [
       {

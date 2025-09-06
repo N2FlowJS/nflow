@@ -1,6 +1,6 @@
 import { FlowNode } from '../../models/flowTypes';
 import { RewriteNodeData } from './types';
-import { getInputFromTemplate, processTemplate } from '@n2flowjs/template-processor/templateProcessor';
+import { getInputFromTemplate, processTemplate } from '@n2flowjs/template/template';
 import { findNextNodes, isNodeReady, FlowStateDispatcher, ExecutionResult, FlowExecutionContext } from '@n2flowjs/flow';
 import { MessagePart } from '../../models/MessagePart';
 import { llmOpenAI } from '../../llm/openai';

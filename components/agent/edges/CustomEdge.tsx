@@ -2,10 +2,12 @@ import { BaseEdge, EdgeProps } from '@xyflow/react';
 import React, { memo, useState } from 'react';
 import { useCustomEdge, CustomEdgeData } from './useCustomEdge';
 import { theme } from 'antd';
+import { useIsDragging } from '../canvas/DragContext';
 
 const CustomEdge: React.FC<EdgeProps<CustomEdgeData>> = (props) => {
   const { id } = props;
-  const { edgePath, labelX, labelY, markerEnd, effectiveStyle, isDragging } = useCustomEdge(props);
+  const isDragging = useIsDragging();
+  const { edgePath, labelX, labelY, markerEnd, effectiveStyle } = useCustomEdge(props);
   const [hovered, setHovered] = useState(false);
   const { token } = theme.useToken();
 

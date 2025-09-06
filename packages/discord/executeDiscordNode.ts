@@ -1,7 +1,7 @@
 import { ExecutionResult, FlowExecutionContext } from '../../models/flowExecutionTypes';
 import { DiscordNodeData, FlowNode } from '../../models/flowTypes';
 import { findNextNodes } from '@n2flowjs/flow/find-next-node';
-import { getInputFromTemplate, processTemplate } from '@n2flowjs/template-processor/templateProcessor';
+import { getInputFromTemplate, processTemplate } from '@n2flowjs/template/template';
 import { isNodeReady } from '@n2flowjs/flow/is-node-ready';
 import { FlowStateDispatcher } from '@n2flowjs/flow/flow-state-dispatcher';
 

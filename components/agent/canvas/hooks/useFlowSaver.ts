@@ -1,9 +1,10 @@
 import { message } from 'antd';
+import { useCallback } from 'react';
 import { FlowNode } from '../../../../models/flowTypes';
 import { saveFlowConfig } from '../../../../services/agentService';
 
 export const useFlowSaver = (agentId: string | undefined, nodes: FlowNode[], edges: any[]) => {
-  return async () => {
+  return useCallback(async () => {
     if (!agentId) {
       message.error('Agent ID is missing');
       return;
@@ -16,5 +17,5 @@ export const useFlowSaver = (agentId: string | undefined, nodes: FlowNode[], edg
       console.error('Error saving flow:', error);
       message.error('Failed to save flow');
     }
-  };
+  }, [agentId, nodes, edges]);
 };

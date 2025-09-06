@@ -19,7 +19,6 @@ import {
   Card,
   Col,
   Divider,
-  Drawer,
   Form,
   Grid,
   Input,
@@ -428,30 +427,28 @@ export default function AgentDetail() {
         </Row>
       </div>
 
-      {/* Chat Drawer */}
-      <Drawer
+      {/* Chat Modal */}
+      <Modal
         title={
           <Space>
             <MessageOutlined />
             {t('chatWithAgent')}: {agent?.name}
           </Space>
         }
-        placement="right"
-        width={isMobile ? '100%' : '50%'}
         open={isChatOpen}
-        onClose={() => setIsChatOpen(false)}
+        onCancel={() => setIsChatOpen(false)}
+        width={isMobile ? '100%' : '50%'}
+        footer={null}
+        destroyOnClose
         styles={{
           body: {
             padding: 0,
-            display: 'flex',
-            flexDirection: 'column',
-            height: '100%',
           },
-        }}>
+        }}
+      >
         {!flowConfig ? (
           <div
             style={{
-              flexGrow: 1,
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'center',
@@ -468,7 +465,7 @@ export default function AgentDetail() {
             </Button>
           </div>
         ) : (
-          <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ height: '70vh', display: 'flex', flexDirection: 'column' }}>
             <ChatInterface
               agentId={id as string}
               flowConfig={flowConfig}
@@ -483,7 +480,7 @@ export default function AgentDetail() {
             />
           </div>
         )}
-      </Drawer>
+      </Modal>
     </MainLayout>
   );
 }

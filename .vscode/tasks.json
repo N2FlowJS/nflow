@@ -9,6 +9,19 @@
 				"test",
 				"--silent"
 			]
+		},
+		{
+			"label": "run tests",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"test",
+				"--silent"
+			],
+			"problemMatcher": [
+				"$tsc"
+			],
+			"group": "build"
 		}
 	]
 }
