@@ -17,7 +17,7 @@ import '@xyflow/react/dist/style.css';
 import { Drawer, Form, Layout, Button } from 'antd';
 import React, { memo, useCallback, useMemo, useState } from 'react';
 
-import NodeForm from '../forms/node-form';
+import NodeForm from '../../../packages/@flow/share/DynamicNodeForm';
 
 import { useFlowState } from '../../../context/FlowStateContext';
 import { FlowNode, NodeTypeString } from '../../../models/flowTypes';
@@ -26,7 +26,7 @@ import CustomEdge from '../edges/CustomEdge';
 
 import { NODE_REGISTRY } from '../../../utils/client/NODE_REGISTRY';
 import { parseFlowConfig } from '../../../utils/server/parseFlowConfig';
-import { nodeTypes } from '../nodes/node-types';
+import { getClientNodeTypes } from '../../../packages/@node-plugin/discovery/ui-discover';
 import { FlowEditorContext, FlowEditorContextType } from '../../../packages/@flow/editor-context';
 import { useConversationStateLoader } from './hooks/useConversationStateLoader';
 import { useEdgeCleanup } from './hooks/useEdgeCleanup';
@@ -40,6 +40,7 @@ import { useNodeClickHandler } from './hooks/useNodeClickHandler';
 import { useEdgesWithDragFlag } from './hooks/useEdgesWithDragFlag';
 import { getOppositePosition, slugify } from '../../../packages/@flow/flow-helpers';
 import NextNodeModal from './NextNodeModal';
+import { nodeTypes } from '../nodes';
 
 const edgeTypes: EdgeTypes = {
   default: CustomEdge,
@@ -389,11 +390,9 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flowConfig, onStartConversation
   return (
     <FlowEditorContext.Provider value={{ openConfigDrawer, deleteNode, openNextStepModal }}>
       <Layout style={{ height: '100%', position: 'relative' }}>
-        {/* NodePalette removed */}
 
         <Content style={{ position: 'relative' }}>
           <ReactFlow
-            // fitViewOptions={{ padding: 0.1 }}
             colorMode={theme}
             nodes={nodes}
             edges={edgesForRender}
@@ -403,7 +402,6 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flowConfig, onStartConversation
             onDrop={onDrop}
             onDragOver={onDragOver}
             onNodeClick={onNodeClick}
-            // Toggle performance mode for edges while dragging nodes
             onNodeDragStart={() => setIsDragging(true)}
             onNodeDragStop={() => setIsDragging(false)}
             connectionLineType={ConnectionLineType.Bezier}
