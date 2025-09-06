@@ -1,4 +1,4 @@
-import { BaseForm, BaseNodeData } from '@n2flowjs/flow';
+import { BaseForm, BaseNodeData } from '@n2flowjs/flow/type';
 
 export interface WebhookForm extends BaseForm {
   name: string;

@@ -13,7 +13,7 @@ export interface ExecPostgresForm extends BaseForm {
   maxRows?: number;
   ssl?: boolean;
 }
-export type ExecPostgresNodeData = BaseNodeData<ExecPostgresForm> & { type: 'execpostgres' };
+export type ExecPostgresNodeData = BaseNodeData<ExecPostgresForm> & { type: 'exec-postgres' };
 
 
 // Auto-added augmentation for NodeDataMap

@@ -1,4 +1,4 @@
-import { BaseForm, BaseNodeData } from '@n2flowjs/flow';
+import { BaseForm, BaseNodeData } from '@n2flowjs/flow/type';
 
 export interface ValidateForm extends BaseForm {
   name: string;
@@ -18,7 +18,7 @@ export type ValidateNodeData = BaseNodeData<ValidateForm> & { type: 'validate' }
 
 
 // Auto-added augmentation for NodeDataMap
-declare module '@n2flowjs/flow' {
+declare module '../../models/nodeDataMap' {
   interface NodeDataMap {
     ValidateNodeData: ValidateNodeData;
   }

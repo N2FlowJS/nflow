@@ -1,4 +1,4 @@
-import { BaseForm, BaseNodeData } from '@n2flowjs/flow';
+import { BaseForm, BaseNodeData } from '@n2flowjs/flow/type';
 
 export interface WhatsAppForm extends BaseForm {
   name: string;

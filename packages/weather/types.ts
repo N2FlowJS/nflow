@@ -1,4 +1,4 @@
-import { BaseForm, BaseNodeData } from '@n2flowjs/flow';
+import { BaseForm, BaseNodeData } from '@n2flowjs/flow/type';
 
 export interface WeatherForm extends BaseForm {
   name: string;
