@@ -8,7 +8,7 @@ export interface TemplateForm extends BaseForm {
   outputFormat: 'text' | 'html' | 'json';
 }
 
-export type TemplateNodeData = BaseNodeData<TemplateForm> & { type: 'template' };
+export type TemplateNodeData = BaseNodeData<TemplateForm> & { type: 'promt' };
 
 
 // Auto-added augmentation for NodeDataMap

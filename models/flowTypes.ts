@@ -54,7 +54,7 @@ export type { DisplayNodeData } from '../packages/display/types';
 export type { LoopNodeData } from '../packages/loop/types';
 export type { VariableNodeData } from '../packages/variable/types';
 export type { CodeNodeData } from '../packages/code/types';
-export type { TemplateNodeData } from '../packages/template/types';
+export type { TemplateNodeData } from '../packages/promt/types';
 export type { FileAnalysisNodeData } from '../packages/file-analysis/types';
 export type { CsvAnalysisNodeData } from '../packages/csv-analysis/types';
 export type { ImageAnalysisNodeData } from '../packages/image-analysis/types';

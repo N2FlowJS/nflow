@@ -17,7 +17,9 @@
     "run:docs": "docsify serve docs",
     "test": "jest",
     "test:watch": "jest --watch",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "plugins:check": "node scripts/check-plugins.cjs",
+    "plugins:new": "node scripts/scaffold-node.cjs"
   },
   "keywords": [
     "n2flowjs",
