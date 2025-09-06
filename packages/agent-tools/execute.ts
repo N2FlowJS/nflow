@@ -28,12 +28,12 @@ export async function execute(
 		// Update flow state
 		let finalState = flowState;
 		if (dispatcher) {
-			dispatcher.setNodeOutput(node.id, outputText, 'agenttools');
+			dispatcher.setNodeOutput(node.id, outputText, 'agent-tools');
 			dispatcher.setCurrentNode(node);
 			finalState = dispatcher.getState();
 		} else {
 			flowState.components[node.id]['output'] = outputText;
-			flowState.components[node.id]['type'] = 'agenttools';
+			flowState.components[node.id]['type'] = 'agent-tools';
 			flowState.components[node.id]['executionTime'] = Date.now();
 			flowState.currentNode = node;
 			finalState = flowState;

@@ -231,7 +231,7 @@ const AgentNodeForm: React.FC<AgentNodeFormProps> = (props) => {
         // Create a new AgentTools node
         const newToolsNode: FlowNode = {
           id: toolsNodeId,
-          type: 'agenttools',
+          type: 'agent-tools',
           data: {
             id: toolsNodeId,
             label: 'Agent Tools',

@@ -41,8 +41,8 @@ const AgentToolsNodeForm: React.FC<AgentToolsNodeFormProps> = ({ form, selectedN
     // Attempt to derive agent id from node id pattern agenttools_{agentId}
     const toolsNodeId = selectedNode.id;
     let agentId: string | null = null;
-    if (toolsNodeId.startsWith('agenttools_')) {
-      agentId = toolsNodeId.substring('agenttools_'.length);
+    if (toolsNodeId.startsWith('agent-tools_')) {
+      agentId = toolsNodeId.substring('agent-tools_'.length);
     }
 
     // Fallback: find an incoming edge source (agent) if pattern not matched

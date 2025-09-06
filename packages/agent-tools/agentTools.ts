@@ -7,7 +7,7 @@ export interface IFlowNode<TConfig = any> { id: string; type: string; data?: any
 
 export interface AgentToolsConfig { tools: string[] }
 
-export interface AgentToolsNode extends IFlowNode<AgentToolsConfig> { type: 'agenttools' }
+export interface AgentToolsNode extends IFlowNode<AgentToolsConfig> { type: 'agent-tools' }
 
 export async function executeAgentTools(node: AgentToolsNode, _ctx: IFlowNodeExecutionContext) {
   const tools = (node as any)?.data?.form?.toolIds || [];
