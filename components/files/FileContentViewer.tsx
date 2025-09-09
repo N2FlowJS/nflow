@@ -21,7 +21,6 @@ const FileContentViewer: React.FC<FileContentViewerProps> = ({ content }) => {
               style={{
                 maxHeight: "500px",
                 overflow: "auto",
-                background: "#f5f5f5",
                 padding: "15px",
                 borderRadius: "5px",
               }}
@@ -42,10 +41,7 @@ const FileContentViewer: React.FC<FileContentViewerProps> = ({ content }) => {
               style={{
                 maxHeight: "500px",
                 overflow: "auto",
-                background: "#fff",
                 padding: "15px",
-                borderRadius: "5px",
-                border: "1px solid #f0f0f0",
               }}
               dangerouslySetInnerHTML={{ __html: parsed.html }}
             />
@@ -55,7 +51,6 @@ const FileContentViewer: React.FC<FileContentViewerProps> = ({ content }) => {
               style={{
                 maxHeight: "500px",
                 overflow: "auto",
-                background: "#f5f5f5",
                 padding: "15px",
                 borderRadius: "5px",
               }}
@@ -81,7 +76,6 @@ const FileContentViewer: React.FC<FileContentViewerProps> = ({ content }) => {
               style={{
                 maxHeight: "500px",
                 overflow: "auto",
-                background: "#f5f5f5",
                 padding: "15px",
                 borderRadius: "5px",
               }}
@@ -123,7 +117,6 @@ const FileContentViewer: React.FC<FileContentViewerProps> = ({ content }) => {
               style={{
                 maxHeight: "500px",
                 overflow: "auto",
-                background: "#f5f5f5",
                 padding: "15px",
                 borderRadius: "5px",
               }}
@@ -206,7 +199,6 @@ const FileContentViewer: React.FC<FileContentViewerProps> = ({ content }) => {
                 style={{
                   maxHeight: "500px",
                   overflow: "auto",
-                  background: "#f5f5f5",
                   padding: "15px",
                   borderRadius: "5px",
                 }}
@@ -227,7 +219,6 @@ const FileContentViewer: React.FC<FileContentViewerProps> = ({ content }) => {
         style={{
           maxHeight: "500px",
           overflow: "auto",
-          background: "#f5f5f5",
           padding: "15px",
           borderRadius: "5px",
         }}
@@ -250,7 +241,6 @@ const FileContentViewer: React.FC<FileContentViewerProps> = ({ content }) => {
         style={{
           maxHeight: "500px",
           overflow: "auto",
-          background: "#f5f5f5",
           padding: "15px",
           borderRadius: "5px",
         }}

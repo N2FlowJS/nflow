@@ -381,7 +381,6 @@ export default function FileDetailPage() {
                         </Typography.Text>
                         <div
                           style={{
-                            background: '#f5f5f5',
                             padding: '8px 12px',
                             borderRadius: '4px',
                             wordBreak: 'break-all',
@@ -409,7 +408,6 @@ export default function FileDetailPage() {
                         </Typography.Text>
                         <div
                           style={{
-                            background: '#f5f5f5',
                             padding: '8px 12px',
                             borderRadius: '4px',
                             wordBreak: 'break-all',
@@ -470,7 +468,6 @@ export default function FileDetailPage() {
                         style={{
                           width: '100%',
                           height: '100%',
-                          border: '1px solid #f0f0f0',
                           borderRadius: '4px',
                         }}
                         title={file?.originalName}

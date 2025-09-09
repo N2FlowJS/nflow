@@ -275,7 +275,7 @@ export default function TeamDetail() {
 
   return (
     <MainLayout title={team?.name || t('teamProfile')}>
-      <div style={{ padding: '24px', backgroundColor: '#f0f2f5', minHeight: '100vh' }}>
+      <div style={{ padding: '24px', minHeight: '100vh' }}>
         {/* Team Profile Header - As a banner */}
         <Card
           style={{
