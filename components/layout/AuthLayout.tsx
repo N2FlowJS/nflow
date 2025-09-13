@@ -13,16 +13,17 @@ interface AuthLayoutProps {
 
 const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, subtitle }) => {
   const { theme, toggleTheme } = useTheme();
-  
+
   const styles = {
     authContainer: {
       minHeight: '100vh',
       display: 'flex',
       justifyContent: 'center',
       alignItems: 'center',
-      background: theme === 'dark' 
-        ? 'linear-gradient(135deg, #111827 0%, #1f2937 100%)' 
-        : 'linear-gradient(135deg, #f8faff 0%, #eef2ff 100%)',
+      background:
+        theme === 'dark'
+          ? 'linear-gradient(135deg, #111827 0%, #1f2937 100%)'
+          : 'linear-gradient(135deg, #f8faff 0%, #eef2ff 100%)',
       position: 'relative' as const,
       overflow: 'hidden',
     },
@@ -32,7 +33,8 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, subtitle }) =>
       left: 0,
       right: 0,
       bottom: 0,
-      background: 'radial-gradient(circle at 100% 0%, rgba(99, 102, 241, 0.08) 0%, transparent 50%), radial-gradient(circle at 0% 100%, rgba(59, 130, 246, 0.08) 0%, transparent 50%)',
+      background:
+        'radial-gradient(circle at 100% 0%, rgba(99, 102, 241, 0.08) 0%, transparent 50%), radial-gradient(circle at 0% 100%, rgba(59, 130, 246, 0.08) 0%, transparent 50%)',
       animation: 'patternMove 30s linear infinite',
     },
     contentWrapper: {
@@ -44,14 +46,10 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, subtitle }) =>
       animation: 'fadeIn 0.6s ease-out',
     },
     authCard: {
-      background: theme === 'dark' 
-        ? 'rgba(17, 24, 39, 0.95)' 
-        : 'rgba(255, 255, 255, 0.98)',
+      background: theme === 'dark' ? 'rgba(17, 24, 39, 0.95)' : 'rgba(255, 255, 255, 0.98)',
       backdropFilter: 'blur(12px)',
       borderRadius: '32px',
-      border: theme === 'dark' 
-        ? '1px solid rgba(255, 255, 255, 0.08)' 
-        : '1px solid rgba(255, 255, 255, 0.5)',
+      border: theme === 'dark' ? '1px solid rgba(255, 255, 255, 0.08)' : '1px solid rgba(255, 255, 255, 0.5)',
       boxShadow: '0 15px 35px -5px rgba(0, 0, 0, 0.08), 0 8px 20px -5px rgba(0, 0, 0, 0.06)',
       padding: '48px',
       transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -65,15 +63,11 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, subtitle }) =>
     controlsGroup: {
       display: 'flex',
       alignItems: 'center',
-      background: theme === 'dark' 
-        ? 'rgba(17, 24, 39, 0.8)' 
-        : 'rgba(255, 255, 255, 0.8)',
+      background: theme === 'dark' ? 'rgba(17, 24, 39, 0.8)' : 'rgba(255, 255, 255, 0.8)',
       backdropFilter: 'blur(8px)',
       borderRadius: '12px',
       padding: '4px',
-      border: theme === 'dark' 
-        ? '1px solid rgba(255, 255, 255, 0.1)' 
-        : '1px solid rgba(0, 0, 0, 0.05)',
+      border: theme === 'dark' ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.05)',
       boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
     },
     controlButton: {
@@ -87,9 +81,7 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, subtitle }) =>
     divider: {
       width: '1px',
       height: '20px',
-      background: theme === 'dark' 
-        ? 'rgba(255, 255, 255, 0.1)' 
-        : 'rgba(0, 0, 0, 0.1)',
+      background: theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
       margin: '0 4px',
     },
     cardContent: {
@@ -170,20 +162,15 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, subtitle }) =>
           </div>
 
           <div style={styles.cardContent}>
-            <Image
-              src={theme === 'dark' ? '/n-flow-light.png' : '/n-flow.png'}
-              alt={title}
-              width={256}
-              height={64}
-              style={styles.logo}
-              priority
-            />
-            <h1 style={styles.title} className="responsive-title">{title}</h1>
-            <p style={styles.subtitle} className="responsive-subtitle">{subtitle}</p>
-            
-            <div style={styles.formWrapper}>
-              {children}
-            </div>
+            <Image src={'/nflow.png'} alt={title} width={256} height={64} style={styles.logo} priority />
+            <h1 style={styles.title} className="responsive-title">
+              {title}
+            </h1>
+            <p style={styles.subtitle} className="responsive-subtitle">
+              {subtitle}
+            </p>
+
+            <div style={styles.formWrapper}>{children}</div>
           </div>
         </Card>
       </div>

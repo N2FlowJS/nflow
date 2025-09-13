@@ -1,4 +1,4 @@
-import { ApiOutlined } from '@ant-design/icons';
+import { ApiOutlined, GoogleOutlined, ThunderboltOutlined, CodeOutlined, CloudOutlined, RobotOutlined } from '@ant-design/icons';
 import { Card, Col, Form, message, Row, Select, Space, Spin, Tag, Typography } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { IUser } from '../../models/IUser';
@@ -46,29 +46,22 @@ const ModelsFormConfig: React.FC<DefaultModelsFormProps> = ({ user, form }) => {
 
   // Helper functions for rendering tags
   const getProviderTypeTag = (type: string) => {
-    let color = '';
-    let icon = null;
-    let label = type;
+    const key = (type || '').toLowerCase();
+    const map: Record<string, { color: string; label: string; icon: React.ReactNode }> = {
+      openai: { color: 'green', label: 'OpenAI', icon: <ApiOutlined /> },
+      'openai-compatible': { color: 'cyan', label: 'OpenAI Compatible', icon: <ApiOutlined /> },
+      custom: { color: 'purple', label: 'Custom', icon: <CodeOutlined /> },
+      gemini: { color: 'geekblue', label: 'Gemini', icon: <GoogleOutlined /> },
+      grok: { color: 'volcano', label: 'Grok', icon: <ThunderboltOutlined /> },
+      'azure-openai': { color: 'blue', label: 'Azure OpenAI', icon: <CloudOutlined /> },
+      anthropic: { color: 'orange', label: 'Anthropic', icon: <RobotOutlined /> },
+      // Add more mappings here if needed
+    };
 
-    switch (type) {
-      case 'openai':
-        color = 'green';
-        icon = <ApiOutlined />;
-        label = 'OpenAI';
-        break;
-      case 'openai-compatible':
-        color = 'cyan';
-        icon = <ApiOutlined />;
-        label = 'OpenAI Compatible';
-        break;
-      default:
-        color = 'default';
-        break;
-    }
-
+    const conf = map[key] || { color: 'default', label: type || 'Unknown', icon: <ApiOutlined /> };
     return (
-      <Tag color={color} icon={icon}>
-        {label}
+      <Tag color={conf.color} icon={conf.icon}>
+        {conf.label}
       </Tag>
     );
   };

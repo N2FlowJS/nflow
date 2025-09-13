@@ -28,21 +28,12 @@ export default async function handler(
     return sendErrorResponse(res, 405, 'Method not allowed', 'invalid_request_error', 'method_not_allowed');
   try {
     const flowId = req.query.id as string;
-    const {
-      variables = {},
-      stream = false,
-      model = 'default',
-      messages = [],
-      max_tokens: maxTokens = 1024,
-      temperature = 0.7,
-      top_p: topP = 1,
-    } = req.body;
+    const { variables = {}, stream = false, messages = [] } = req.body;
     let { id: conversationId } = req.body;
-    console.log('Flow ID:', { flowId, model, temperature, maxTokens, topP, stream });
 
     if (!flowId)
       return sendErrorResponse(res, 400, 'Flow ID is required', 'invalid_request_error', 'missing_parameter');
-    const message: MessagePart = { role: 'system', content: 'Hello!' };
+    const message: MessagePart = { role: 'user', content: 'Hello!' };
     const flowConfig: Flow = await getFlowConfig(flowId);
     if (!flowConfig) return sendErrorResponse(res, 404, 'Flow not found', 'invalid_request_error', 'not_found');
     let flowState = conversationId ? await getConversationFlowState(conversationId) : undefined;
@@ -53,8 +44,6 @@ export default async function handler(
         return sendErrorResponse(res, 400, 'No begin node found in flow', 'invalid_request_error', 'invalid_flow');
       flowState = createInitialFlowState({ beginNode, variables, flowConfig });
       const newId = await saveConversationToDatabase({ flowState, agentId: flowId, id: conversationId });
-      message.content = (beginNode.data as BeginNodeData).form?.greeting || 'Hello!';
-      message.role = 'system';
       if (newId !== conversationId) conversationId = newId;
     } else {
       if (beginNode) {
