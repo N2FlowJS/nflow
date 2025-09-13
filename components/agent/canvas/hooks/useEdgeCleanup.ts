@@ -7,7 +7,7 @@ export const useEdgeCleanup = (
 ) => {
   // Derive a stable key and Set of IDs to detect topology changes only
   const idKey = useMemo(() => nodes.map((n) => n.id).sort().join('|'), [nodes]);
-  const idSet = useMemo(() => new Set(nodes.map((n) => n.id)), [idKey]);
+  const idSet = useMemo(() => new Set(nodes.map((n) => n.id)), [nodes]);
   const prevKeyRef = useRef<string>('');
 
   useEffect(() => {

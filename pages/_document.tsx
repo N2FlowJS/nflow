@@ -2,9 +2,10 @@ import Document, { Html, Head, Main, NextScript, DocumentContext } from 'next/do
 
 async function loadPluginConfig() {
 	try {
-		const mod = require('../packages/@node-plugin');
-		if (mod.getNodePluginConfig) return mod.getNodePluginConfig();
+		const mod: any = await import('../packages/@node-plugin');
+		if (mod?.getNodePluginConfig) return mod.getNodePluginConfig();
 	} catch {
+		// ignore load failures in _document
 	}
 	return {};
 }

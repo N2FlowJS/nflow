@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-require-imports */
 // Server-side plugin scanning utilities. Not imported on the client bundle.
 // Each scan loads the default export (or first named export) from package node/form entry.
 // Returned maps use normalized package names (remove dashes) as keys.
@@ -11,7 +10,6 @@ const fs: typeof import('fs') = (eval('require') as NodeJS.Require)('fs');
 // Debug helper: wrap path.join to log non-string args (Turbopack may replace requires with numbers)
 try {
   const _origJoin = path.join.bind(path);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (path as any).join = (...parts: any[]) => {
     const bad = parts.filter(p => typeof p !== 'string');
     if (bad.length) {
@@ -49,7 +47,6 @@ export function scanNodeComponents(): Record<string, React.ComponentType<any>> {
     const chosen = index || nodeLike;
     if (!chosen) continue;
     try {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
       const mod = (eval('require') as NodeJS.Require)(path.join(nodeDir, chosen));
       const comp = (mod && (mod.default || Object.values(mod)[0])) as React.ComponentType<any> | undefined;
       if (comp) map[normalizeKey(pkg)] = comp;

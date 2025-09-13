@@ -193,8 +193,8 @@ const FlowEditor: React.FC<FlowEditorProps> = ({
     setIsNextStepOpen(true);
   }, []);
 
-  const genNodeId = useCallback(() => `node_${Date.now()}_${idCounter.current++}`, []);
-  const genEdgeId = useCallback(() => `edge_${Date.now()}_${idCounter.current++}`, []);
+  const genNodeId = useCallback(() => `node_${Date.now()}_${idCounter.current++}`, [idCounter]);
+  const genEdgeId = useCallback(() => `edge_${Date.now()}_${idCounter.current++}`, [idCounter]);
 
   const addNextNode = useCallback(
     (nodeType: NodeTypeString) => {
@@ -380,7 +380,7 @@ const FlowEditor: React.FC<FlowEditorProps> = ({
       setIsNextStepOpen(false);
       setNextStepCtx(null);
     },
-    [nextStepCtx, nodes, setNodes, setEdges, screenToFlowPosition, getDirVector, estimateSize, snapToGrid, collides]
+  [nextStepCtx, nodes, setNodes, setEdges, screenToFlowPosition, getDirVector, estimateSize, snapToGrid, collides, genEdgeId, genNodeId, showEdgeMarkers]
   );
 
   // Inject delete handler once per change of handler identity without recreating edge objects unnecessarily
