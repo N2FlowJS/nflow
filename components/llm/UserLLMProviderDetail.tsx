@@ -327,7 +327,9 @@ const UserLLMProviderDetail: React.FC<UserLLMProviderDetailProps> = ({
         },
     ];
 
-    const quickAddModalTitle = provider.providerType === 'openai' ? 'Quick Add OpenAI Models' : 'Quick Add Models';
+        const quickAddModalTitle = ['openai','openai-compatible'].includes(provider.providerType as any)
+            ? 'Quick Add OpenAI-Compatible Models'
+            : 'Quick Add Models';
 
     return (
         <div>

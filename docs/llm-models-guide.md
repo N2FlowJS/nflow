@@ -24,10 +24,11 @@ A **Large Language Model (LLM)** is an AI model trained on massive text datasets
 
 ## 🤖 Supported LLM Providers
 
-- **OpenAI** (default: GPT-3.5, GPT-4)
+- **OpenAI** (GPT-3.5, GPT-4)
 - **Azure OpenAI**
 - **Anthropic Claude**
-- **Google Gemini**
+- **Google Gemini** (via API key)
+- **xAI Grok** (OpenAI-compatible)
 - **Self-hosted models** (Llama, Vicuna, Mistral, Ollama, vLLM, LM Studio, ...)
 
 ---

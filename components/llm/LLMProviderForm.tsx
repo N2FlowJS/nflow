@@ -37,8 +37,10 @@ const LLMProviderForm: React.FC<LLMProviderFormProps> = ({
   const isEdit = !!initialValues?.id;
 
   const providerTypes: { label: string, value: LLMProviderType }[] = [
-    { label: 'OpenAI', value: 'openai' },
-    { label: 'Custom OpenAI Compatible', value: 'openai-compatible' }
+  { label: 'OpenAI', value: 'openai' },
+  { label: 'Custom OpenAI Compatible', value: 'openai-compatible' },
+  { label: 'Google Gemini', value: 'gemini' },
+  { label: 'xAI Grok', value: 'grok' }
   ];
 
   const handleTest = async () => {

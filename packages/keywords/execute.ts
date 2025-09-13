@@ -5,6 +5,7 @@ import { findNextNodes, isNodeReady, FlowStateDispatcher, ExecutionResult, FlowE
 import { flowStateReducer } from '@n2flowjs/flow/flow-state-reducer';
 import { MessagePart } from '../../models/MessagePart';
 import { llmOpenAI } from '../../llm/openai';
+import { llmGemini } from '../../llm/gemini';
 import { prisma } from '../../lib/prisma';
 import { getInputs, getQueryFromSource } from '@n2flowjs/flow/flow-helpers';
 
@@ -132,6 +133,26 @@ export async function executeKeywordsNode(
         break;
       case 'openai-compatible':
         aiResponse = await llmOpenAI.completions(
+          model.provider.endpointUrl,
+          model.provider.apiKey,
+          model.name,
+          message,
+          undefined,
+          streamCallback
+        );
+        break;
+      case 'grok':
+        aiResponse = await llmOpenAI.completions(
+          model.provider.endpointUrl,
+          model.provider.apiKey,
+          model.name,
+          message,
+          undefined,
+          streamCallback
+        );
+        break;
+      case 'gemini':
+        aiResponse = await llmGemini.completions(
           model.provider.endpointUrl,
           model.provider.apiKey,
           model.name,

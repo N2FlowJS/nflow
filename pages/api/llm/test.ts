@@ -114,10 +114,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         result = await testOpenAIProvider(provider.endpointUrl, provider.apiKey, modelName, message);
         break;
 
-
       case 'custom':
         // Assume custom follows OpenAI format
         result = await testOpenAIProvider(provider.endpointUrl, provider.apiKey, modelName, message);
+        break;
+
+      case 'openai-compatible':
+        // OpenAI-compatible (v1) endpoints
+        result = await testOpenAIProvider(provider.endpointUrl, provider.apiKey, modelName, message);
+        break;
+
+      case 'grok':
+        // xAI Grok is OpenAI-compatible
+        result = await testOpenAIProvider(provider.endpointUrl, provider.apiKey, modelName, message);
+        break;
+
+      case 'gemini':
+        result = await testGeminiProvider(provider.endpointUrl, provider.apiKey, modelName, message);
         break;
 
       default:
@@ -177,6 +190,63 @@ async function testOpenAIProvider(endpointUrl: string, apiKey: string, modelName
         input: data.usage?.prompt_tokens || 0,
         output: data.usage?.completion_tokens || 0,
       },
+    };
+  } catch (error: unknown) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Network or API error',
+      latency: Date.now() - startTime,
+    };
+  }
+}
+
+// Helper function to test Google Gemini provider
+async function testGeminiProvider(endpointUrl: string, apiKey: string, modelName: string, message: string) {
+  const startTime = Date.now();
+
+  try {
+    // Gemini uses key as query param and a different payload shape
+    const url = `${endpointUrl.replace(/\/$/, '')}/models/${encodeURIComponent(modelName)}:generateContent?key=${encodeURIComponent(apiKey)}`;
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        contents: [
+          {
+            role: 'user',
+            parts: [{ text: message }],
+          },
+        ],
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 150,
+        },
+      }),
+    });
+
+    const data = await response.json();
+    const latency = Date.now() - startTime;
+
+    if (!response.ok || data.error) {
+      return {
+        success: false,
+        error: data.error?.message || `Error ${response.status}: ${response.statusText}`,
+        latency,
+      };
+    }
+
+    const text =
+      data.candidates?.[0]?.content?.parts?.map((p: any) => p?.text || '').join('') ||
+      data.candidates?.[0]?.output_text ||
+      'No response';
+
+    return {
+      success: true,
+      response: text,
+      latency,
+      tokens: undefined,
     };
   } catch (error: unknown) {
     return {

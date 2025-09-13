@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { llmOpenAI } from '../../../llm/openai';
+import llm from '../../../llm/llm';
 import { parseAuthHeader, verifyToken } from '../../../lib/auth';
 import { prisma } from '../../../lib/prisma';
 
@@ -41,10 +41,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!provider) {
       return res.status(404).json({ error: 'Provider not found' });
     }
-    // Use llmOpenAI.models on the server side
-    const models = await llmOpenAI.models(provider.endpointUrl, provider.apiKey);
-
-    return res.status(200).json(models.flatMap((x) => ({ ...x, id: x.id.replace('models/', '') })));
+  const models = await llm.models(provider.providerType as any, provider.endpointUrl, provider.apiKey);
+  // normalize id to strip `models/` prefix if exists
+  return res.status(200).json(models.map((x: any) => ({ ...x, id: String(x.id).replace('models/', '') })));
   } catch (error: any) {
     console.error('Error fetching OpenAI models:', error);
     return res.status(500).json({

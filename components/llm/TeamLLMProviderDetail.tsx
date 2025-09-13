@@ -164,7 +164,7 @@ const TeamLLMProviderDetail: React.FC<TeamLLMProviderDetailProps> = ({
       setFetchedModels(filteredModels);
     } catch (error) {
       console.error('Error fetching models:', error);
-      message.error('Failed to fetch models from OpenAI');
+  message.error('Failed to fetch models from provider');
     } finally {
       setFetchingModels(false);
     }

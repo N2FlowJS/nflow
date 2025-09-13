@@ -8,6 +8,7 @@ import { FlowStateDispatcher } from '@n2flowjs/flow/flow-state-dispatcher';
 import { prisma } from '../../lib/prisma';
 import { MessagePart } from '../../models/MessagePart';
 import { llmOpenAI } from '../../llm/openai';
+import { llmGemini } from '../../llm/gemini';
 
 /**
  * Handler for executing Generate nodes
@@ -130,6 +131,27 @@ export async function executeGenerateNode(
         break;
       case 'openai-compatible':
         aiResponse = await llmOpenAI.completions(
+          model.provider.endpointUrl,
+          model.provider.apiKey,
+          model.name,
+          message,
+          undefined,
+          streamCallback
+        );
+        break;
+      case 'grok':
+        // xAI Grok is OpenAI-compatible
+        aiResponse = await llmOpenAI.completions(
+          model.provider.endpointUrl,
+          model.provider.apiKey,
+          model.name,
+          message,
+          undefined,
+          streamCallback
+        );
+        break;
+      case 'gemini':
+        aiResponse = await llmGemini.completions(
           model.provider.endpointUrl,
           model.provider.apiKey,
           model.name,

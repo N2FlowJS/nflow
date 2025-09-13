@@ -108,6 +108,21 @@ const LLMProvidersTable: React.FC<LLMProvidersTableProps> = ({
             icon = <ExperimentOutlined />;
             label = 'Custom';
             break;
+          case 'openai-compatible':
+            color = 'geekblue';
+            icon = <ExperimentOutlined />;
+            label = 'OpenAI Compatible';
+            break;
+          case 'gemini':
+            color = 'cyan';
+            icon = <ApiOutlined />;
+            label = 'Google Gemini';
+            break;
+          case 'grok':
+            color = 'purple';
+            icon = <ApiOutlined />;
+            label = 'xAI Grok';
+            break;
           default:
             color = 'default';
             break;

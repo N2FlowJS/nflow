@@ -2,6 +2,8 @@ import OpenAI from 'openai';
 import { MessagePart } from '../models/MessagePart';
 
 class LLMOpenAI {
+  readonly name = 'OpenAI';
+  readonly icon = 'openai';
   completions = async (baseURL: string, apiKey: string, model: string, message: MessagePart[], options?: any, callback?: (result: string) => void): Promise<string> => {
     const openai = new OpenAI({
       apiKey: apiKey,

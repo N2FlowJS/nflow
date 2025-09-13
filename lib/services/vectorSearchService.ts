@@ -60,7 +60,13 @@ export async function searchSimilarContent(
     if (!model.provider) throw new Error('Provider not found for this model');
 
     // Generate embedding for the query
-    const queryEmbeddingResult = await generateEmbedding(model.provider.endpointUrl, model.provider.apiKey, model.name, query);
+    const queryEmbeddingResult = await generateEmbedding(
+      model.provider.endpointUrl,
+      model.provider.apiKey,
+      model.name,
+      query,
+      (model.provider.providerType as any) || 'openai'
+    );
 
     // Create filter for vector search
     const filter: any = {};

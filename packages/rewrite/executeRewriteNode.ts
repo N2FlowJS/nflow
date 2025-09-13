@@ -4,6 +4,7 @@ import { getInputFromTemplate, processTemplate } from '@n2flowjs/template/templa
 import { findNextNodes, isNodeReady, FlowStateDispatcher, ExecutionResult, FlowExecutionContext } from '@n2flowjs/flow';
 import { MessagePart } from '../../models/MessagePart';
 import { llmOpenAI } from '../../llm/openai';
+import { llmGemini } from '../../llm/gemini';
 import { prisma } from '../../lib/prisma';
 
 /**
@@ -127,6 +128,26 @@ export async function executeRewriteNode(
         break;
       case 'openai-compatible':
         aiResponse = await llmOpenAI.completions(
+          model.provider.endpointUrl,
+          model.provider.apiKey,
+          model.name,
+          messages,
+          undefined,
+          streamCallback
+        );
+        break;
+      case 'grok':
+        aiResponse = await llmOpenAI.completions(
+          model.provider.endpointUrl,
+          model.provider.apiKey,
+          model.name,
+          messages,
+          undefined,
+          streamCallback
+        );
+        break;
+      case 'gemini':
+        aiResponse = await llmGemini.completions(
           model.provider.endpointUrl,
           model.provider.apiKey,
           model.name,

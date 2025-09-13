@@ -277,7 +277,9 @@ class FileParsingWorker {
         model.provider.endpointUrl,
         model.provider.apiKey,
         model.name,
-        chunks
+        chunks,
+        undefined,
+        (model.provider.providerType as any) || 'openai'
       ); // Changed variable name for clarity
 
       // Determine which vector storage to use

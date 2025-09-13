@@ -2,7 +2,7 @@
  * Service for generating vector embeddings from text
  */
 
-import { llmOpenAI } from "../../llm/openai";
+import llm from "../../llm/llm";
 
 interface EmbeddingResponse {
   embedding: number[];
@@ -16,14 +16,15 @@ export async function generateEmbedding(
   baseURL: string,
   apiKey: string,
   model: string,
-  text: string
+  text: string,
+  providerType: 'openai' | 'openai-compatible' | 'custom' | 'grok' | 'gemini' = 'openai'
 ): Promise<EmbeddingResponse> {
 
   // Log minimal info to reduce noise in logs
   console.log(`Generating embedding for text (length: ${text.length})`);
 
   try {
-    const result = await llmOpenAI.embeddings(baseURL, apiKey, model, text)
+  const result = await llm.embeddings(providerType, baseURL, apiKey, model, text)
 
 
 
@@ -34,7 +35,7 @@ export async function generateEmbedding(
 
     return {
       embedding: result.data[0].embedding,
-      tokenCount: result.usage?.total_tokens,
+  tokenCount: result.usage?.total_tokens,
     };
   } catch (error: unknown) {
     // Add more context to the error
@@ -58,7 +59,8 @@ export async function generateEmbeddingsInBatches(
   apiKey: string,
   model: string,
   textChunks: string[],
-  batchSize: number = 5
+  batchSize: number = 5,
+  providerType: 'openai' | 'openai-compatible' | 'custom' | 'grok' | 'gemini' = 'openai'
 ): Promise<EmbeddingResponse[]> {
   const results: EmbeddingResponse[] = [];
 
@@ -70,7 +72,7 @@ export async function generateEmbeddingsInBatches(
     const batchResults = await Promise.all(
       batch.map((text) => generateEmbedding(baseURL,
         apiKey,
-        model, text))
+        model, text, providerType))
     );
 
     results.push(...batchResults);

@@ -21,7 +21,7 @@ export interface LLMProvider {
     teamOwnerId?: string | null;
 }
 
-export type LLMProviderType = 'openai' | 'openai-compatible';
+export type LLMProviderType = 'openai' | 'openai-compatible' | 'gemini' | 'grok';
 
 export interface LLMModel {
   id: string;
