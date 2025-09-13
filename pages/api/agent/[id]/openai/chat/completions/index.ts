@@ -2,7 +2,6 @@
 
 import type { NextApiRequest, NextApiResponse } from 'next';
 import type { Flow } from '../../../../../../../models/flowTypes';
-import type { BeginNodeData } from '../../../../../../../packages/begin/types';
 import { NODE_TYPES } from '../../../../../../../models/flowTypes';
 import { MessagePart } from '../../../../../../../models/MessagePart';
 import { OpenAIError, OpenAIExecutionResult } from '../../../../../../../models/flow';
