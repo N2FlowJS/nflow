@@ -1,5 +1,6 @@
 import { ExecutionResult, FlowExecutionContext } from '../../models/flowExecutionTypes';
-import { ExecMssqlNodeData, FlowNode } from '../../models/flowTypes';
+import { FlowNode } from '../../models/flowTypes';
+import { ExecMssqlNodeData } from './types';
 import { findNextNodes, isNodeReady, FlowStateDispatcher } from '@n2flowjs/flow';
 import { getInputFromTemplate, processTemplate } from '@n2flowjs/template/template';
 

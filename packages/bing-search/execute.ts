@@ -1,4 +1,5 @@
-import { BingSearchNodeData, FlowNode } from "../../models/flowTypes";
+import type { FlowNode } from "../../models/flowTypes";
+import type { BingSearchNodeData } from "./types";
 import { ExecutionResult, findNextNodes, FlowExecutionContext, FlowStateDispatcher, isNodeReady } from "../@flow";
 import { getInputFromTemplate, processTemplate } from "@n2flowjs/template/template";
 

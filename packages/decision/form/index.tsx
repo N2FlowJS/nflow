@@ -1,5 +1,6 @@
 import { usePredecessorNodes } from '@n2flowjs/flow/share/usePredecessorNodes';
-import { DecisionBranch, DecisionForm, DecisionNodeData, FlowNode, NodeData } from '../../../models/flowTypes';
+import { FlowNode, NodeData } from '../../../models/flowTypes';
+import { DecisionBranch, DecisionForm, DecisionNodeData } from '../types';
 import { DeleteOutlined, LinkOutlined, PlusOutlined, QuestionCircleOutlined } from '@ant-design/icons';
 import { MarkerType, useReactFlow } from '@xyflow/react'; // Import Edge type
 import { Button, Card, Collapse, Form, Input, Radio, Select, Space, Tooltip, Typography } from 'antd';

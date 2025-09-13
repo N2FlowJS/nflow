@@ -1,5 +1,6 @@
 import { ExecutionResult, FlowExecutionContext } from '../../models/flowExecutionTypes';
-import { FileAnalysisNodeData, FlowNode } from '../../models/flowTypes';
+import { FlowNode } from '../../models/flowTypes';
+import { FileAnalysisNodeData } from './types';
 import { findNextNodes } from '../@flow/find-next-node';
 import { getInputFromTemplate, processTemplate } from '@n2flowjs/template/template';
 import { isNodeReady } from '../@flow/is-node-ready';

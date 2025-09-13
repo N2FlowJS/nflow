@@ -38,23 +38,6 @@ export type NodeDataWithForm<TForm> = BaseNodeData<TForm> & {
   type: NodeTypeString;
 };
 
-export interface DecisionCondition {
-  input: string;
-  operator: string;
-  value: string;
-}
-
-export interface ConditionGroup {
-  conditions: DecisionCondition[];
-  logicalOperator: 'AND' | 'OR';
-}
-
-export interface DecisionBranch {
-  name: string;
-  groups: ConditionGroup[];
-  groupOperator: 'AND' | 'OR';
-  targetNode?: string;
-}
 
 // NodeData now sourced from generated union (AllNodeData) to reduce manual maintenance.
 export type NodeData = AllNodeData;

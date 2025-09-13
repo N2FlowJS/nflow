@@ -1,5 +1,6 @@
 import { ExecutionResult, FlowExecutionContext } from '../../models/flowExecutionTypes';
-import { DuckGoSearchNodeData, FlowNode } from '../../models/flowTypes';
+import { FlowNode } from '../../models/flowTypes';
+import { DuckGoSearchNodeData } from './types';
 import { findNextNodes } from '@n2flowjs/flow/find-next-node';
 import { getInputFromTemplate, processTemplate } from '@n2flowjs/template/template';
 import { isNodeReady } from '@n2flowjs/flow/is-node-ready';

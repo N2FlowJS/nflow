@@ -1,4 +1,5 @@
-import { CodeNodeData, FlowNode } from "../../models/flowTypes";
+import { FlowNode } from "../../models/flowTypes";
+import { CodeNodeData } from "./types";
 import { ExecutionResult, findNextNodes, FlowExecutionContext, FlowStateDispatcher } from "@n2flowjs/flow";
 
 export async function execute(

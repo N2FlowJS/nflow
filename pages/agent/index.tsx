@@ -149,12 +149,7 @@ export default function AgentsList() {
             <Button icon={<EditOutlined />} onClick={() => router.push(`/agent/${agent.id}`)} type="text" />
           </Tooltip>,
           <Tooltip title={t('table.actions.chat')} key="chat">
-            <Button
-              icon={<MessageFilled />}
-              onClick={() => router.push(`/agent/${agent.id}/chat`)}
-              type="text"
-            
-            />
+            <Button icon={<MessageFilled />} onClick={() => router.push(`/agent/${agent.id}/chat`)} type="text" />
           </Tooltip>,
           <Tooltip title={t('table.actions.delete')} key="delete">
             <Button icon={<DeleteOutlined />} onClick={() => confirmDelete(agent.id)} type="text" danger />

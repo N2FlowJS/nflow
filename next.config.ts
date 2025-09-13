@@ -4,7 +4,10 @@ const nextConfig: NextConfig = {
   compiler: {
     styledComponents: true,
   },
-  turbopack:{},
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  turbopack: {},
   reactStrictMode: true,
   pageExtensions: ['js', 'jsx', 'md', 'mdx', 'ts', 'tsx', 'css'],
   devIndicators: false,

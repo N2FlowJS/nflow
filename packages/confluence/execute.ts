@@ -1,4 +1,5 @@
-import { ConfluenceNodeData, FlowNode } from '../../models/flowTypes';
+import { FlowNode } from '../../models/flowTypes';
+import { ConfluenceNodeData } from './types';
 import { findNextNodes } from '../@flow';
 import { getInputFromTemplate, processTemplate } from '@n2flowjs/template/template';
 import { isNodeReady } from '../@flow';
