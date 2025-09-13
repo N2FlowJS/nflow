@@ -1,6 +1,8 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '../../../lib/prisma';
 import { parseAuthHeader, verifyToken } from '../../../lib/auth';
+import llm, { SupportedProvider } from '../../../llm/llm';
+import { MessagePart } from '../../../models/MessagePart';
 
 /**
  * API handler for testing LLM providers.
@@ -105,41 +107,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
       }
     }
+    // Single-path test using LLM dispatcher for all providers
+    const startTime = Date.now();
+    const msgs: MessagePart[] = [{ role: 'user', content: message }];
+    const providerType = provider.providerType as SupportedProvider;
 
-
-    // Handle different provider types
-    let result;
-    switch (provider.providerType) {
-      case 'openai':
-        result = await testOpenAIProvider(provider.endpointUrl, provider.apiKey, modelName, message);
-        break;
-
-      case 'custom':
-        // Assume custom follows OpenAI format
-        result = await testOpenAIProvider(provider.endpointUrl, provider.apiKey, modelName, message);
-        break;
-
-      case 'openai-compatible':
-        // OpenAI-compatible (v1) endpoints
-        result = await testOpenAIProvider(provider.endpointUrl, provider.apiKey, modelName, message);
-        break;
-
-      case 'grok':
-        // xAI Grok is OpenAI-compatible
-        result = await testOpenAIProvider(provider.endpointUrl, provider.apiKey, modelName, message);
-        break;
-
-      case 'gemini':
-        result = await testGeminiProvider(provider.endpointUrl, provider.apiKey, modelName, message);
-        break;
-
-      default:
-        return res.status(400).json({
-          error: `Unsupported provider type: ${provider.providerType}`,
-        });
+    try {
+      const text = await llm.completions(
+        providerType,
+        provider.endpointUrl,
+        provider.apiKey,
+        modelName,
+        msgs,
+        { temperature: 0.7, maxTokens: 150 }
+      );
+      const latency = Date.now() - startTime;
+      return res.status(200).json({ success: true, response: text || 'No response', latency });
+    } catch (e: unknown) {
+      const latency = Date.now() - startTime;
+      return res.status(200).json({
+        success: false,
+        error: e instanceof Error ? e.message : 'Network or API error',
+        latency,
+      });
     }
-
-    return res.status(200).json(result);
   } catch (error: unknown) {
     console.error('Error testing LLM provider:', error);
     return res.status(500).json({
@@ -149,112 +140,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 }
 
-// Helper functions for testing different provider types
-// ...existing code...
-
-// Helper function to test OpenAI provider
-async function testOpenAIProvider(endpointUrl: string, apiKey: string, modelName: string, message: string) {
-  const startTime = Date.now();
-
-  try {
-    const response = await fetch(`${endpointUrl}/chat/completions`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: modelName,
-        messages: [{ role: 'user', content: message }],
-        temperature: 0.7,
-        max_tokens: 150,
-      }),
-    });
-
-    const data = await response.json();
-    const latency = Date.now() - startTime;
-
-    if (!response.ok || data.error) {
-      return {
-        success: false,
-        error: data.error?.message || `Error ${response.status}: ${response.statusText}`,
-        latency,
-      };
-    }
-
-    return {
-      success: true,
-      response: data.choices[0]?.message?.content || 'No response',
-      latency,
-      tokens: {
-        input: data.usage?.prompt_tokens || 0,
-        output: data.usage?.completion_tokens || 0,
-      },
-    };
-  } catch (error: unknown) {
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Network or API error',
-      latency: Date.now() - startTime,
-    };
-  }
-}
-
-// Helper function to test Google Gemini provider
-async function testGeminiProvider(endpointUrl: string, apiKey: string, modelName: string, message: string) {
-  const startTime = Date.now();
-
-  try {
-    // Gemini uses key as query param and a different payload shape
-    const url = `${endpointUrl.replace(/\/$/, '')}/models/${encodeURIComponent(modelName)}:generateContent?key=${encodeURIComponent(apiKey)}`;
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        contents: [
-          {
-            role: 'user',
-            parts: [{ text: message }],
-          },
-        ],
-        generationConfig: {
-          temperature: 0.7,
-          maxOutputTokens: 150,
-        },
-      }),
-    });
-
-    const data = await response.json();
-    const latency = Date.now() - startTime;
-
-    if (!response.ok || data.error) {
-      return {
-        success: false,
-        error: data.error?.message || `Error ${response.status}: ${response.statusText}`,
-        latency,
-      };
-    }
-
-    const text =
-      data.candidates?.[0]?.content?.parts?.map((p: any) => p?.text || '').join('') ||
-      data.candidates?.[0]?.output_text ||
-      'No response';
-
-    return {
-      success: true,
-      response: text,
-      latency,
-      tokens: undefined,
-    };
-  } catch (error: unknown) {
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Network or API error',
-      latency: Date.now() - startTime,
-    };
-  }
-}
+// No helper functions needed; all providers are routed via LLM dispatcher
 
 

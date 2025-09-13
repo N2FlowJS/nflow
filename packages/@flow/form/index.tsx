@@ -80,7 +80,6 @@ const BaseNodeForm: React.FC<BaseNodeFormProps> = ({
     <Form
       form={form}
       layout="vertical"
-      // Remove initialValues as useEffect now handles setting values
       onFinish={handleSave}
       className="node-form"
     >

@@ -11,6 +11,7 @@ export async function executeCurrentNode(
   callback?: (result: ExecutionResult) => void,
   dispatcher?: FlowStateDispatcher
 ): Promise<ExecutionResult> {
+  console.log('Executing current node:', flowState.currentNode?.id);
   const result = await executeNode(flowState.currentNode, { flow, flowState, input }, callback, dispatcher);
   
   if (result.execution.output && dispatcher) {

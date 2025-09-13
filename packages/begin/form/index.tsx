@@ -1,29 +1,10 @@
-import {
-  CodeOutlined,
-  DeleteOutlined,
-  EditOutlined,
-  MessageOutlined,
-  PlusOutlined
-} from "@ant-design/icons";
-import { FlowNode } from "../../../models/flowTypes";
-import {
-  Button,
-  Collapse,
-  Empty,
-  Form,
-  Input,
-  List,
-  Space,
-  Tag,
-  Tooltip,
-  Typography
-} from "antd";
-import React, { useState } from "react";
-import BaseNodeForm from "../../@flow/form";
-import RoleSelector from '@n2flowjs/flow/share/RoleSelector';
-import { useLocale } from "../../../locale";
+import { CodeOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
+import { FlowNode } from '../../../models/flowTypes';
+import { Button, Collapse, Empty, Form, Input, List, Space, Tag, Tooltip, Typography } from 'antd';
+import React, { useState } from 'react';
+import BaseNodeForm from '../../@flow/form';
+import { useLocale } from '../../../locale';
 
-const { TextArea } = Input;
 const { Text } = Typography;
 
 interface BeginNodeFormProps {
@@ -33,9 +14,9 @@ interface BeginNodeFormProps {
 }
 
 const BeginNodeForm: React.FC<BeginNodeFormProps> = (props) => {
-  const [newVarName, setNewVarName] = useState("");
-  const [newVarValue, setNewVarValue] = useState("");
-  const variables = Form.useWatch("variables", props.form) || [];
+  const [newVarName, setNewVarName] = useState('');
+  const [newVarValue, setNewVarValue] = useState('');
+  const variables = Form.useWatch('variables', props.form) || [];
   const { t } = useLocale('form.nodeForm');
 
   const addVariable = () => {
@@ -43,8 +24,8 @@ const BeginNodeForm: React.FC<BeginNodeFormProps> = (props) => {
       props.form.setFieldsValue({
         variables: [...variables, { name: newVarName, value: newVarValue }],
       });
-      setNewVarName("");
-      setNewVarValue("");
+      setNewVarName('');
+      setNewVarValue('');
     }
   };
 
@@ -56,8 +37,6 @@ const BeginNodeForm: React.FC<BeginNodeFormProps> = (props) => {
 
   return (
     <BaseNodeForm {...props}>
-      <RoleSelector />
-
       <Collapse
         defaultActiveKey={['description', 'greeting']}
         bordered={false}
@@ -65,50 +44,12 @@ const BeginNodeForm: React.FC<BeginNodeFormProps> = (props) => {
         className="form-collapse"
         items={[
           {
-            key: 'description',
-            label: (
-              <Space>
-                <EditOutlined />
-                <span>{t('descriptionLabel')}</span>
-              </Space>
-            ),
-            children: (
-              <Form.Item name="description" noStyle>
-                <TextArea
-                  rows={2}
-                  placeholder={t('descriptionPlaceholderBegin')}
-                  style={{ resize: "none" }}
-                />
-              </Form.Item>
-            )
-          },
-          {
-            key: 'greeting',
-            label: (
-              <Space>
-                <MessageOutlined />
-                <span>{t('greetingMessageLabel')}</span>
-              </Space>
-            ),
-            children: (
-              <Form.Item name="greeting" noStyle>
-                <TextArea
-                  rows={2}
-                  placeholder={t('greetingMessagePlaceholder')}
-                  style={{ resize: "none" }}
-                />
-              </Form.Item>
-            )
-          },
-          {
             key: 'variables',
             label: (
               <Space>
                 <CodeOutlined />
                 <span>{t('variablesLabel')}</span>
-                {variables.length > 0 && (
-                  <Tag color="blue">{variables.length}</Tag>
-                )}
+                {variables.length > 0 && <Tag color="blue">{variables.length}</Tag>}
               </Space>
             ),
             children: (
@@ -117,7 +58,7 @@ const BeginNodeForm: React.FC<BeginNodeFormProps> = (props) => {
                   <Input />
                 </Form.Item>
 
-                <Space direction="vertical" style={{ width: "100%" }}>
+                <Space direction="vertical" style={{ width: '100%' }}>
                   {variables.length > 0 ? (
                     <List
                       size="small"
@@ -133,9 +74,8 @@ const BeginNodeForm: React.FC<BeginNodeFormProps> = (props) => {
                                 size="small"
                                 onClick={() => removeVariable(variable.name)}
                               />
-                            </Tooltip>
-                          ]}
-                        >
+                            </Tooltip>,
+                          ]}>
                           <Space>
                             <Text code>{variable.name}</Text>
                             <Text type="secondary">=</Text>
@@ -148,37 +88,32 @@ const BeginNodeForm: React.FC<BeginNodeFormProps> = (props) => {
                     <Empty
                       image={Empty.PRESENTED_IMAGE_SIMPLE}
                       description={t('noVariablesDefined')}
-                      style={{ margin: "12px 0" }}
+                      style={{ margin: '12px 0' }}
                     />
                   )}
 
-                  <Space.Compact style={{ width: "100%" }}>
+                  <Space.Compact style={{ width: '100%' }}>
                     <Input
                       value={newVarName}
                       onChange={(e) => setNewVarName(e.target.value)}
                       placeholder={t('variableNamePlaceholder')}
-                      style={{ width: "40%" }}
+                      style={{ width: '40%' }}
                       prefix="@"
                     />
                     <Input
                       value={newVarValue}
                       onChange={(e) => setNewVarValue(e.target.value)}
                       placeholder={t('defaultValuePlaceholder')}
-                      style={{ width: "40%" }}
+                      style={{ width: '40%' }}
                     />
-                    <Button
-                      type="primary"
-                      icon={<PlusOutlined />}
-                      onClick={addVariable}
-                      disabled={!newVarName}
-                    >
+                    <Button type="primary" icon={<PlusOutlined />} onClick={addVariable} disabled={!newVarName}>
                       {t('addVariableButton')}
                     </Button>
                   </Space.Compact>
                 </Space>
               </>
-            )
-          }
+            ),
+          },
         ]}
       />
     </BaseNodeForm>

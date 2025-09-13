@@ -1,4 +1,5 @@
-import type { FlowNode, SubAgentNodeData } from '../../models/flowTypes'
+import { SubAgentNodeData } from 'packages/subagent/types'
+import type { FlowNode,  } from '../../models/flowTypes'
 import { findNextNodes, FlowStateDispatcher, ExecutionResult, FlowExecutionContext } from '@n2flowjs/flow'
 
 export async function executeAgentNode(

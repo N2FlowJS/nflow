@@ -46,16 +46,20 @@ export default async function handler(
     const flowConfig: Flow = await getFlowConfig(flowId);
     if (!flowConfig) return sendErrorResponse(res, 404, 'Flow not found', 'invalid_request_error', 'not_found');
     let flowState = conversationId ? await getConversationFlowState(conversationId) : undefined;
+    const beginNode = flowConfig.nodes.find((node: FlowNode) => node.type === NODE_TYPES.begin);
 
     if (!flowState) {
-  const beginNode = flowConfig.nodes.find((node: FlowNode) => node.type === NODE_TYPES.begin);
       if (!beginNode)
         return sendErrorResponse(res, 400, 'No begin node found in flow', 'invalid_request_error', 'invalid_flow');
       flowState = createInitialFlowState({ beginNode, variables, flowConfig });
       const newId = await saveConversationToDatabase({ flowState, agentId: flowId, id: conversationId });
-  message.content = (beginNode.data as BeginNodeData).form?.greeting || 'Hello!';
+      message.content = (beginNode.data as BeginNodeData).form?.greeting || 'Hello!';
       message.role = 'system';
       if (newId !== conversationId) conversationId = newId;
+    } else {
+      if (beginNode) {
+        flowState.currentNode = beginNode;
+      }
     }
 
     const userInput = extractUserInputFromMessages(messages);
@@ -88,7 +92,7 @@ export default async function handler(
           id: conversationId,
           message: {
             content: result.execution.output || '',
-            role: 'assistant', 
+            role: 'assistant',
           },
         });
         console.log('Conversation saved with ID:', conversationId);

@@ -3,8 +3,6 @@ import { Position, NodeProps, Node } from '@xyflow/react';
 import { BeginNodeData } from '../types';
 import { Flex } from 'antd';
 import { PlayCircleOutlined } from '@ant-design/icons';
-import DescriptionSection from './DescriptionSection';
-import GreetingSection from './GreetingSection';
 import VariablesSection from './VariablesSection';
 import BaseNode from '@n2flowjs/flow/node/base-node';
 
@@ -24,12 +22,10 @@ const BeginNode = memo(({ data, id, selected }: NodeProps<Node<BeginNodeData>>) 
   const content = useMemo(
     () => (
       <Flex vertical gap={6}>
-        {form?.description && <DescriptionSection description={form.description} />}
-        {form?.greeting && <GreetingSection greeting={form.greeting} />}
         {variablesCount > 0 && <VariablesSection variables={form.variables} />}
       </Flex>
     ),
-    [form?.description, form?.greeting, form?.variables, variablesCount]
+    [form?.description, form?.variables, variablesCount]
   );
 
   return (

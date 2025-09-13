@@ -16,20 +16,49 @@ export async function processNode(
   const nextNode = flow.nodes.find((node) => node.id === nodeId);
   if (!nextNode) throw new Error(`Node with ID ${nodeId} not found in the flow`);
 
-  const nextResult = await executeNode(
-    nextNode,
-    {
-      flow,
-      flowState: prevResult.flowState,
-      input: {
-        content: prevResult.execution.output,
-        role: prevResult.nodeInfo.role,
+  let nextResult: ExecutionResult;
+  try {
+    nextResult = await executeNode(
+      nextNode,
+      {
+        flow,
+        flowState: prevResult.flowState,
+        input: {
+          content: prevResult.execution.output,
+          role: prevResult.nodeInfo.role,
+        },
+        history: history,
       },
-      history: history,
-    },
-    callback,
-    dispatcher
-  );
+      callback,
+      dispatcher
+    );
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    // Convert terminal missing-next into a graceful completion
+    if (/no next node found in the flow/i.test(msg)) {
+      const state = dispatcher ? dispatcher.getState() : prevResult.flowState;
+      nextResult = {
+        status: 'completed',
+        nextNodes: [],
+        flowState: state,
+        nodeInfo: {
+          id: nextNode.id,
+          name: nextNode.data?.label || nextNode.id,
+          type: nextNode.type as any,
+          role: (nextNode.data as any)?.form?.role || 'developer',
+        },
+        execution: {
+          nodeId: nextNode.id,
+          nodeName: (nextNode.data as any)?.form?.name || nextNode.id,
+          startTime: new Date().toISOString(),
+          endTime: new Date().toISOString(),
+          output: state.components?.[nextNode.id]?.output ?? '',
+        },
+      };
+    } else {
+      throw err;
+    }
+  }
 
   if (nextResult.execution.output && dispatcher) {
     // Use shared dispatcher to update state

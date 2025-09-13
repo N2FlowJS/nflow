@@ -1,8 +1,8 @@
-import { FlowNode, BeginNodeData } from '../../models/flowTypes';
-import { processTemplate } from '@n2flowjs/template/template';
+import { FlowNode, } from '../../models/flowTypes';
 import { findNextNodes } from '../@flow/find-next-node';
 import { FlowStateDispatcher } from '../@flow/flow-state-dispatcher';
 import { ExecutionResult, FlowExecutionContext } from '../@flow/type';
+import { BeginNodeData } from './types';
 
 /**
  * Handler for executing Begin nodes
@@ -15,11 +15,7 @@ export async function execute(
   const data = node.data as BeginNodeData;
   const form = data.form;
   const startTime = new Date().toISOString();
-  const greeting = form.greeting || 'Hello!';
 
-  const processedGreeting = processTemplate(greeting, flowState.variables);
-
-  // Use shared dispatcher if available, otherwise create local state
   let finalState = flowState;
 
   if (dispatcher) {
@@ -38,7 +34,7 @@ export async function execute(
     }
 
     // Update node output and current node using shared dispatcher
-    dispatcher.setNodeOutput(node.id, processedGreeting, 'begin');
+    dispatcher.setNodeOutput(node.id, '', 'begin');
     dispatcher.setCurrentNode(node);
     finalState = dispatcher.getState();
   }
@@ -58,7 +54,7 @@ export async function execute(
       role: 'system',
     },
     execution: {
-      output: processedGreeting,
+      output: "",
       nodeId: node.id,
       nodeName: form.name || node.id,
       startTime,
