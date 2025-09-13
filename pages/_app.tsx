@@ -29,9 +29,9 @@ function IFlowApp({ Component, pageProps }: AppProps) {
   // Client-only: pre-register discovered node components/forms based on injected plugin config
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const cfg = (window as any).__NFLOW_NODE_PLUGIN_CONFIG__ || {};
-    const compMap = ((window as any).__NFLOW_NODE_COMPONENTS__ ||= {});
-    const formMap = ((window as any).__NFLOW_NODE_FORMS__ ||= {});
+    const cfg = window.__NFLOW_NODE_PLUGIN_CONFIG__ || {};
+    const compMap = (window.__NFLOW_NODE_COMPONENTS__ ||= {});
+    const formMap = (window.__NFLOW_NODE_FORMS__ ||= {});
     const normalizeKey = (pkg: string) => (pkg || '').replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
 
     const preload = async () => {
@@ -39,14 +39,16 @@ function IFlowApp({ Component, pageProps }: AppProps) {
       await Promise.all(pkgs.map(async (pkg) => {
         // Preload node component
         try {
-          const mod: any = await import(/* webpackMode: "lazy" */ `../packages/${pkg}/node`);
-          const comp = mod.default || Object.values(mod)[0];
+          const mod = await import(/* webpackMode: "lazy" */ `../packages/${pkg}/node`);
+          const comp = (mod as { default?: React.ComponentType<unknown> }).default
+            || (Object.values(mod)[0] as React.ComponentType<unknown> | undefined);
           if (comp) compMap[normalizeKey(pkg)] = comp;
         } catch { /* ignore */ }
         // Preload form component (if exists)
         try {
-          const modForm: any = await import(/* webpackMode: "lazy" */ `../packages/${pkg}/form`);
-          const formComp = modForm.default || Object.values(modForm)[0];
+          const modForm = await import(/* webpackMode: "lazy" */ `../packages/${pkg}/form`);
+          const formComp = (modForm as { default?: React.ComponentType<unknown> }).default
+            || (Object.values(modForm)[0] as React.ComponentType<unknown> | undefined);
           if (formComp) formMap[normalizeKey(pkg)] = formComp;
         } catch { /* ignore */ }
       }));

@@ -112,7 +112,7 @@ export default function TeamList() {
       title: "Members",
       key: "members",
       width: "15%",
-      render: (_: any, record: Team) => (
+      render: (_: unknown, record: Team) => (
         <Tag icon={<UserOutlined />} color="blue">
           {record.users?.length || 0} members
         </Tag>
@@ -122,7 +122,7 @@ export default function TeamList() {
       title: "Actions",
       key: "actions",
       width: "15%",
-      render: (_: any, record: Team) => (
+      render: (_: unknown, record: Team) => (
         <Space>
           <Button type="text" icon={<EditOutlined />} onClick={() => showModal(record)} />
           <Popconfirm

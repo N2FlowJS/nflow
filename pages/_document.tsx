@@ -1,8 +1,10 @@
-import Document, { Html, Head, Main, NextScript, DocumentContext } from 'next/document';
+import Document, { Html, Head, Main, NextScript, DocumentContext, DocumentInitialProps } from 'next/document';
 
-async function loadPluginConfig() {
+type NodePluginModule = { getNodePluginConfig?: () => unknown };
+
+async function loadPluginConfig(): Promise<unknown> {
 	try {
-		const mod: any = await import('../packages/@node-plugin');
+		const mod: NodePluginModule = await import('../packages/@node-plugin');
 		if (mod?.getNodePluginConfig) return mod.getNodePluginConfig();
 	} catch {
 		// ignore load failures in _document
@@ -11,7 +13,7 @@ async function loadPluginConfig() {
 }
 
 class NflowDocument extends Document<{ pluginConfigJSON?: string }> {
-	static async getInitialProps(ctx: DocumentContext) {
+	static async getInitialProps(ctx: DocumentContext): Promise<DocumentInitialProps & { pluginConfigJSON?: string }> {
 		const initialProps = await Document.getInitialProps(ctx);
 		const cfg = await loadPluginConfig();
 		let pluginConfigJSON = '';
@@ -20,11 +22,11 @@ class NflowDocument extends Document<{ pluginConfigJSON?: string }> {
 		} catch {
 			pluginConfigJSON = '{}';
 		}
-		return { ...initialProps, pluginConfigJSON } as any;
+		return { ...initialProps, pluginConfigJSON };
 	}
 
 	render() {
-		const injected = (this.props as any).pluginConfigJSON || '{}';
+		const injected = this.props.pluginConfigJSON || '{}';
 		return (
 			<Html>
 				<Head />

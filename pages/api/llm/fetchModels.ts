@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import llm from '../../../llm/llm';
+import llm, { SupportedProvider } from '../../../llm/llm';
 import { parseAuthHeader, verifyToken } from '../../../lib/auth';
 import { prisma } from '../../../lib/prisma';
 
@@ -41,14 +41,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!provider) {
       return res.status(404).json({ error: 'Provider not found' });
     }
-  const models = await llm.models(provider.providerType as any, provider.endpointUrl, provider.apiKey);
-  // normalize id to strip `models/` prefix if exists
-  return res.status(200).json(models.map((x: any) => ({ ...x, id: String(x.id).replace('models/', '') })));
-  } catch (error: any) {
-    console.error('Error fetching OpenAI models:', error);
+    const models = await llm.models(provider.providerType as SupportedProvider, provider.endpointUrl, provider.apiKey);
+    // normalize id to strip `models/` prefix if exists
+    return res.status(200).json(models.map((x) => ({ ...x, id: String(x.id).replace('models/', '') })));
+  } catch (error: unknown) {
+    console.error('Error fetching models:', error);
+    const message = error instanceof Error ? error.message : 'Unknown error';
     return res.status(500).json({
       error: 'Failed to fetch models',
-      message: error.message || 'Unknown error',
+      message,
     });
   }
 }

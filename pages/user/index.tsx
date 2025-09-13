@@ -146,7 +146,7 @@ export default function UserList() {
       title: 'Actions',
       key: 'actions',
       width: '15%',
-      render: (_: any, record: User) => (
+      render: (_: unknown, record: User) => (
         <Space>
           <Button
             type="text"

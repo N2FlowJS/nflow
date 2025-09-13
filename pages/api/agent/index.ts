@@ -34,9 +34,9 @@ async function getAgents(req: NextApiRequest, res: NextApiResponse): Promise<voi
     }
 
 
-    const { userId: queryUserId, teamId, isActive, excludeId } = req.query;
+  const { userId: queryUserId, teamId, isActive, excludeId } = req.query;
 
-    const where: any = {};
+  const where: Record<string, unknown> = {};
 
     // Filter by owner
     if (queryUserId) {

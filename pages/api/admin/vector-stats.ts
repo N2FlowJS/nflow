@@ -12,11 +12,11 @@ export default async function handler(
   }
   
   try {
-    const workerStatus = getWorkerStatus();
-    const vectorDBType = workerStatus.vectorDBType || 'none';
+  const workerStatus = getWorkerStatus();
+  const vectorDBType = (workerStatus.vectorDBType || 'none') as 'nbase' | 'local' | 'none';
     
-    // Get appropriate vector stats based on vector DB type
-    let vectorStats: any = { type: vectorDBType };
+  // Get appropriate vector stats based on vector DB type
+  let vectorStats: { type: string; status?: 'available' | 'unavailable' | 'error'; error?: string } & Record<string, unknown> = { type: vectorDBType };
     
     if (vectorDBType === 'nbase') {
       // Count vectors in Qdrant 

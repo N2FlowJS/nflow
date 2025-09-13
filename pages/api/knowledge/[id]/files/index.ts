@@ -36,9 +36,10 @@ const upload = (knowledgeId: string) => multer({
 });
 
 // Helper to run multer middleware
-const runMiddleware = (req: NextApiRequest, res: NextApiResponse, fn: any) => {
+type MiddlewareFn = (req: NextApiRequest, res: NextApiResponse, next: (result?: unknown) => void) => void;
+const runMiddleware = (req: NextApiRequest, res: NextApiResponse, fn: MiddlewareFn) => {
   return new Promise((resolve, reject) => {
-    fn(req, res, (result: any) => {
+    fn(req, res, (result?: unknown) => {
       if (result instanceof Error) {
         console.error("Multer error:", result);
         return reject(result);
@@ -97,7 +98,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       await runMiddleware(req, res, uploadWithFields);
 
-      const files = (req as any).files?.file;
+  const files = (req as unknown as { files?: { file?: Array<{ filename: string; originalname: string; path: string; mimetype: string; size: number }> } }).files?.file;
       const fileName = req.body?.fileName;
 
       console.log("Files received:", files);
@@ -115,14 +116,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
       // Create records for all uploaded files
       const fileRecords = await Promise.all(
-        files.map(async (file: any) => {
+        files.map(async (file) => {
           // Use custom fileName if provided, otherwise use original name from file
           const originalName = fileName || file.originalname;
           // Safely encode the original filename to handle Unicode characters
 
           // Fix the config type issue by properly handling the JSON field
           const fileConfig = knowledge?.config
-            ? knowledge.config as any
+            ? (knowledge.config as unknown)
             : undefined;
 
           return prisma.file.create({
