@@ -2,31 +2,36 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from "../../../lib/prisma";
 import { parseAuthHeader, verifyToken } from '../../../lib/auth';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
   switch (req.method) {
     case 'GET':
-      return getUsers(req, res);
+      await getUsers(req, res);
+      return;
     case 'POST':
-      return createUser(req, res);
+      await createUser(req, res);
+      return;
     default:
-      return res.status(405).json({ message: 'Method not allowed' });
+      res.status(405).json({ message: 'Method not allowed' });
+      return;
   }
 }
 
 // Get all users
-async function getUsers(req: NextApiRequest, res: NextApiResponse) {
+async function getUsers(req: NextApiRequest, res: NextApiResponse): Promise<void> {
   try {
       // Get the token from the request headers
         const token = parseAuthHeader(req.headers.authorization);
     
         // Verify the token
         if (!token) {
-          return res.status(401).json({ error: 'Authentication required' });
+          res.status(401).json({ error: 'Authentication required' });
+          return;
         }
     
         const payload = await verifyToken(token);
         if (!payload) {
-          return res.status(401).json({ error: 'Invalid token' });
+          res.status(401).json({ error: 'Invalid token' });
+          return;
         }
     const users = await prisma.user.findMany({
       include: {
@@ -34,32 +39,37 @@ async function getUsers(req: NextApiRequest, res: NextApiResponse) {
       }
     });
     
-    return res.status(200).json(users);
+    res.status(200).json(users);
+    return;
   } catch (error: unknown) {
     console.error("Request error", error);
-    return res.status(500).json({ error: "Error fetching users" });
+    res.status(500).json({ error: "Error fetching users" });
+    return;
   }
 }
 
 // Create a new user
-async function createUser(req: NextApiRequest, res: NextApiResponse) {
+async function createUser(req: NextApiRequest, res: NextApiResponse): Promise<void> {
   try {
     const { name, description, teamIds } = req.body;
     
     if (!name || !description) {
-      return res.status(400).json({ message: 'Name and description are required' });
+      res.status(400).json({ message: 'Name and description are required' });
+      return;
     }
       // Get the token from the request headers
       const token = parseAuthHeader(req.headers.authorization);
 
       // Verify the token
       if (!token) {
-        return res.status(401).json({ error: 'Authentication required' });
+        res.status(401).json({ error: 'Authentication required' });
+        return;
       }
   
       const payload = await verifyToken(token);
       if (!payload) {
-        return res.status(401).json({ error: 'Invalid token' });
+        res.status(401).json({ error: 'Invalid token' });
+        return;
       }
     const userData = {
       name,
@@ -78,9 +88,11 @@ async function createUser(req: NextApiRequest, res: NextApiResponse) {
       }
     });
     
-    return res.status(201).json(user);
+    res.status(201).json(user);
+    return;
   } catch (error: unknown) {
     console.error('Error creating user:', error);
-    return res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Internal server error' });
+    return;
   }
 }

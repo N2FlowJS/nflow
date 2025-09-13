@@ -5,17 +5,19 @@ import { searchSimilarContent } from "../../../../lib/services/vectorSearchServi
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
-) {
+): Promise<void> {
   const { id } = req.query;
 
   if (!id || typeof id !== "string") {
-    return res.status(400).json({ error: "Valid knowledge ID is required" });
+    res.status(400).json({ error: "Valid knowledge ID is required" });
+    return;
   }
 
   // Only allow POST method for test queries
   if (req.method !== "POST") {
     res.setHeader("Allow", ["POST"]);
-    return res.status(405).end(`Method ${req.method} Not Allowed`);
+    res.status(405).end(`Method ${req.method} Not Allowed`);
+    return;
   }
 
   try {
@@ -26,14 +28,16 @@ export default async function handler(
     });
 
     if (!knowledge) {
-      return res.status(404).json({ error: "Knowledge item not found" });
+      res.status(404).json({ error: "Knowledge item not found" });
+      return;
     }
 
     // Get query and test parameters from request
     const { query, limit = 5, threshold = 0.7 } = req.body;
 
     if (!query || typeof query !== "string") {
-      return res.status(400).json({ error: "Valid query string is required" });
+      res.status(400).json({ error: "Valid query string is required" });
+      return;
     }
 
     // Perform vector search against this knowledge base
@@ -44,7 +48,7 @@ export default async function handler(
     });
 
     // Return results with test metadata
-    return res.status(200).json({
+    res.status(200).json({
       query,
       knowledgeId: id,
       timestamp: new Date().toISOString(),
@@ -54,8 +58,10 @@ export default async function handler(
       },
       results: results
     });
+    return;
   } catch (error: unknown) {
     console.error("Retrieval test error:", error);
-    return res.status(500).json({ error: "Error performing retrieval test" });
+    res.status(500).json({ error: "Error performing retrieval test" });
+    return;
   }
 }

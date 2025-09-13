@@ -2,23 +2,26 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from "../../../../../lib/prisma";
 import { parseAuthHeader, verifyToken } from '../../../../../lib/auth';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
   // Get token from Authorization header
   const token = parseAuthHeader(req.headers.authorization);
   if (!token) {
-    return res.status(401).json({ error: 'Authentication required' });
+    res.status(401).json({ error: 'Authentication required' });
+    return;
   }
 
   // Verify token
   const payload = await verifyToken(token);
   if (!payload) {
-    return res.status(401).json({ error: 'Invalid token' });
+    res.status(401).json({ error: 'Invalid token' });
+    return;
   }
 
   const { id: teamId } = req.query;
 
   if (!teamId || typeof teamId !== 'string') {
-    return res.status(400).json({ error: 'Invalid team ID' });
+    res.status(400).json({ error: 'Invalid team ID' });
+    return;
   }
 
   // Check if the team exists
@@ -27,7 +30,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
 
   if (!team) {
-    return res.status(404).json({ error: 'Team not found' });
+    res.status(404).json({ error: 'Team not found' });
+    return;
   }
 
   // Check if the user is a member of this team
@@ -40,7 +44,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
 
   if (!membership && payload.permission !== 'owner') {
-    return res.status(403).json({ error: 'You are not a member of this team' });
+    res.status(403).json({ error: 'You are not a member of this team' });
+    return;
   }
 
   // Handle GET request - retrieve team's LLM providers
@@ -85,10 +90,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         apiKey: provider.apiKey ? '********' : null
       }));
 
-      return res.status(200).json(sanitizedProviders);
+      res.status(200).json(sanitizedProviders);
+      return;
     } catch (error: unknown) {
       console.error("Error fetching team LLM providers:", error);
-      return res.status(500).json({ error: "Failed to fetch team LLM providers" });
+      res.status(500).json({ error: "Failed to fetch team LLM providers" });
+      return;
     }
   }
 
@@ -96,9 +103,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method === 'POST') {
     // Check if user has admin permissions in the team
     if (membership?.permission !== 'owner' && membership?.permission !== 'admin' && payload.permission !== 'owner') {
-      return res.status(403).json({
+      res.status(403).json({
         error: 'You do not have permission to add LLM providers to this team'
       });
+      return;
     }
 
     try {
@@ -110,7 +118,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       // Validate required fields
       if ( !providerType || !endpointUrl) {
-        return res.status(400).json({ error: "Missing required fields" });
+        res.status(400).json({ error: "Missing required fields" });
+        return;
       }
 
       // Create the provider with team ownership
@@ -128,13 +137,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const { apiKey: _, ...sanitizedProvider } = newProvider;
       console.log(_);
 
-      return res.status(201).json(sanitizedProvider);
+      res.status(201).json(sanitizedProvider);
+      return;
     } catch (error: unknown) {
       console.error("Error creating team LLM provider:", error);
-      return res.status(500).json({ error: "Failed to create team LLM provider" });
+      res.status(500).json({ error: "Failed to create team LLM provider" });
+      return;
     }
   }
 
   res.setHeader('Allow', ['GET', 'POST']);
-  return res.status(405).end(`Method ${req.method} Not Allowed`);
+  res.status(405).end(`Method ${req.method} Not Allowed`);
+  return;
 }

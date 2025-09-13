@@ -19,12 +19,16 @@ const OAUTH_CONFIG = {
   }
 };
 
-export default function handler(req: NextApiRequest, res: NextApiResponse) {
+export default function handler(req: NextApiRequest, res: NextApiResponse): void {
   const { provider } = req.query;
-  if (req.method !== 'GET') return res.status(405).end();
+  if (req.method !== 'GET') {
+    res.status(405).end();
+    return;
+  }
 
   if (!provider || typeof provider !== 'string' || !(provider in OAUTH_CONFIG)) {
-    return res.status(400).json({ error: 'Invalid provider' });
+    res.status(400).json({ error: 'Invalid provider' });
+    return;
   }
 
   const config = OAUTH_CONFIG[provider as 'google' | 'github'];
@@ -37,4 +41,5 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
   }).toString();
 
   res.redirect(`${config.authUrl}?${params}`);
+  return;
 }

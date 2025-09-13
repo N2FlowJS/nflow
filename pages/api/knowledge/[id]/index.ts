@@ -4,11 +4,12 @@ import { prisma } from "../../../../lib/prisma";
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
-) {
+): Promise<void> {
   const { id } = req.query;
 
   if (!id || typeof id !== "string") {
-    return res.status(400).json({ error: "Valid ID is required" });
+    res.status(400).json({ error: "Valid ID is required" });
+    return;
   }
 
   if (req.method === "GET") {
@@ -45,13 +46,16 @@ export default async function handler(
       });
 
       if (!knowledge) {
-        return res.status(404).json({ error: "Knowledge item not found" });
+        res.status(404).json({ error: "Knowledge item not found" });
+        return;
       }
 
-      return res.status(200).json(knowledge);
+      res.status(200).json(knowledge);
+      return;
     } catch (error: unknown) {
       console.error("Request error", error);
-      return res.status(500).json({ error: "Error fetching knowledge item" });
+      res.status(500).json({ error: "Error fetching knowledge item" });
+      return;
     }
   }
 
@@ -60,9 +64,10 @@ export default async function handler(
       const { name, description, userIds, teamIds, config, modelId } = req.body;
 
       if (!name && !description && !userIds && !teamIds && !config) {
-        return res
+        res
           .status(400)
           .json({ error: "At least one field to update is required" });
+        return;
       }
 
       // Prepare the update data
@@ -91,10 +96,12 @@ export default async function handler(
         data: updateData,
       });
 
-      return res.status(200).json(knowledge);
+      res.status(200).json(knowledge);
+      return;
     } catch (error: unknown) {
       console.error("Request error", error);
-      return res.status(500).json({ error: "Error updating knowledge item" });
+      res.status(500).json({ error: "Error updating knowledge item" });
+      return;
     }
   }
 
@@ -104,13 +111,16 @@ export default async function handler(
         where: { id },
       });
 
-      return res.status(204).end();
+      res.status(204).end();
+      return;
     } catch (error: unknown) {
       console.error("Request error", error);
-      return res.status(500).json({ error: "Error deleting knowledge item" });
+      res.status(500).json({ error: "Error deleting knowledge item" });
+      return;
     }
   }
 
   res.setHeader("Allow", ["GET", "PUT", "DELETE"]);
   res.status(405).end(`Method ${req.method} Not Allowed`);
+  return;
 }

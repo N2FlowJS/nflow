@@ -2,30 +2,35 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from "../../../lib/prisma";
 import { parseAuthHeader, verifyToken } from '../../../lib/auth';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
   switch (req.method) {
     case 'GET':
-      return getAgents(req, res);
+      await getAgents(req, res);
+      return;
     case 'POST':
-      return createAgent(req, res);
+      await createAgent(req, res);
+      return;
     default:
-      return res.status(405).json({ message: 'Method not allowed' });
+      res.status(405).json({ message: 'Method not allowed' });
+      return;
   }
 }
 
 // Get list of agents with filtering options
-async function getAgents(req: NextApiRequest, res: NextApiResponse) {
+async function getAgents(req: NextApiRequest, res: NextApiResponse): Promise<void> {
   try {
     // Xác thực token (tùy chọn cho request GET)
     const token = parseAuthHeader(req.headers.authorization);
     if (!token) {
-      return res.status(401).json({ error: 'Authentication required' });
+      res.status(401).json({ error: 'Authentication required' });
+      return;
     }
 
     // Verify token
     const payload = await verifyToken(token);
     if (!payload) {
-      return res.status(401).json({ error: 'Invalid token' });
+      res.status(401).json({ error: 'Invalid token' });
+      return;
     }
 
 
@@ -83,45 +88,53 @@ async function getAgents(req: NextApiRequest, res: NextApiResponse) {
       }
     });
 
-    return res.status(200).json(agents);
+    res.status(200).json(agents);
+    return;
   } catch (error: unknown) {
     console.error("Request error", error);
-    return res.status(500).json({ error: "Error fetching agents" });
+    res.status(500).json({ error: "Error fetching agents" });
+    return;
   }
 }
 
 // Create a new agent
-async function createAgent(req: NextApiRequest, res: NextApiResponse) {
+async function createAgent(req: NextApiRequest, res: NextApiResponse): Promise<void> {
   try {
     // Get token from Authorization header
     const token = parseAuthHeader(req.headers.authorization);
     if (!token) {
-      return res.status(401).json({ error: 'Authentication required' });
+      res.status(401).json({ error: 'Authentication required' });
+      return;
     }
 
     // Verify token
     const payload = await verifyToken(token);
     if (!payload) {
-      return res.status(401).json({ error: 'Invalid token' });
+      res.status(401).json({ error: 'Invalid token' });
+      return;
     }
 
     const createdById = payload.userId;
     const { name, description, flowConfig, ownerType, userId, teamId, isActive = true } = req.body;
 
     if (!name || !description) {
-      return res.status(400).json({ error: "Name and description are required" });
+      res.status(400).json({ error: "Name and description are required" });
+      return;
     }
 
     if (ownerType !== 'user' && ownerType !== 'team') {
-      return res.status(400).json({ error: "Owner type must be 'user' or 'team'" });
+      res.status(400).json({ error: "Owner type must be 'user' or 'team'" });
+      return;
     }
 
     if (ownerType === 'user' && !userId) {
-      return res.status(400).json({ error: "User ID is required for user-owned agents" });
+      res.status(400).json({ error: "User ID is required for user-owned agents" });
+      return;
     }
 
     if (ownerType === 'team' && !teamId) {
-      return res.status(400).json({ error: "Team ID is required for team-owned agents" });
+      res.status(400).json({ error: "Team ID is required for team-owned agents" });
+      return;
     }
 
     const agent = await prisma.agent.create({
@@ -142,9 +155,11 @@ async function createAgent(req: NextApiRequest, res: NextApiResponse) {
       }
     });
 
-    return res.status(201).json(agent);
+    res.status(201).json(agent);
+    return;
   } catch (error: unknown) {
     console.error("Request error", error);
-    return res.status(500).json({ error: "Error creating agent" });
+    res.status(500).json({ error: "Error creating agent" });
+    return;
   }
 }

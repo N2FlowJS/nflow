@@ -29,28 +29,32 @@ import { MessagePart } from '../../../models/MessagePart';
  * - `404 Not Found`: If the provider or model is not found.
  * - `500 Internal Server Error`: If an error occurs during the test.
  */
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
   // Get token from Authorization header
   const token = parseAuthHeader(req.headers.authorization);
   if (!token) {
-    return res.status(401).json({ error: 'Authentication required' });
+    res.status(401).json({ error: 'Authentication required' });
+    return;
   }
 
   // Verify token
   const payload = await verifyToken(token);
   if (!payload) {
-    return res.status(401).json({ error: 'Invalid token' });
+    res.status(401).json({ error: 'Invalid token' });
+    return;
   }
 
   if (req.method !== 'POST') {
     res.setHeader('Allow', ['POST']);
-    return res.status(405).end(`Method ${req.method} Not Allowed`);
+    res.status(405).end(`Method ${req.method} Not Allowed`);
+    return;
   }
 
   const { providerId, modelId, message } = req.body;
 
   if (!providerId || !message) {
-    return res.status(400).json({ error: 'Missing providerId or test message' });
+    res.status(400).json({ error: 'Missing providerId or test message' });
+    return;
   }
 
   try {
@@ -60,11 +64,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     if (!provider) {
-      return res.status(404).json({ error: 'Provider not found' });
+      res.status(404).json({ error: 'Provider not found' });
+      return;
     }
 
     if (!provider.apiKey) {
-      return res.status(400).json({ error: 'Provider has no API key configured' });
+      res.status(400).json({ error: 'Provider has no API key configured' });
+      return;
     }
 
     // Get model if specified, or find default for chat
@@ -76,7 +82,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
 
       if (!model) {
-        return res.status(404).json({ error: 'Model not found' });
+        res.status(404).json({ error: 'Model not found' });
+        return;
       }
 
       modelName = model.name;
@@ -103,7 +110,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         if (anyModel) {
           modelName = anyModel.name;
         } else {
-          return res.status(400).json({ error: 'No suitable model found for testing' });
+          res.status(400).json({ error: 'No suitable model found for testing' });
+          return;
         }
       }
     }
@@ -122,21 +130,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         { temperature: 0.7, maxTokens: 150 }
       );
       const latency = Date.now() - startTime;
-      return res.status(200).json({ success: true, response: text || 'No response', latency });
+      res.status(200).json({ success: true, response: text || 'No response', latency });
+      return;
     } catch (e: unknown) {
       const latency = Date.now() - startTime;
-      return res.status(200).json({
+      res.status(200).json({
         success: false,
         error: e instanceof Error ? e.message : 'Network or API error',
         latency,
       });
+      return;
     }
   } catch (error: unknown) {
     console.error('Error testing LLM provider:', error);
-    return res.status(500).json({
+    res.status(500).json({
       error: 'Failed to test LLM provider',
       details: error instanceof Error ? error.message : 'Unknown error',
     });
+    return;
   }
 }
 

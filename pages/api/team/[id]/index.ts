@@ -1,27 +1,32 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from "../../../../lib/prisma";
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
   const { id } = req.query;
 
   if (!id || typeof id !== "string") {
-    return res.status(400).json({ error: "Valid ID is required" });
+    res.status(400).json({ error: "Valid ID is required" });
+    return;
   }
 
   switch (req.method) {
     case 'GET':
-      return getTeamById(res, id);
+      await getTeamById(res, id);
+      return;
     case 'PUT':
-      return updateTeam(req, res, id);
+      await updateTeam(req, res, id);
+      return;
     case 'DELETE':
-      return deleteTeam(res, id);
+      await deleteTeam(res, id);
+      return;
     default:
-      return res.status(405).json({ message: 'Method not allowed' });
+      res.status(405).json({ message: 'Method not allowed' });
+      return;
   }
 }
 
 // Get team by ID
-async function getTeamById(res: NextApiResponse, id: string) {
+async function getTeamById(res: NextApiResponse, id: string): Promise<void> {
   try {
     const team = await prisma.team.findUnique({
       where: { id },
@@ -38,23 +43,27 @@ async function getTeamById(res: NextApiResponse, id: string) {
     });
 
     if (!team) {
-      return res.status(404).json({ message: 'Team not found' });
+      res.status(404).json({ message: 'Team not found' });
+      return;
     }
 
-    return res.status(200).json(team);
+    res.status(200).json(team);
+    return;
   } catch (error: unknown) {
     console.error("Request error", error);
-    return res.status(500).json({ error: "Error fetching team" });
+    res.status(500).json({ error: "Error fetching team" });
+    return;
   }
 }
 
 // Update team
-async function updateTeam(req: NextApiRequest, res: NextApiResponse, id: string) {
+async function updateTeam(req: NextApiRequest, res: NextApiResponse, id: string): Promise<void> {
   try {
     const { name, description, userIds } = req.body;
 
     if (!name && !description && !userIds) {
-      return res.status(400).json({ message: 'At least one field must be provided' });
+      res.status(400).json({ message: 'At least one field must be provided' });
+      return;
     }
 
     // Prepare the update data
@@ -78,23 +87,26 @@ async function updateTeam(req: NextApiRequest, res: NextApiResponse, id: string)
       }
     });
 
-    return res.status(200).json(team);
+    res.status(200).json(team);
+    return;
   } catch (error: unknown) {
     console.error('Error updating team:', error);
-    return res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Internal server error' });
+    return;
   }
 }
 
 // Delete team
-async function deleteTeam(res: NextApiResponse, id: string) {
+async function deleteTeam(res: NextApiResponse, id: string): Promise<void> {
   try {
     await prisma.team.delete({
       where: { id },
     });
-
-    return res.status(204).end();
+    res.status(204).end();
+    return;
   } catch (error: unknown) {
     console.error("Request error", error);
-    return res.status(500).json({ error: "Error deleting team" });
+    res.status(500).json({ error: "Error deleting team" });
+    return;
   }
 }

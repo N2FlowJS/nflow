@@ -12,27 +12,31 @@ import { parseAuthHeader, verifyToken } from '../../../../../../lib/auth';
  * @param req - The HTTP request object.
  * @param res - The HTTP response object.
  */
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
   // Get token from Authorization header
   const token = parseAuthHeader(req.headers.authorization);
   if (!token) {
-    return res.status(401).json({ error: 'Authentication required' });
+    res.status(401).json({ error: 'Authentication required' });
+    return;
   }
   
   // Verify token
   const payload = await verifyToken(token);
   if (!payload) {
-    return res.status(401).json({ error: 'Invalid token' });
+    res.status(401).json({ error: 'Invalid token' });
+    return;
   }
 
   const { id: teamId, providerId } = req.query;
   
   if (!teamId || typeof teamId !== 'string') {
-    return res.status(400).json({ error: 'Invalid team ID' });
+    res.status(400).json({ error: 'Invalid team ID' });
+    return;
   }
 
   if (!providerId || typeof providerId !== 'string') {
-    return res.status(400).json({ error: 'Invalid provider ID' });
+    res.status(400).json({ error: 'Invalid provider ID' });
+    return;
   }
   
   // Check if the team exists
@@ -41,7 +45,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
   
   if (!team) {
-    return res.status(404).json({ error: 'Team not found' });
+    res.status(404).json({ error: 'Team not found' });
+    return;
   }
   
   // Check if the user is a member of this team with appropriate role
@@ -58,9 +63,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const isSystemAdmin = payload.permission === 'owner';
   
   if (!isTeamAdmin && !isSystemAdmin) {
-    return res.status(403).json({ 
+    res.status(403).json({ 
       error: 'You do not have permission to manage LLM providers for this team' 
     });
+    return;
   }
   
   // Find the provider and check ownership
@@ -69,14 +75,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
   
   if (!provider) {
-    return res.status(404).json({ error: 'Provider not found' });
+    res.status(404).json({ error: 'Provider not found' });
+    return;
   }
   
   // Only allow management of team-owned providers
   if (provider.ownerType !== 'team' || provider.teamOwnerId !== teamId) {
-    return res.status(403).json({ 
+    res.status(403).json({ 
       error: 'This provider does not belong to this team or cannot be managed by team admins' 
     });
+    return;
   }
   
   // Handle PUT - Update provider
@@ -110,10 +118,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const { apiKey: _, ...sanitizedProvider } = updatedProvider;
       console.log(_);
       
-      return res.status(200).json(sanitizedProvider);
+      res.status(200).json(sanitizedProvider);
+      return;
     } catch (error: unknown) {
       console.error("Error updating team LLM provider:", error);
-      return res.status(500).json({ error: "Failed to update team LLM provider" });
+      res.status(500).json({ error: "Failed to update team LLM provider" });
+      return;
     }
   }
   
@@ -124,13 +134,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         where: { id: providerId }
       });
       
-      return res.status(200).json({ success: true });
+      res.status(200).json({ success: true });
+      return;
     } catch (error: unknown) {
       console.error("Error deleting team LLM provider:", error);
-      return res.status(500).json({ error: "Failed to delete team LLM provider" });
+      res.status(500).json({ error: "Failed to delete team LLM provider" });
+      return;
     }
   }
   
   res.setHeader('Allow', ['PUT', 'DELETE']);
-  return res.status(405).end(`Method ${req.method} Not Allowed`);
+  res.status(405).end(`Method ${req.method} Not Allowed`);
+  return;
 }

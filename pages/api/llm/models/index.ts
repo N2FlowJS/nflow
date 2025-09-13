@@ -38,17 +38,19 @@ import { parseAuthHeader, verifyToken } from '../../../../lib/auth';
  * - `404 Not Found`: If the specified provider does not exist.
  * - `500 Internal Server Error`: If an error occurs while creating the model.
  */
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
   // Get token from Authorization header
   const token = parseAuthHeader(req.headers.authorization);
   if (!token) {
-    return res.status(401).json({ error: 'Authentication required' });
+    res.status(401).json({ error: 'Authentication required' });
+    return;
   }
   
   // Verify token
   const payload = await verifyToken(token);
   if (!payload) {
-    return res.status(401).json({ error: 'Invalid token' });
+    res.status(401).json({ error: 'Invalid token' });
+    return;
   }
 
   if (req.method === 'GET') {
@@ -67,10 +69,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
       });
       
-      return res.status(200).json(models);
+      res.status(200).json(models);
+      return;
     } catch (error: unknown) {
       console.error("Error fetching LLM models:", error);
-      return res.status(500).json({ error: "Failed to fetch LLM models" });
+      res.status(500).json({ error: "Failed to fetch LLM models" });
+      return;
     }
   } else if (req.method === 'POST') {
     try {
@@ -84,7 +88,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       // Validate required fields
       if (!name || !modelType || !providerId) {
-        return res.status(400).json({ error: "Missing required fields" });
+        res.status(400).json({ error: "Missing required fields" });
+        return;
       }
 
       // Check if provider exists
@@ -93,7 +98,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
       
       if (!provider) {
-        return res.status(404).json({ error: "Provider not found" });
+        res.status(404).json({ error: "Provider not found" });
+        return;
       }
 
 
@@ -114,13 +120,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
       });
       
-      return res.status(201).json(newModel);
+      res.status(201).json(newModel);
+      return;
     } catch (error: unknown) {
       console.error("Error creating LLM model:", error);
-      return res.status(500).json({ error: "Failed to create LLM model" });
+      res.status(500).json({ error: "Failed to create LLM model" });
+      return;
     }
   }
   
   res.setHeader('Allow', ['GET', 'POST']);
-  return res.status(405).end(`Method ${req.method} Not Allowed`);
+  res.status(405).end(`Method ${req.method} Not Allowed`);
+  return;
 }

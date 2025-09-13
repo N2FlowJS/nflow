@@ -12,27 +12,31 @@ import { parseAuthHeader, verifyToken } from '../../../../../../../../lib/auth';
  * @param req - The HTTP request object.
  * @param res - The HTTP response object.
  */
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
   // Get token from Authorization header
   const token = parseAuthHeader(req.headers.authorization);
   if (!token) {
-    return res.status(401).json({ error: 'Authentication required' });
+    res.status(401).json({ error: 'Authentication required' });
+    return;
   }
   
   // Verify token
   const payload = await verifyToken(token);
   if (!payload) {
-    return res.status(401).json({ error: 'Invalid token' });
+    res.status(401).json({ error: 'Invalid token' });
+    return;
   }
 
   const { id, providerId } = req.query;
   
   if (!id || typeof id !== 'string') {
-    return res.status(400).json({ error: "Invalid user ID" });
+    res.status(400).json({ error: "Invalid user ID" });
+    return;
   }
 
   if (!providerId || typeof providerId !== 'string') {
-    return res.status(400).json({ error: "Invalid provider ID" });
+    res.status(400).json({ error: "Invalid provider ID" });
+    return;
   }
 
   // Check if the user has access to this provider
@@ -41,12 +45,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
 
   if (!provider) {
-    return res.status(404).json({ error: "Provider not found" });
+    res.status(404).json({ error: "Provider not found" });
+    return;
   }
 
   // Verify the requester is the owner of the provider or has admin permissions
   if (provider.userOwnerId !== id || (payload.userId !== id && payload.permission !== 'owner')) {
-    return res.status(403).json({ error: "Not authorized to access this provider's models" });
+    res.status(403).json({ error: "Not authorized to access this provider's models" });
+    return;
   }
 
   // GET - Fetch all models for this provider
@@ -57,10 +63,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         orderBy: { createdAt: 'desc' }
       });
       
-      return res.status(200).json(models);
+      res.status(200).json(models);
+      return;
     } catch (error: unknown) {
       console.error("Error fetching provider models:", error);
-      return res.status(500).json({ error: "Failed to fetch provider models" });
+      res.status(500).json({ error: "Failed to fetch provider models" });
+      return;
     }
   } 
   // POST - Create a new model for this provider
@@ -74,7 +82,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       // Validate required fields
       if (!name || !modelType) {
-        return res.status(400).json({ error: "Missing required fields" });
+        res.status(400).json({ error: "Missing required fields" });
+        return;
       }
 
      
@@ -88,13 +97,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
       });
       
-      return res.status(201).json(newModel);
+      res.status(201).json(newModel);
+      return;
     } catch (error: unknown) {
       console.error("Error creating model:", error);
-      return res.status(500).json({ error: "Failed to create model" });
+      res.status(500).json({ error: "Failed to create model" });
+      return;
     }
   }
   
   res.setHeader('Allow', ['GET', 'POST']);
-  return res.status(405).end(`Method ${req.method} Not Allowed`);
+  res.status(405).end(`Method ${req.method} Not Allowed`);
+  return;
 }

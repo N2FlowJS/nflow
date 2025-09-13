@@ -2,11 +2,12 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import fs from 'fs';
 import { prisma } from '../../../../../../lib/prisma';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
   const { id, fileId } = req.query;
 
   if (!id || typeof id !== 'string' || !fileId || typeof fileId !== 'string') {
-    return res.status(400).json({ error: 'Valid knowledge ID and file ID are required' });
+    res.status(400).json({ error: 'Valid knowledge ID and file ID are required' });
+    return;
   }
 
   // Get file info
@@ -16,16 +17,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     if (!file) {
-      return res.status(404).json({ error: 'File not found' });
+      res.status(404).json({ error: 'File not found' });
+      return;
     }
 
     // Verify that the file belongs to the specified knowledge
     if (file.knowledgeId !== id) {
-      return res.status(403).json({ error: 'File does not belong to the specified knowledge' });
+      res.status(403).json({ error: 'File does not belong to the specified knowledge' });
+      return;
     }
 
     if (req.method === 'GET') {
-      return res.status(200).json(file);
+      res.status(200).json(file);
+      return;
     } 
     
     if (req.method === 'DELETE') {
@@ -44,13 +48,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         where: { id: fileId },
       });
 
-      return res.status(204).end();
+      res.status(204).end();
+      return;
     }
 
     res.setHeader('Allow', ['GET', 'DELETE']);
-    return res.status(405).end(`Method ${req.method} Not Allowed`);
+    res.status(405).end(`Method ${req.method} Not Allowed`);
+    return;
   } catch (error: unknown) {
     console.error('Error processing file request:', error);
-    return res.status(500).json({ error: 'Failed to process file request' });
+    res.status(500).json({ error: 'Failed to process file request' });
+    return;
   }
 }

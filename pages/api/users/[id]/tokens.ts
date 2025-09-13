@@ -3,43 +3,50 @@ import { prisma } from "../../../../lib/prisma";
 import { randomBytes, createHash } from 'crypto';
 import { parseAuthHeader, verifyToken } from '../../../../lib/auth';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
   const { id } = req.query;
 
   if (!id || typeof id !== "string") {
-    return res.status(400).json({ error: "Valid user ID is required" });
+    res.status(400).json({ error: "Valid user ID is required" });
+    return;
   }
 
   // Verify authentication using token instead of session
   const token = parseAuthHeader(req.headers.authorization);
   if (!token) {
-    return res.status(401).json({ error: "Authentication required" });
+    res.status(401).json({ error: "Authentication required" });
+    return;
   }
   
   const payload = await verifyToken(token);
   if (!payload) {
-    return res.status(401).json({ error: "Invalid token" });
+    res.status(401).json({ error: "Invalid token" });
+    return;
   }
 
   // Only allow users to manage their own tokens (or admins)
   if (payload.userId !== id && 
       payload.permission !== 'admin' && 
       payload.permission !== 'owner') {
-    return res.status(403).json({ error: "Forbidden: You can only manage your own API tokens" });
+    res.status(403).json({ error: "Forbidden: You can only manage your own API tokens" });
+    return;
   }
 
   switch (req.method) {
     case 'GET':
-      return getUserTokens(res, id);
+      await getUserTokens(res, id);
+      return;
     case 'POST':
-      return createToken(req, res, id);
+      await createToken(req, res, id);
+      return;
     default:
-      return res.status(405).json({ error: "Method not allowed" });
+      res.status(405).json({ error: "Method not allowed" });
+      return;
   }
 }
 
 // Get all tokens for a user
-async function getUserTokens(res: NextApiResponse, userId: string) {
+async function getUserTokens(res: NextApiResponse, userId: string): Promise<void> {
   try {
     const tokens = await prisma.apiToken.findMany({
       where: { 
@@ -58,20 +65,23 @@ async function getUserTokens(res: NextApiResponse, userId: string) {
       orderBy: { createdAt: 'desc' }
     });
 
-    return res.status(200).json({ tokens });
+    res.status(200).json({ tokens });
+    return;
   } catch (error) {
     console.error("Error fetching user tokens:", error);
-    return res.status(500).json({ error: "Error fetching API tokens" });
+    res.status(500).json({ error: "Error fetching API tokens" });
+    return;
   }
 }
 
 // Create a new token for the user
-async function createToken(req: NextApiRequest, res: NextApiResponse, userId: string) {
+async function createToken(req: NextApiRequest, res: NextApiResponse, userId: string): Promise<void> {
   try {
     const { name, description, expiresAt } = req.body;
 
     if (!name) {
-      return res.status(400).json({ error: "Token name is required" });
+      res.status(400).json({ error: "Token name is required" });
+      return;
     }
 
     // Generate a secure random token
@@ -96,7 +106,7 @@ async function createToken(req: NextApiRequest, res: NextApiResponse, userId: st
     });
 
     // Return the full token only once - after this, it can't be retrieved again
-    return res.status(201).json({
+    res.status(201).json({
       success: true,
       token: {
         id: token.id,
@@ -108,8 +118,10 @@ async function createToken(req: NextApiRequest, res: NextApiResponse, userId: st
         status: token.status
       }
     });
+    return;
   } catch (error) {
     console.error("Error creating token:", error);
-    return res.status(500).json({ error: "Error creating API token" });
+    res.status(500).json({ error: "Error creating API token" });
+    return;
   }
 }

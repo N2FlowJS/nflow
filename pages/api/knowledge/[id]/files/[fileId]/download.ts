@@ -5,16 +5,18 @@ import fs from 'fs';
 import path from 'path';
 import mime from 'mime-types'; // You might need to install this: npm install mime-types @types/mime-types
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
     const { id: knowledgeId, fileId } = req.query;
 
     if (req.method !== 'GET') {
         res.setHeader('Allow', ['GET']);
-        return res.status(405).end(`Method ${req.method} Not Allowed`);
+        res.status(405).end(`Method ${req.method} Not Allowed`);
+        return;
     }
 
     if (!knowledgeId || typeof knowledgeId !== 'string' || !fileId || typeof fileId !== 'string') {
-        return res.status(400).json({ error: 'Knowledge ID and File ID are required' });
+        res.status(400).json({ error: 'Knowledge ID and File ID are required' });
+        return;
     }
 
     try {
@@ -23,7 +25,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
 
         if (!file || !file.path) {
-            return res.status(404).json({ error: 'File not found or path is missing' });
+            res.status(404).json({ error: 'File not found or path is missing' });
+            return;
         }
 
         // Assuming file.path stores the absolute or relative path on the server
@@ -32,7 +35,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // Check if file exists
         if (!fs.existsSync(filePath)) {
             console.error(`File not found at path: ${filePath}`);
-            return res.status(404).json({ error: 'File not found on server' });
+            res.status(404).json({ error: 'File not found on server' });
+            return;
         }
 
         // Get file stats to set Content-Length
@@ -63,11 +67,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 res.end();
             }
         });
+        return;
 
     } catch (error: unknown) {
         console.error('Error fetching file details:', error);
         if (!res.headersSent) {
             res.status(500).json({ error: 'Internal server error' });
         }
+        return;
     }
 }

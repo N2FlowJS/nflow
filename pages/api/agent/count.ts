@@ -2,11 +2,12 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '../../../lib/prisma';
 import { parseAuthHeader, verifyToken } from '../../../lib/auth';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
   // Only allow GET requests
   if (req.method !== 'GET') {
     res.setHeader('Allow', ['GET']);
-    return res.status(405).end(`Method ${req.method} Not Allowed`);
+    res.status(405).end(`Method ${req.method} Not Allowed`);
+    return;
   }
 
   try {
@@ -15,12 +16,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     
     // Verify the token
     if (!token) {
-      return res.status(401).json({ error: 'Authentication required' });
+      res.status(401).json({ error: 'Authentication required' });
+      return;
     }
     
     const payload = await verifyToken(token);
     if (!payload) {
-      return res.status(401).json({ error: 'Invalid token' });
+      res.status(401).json({ error: 'Invalid token' });
+      return;
     }
 
     // Get the count of all agents in the database
@@ -32,9 +35,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     // Return the count
-    return res.status(200).json({ count });
+    res.status(200).json({ count });
+    return;
   } catch (error: unknown) {
     console.error('Error getting agent count:', error);
-    return res.status(500).json({ error: 'Failed to get agent count' });
+    res.status(500).json({ error: 'Failed to get agent count' });
+    return;
   }
 }

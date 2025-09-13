@@ -2,11 +2,12 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '../../../../lib/prisma';
 import { parseAuthHeader, verifyToken } from '../../../../lib/auth';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
   const { id } = req.query;
 
   if (!id || typeof id !== 'string') {
-    return res.status(400).json({ error: 'Valid parsing task ID is required' });
+    res.status(400).json({ error: 'Valid parsing task ID is required' });
+    return;
   }
 
   // GET - Retrieve parsing task details
@@ -40,13 +41,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
       
       if (!task) {
-        return res.status(404).json({ error: 'Parsing task not found' });
+        res.status(404).json({ error: 'Parsing task not found' });
+        return;
       }
       
-      return res.status(200).json(task);
+      res.status(200).json(task);
+      return;
     } catch (error: unknown) {
       console.error("Error fetching parsing task:", error);
-      return res.status(500).json({ error: "Failed to fetch parsing task" });
+      res.status(500).json({ error: "Failed to fetch parsing task" });
+      return;
     }
   }
   
@@ -56,23 +60,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // Get token from Authorization header
       const token = parseAuthHeader(req.headers.authorization);
       if (!token) {
-        return res.status(401).json({ error: 'Authentication required' });
+        res.status(401).json({ error: 'Authentication required' });
+        return;
       }
       
       // Verify token
       const payload = await verifyToken(token);
       if (!payload) {
-        return res.status(401).json({ error: 'Invalid token' });
+        res.status(401).json({ error: 'Invalid token' });
+        return;
       }
       
       const { status, message, fileContent } = req.body;
       
       if (!status) {
-        return res.status(400).json({ error: 'Status is required' });
+        res.status(400).json({ error: 'Status is required' });
+        return;
       }
       
       if (!['pending', 'processing', 'completed', 'failed'].includes(status)) {
-        return res.status(400).json({ error: 'Invalid status value' });
+        res.status(400).json({ error: 'Invalid status value' });
+        return;
       }
       
       // Get the task
@@ -84,7 +92,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
       
       if (!existingTask) {
-        return res.status(404).json({ error: 'Parsing task not found' });
+        res.status(404).json({ error: 'Parsing task not found' });
+        return;
       }
       
       // Update task data
@@ -128,17 +137,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         data: fileUpdateData
       });
       
-      return res.status(200).json({
+      res.status(200).json({
         success: true,
         message: 'Parsing task updated successfully',
         task: updatedTask
       });
+      return;
     } catch (error: unknown) {
       console.error('Error updating parsing task:', error);
-      return res.status(500).json({ 
+      res.status(500).json({ 
         success: false,
         error: 'Failed to update parsing task' 
       });
+      return;
     }
   }
   
@@ -148,13 +159,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // Get token from Authorization header
       const token = parseAuthHeader(req.headers.authorization);
       if (!token) {
-        return res.status(401).json({ error: 'Authentication required' });
+        res.status(401).json({ error: 'Authentication required' });
+        return;
       }
       
       // Verify token
       const payload = await verifyToken(token);
       if (!payload) {
-        return res.status(401).json({ error: 'Invalid token' });
+        res.status(401).json({ error: 'Invalid token' });
+        return;
       }
       
       // Check if task exists
@@ -166,7 +179,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
       
       if (!task) {
-        return res.status(404).json({ error: 'Parsing task not found' });
+        res.status(404).json({ error: 'Parsing task not found' });
+        return;
       }
       
       // Delete the task
@@ -188,13 +202,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
       }
       
-      return res.status(204).end();
+      res.status(204).end();
+      return;
     } catch (error: unknown) {
       console.error('Error deleting parsing task:', error);
-      return res.status(500).json({ error: 'Failed to delete parsing task' });
+      res.status(500).json({ error: 'Failed to delete parsing task' });
+      return;
     }
   }
   
   res.setHeader('Allow', ['GET', 'PATCH', 'DELETE']);
   res.status(405).end(`Method ${req.method} Not Allowed`);
+  return;
 }

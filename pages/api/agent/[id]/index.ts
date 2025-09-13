@@ -2,38 +2,45 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from "../../../../lib/prisma";
 import { parseAuthHeader, verifyToken } from '../../../../lib/auth';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
   const { id } = req.query;
 
   if (!id || typeof id !== "string") {
-    return res.status(400).json({ error: "Valid ID is required" });
+    res.status(400).json({ error: "Valid ID is required" });
+    return;
   }
 
   switch (req.method) {
     case 'GET':
-      return getAgentById(req, res, id);
+      await getAgentById(req, res, id);
+      return;
     case 'PUT':
-      return updateAgent(req, res, id);
+      await updateAgent(req, res, id);
+      return;
     case 'DELETE':
-      return deleteAgent(req, res, id);
+      await deleteAgent(req, res, id);
+      return;
     default:
-      return res.status(405).json({ message: 'Method not allowed' });
+      res.status(405).json({ message: 'Method not allowed' });
+      return;
   }
 }
 
 // Get agent by ID
-async function getAgentById(req: NextApiRequest, res: NextApiResponse, id: string) {
+async function getAgentById(req: NextApiRequest, res: NextApiResponse, id: string): Promise<void> {
   try {
     const token = parseAuthHeader(req.headers.authorization);
 
     // Verify the token
     if (!token) {
-      return res.status(401).json({ error: 'Authentication required' });
+      res.status(401).json({ error: 'Authentication required' });
+      return;
     }
 
     const payload = await verifyToken(token);
     if (!payload) {
-      return res.status(401).json({ error: 'Invalid token' });
+      res.status(401).json({ error: 'Invalid token' });
+      return;
     }
     const agent = await prisma.agent.findUnique({
       where: { id },
@@ -60,29 +67,34 @@ async function getAgentById(req: NextApiRequest, res: NextApiResponse, id: strin
     });
 
     if (!agent) {
-      return res.status(404).json({ message: 'Agent not found' });
+      res.status(404).json({ message: 'Agent not found' });
+      return;
     }
 
-    return res.status(200).json(agent);
+    res.status(200).json(agent);
+    return;
   } catch (error: unknown) {
     console.error("Request error", error);
-    return res.status(500).json({ error: "Error fetching agent" });
+    res.status(500).json({ error: "Error fetching agent" });
+    return;
   }
 }
 
 // Update agent
-async function updateAgent(req: NextApiRequest, res: NextApiResponse, id: string) {
+async function updateAgent(req: NextApiRequest, res: NextApiResponse, id: string): Promise<void> {
   try {
     // Get token from Authorization header
     const token = parseAuthHeader(req.headers.authorization);
     if (!token) {
-      return res.status(401).json({ error: 'Authentication required' });
+      res.status(401).json({ error: 'Authentication required' });
+      return;
     }
 
     // Verify token
     const payload = await verifyToken(token);
     if (!payload) {
-      return res.status(401).json({ error: 'Invalid token' });
+      res.status(401).json({ error: 'Invalid token' });
+      return;
     }
 
     const userId = payload.userId;
@@ -96,7 +108,8 @@ async function updateAgent(req: NextApiRequest, res: NextApiResponse, id: string
     });
 
     if (!agent) {
-      return res.status(404).json({ message: 'Agent not found' });
+      res.status(404).json({ message: 'Agent not found' });
+      return;
     }
 
     // Optional: Check if user has permission to update this agent
@@ -105,7 +118,8 @@ async function updateAgent(req: NextApiRequest, res: NextApiResponse, id: string
     if (agent.createdById !== userId &&
       !((agent.ownerType === 'user' && agent.userId === userId) ||
         (agent.ownerType === 'team' && await isUserTeamMember(userId, agent.teamId)))) {
-      return res.status(403).json({ error: 'You do not have permission to update this agent' });
+      res.status(403).json({ error: 'You do not have permission to update this agent' });
+      return;
     }
 
     const { name, description, flowConfig, isActive } = req.body;
@@ -130,26 +144,30 @@ async function updateAgent(req: NextApiRequest, res: NextApiResponse, id: string
       }
     });
 
-    return res.status(200).json(updatedAgent);
+    res.status(200).json(updatedAgent);
+    return;
   } catch (error: unknown) {
     console.error('Error updating agent:', error);
-    return res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Internal server error' });
+    return;
   }
 }
 
 // Delete agent
-async function deleteAgent(req: NextApiRequest, res: NextApiResponse, id: string) {
+async function deleteAgent(req: NextApiRequest, res: NextApiResponse, id: string): Promise<void> {
   try {
     // Get token from Authorization header
     const token = parseAuthHeader(req.headers.authorization);
     if (!token) {
-      return res.status(401).json({ error: 'Authentication required' });
+      res.status(401).json({ error: 'Authentication required' });
+      return;
     }
 
     // Verify token
     const payload = await verifyToken(token);
     if (!payload) {
-      return res.status(401).json({ error: 'Invalid token' });
+      res.status(401).json({ error: 'Invalid token' });
+      return;
     }
 
     const userId = payload.userId;
@@ -163,24 +181,28 @@ async function deleteAgent(req: NextApiRequest, res: NextApiResponse, id: string
     });
 
     if (!agent) {
-      return res.status(404).json({ message: 'Agent not found' });
+      res.status(404).json({ message: 'Agent not found' });
+      return;
     }
 
     // Optional: Check if user has permission to delete this agent
     if (agent.createdById !== userId &&
       !((agent.ownerType === 'user' && agent.userId === userId) ||
         (agent.ownerType === 'team' && await isUserTeamAdmin(userId, agent.teamId)))) {
-      return res.status(403).json({ error: 'You do not have permission to delete this agent' });
+      res.status(403).json({ error: 'You do not have permission to delete this agent' });
+      return;
     }
 
     await prisma.agent.delete({
       where: { id },
     });
 
-    return res.status(204).end();
+    res.status(204).end();
+    return;
   } catch (error: unknown) {
     console.error("Request error", error);
-    return res.status(500).json({ error: "Error deleting agent" });
+    res.status(500).json({ error: "Error deleting agent" });
+    return;
   }
 }
 

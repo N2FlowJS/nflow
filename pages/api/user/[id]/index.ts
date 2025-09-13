@@ -1,27 +1,32 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '../../../../lib/prisma';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
   const { id } = req.query;
 
   if (!id || typeof id !== 'string') {
-    return res.status(400).json({ error: 'Valid ID is required' });
+    res.status(400).json({ error: 'Valid ID is required' });
+    return;
   }
 
   switch (req.method) {
     case 'GET':
-      return getUserById(res, id);
+      await getUserById(res, id);
+      return;
     case 'PUT':
-      return updateUser(req, res, id);
+      await updateUser(req, res, id);
+      return;
     case 'DELETE':
-      return deleteUser(res, id);
+      await deleteUser(res, id);
+      return;
     default:
-      return res.status(405).json({ message: 'Method not allowed' });
+      res.status(405).json({ message: 'Method not allowed' });
+      return;
   }
 }
 
 // Get user by ID
-async function getUserById(res: NextApiResponse, id: string) {
+async function getUserById(res: NextApiResponse, id: string): Promise<void> {
   try {
     // Fetch user with basic relations
     const user = await prisma.user.findUnique({
@@ -57,7 +62,8 @@ async function getUserById(res: NextApiResponse, id: string) {
     });
 
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      res.status(404).json({ message: 'User not found' });
+      return;
     }
 
     // Create teamsWithRoles by combining direct teams and memberships
@@ -75,15 +81,17 @@ async function getUserById(res: NextApiResponse, id: string) {
       teamsWithRoles,
     };
 
-    return res.status(200).json(enhancedUser);
+    res.status(200).json(enhancedUser);
+    return;
   } catch (error: unknown) {
     console.error('Request error', error);
-    return res.status(500).json({ error: 'Error fetching user' });
+    res.status(500).json({ error: 'Error fetching user' });
+    return;
   }
 }
 
 // Update user
-async function updateUser(req: NextApiRequest, res: NextApiResponse, id: string) {
+async function updateUser(req: NextApiRequest, res: NextApiResponse, id: string): Promise<void> {
   try {
     const { name, description, lmmConfig } = req.body;
 
@@ -99,23 +107,26 @@ async function updateUser(req: NextApiRequest, res: NextApiResponse, id: string)
       data: updateData,
     });
 
-    return res.status(200).json(user);
+    res.status(200).json(user);
+    return;
   } catch (error: unknown) {
     console.error('Error updating user:', error);
-    return res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Internal server error' });
+    return;
   }
 }
 
 // Delete user
-async function deleteUser(res: NextApiResponse, id: string) {
+async function deleteUser(res: NextApiResponse, id: string): Promise<void> {
   try {
     await prisma.user.delete({
       where: { id },
     });
-
-    return res.status(204).end();
+    res.status(204).end();
+    return;
   } catch (error: unknown) {
     console.error('Request error', error);
-    return res.status(500).json({ error: 'Error deleting user' });
+    res.status(500).json({ error: 'Error deleting user' });
+    return;
   }
 }

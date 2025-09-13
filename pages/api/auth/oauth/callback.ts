@@ -58,17 +58,18 @@ async function getUserInfo(provider: string, accessToken: string) {
   throw new Error('Unsupported provider');
 }
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
   const { provider, code } = req.query;
-  if (req.method !== 'GET') return res.status(405).end();
+  if (req.method !== 'GET') { res.status(405).end(); return; }
   if (!provider || !code || typeof provider !== 'string' || typeof code !== 'string') {
-    return res.status(400).json({ error: 'Missing provider or code' });
+    res.status(400).json({ error: 'Missing provider or code' });
+    return;
   }
 
   try {
     const tokenData = await getAccessToken(provider, code);
     const accessToken = tokenData.access_token;
-    if (!accessToken) return res.status(400).json({ error: 'Failed to get access token' });
+  if (!accessToken) { res.status(400).json({ error: 'Failed to get access token' }); return; }
 
     const userInfo = await getUserInfo(provider, accessToken);
 
@@ -98,8 +99,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Redirect to frontend with token (or set cookie)
     res.redirect(`/?token=${jwt}`);
+    return;
   } catch (error: unknown) {
     console.error('OAuth callback error:', error);
     res.status(500).json({ error: 'OAuth login failed' });
+    return;
   }
 }

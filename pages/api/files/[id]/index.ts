@@ -3,11 +3,12 @@ import { prisma } from '../../../../lib/prisma';
 import fs from 'fs';
 import path from 'path';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
   const { id } = req.query;
 
   if (!id || typeof id !== 'string') {
-    return res.status(400).json({ error: 'Valid file ID is required' });
+    res.status(400).json({ error: 'Valid file ID is required' });
+    return;
   }
 
   // DELETE - Remove a file
@@ -23,7 +24,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
 
       if (!file) {
-        return res.status(404).json({ error: 'File not found' });
+        res.status(404).json({ error: 'File not found' });
+        return;
       }
 
       // Delete the file from the filesystem
@@ -48,10 +50,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         where: { id },
       });
 
-      return res.status(204).end();
+      res.status(204).end();
+      return;
     } catch (error: unknown) {
       console.error('Request error', error);
-      return res.status(500).json({ error: 'Error deleting file' });
+      res.status(500).json({ error: 'Error deleting file' });
+      return;
     }
   }
   
@@ -75,16 +79,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
       
       if (!file) {
-        return res.status(404).json({ error: 'File not found' });
+        res.status(404).json({ error: 'File not found' });
+        return;
       }
       
-      return res.status(200).json(file);
+      res.status(200).json(file);
+      return;
     } catch (error: unknown) {
       console.error("Error fetching file:", error);
-      return res.status(500).json({ error: "Failed to fetch file" });
+      res.status(500).json({ error: "Failed to fetch file" });
+      return;
     }
   }
 
   res.setHeader('Allow', ['DELETE', 'GET']);
   res.status(405).end(`Method ${req.method} Not Allowed`);
+  return;
 }

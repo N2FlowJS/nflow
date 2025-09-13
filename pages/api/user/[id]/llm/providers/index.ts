@@ -2,17 +2,19 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from "../../../../../../lib/prisma";
 import { parseAuthHeader, verifyToken } from '../../../../../../lib/auth';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
   // Get token from Authorization header
   const token = parseAuthHeader(req.headers.authorization);
   if (!token) {
-    return res.status(401).json({ error: 'Authentication required' });
+    res.status(401).json({ error: 'Authentication required' });
+    return;
   }
 
   // Verify token
   const payload = await verifyToken(token);
   if (!payload) {
-    return res.status(401).json({ error: 'Invalid token' });
+    res.status(401).json({ error: 'Invalid token' });
+    return;
   }
 
   if (req.method === 'GET') {
@@ -76,10 +78,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         apiKey: provider.apiKey ? '********' : null,
       }));
 
-      return res.status(200).json(sanitizedProviders);
+      res.status(200).json(sanitizedProviders);
+      return;
     } catch (error: unknown) {
       console.error("Error fetching LLM providers:", error);
-      return res.status(500).json({ error: "Failed to fetch LLM providers" });
+      res.status(500).json({ error: "Failed to fetch LLM providers" });
+      return;
     }
   } else if (req.method === 'POST') {
     try {
@@ -94,7 +98,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       // Validate required fields
       if (!providerType || !endpointUrl) {
-        return res.status(400).json({ error: "Missing required fields" });
+        res.status(400).json({ error: "Missing required fields" });
+        return;
       }
 
       // Determine the owner type and verify permissions
@@ -109,9 +114,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       // If system-owned, verify admin permissions
       if (ownerType === 'system' && payload.permission !== 'owner') {
-        return res.status(403).json({
+        res.status(403).json({
           error: "You don't have permission to create system-wide providers"
         });
+        return;
       }
 
       // If user-owned, set the user ID
@@ -122,7 +128,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // If team-owned, verify team membership and permissions
       if (ownerType === 'team') {
         if (!teamOwnerId) {
-          return res.status(400).json({ error: "Team ID is required for team-owned providers" });
+          res.status(400).json({ error: "Team ID is required for team-owned providers" });
+          return;
         }
 
         // Check if the user is a member of this team with appropriate permission
@@ -136,7 +143,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
 
         if (!membership) {
-          return res.status(403).json({ error: "You don't have permission to add providers to this team" });
+          res.status(403).json({ error: "You don't have permission to add providers to this team" });
+          return;
         }
 
         createData.teamOwnerId = teamOwnerId;
@@ -167,13 +175,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const { apiKey: _, ...sanitizedProvider } = newProvider;
       console.log(_);
 
-      return res.status(201).json(sanitizedProvider);
+      res.status(201).json(sanitizedProvider);
+      return;
     } catch (error: unknown) {
       console.error("Error creating LLM provider:", error);
-      return res.status(500).json({ error: "Failed to create LLM provider" });
+      res.status(500).json({ error: "Failed to create LLM provider" });
+      return;
     }
   }
 
   res.setHeader('Allow', ['GET', 'POST']);
-  return res.status(405).end(`Method ${req.method} Not Allowed`);
+  res.status(405).end(`Method ${req.method} Not Allowed`);
+  return;
 }

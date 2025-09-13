@@ -2,17 +2,19 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from "../../../lib/prisma";
 import { parseAuthHeader, verifyToken } from '../../../lib/auth';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
   if (req.method === 'GET') {
     try {
       const token = parseAuthHeader(req.headers.authorization);
       if (!token) {
-        return res.status(401).json({ error: 'Authentication required' });
+        res.status(401).json({ error: 'Authentication required' });
+        return;
       }
       
       const payload = await verifyToken(token);
       if (!payload) {
-        return res.status(401).json({ error: 'Invalid token' });
+        res.status(401).json({ error: 'Invalid token' });
+        return;
       }
 
       const files = await prisma.file.findMany({
@@ -40,13 +42,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
       });
       
-      return res.status(200).json(files);
+      res.status(200).json(files);
+      return;
     } catch (error: unknown) {
       console.error("Error fetching files:", error);
-      return res.status(500).json({ error: "Failed to fetch files" });
+      res.status(500).json({ error: "Failed to fetch files" });
+      return;
     }
   }
   
   res.setHeader('Allow', ['GET']);
-  return res.status(405).end(`Method ${req.method} Not Allowed`);
+  res.status(405).end(`Method ${req.method} Not Allowed`);
+  return;
 }

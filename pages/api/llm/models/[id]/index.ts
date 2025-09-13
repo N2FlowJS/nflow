@@ -59,23 +59,26 @@ import { parseAuthHeader, verifyToken } from '../../../../../lib/auth';
  * - `404 Not Found`: If the model is not found.
  * - `500 Internal Server Error`: If an error occurs while deleting the model.
  */
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
   // Get token from Authorization header
   const token = parseAuthHeader(req.headers.authorization);
   if (!token) {
-    return res.status(401).json({ error: 'Authentication required' });
+    res.status(401).json({ error: 'Authentication required' });
+    return;
   }
 
   // Verify token
   const payload = await verifyToken(token);
   if (!payload) {
-    return res.status(401).json({ error: 'Invalid token' });
+    res.status(401).json({ error: 'Invalid token' });
+    return;
   }
 
   const { id } = req.query;
 
   if (!id || typeof id !== 'string') {
-    return res.status(400).json({ error: "Invalid model ID" });
+    res.status(400).json({ error: "Invalid model ID" });
+    return;
   }
 
   // GET - Fetch a specific model
@@ -94,13 +97,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
 
       if (!model) {
-        return res.status(404).json({ error: "Model not found" });
+        res.status(404).json({ error: "Model not found" });
+        return;
       }
 
-      return res.status(200).json(model);
+      res.status(200).json(model);
+      return;
     } catch (error: unknown) {
       console.error("Error fetching LLM model:", error);
-      return res.status(500).json({ error: "Failed to fetch LLM model" });
+      res.status(500).json({ error: "Failed to fetch LLM model" });
+      return;
     }
   }
   // PUT - Update a specific model
@@ -120,7 +126,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
 
       if (!currentModel) {
-        return res.status(404).json({ error: "Model not found" });
+        res.status(404).json({ error: "Model not found" });
+        return;
       }
 
       if ((modelType && modelType !== currentModel.modelType)) {
@@ -167,10 +174,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
       });
 
-      return res.status(200).json(updatedModel);
+      res.status(200).json(updatedModel);
+      return;
     } catch (error: unknown) {
       console.error("Error updating LLM model:", error);
-      return res.status(500).json({ error: "Failed to update LLM model" });
+      res.status(500).json({ error: "Failed to update LLM model" });
+      return;
     }
   }
   // DELETE - Delete a specific model
@@ -180,13 +189,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         where: { id }
       });
 
-      return res.status(200).json({ success: true });
+      res.status(200).json({ success: true });
+      return;
     } catch (error: unknown) {
       console.error("Error deleting LLM model:", error);
-      return res.status(500).json({ error: "Failed to delete LLM model" });
+      res.status(500).json({ error: "Failed to delete LLM model" });
+      return;
     }
   }
 
   res.setHeader('Allow', ['GET', 'PUT', 'DELETE']);
-  return res.status(405).end(`Method ${req.method} Not Allowed`);
+  res.status(405).end(`Method ${req.method} Not Allowed`);
+  return;
 }
