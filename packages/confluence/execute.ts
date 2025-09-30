@@ -287,7 +287,6 @@ async function getConfluencePage(serverUrl: string, auth: string, pageId: string
 }
 
 // spaceKey kept for backward compatibility
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function searchConfluencePages(serverUrl: string, auth: string, query: string, _spaceKey?: string) {
   const searchParams = new URLSearchParams({
     cql: query,

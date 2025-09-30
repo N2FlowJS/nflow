@@ -1,5 +1,14 @@
 {
   "name": "@n2flowjs/node-plugin",
   "package-name": "n2flowjs/node-plugin",
-  "version": "0.0.1"
+  "version": "0.0.1",
+  "main": "index.js",
+  "browser": "browser.js",
+  "exports": {
+    ".": {
+      "import": "./index.js",
+      "require": "./index.js",
+      "browser": "./browser.js"
+    }
+  }
 }

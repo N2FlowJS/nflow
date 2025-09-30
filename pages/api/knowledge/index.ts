@@ -19,7 +19,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const { search, createdBy } = req.query;
 
       // Build filter conditions
-      const whereConditions: any = {
+  const whereConditions: any = {
         OR: [
           { userId: payload.userId },
           { users: { some: { id: payload.userId } } },
@@ -32,8 +32,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         whereConditions.AND = [
           {
             OR: [
-              { name: { contains: search as string, lte: 'insensitive' } },
-              { description: { contains: search as string, lte: 'insensitive' } }
+              { name: { contains: search as string, mode: 'insensitive' } },
+              { description: { contains: search as string, mode: 'insensitive' } }
             ]
           }
         ];

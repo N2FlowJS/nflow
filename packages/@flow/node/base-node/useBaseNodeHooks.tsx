@@ -136,7 +136,6 @@ export const useNodeActions = (args: {
 
   const handleDebug = useCallback(() => {
     // Keep a lightweight debug log; can be swapped for an injected logger
-    // eslint-disable-next-line no-console
     console.log(`Debugging node ${id}`);
   }, [id]);
 

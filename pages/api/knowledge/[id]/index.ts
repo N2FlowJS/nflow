@@ -71,7 +71,7 @@ export default async function handler(
       }
 
       // Prepare the update data
-      const updateData: any = {
+      const updateData: Record<string, unknown> = {
         ...(name && { name }),
         ...(description && { description }),
         ...(config && { config }),
@@ -81,13 +81,13 @@ export default async function handler(
       // Handle relationship updates if provided
       if (userIds) {
         updateData.users = {
-          set: userIds.map((userId: string) => ({ id: userId })),
+          set: (userIds as string[]).map((userId) => ({ id: userId })),
         };
       }
 
       if (teamIds) {
         updateData.teams = {
-          set: teamIds.map((teamId: string) => ({ id: teamId })),
+          set: (teamIds as string[]).map((teamId) => ({ id: teamId })),
         };
       }
 

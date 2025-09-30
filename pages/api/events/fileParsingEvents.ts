@@ -4,7 +4,8 @@ import { NextApiRequest, NextApiResponse } from 'next';
 const clients = new Map<string, NextApiResponse>();
 
 // Export function to send events to clients
-export function sendFileParsingEvent(knowledgeId: string, data: any) {
+export type FileParsingEvent = Record<string, unknown>;
+export function sendFileParsingEvent(knowledgeId: string, data: FileParsingEvent) {
   console.log(`[SSE Send] Attempting to send event to knowledge ID ${knowledgeId}. Data:`, JSON.stringify(data));
   console.log(`[SSE Send] Current client map size: ${clients.size}`);
   // console.log(`[SSE Send] Current clients keys:`, Array.from(clients.keys())); // Uncomment for deep debugging

@@ -3,6 +3,6 @@ import { execute } from './execute'
 
 export const codePlugin: NodePlugin = {
   name: 'code',
-  match: (n) => n?.data?.type === 'code',
-  run: (n, c, _cb, d) => execute(n, c, d),
+  match: (n: any) => n?.data?.type === 'code',
+  run: (n: any, c: any, _cb: any, d: any) => execute(n, c, d),
 } as const

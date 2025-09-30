@@ -13,13 +13,13 @@ function isNodeEnv() {
   return typeof process !== 'undefined' && !!(process.versions && process.versions.node);
 }
 
-function lazyFs() {
-  if (!isNodeEnv()) return null as any;
-  return require('fs') as typeof import('fs');
+function lazyFs(): typeof import('fs') | null {
+  if (!isNodeEnv()) return null;
+  return require('fs');
 }
-function lazyPath() {
-  if (!isNodeEnv()) return null as any;
-  return require('path') as typeof import('path');
+function lazyPath(): typeof import('path') | null {
+  if (!isNodeEnv()) return null;
+  return require('path');
 }
 
 export function invalidateNodePluginConfigCache() {
@@ -31,6 +31,7 @@ export function getNodePluginConfig(options?: LoaderOptions): NodePluginConfigMa
 
   const path = lazyPath();
   const fs = lazyFs();
+  if (!fs || !path) return {};
   const rootDir = options?.rootDir ?? process.cwd();
   const filename = options?.filename ?? DEFAULT_CONFIG_FILENAME;
   const packagesDir = options?.packagesDir || resolvePackagesDir(rootDir, fs, path);
@@ -39,7 +40,7 @@ export function getNodePluginConfig(options?: LoaderOptions): NodePluginConfigMa
   const newKey = packagesDir + '::' + filename;
   if (_cache && _cacheKey === newKey) return _cache.map; // simple cache
 
-  let entries: any[] = [];
+  let entries: Array<{ isDirectory?: () => boolean; name?: string }> = [];
   try {
     entries = fs.readdirSync(packagesDir, { withFileTypes: true });
   } catch {
@@ -48,8 +49,8 @@ export function getNodePluginConfig(options?: LoaderOptions): NodePluginConfigMa
 
   const map: NodePluginConfigMap = {};
   for (const d of entries) {
-    if (!d.isDirectory?.()) continue;
-    const pkgName = d.name;
+    if (!d.isDirectory || !d.isDirectory()) continue;
+    const pkgName = d.name ?? '';
     console.log('Found package:', pkgName);
 
     if (pkgName.startsWith('@') && !INTERNAL_ALLOW.has(pkgName)) continue;
@@ -132,11 +133,11 @@ function readAndNormalizeFile(file: string, fs: typeof import('fs')): NodePlugin
   }
 }
 
-function normalizeConfigShape(obj: any): NodePluginConfig | null {
+function normalizeConfigShape(obj: unknown): NodePluginConfig | null {
   if (!obj || typeof obj !== 'object') return null;
-  const json: NodePluginConfig = { ...obj };
+  const json: NodePluginConfig = { ...(obj as Record<string, unknown>) };
   // backward compat: sort -> order
-  if (json.order == null && typeof (json as any).sort === 'number') json.order = (json as any).sort;
+  if (json.order == null && typeof (json as Record<string, unknown>).sort === 'number') json.order = (json as Record<string, unknown>).sort as number;
   return json;
 }
 
@@ -158,13 +159,18 @@ export const _internalNodePlugin = {
 // We transform package folder names like "http-request" => type key "httprequest".
 export function getDynamicNodeTypeKeys(options?: LoaderOptions): string[] {
   if (!isNodeEnv()) return [];
+
   const path = lazyPath();
   const fs = lazyFs();
-  const packagesDir = options?.packagesDir || resolvePackagesDir(options?.rootDir ?? process.cwd(), fs, path);
+  if (!fs || !path) return [];
+
+  const rootDir = options?.rootDir ?? process.cwd();
+  const packagesDir = options?.packagesDir || resolvePackagesDir(rootDir, fs, path);
   if (!packagesDir) return [];
+
   try {
-    const entries: Array<import('fs').Dirent> = fs.readdirSync(packagesDir, { withFileTypes: true });
-    const names = entries.filter((d: import('fs').Dirent) => d.isDirectory?.()).map((d: import('fs').Dirent) => d.name);
+    const entries = fs.readdirSync(packagesDir, { withFileTypes: true });
+    const names = entries.filter((d) => d.isDirectory?.()).map((d) => d.name);
     return names.filter((n: string) => !n.startsWith('@') || INTERNAL_ALLOW.has(n)).map((n: string) => n);
   } catch {
     return [];

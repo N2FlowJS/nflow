@@ -1,4 +1,5 @@
-import { FlowNode, InterfaceNodeData } from '../../models/flowTypes';
+import { FlowNode } from '../../models/flowTypes';
+import { InterfaceNodeData } from './types';
 import { ExecutionResult, FlowExecutionContext } from '../../models/flowExecutionTypes';
 import { findNextNodes } from '../@flow/find-next-node';
 // Corrected reducer import path

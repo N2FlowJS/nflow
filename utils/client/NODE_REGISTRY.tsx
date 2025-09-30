@@ -14,7 +14,6 @@ function safeGetPluginConfig(): Record<string, any> {
   }
   // 2. Server: try requiring heavy scanner (fs). Wrapped so client build won't include it.
   try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const mod = require('../../packages/@node-plugin');
     return (mod.getNodePluginConfig ? mod.getNodePluginConfig() : {}) || {};
   } catch {
@@ -33,7 +32,6 @@ function buildNodeRegistry(): Record<NodeTypeString, NodeConfig> {
     // Attempt to load a package-specific icon component: packages/<original-pkg>/icon
     let iconNode: React.ReactNode = <RobotOutlined />;
     try {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
       const iconMod = (require as any)(`../../packages/${pkg}/icon`);
       const IconExport = iconMod?.default || iconMod?.Icon || iconMod?.icon;
       if (IconExport) {

@@ -12,6 +12,18 @@ const compat = new FlatCompat({
 });
 
 const eslintConfig = [
+  // Ignore generated and build artifacts
+  {
+    ignores: [
+      '**/node_modules/**',
+      '.next/**',
+      'dist/**',
+      'coverage/**',
+      // Prisma generated client and runtime files (minified/bundled)
+      'prisma/client/**',
+      'prisma/**/runtime/**',
+    ],
+  },
   ...compat.extends(
     'next/core-web-vitals',
     'next/typescript',
@@ -66,6 +78,24 @@ const eslintConfig = [
           ignoreRestSiblings: true,
         },
       ],
+    },
+  },
+  // CommonJS/node scripts (allow require and CJS globals)
+  {
+    files: ['**/*.cjs', 'scripts/**/*.{js,cjs}', '**/*.js'],
+    languageOptions: {
+      sourceType: 'commonjs',
+      globals: {
+        require: 'readonly',
+        module: 'readonly',
+        __dirname: 'readonly',
+        __filename: 'readonly',
+        process: 'readonly',
+      },
+    },
+    rules: {
+      '@typescript-eslint/no-require-imports': 'off',
+      '@typescript-eslint/no-var-requires': 'off',
     },
   },
 ];

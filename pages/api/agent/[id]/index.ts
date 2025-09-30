@@ -122,14 +122,25 @@ async function updateAgent(req: NextApiRequest, res: NextApiResponse, id: string
       return;
     }
 
-    const { name, description, flowConfig, isActive } = req.body;
+    const { name, description, flowConfig, isActive } = req.body as Partial<{
+      name: string;
+      description: string;
+      flowConfig: any;
+      isActive: boolean;
+    }>;
 
     // Prepare the update data
-    const updateData: any = {};
+    const updateData: {
+      name?: string;
+      description?: string;
+      flowConfig?: any;
+      isActive?: boolean;
+      updatedAt?: Date;
+    } = {};
 
     if (name !== undefined) updateData.name = name;
     if (description !== undefined) updateData.description = description;
-    if (flowConfig !== undefined) updateData.flowConfig = flowConfig;
+    if (flowConfig !== undefined) updateData.flowConfig = flowConfig as any;
     if (isActive !== undefined) updateData.isActive = isActive;
     updateData.updatedAt = new Date(); // Update the timestamp
 

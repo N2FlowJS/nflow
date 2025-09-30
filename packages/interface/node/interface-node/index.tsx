@@ -1,8 +1,8 @@
 import { SendOutlined } from "@ant-design/icons";
-import { InterfaceNodeData } from "../../../../models/flowTypes";
 import { Node, NodeProps, Position } from "@xyflow/react";
 import { Badge } from "antd";
 import { BaseNode } from "@n2flowjs/flow";
+import { InterfaceNodeData } from "../../types";
 
 const InterfaceNode = ({
   data,

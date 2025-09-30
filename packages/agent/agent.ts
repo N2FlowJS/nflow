@@ -3,6 +3,6 @@ import { executeAgentNode } from './executeAgentNode'
 
 export const agentPlugin: NodePlugin = {
   name: 'agent',
-  match: (n) => n?.data?.type === 'agent',
-  run: (n, c, _cb, d) => executeAgentNode(n, c, d),
+  match: (n) => (n as any)?.data?.type === 'agent',
+  run: (n, c, _cb, d) => executeAgentNode(n as any, c, d),
 } as const

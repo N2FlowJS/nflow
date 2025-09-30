@@ -123,17 +123,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         endpointUrl,
         apiKey,
         config
-      } = req.body;
+      } = req.body as Partial<{
+        name: string;
+        description: string;
+        endpointUrl: string;
+        apiKey: string;
+        config: unknown;
+      }>;
 
   
 
       // Create update data object
-      const updateData: any = {
-        name,
-        description,
-        endpointUrl,
-        config
-      };
+      const updateData: {
+        name?: string;
+        description?: string;
+        endpointUrl?: string;
+        apiKey?: string;
+        config?: unknown;
+      } = { name, description, endpointUrl, config };
 
       // Only update API key if provided
       if (apiKey) {
@@ -141,7 +148,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
 
       // Remove undefined fields
-      Object.keys(updateData).forEach(key => {
+      (Object.keys(updateData) as Array<keyof typeof updateData>).forEach((key) => {
         if (updateData[key] === undefined) {
           delete updateData[key];
         }

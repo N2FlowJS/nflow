@@ -33,8 +33,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
       
       // Create new tasks for each failed file
+      type FailedTaskWithFile = typeof failedTasks[number];
       const results = await Promise.all(
-        failedTasks.map(async (task: any) => {
+        failedTasks.map(async (task: FailedTaskWithFile) => {
           // Create a new parsing task
           const newTask = await prisma.fileParsingTask.create({
             data: {

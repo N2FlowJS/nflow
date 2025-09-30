@@ -36,8 +36,7 @@ const upload = (knowledgeId: string) => multer({
 });
 
 // Helper to run multer middleware
-type MiddlewareFn = (req: NextApiRequest, res: NextApiResponse, next: (result?: unknown) => void) => void;
-const runMiddleware = (req: NextApiRequest, res: NextApiResponse, fn: MiddlewareFn) => {
+const runMiddleware = (req: any, res: any, fn: any) => {
   return new Promise((resolve, reject) => {
     fn(req, res, (result?: unknown) => {
       if (result instanceof Error) {
@@ -123,7 +122,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
           // Fix the config type issue by properly handling the JSON field
           const fileConfig = knowledge?.config
-            ? (knowledge.config as unknown)
+            ? (knowledge.config as any)
             : undefined;
 
           return prisma.file.create({
@@ -134,7 +133,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               mimetype: file.mimetype,
               size: file.size,
               knowledgeId: id,
-              config: fileConfig, // Fixed: proper type casting for Prisma JSON field
+              config: fileConfig as any, // Fixed: proper type casting for Prisma JSON field
             }
           });
         })

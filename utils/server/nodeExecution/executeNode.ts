@@ -11,9 +11,6 @@ let _tsNodeRegistered = false;
 function ensureTsSupport() {
   if (_tsNodeRegistered) return;
   try {
-    // Prefer transpile-only for speed and avoid type-check cost at runtime.
-    // Explicitly set JSX transform so TSX in shared libs (@flow) compiles for Node.
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const tsNode = require('ts-node');
     tsNode.register({
       transpileOnly: true,
@@ -26,7 +23,6 @@ function ensureTsSupport() {
     });
     // Respect tsconfig "paths" so imports like @n2flowjs/template/* work in Node
     try {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
       require('tsconfig-paths/register');
     } catch {
       /* optional: tsconfig-paths may not be present */

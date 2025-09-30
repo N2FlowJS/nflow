@@ -50,8 +50,19 @@ async function getUserInfo(provider: string, accessToken: string) {
       const emailRes = await fetch('https://api.github.com/user/emails', {
         headers: { Authorization: `Bearer ${accessToken}` }
       });
-      const emails = await emailRes.json();
-      user.email = Array.isArray(emails) ? emails.find((e: any) => e.primary)?.email : undefined;
+      const raw = (await emailRes.json()) as unknown;
+      const isEmailItem = (obj: unknown): obj is { email: string; primary?: boolean } => {
+        if (typeof obj !== 'object' || obj === null) return false;
+        const r = obj as Record<string, unknown>;
+        return typeof r.email === 'string' && (r.primary === undefined || typeof r.primary === 'boolean');
+      };
+      if (Array.isArray(raw)) {
+        const primary = raw.find((e) => isEmailItem(e) && e.primary) as { email: string } | undefined;
+        const anyEmail = primary ?? (raw.find(isEmailItem) as { email: string } | undefined);
+        if (anyEmail?.email && typeof anyEmail.email === 'string') {
+          user.email = anyEmail.email;
+        }
+      }
     }
     return user;
   }

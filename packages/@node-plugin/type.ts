@@ -10,7 +10,7 @@ export interface NodePluginConfig {
   enabled?: boolean;
   order?: number;      // canonical ordering key
   sort?: number;       // legacy key (mapped to order if order missing)
-  [k: string]: any;    // allow future extension
+  [k: string]: unknown;    // allow future extension
 }
 export type NodePluginConfigMap = Record<string, NodePluginConfig>;
 
@@ -22,7 +22,7 @@ export interface LoaderOptions {
 
 
 export type Executor = (
-  node: any,
+  node: FlowNode,
   context: FlowExecutionContext,
   callback?: (result: ExecutionResult) => void,
   dispatcher?: FlowStateDispatcher
@@ -37,7 +37,7 @@ export type NodePlugin = {
    * Accept a very loose shape to allow dynamic plugin node types that are
    * not (yet) part of the FlowNode union without producing TS2367 errors.
    */
-  match: (node: Partial<FlowNode> | { data?: { type?: string } } | any) => boolean;
+  match: (node: FlowNode) => boolean;
   /** executor implementation */
   run: Executor;
 };

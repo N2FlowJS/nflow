@@ -1,8 +1,15 @@
+import { FlowNode } from 'models/nodeDataMap';
 import { NodePlugin } from '../@node-plugin/type';
 import { executeDecisionNode } from './execute';
 
 export const decisionPlugin: NodePlugin = {
   name: 'decision',
-  match: (n) => n?.data?.type === 'decision',
-  run: (n, c, _cb, d) => executeDecisionNode(n, c, d),
+  match: (n) => {
+    if (typeof n === 'object' && n !== null && 'data' in n) {
+      const data = (n as { data?: { type?: string } }).data;
+      return data?.type === 'decision';
+    }
+    return false;
+  },
+  run: (n, c, _cb, d) => executeDecisionNode(n as FlowNode, c, d),
 } as const;

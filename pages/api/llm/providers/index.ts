@@ -67,7 +67,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
       });
       
-      const teamIds = userTeams.map((t:any) => t.teamId);
+  const teamIds = userTeams.map((t) => t.teamId);
       
       // Build the query to get all providers the user has access to
       const providers = await prisma.lLMProvider.findMany({
@@ -110,7 +110,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
       
       // Mask API keys for security
-      const sanitizedProviders = providers.map((provider: any )=> ({
+      const sanitizedProviders = providers.map((provider) => ({
         ...provider,
         apiKey: provider.apiKey ? '********' : null,
       }));
@@ -133,7 +133,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         config,
         ownerType = 'user',
         teamOwnerId
-      } = req.body;
+      } = req.body as Partial<{
+        name: string;
+        description: string;
+        providerType: string;
+        endpointUrl: string;
+        apiKey: string;
+        config: unknown;
+        ownerType: 'user' | 'team' | 'system';
+        teamOwnerId: string;
+      }>;
 
       // Validate required fields
       if (!name || !providerType || !endpointUrl) {
@@ -142,14 +151,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
       
       // Determine the owner type and verify permissions
-      const createData: any = {
+      const createData: {
+        name: string;
+        description?: string;
+        providerType: string;
+        endpointUrl: string;
+        apiKey?: string;
+        config: unknown;
+        ownerType: 'user' | 'team' | 'system';
+        userOwnerId?: string;
+        teamOwnerId?: string;
+      } = {
         name,
         description,
         providerType,
         endpointUrl,
         apiKey,
-        config: config || {},
-        ownerType
+        config: config ?? {},
+        ownerType,
       };
       
       // If system-owned, verify admin permissions
@@ -213,8 +232,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
 
       // Mask API key in response
-      const { apiKey: _, ...sanitizedProvider } = newProvider;
-      console.log(_);
+  const { apiKey: _masked, ...sanitizedProvider } = newProvider;
       
       res.status(201).json(sanitizedProvider);
       return;

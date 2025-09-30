@@ -46,7 +46,7 @@ export async function executeFlow(
     dispatcher.prepareState();
 
     // Execute the current node (should be the Begin node for a new conversation)
-    let result = await executeCurrentNode(flow, dispatcher.getState(), input, callback, dispatcher);
+    const result = await executeCurrentNode(flow, dispatcher.getState(), input, callback, dispatcher);
 
     // Update state through shared dispatcher if execution produced output
     if (result.execution.output) {

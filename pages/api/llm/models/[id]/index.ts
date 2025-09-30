@@ -118,7 +118,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         modelType,
         contextWindow,
         config
-      } = req.body;
+      } = req.body as Partial<{
+        name: string;
+        description: string;
+        modelType: string;
+        contextWindow: number;
+        config: unknown;
+      }>;
 
       // Get the current model to check if modelType is changing
       const currentModel = await prisma.lLMModel.findUnique({
@@ -145,16 +151,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
 
       // Create update data object
-      const updateData: any = {
-        name,
-        description,
-        modelType,
-        contextWindow,
-        config
-      };
+      const updateData: {
+        name?: string;
+        description?: string;
+        modelType?: string;
+        contextWindow?: number | null;
+        config?: unknown;
+      } = { name, description, modelType, contextWindow, config };
 
       // Remove undefined fields
-      Object.keys(updateData).forEach(key => {
+      (Object.keys(updateData) as Array<keyof typeof updateData>).forEach((key) => {
         if (updateData[key] === undefined) {
           delete updateData[key];
         }

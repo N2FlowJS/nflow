@@ -1,6 +1,6 @@
 import React from 'react';
 import { Position, NodeProps, Node } from '@xyflow/react';
-import { JsonParseNodeData } from '../../../../models/flowTypes';
+import { JsonParseNodeData } from '../../types';
 import { BaseNode } from '@n2flowjs/flow';
 import { Flex } from 'antd';
 import { CodeOutlined } from '@ant-design/icons';

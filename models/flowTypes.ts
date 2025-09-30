@@ -3,7 +3,7 @@ import React from 'react';
 import { BaseForm, BaseNodeData, InputReference } from '@n2flowjs/flow';
 
 import type { AllNodeData, FlowNode } from './nodeDataMap';
-import { getDynamicNodeTypeKeys } from '../packages/@node-plugin';
+import { getDynamicNodeTypeKeys } from 'packages/@node-plugin';
 export type { FlowNode } from './nodeDataMap';
 
 // Node types mapping
