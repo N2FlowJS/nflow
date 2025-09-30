@@ -1,8 +1,4 @@
-// We intentionally do NOT depend on the concrete FlowNode union here because
-// plugins may introduce new node type strings that are not yet reflected in
-// the core FlowNode discriminated union. Using the full union caused TS2367
-// (no overlap) errors when match predicates compare against new strings
-// (e.g. 'file-read', 'http-request'). Keep this minimal structural type.
+
 import type { FlowNode } from "../../models/flowTypes";
 import { FlowStateDispatcher } from "@n2flowjs/flow/flow-state-dispatcher";
 import { ExecutionResult, FlowExecutionContext } from "@n2flowjs/flow/type";
@@ -30,15 +26,8 @@ export type Executor = (
 
 
 export type NodePlugin = {
-  /** canonical node type name (string identifier) */
   name: string;
-  /**
-   * Predicate to determine if this plugin should execute for a given node.
-   * Accept a very loose shape to allow dynamic plugin node types that are
-   * not (yet) part of the FlowNode union without producing TS2367 errors.
-   */
   match: (node: FlowNode) => boolean;
-  /** executor implementation */
   run: Executor;
 };
 

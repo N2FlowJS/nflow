@@ -88,9 +88,6 @@ jobs:
       - name: Build
         run: npm run build --if-present
 
-      - name: Export static site (main only)
-        if: github.event_name == 'push'
-        run: npx next export
 
       - name: Configure Pages (main only)
         if: github.event_name == 'push'

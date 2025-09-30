@@ -25,7 +25,7 @@ export class FlowStateDispatcher {
     });
   }
 
-  setNodeOutput(nodeId: string, output: string, nodeType: string): FlowState {
+  setNodeOutput(nodeId: string, output: any, nodeType: string): FlowState {
     return this.dispatch({
       type: 'SET_NODE_OUTPUT',
       payload: { nodeId, output, nodeType },
