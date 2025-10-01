@@ -1,10 +1,11 @@
 import { ExecutionResult, FlowExecutionContext } from '../../models/flowExecutionTypes';
 import { FlowNode } from '../../models/flowTypes';
 import { DiscordNodeData } from './types';
-import { findNextNodes } from '@n2flowjs/flow/find-next-node';
+import { ResultWaiting, findNextNodes } from '@n2flowjs/flow/find-next-node';
 import { getInputFromTemplate, processTemplate } from '@n2flowjs/template/template';
 import { isNodeReady } from '@n2flowjs/flow/is-node-ready';
 import { FlowStateDispatcher } from '@n2flowjs/flow/flow-state-dispatcher';
+import { EXECUTION_STATUS } from '@n2flowjs/flow/EXECUTION_STATUS';
 
 /**
  * Handler for executing Discord nodes
@@ -24,30 +25,10 @@ export async function executeDiscordNode(
     ...getInputFromTemplate(form.embedTitle || ''),
     ...getInputFromTemplate(form.embedDescription || ''),
   ];
-  
-  const ready = isNodeReady(inputs, flowState);
-  
-  if (!ready) {
-    return {
-      nextNodes: [],
-      status: 'waiting',
-      message: 'Waiting for input variables for Discord operation',
-      flowState,
-      nodeInfo: {
-        id: node.id,
-        name: node.data?.label || node.id,
-        type: 'discord',
-        role: 'developer',
-      },
-      execution: {
-        output: 'Waiting for input variables',
-        nodeId: node.id,
-        nodeName: node.data?.label || node.id,
-        startTime: startTime,
-      },
-    };
-  }
 
+  if (!isNodeReady(inputs, flowState)) {
+    return ResultWaiting(node, flowState, startTime);
+  }
   // Prepare variables for template processing
   const vars: Record<string, string> = {};
   inputs.forEach((key) => {
@@ -117,7 +98,7 @@ export async function executeDiscordNode(
     }
 
     const resultText = JSON.stringify(result, null, 2);
-    
+
     console.log(`Discord node completed: ${node.id}`);
 
     // Use shared dispatcher if available
@@ -143,7 +124,7 @@ export async function executeDiscordNode(
     }
 
     return {
-      status: 'in_progress',
+      status: EXECUTION_STATUS.IN_PROGRESS,
       nextNodes,
       flowState: finalState,
       nodeInfo: {
@@ -163,7 +144,7 @@ export async function executeDiscordNode(
   } catch (error: unknown) {
     console.error('Discord execution error:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown Discord error';
-    
+
     return {
       nextNodes: [],
       status: 'error',
@@ -191,11 +172,11 @@ async function sendDiscordMessage(credentials: any, message: string) {
   const response = await fetch(`https://discord.com/api/v10/channels/${credentials.channelId}/messages`, {
     method: 'POST',
     headers: {
-      'Authorization': `Bot ${credentials.botToken}`,
+      Authorization: `Bot ${credentials.botToken}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      content: message
+      content: message,
     }),
   });
 
@@ -211,12 +192,12 @@ async function createDiscordChannel(form: any) {
   const response = await fetch(`https://discord.com/api/v10/guilds/${form.guildId}/channels`, {
     method: 'POST',
     headers: {
-      'Authorization': `Bot ${form.botToken}`,
+      Authorization: `Bot ${form.botToken}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
       name: 'new-channel',
-      type: 0 // Text channel
+      type: 0, // Text channel
     }),
   });
 
@@ -231,7 +212,7 @@ async function createDiscordChannel(form: any) {
 async function getDiscordMessages(form: any, channelId: string) {
   const response = await fetch(`https://discord.com/api/v10/channels/${channelId}/messages?limit=50`, {
     headers: {
-      'Authorization': `Bot ${form.botToken}`,
+      Authorization: `Bot ${form.botToken}`,
     },
   });
 
@@ -246,16 +227,18 @@ async function sendDiscordEmbed(form: any, title: string, description: string) {
   const response = await fetch(`https://discord.com/api/v10/channels/${form.channelId}/messages`, {
     method: 'POST',
     headers: {
-      'Authorization': `Bot ${form.botToken}`,
+      Authorization: `Bot ${form.botToken}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      embeds: [{
-        title: title,
-        description: description,
-        color: parseInt(form.embedColor?.replace('#', '') || '0099ff', 16),
-        timestamp: new Date().toISOString()
-      }]
+      embeds: [
+        {
+          title: title,
+          description: description,
+          color: parseInt(form.embedColor?.replace('#', '') || '0099ff', 16),
+          timestamp: new Date().toISOString(),
+        },
+      ],
     }),
   });
 
@@ -268,12 +251,15 @@ async function sendDiscordEmbed(form: any, title: string, description: string) {
 }
 
 async function manageDiscordRoles(form: any) {
-  const response = await fetch(`https://discord.com/api/v10/guilds/${form.guildId}/members/${form.userId}/roles/${form.roleId}`, {
-    method: 'PUT',
-    headers: {
-      'Authorization': `Bot ${form.botToken}`,
-    },
-  });
+  const response = await fetch(
+    `https://discord.com/api/v10/guilds/${form.guildId}/members/${form.userId}/roles/${form.roleId}`,
+    {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bot ${form.botToken}`,
+      },
+    }
+  );
 
   if (!response.ok) {
     throw new Error(`Discord API error: ${response.status}`);
@@ -285,7 +271,7 @@ async function manageDiscordRoles(form: any) {
 async function getDiscordGuildInfo(form: any, guildId: string) {
   const response = await fetch(`https://discord.com/api/v10/guilds/${guildId}`, {
     headers: {
-      'Authorization': `Bot ${form.botToken}`,
+      Authorization: `Bot ${form.botToken}`,
     },
   });
 

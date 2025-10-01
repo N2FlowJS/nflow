@@ -137,7 +137,8 @@ function normalizeConfigShape(obj: unknown): NodePluginConfig | null {
   if (!obj || typeof obj !== 'object') return null;
   const json: NodePluginConfig = { ...(obj as Record<string, unknown>) };
   // backward compat: sort -> order
-  if (json.order == null && typeof (json as Record<string, unknown>).sort === 'number') json.order = (json as Record<string, unknown>).sort as number;
+  if (json.order == null && typeof (json as Record<string, unknown>).sort === 'number')
+    json.order = (json as Record<string, unknown>).sort as number;
   return json;
 }
 
@@ -190,3 +191,4 @@ export function getAllNodeTypeKeys(options?: LoaderOptions): string[] {
   // Server / Node
   return getDynamicNodeTypeKeys(options);
 }
+

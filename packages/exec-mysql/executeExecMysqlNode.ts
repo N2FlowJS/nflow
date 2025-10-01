@@ -1,7 +1,7 @@
 import { ExecutionResult, FlowExecutionContext } from '../../models/flowExecutionTypes';
 import { FlowNode } from '../../models/flowTypes';
 import { ExecMysqlNodeData } from './types';
-import { findNextNodes, isNodeReady, FlowStateDispatcher } from '@n2flowjs/flow';
+import { findNextNodes, isNodeReady, FlowStateDispatcher, ResultWaiting } from '@n2flowjs/flow';
 import { getInputFromTemplate, processTemplate } from '@n2flowjs/template/template';
 import mysql from 'mysql2/promise';
 
@@ -19,28 +19,9 @@ export async function executeExecMysqlNode(
 
   // Extract variables from the query template
   const inputs: string[] = getInputFromTemplate(form.query || '');
-  
-  const ready = isNodeReady(inputs, flowState);
-  
-  if (!ready) {
-    return {
-      nextNodes: [],
-      status: 'waiting',
-      message: 'Waiting for input variables for MySQL query',
-      flowState,
-      nodeInfo: {
-        id: node.id,
-        name: node.data?.label || node.id,
-        type: 'execmysql',
-        role: 'developer',
-      },
-      execution: {
-        output: 'Waiting for input variables',
-        nodeId: node.id,
-        nodeName: node.data?.label || node.id,
-        startTime: startTime,
-      },
-    };
+
+  if (!isNodeReady(inputs, flowState)) {
+    return ResultWaiting(node, flowState, startTime);
   }
 
   // Prepare variables for template processing
@@ -63,7 +44,7 @@ export async function executeExecMysqlNode(
 
     // Process the query template with variables
     const processedQuery = processTemplate(form.query, vars);
-    
+
     console.log(`Executing MySQL query: ${processedQuery}`);
 
     // Create database connection
@@ -77,17 +58,16 @@ export async function executeExecMysqlNode(
     });
 
     let results: any;
-    
+
     try {
       // Execute the query with timeout
       const [rows] = await connection.execute(processedQuery);
       results = rows;
-      
+
       // Limit results if maxRows is specified
       if (form.maxRows && Array.isArray(results) && results.length > form.maxRows) {
         results = results.slice(0, form.maxRows);
       }
-      
     } finally {
       // Always close the connection
       await connection.end();
@@ -95,7 +75,7 @@ export async function executeExecMysqlNode(
 
     // Format results as JSON string
     const formattedResults = JSON.stringify(results, null, 2);
-    
+
     console.log(`MySQL query results: ${formattedResults}`);
 
     // Use shared dispatcher if available
@@ -141,7 +121,7 @@ export async function executeExecMysqlNode(
   } catch (error: unknown) {
     console.error('MySQL execution error:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown MySQL error';
-    
+
     return {
       nextNodes: [],
       status: 'error',

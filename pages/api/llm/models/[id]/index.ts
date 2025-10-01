@@ -97,7 +97,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
 
       if (!model) {
-        res.status(404).json({ error: "Model not found" });
+        console.warn(`LLM model not found: id=${id}`);
+        res.status(404).json({ error: `Model not found`, id });
         return;
       }
 

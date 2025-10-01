@@ -13,6 +13,7 @@ export async function handleApiResponse<T>(response: Response): Promise<T> {
     const errorMessage = errorData?.message || response.statusText;
     throw new Error(errorMessage);
   }
+  
   if (response.status === 204) return true as T;
   return response.json() as Promise<T>;
 }
@@ -57,6 +58,12 @@ export async function apiRequest<T>(url: string, options: RequestInit = {}, apiK
       ...options,
       headers: finalHeaders,
     });
+    if (response.status === 404) {
+      const errorData = await response.json().catch(() => null);
+      const errorMessage = errorData?.message || response.statusText;
+      console.error(`${errorMessage} - ${JSON.stringify(errorData)}`);
+      return responseData = null as T;
+    }
     if (response.status === 200) {
       responseData = await response
         .clone()

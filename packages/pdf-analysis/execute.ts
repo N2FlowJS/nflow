@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { PdfAnalysisNodeData } from './types';
 import { FlowNode } from '../../models/flowTypes';
-import { ExecutionResult, findNextNodes, FlowExecutionContext, FlowStateDispatcher, isNodeReady } from '@n2flowjs/flow';
+import { ExecutionResult, findNextNodes, FlowExecutionContext, FlowStateDispatcher, isNodeReady, ResultWaiting } from '@n2flowjs/flow';
 import { getInputFromTemplate, processTemplate } from '@n2flowjs/template/template';
 
 /**
@@ -24,29 +24,9 @@ export async function executePdfAnalysisNode(
     ...getInputFromTemplate(form.outputDir || ''),
   ];
 
-  const ready = isNodeReady(inputs, flowState);
-
-  if (!ready) {
-    return {
-      nextNodes: [],
-      status: 'waiting',
-      message: 'Waiting for input variables for PDF analysis',
-      flowState,
-      nodeInfo: {
-        id: node.id,
-        name: node.data?.label || node.id,
-        type: 'pdfanalysis',
-        role: 'developer',
-      },
-      execution: {
-        output: 'Waiting for input variables',
-        nodeId: node.id,
-        nodeName: node.data?.label || node.id,
-        startTime: startTime,
-      },
-    };
+  if (!isNodeReady(inputs, flowState)) {
+    return ResultWaiting(node, flowState, startTime);
   }
-
   // Prepare variables for template processing
   const vars: Record<string, string> = {};
   inputs.forEach((key) => {

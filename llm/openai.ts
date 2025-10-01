@@ -9,7 +9,7 @@ class LLMOpenAI {
       apiKey: apiKey,
       baseURL: baseURL,
     });
-
+   
     const params: OpenAI.Chat.ChatCompletionCreateParams = {
       model: model,
       messages: message as OpenAI.Chat.ChatCompletionMessageParam[],

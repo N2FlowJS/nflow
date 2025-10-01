@@ -1,5 +1,5 @@
 import { NodePlugin } from '../@node-plugin/type';
-import { executeGenerateNode } from './executeGenerateNode';
+import { executeGenerateNode } from './execute';
 
 export const generatePlugin: NodePlugin = {
   name: 'generate',

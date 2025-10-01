@@ -57,7 +57,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
 
   if (!model) {
-    res.status(404).json({ error: 'Model not found' });
+    console.warn(`Team model not found: teamId=${teamId} providerId=${providerId} modelId=${modelId}`);
+    res.status(404).json({ error: 'Model not found', id: modelId });
     return;
   }
 

@@ -14,18 +14,18 @@ export async function executeFlow(
 ): Promise<void> {
   // Helper to finalize execution cleanly
   const finalize = (finalState: FlowState): ExecutionResult => {
-    const node = finalState.currentNode as any;
+    const node = finalState.currentNode;
     const comp = finalState.components?.[node?.id] as any;
     const output = comp?.output ?? '';
     const exec: ExecutionResult = {
-      status: 'completed',
+      status: 'ended',
       nextNodes: [],
       flowState: finalState,
       nodeInfo: {
         id: node?.id,
         name: node?.data?.label || node?.id || 'unknown',
-        type: (node?.type as any) || 'unknown',
-        role: (node?.data?.form?.role as any) || 'developer',
+        type: node?.type || 'unknown',
+        role: node?.data?.form?.role || 'developer',
       },
       execution: {
         nodeId: node?.id,
@@ -66,7 +66,7 @@ export async function executeFlow(
 
     // Emit the initial result and continue traversal
     callback(result);
-    const status: ExecutionStatus[] = ['in_progress', 'completed', 'error'];
+    const status: ExecutionStatus[] = ['in_progress', 'waiting', 'error'];
     if (status.includes(result.status)) {
       await continueExecution(flow, result, callback, history, dispatcher);
     }

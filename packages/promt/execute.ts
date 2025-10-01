@@ -1,7 +1,7 @@
 import { TemplateNodeData } from './types';
 import { FlowNode } from '../../models/flowTypes';
 import { getInputFromTemplate, processTemplate } from '@n2flowjs/template/template';
-import { findNextNodes, isNodeReady, FlowStateDispatcher, ExecutionResult, FlowExecutionContext } from '@n2flowjs/flow';
+import { findNextNodes, isNodeReady, FlowStateDispatcher, ExecutionResult, FlowExecutionContext, ResultWaiting } from '@n2flowjs/flow';
 
 export async function execute(
   node: FlowNode,
@@ -13,29 +13,9 @@ export async function execute(
   const startTime = new Date().toISOString();
 
   const inputs: string[] = getInputFromTemplate(form.templateContent || '');
-  const ready = isNodeReady(inputs, flowState);
-  
-  if (!ready) {
-    return {
-      nextNodes: [],
-      status: 'waiting',
-      message: 'Waiting for template variables',
-      flowState,
-      nodeInfo: {
-        id: node.id,
-        name: node.data?.label || node.id,
-        type: 'template',
-        role: 'assistant',
-      },
-      execution: {
-        output: 'Waiting for template variables',
-        nodeId: node.id,
-        nodeName: node.data?.label || node.id,
-        startTime: startTime,
-      },
-    };
+  if (!isNodeReady(inputs, flowState)) {
+    return ResultWaiting(node, flowState, startTime);
   }
-
   try {
     const vars: Record<string, string> = {};
     inputs.forEach((key) => {

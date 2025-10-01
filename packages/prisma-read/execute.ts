@@ -1,7 +1,7 @@
 import { FlowNode } from '../../models/flowTypes';
 import { PrismaReadNodeData } from './types';
 import { getInputFromTemplate, processTemplate } from '@n2flowjs/template/template';
-import { findNextNodes, isNodeReady, FlowStateDispatcher, ExecutionResult, FlowExecutionContext } from '@n2flowjs/flow';
+import { findNextNodes, isNodeReady, FlowStateDispatcher, ExecutionResult, FlowExecutionContext, ResultWaiting } from '@n2flowjs/flow';
 import { prisma } from '../../lib/prisma';
 
 /**
@@ -18,29 +18,9 @@ export async function executePrismaReadNode(
 
   // Extract variables from the model/filter template
   const inputs: string[] = getInputFromTemplate(form.filter || '');
-  const ready = isNodeReady(inputs, flowState);
-  if (!ready) {
-    return {
-      nextNodes: [],
-      status: 'waiting',
-      message: 'Waiting for input variables for filter',
-      flowState,
-      nodeInfo: {
-        id: node.id,
-        name: node.data?.label || node.id,
-        type: 'prisma-read',
-        role: 'developer',
-      },
-      execution: {
-        output: 'Waiting for input variables',
-        nodeId: node.id,
-        nodeName: node.data?.label || node.id,
-        startTime,
-        endTime: new Date().toISOString(),
-      },
-    };
+  if (!isNodeReady(inputs, flowState)) {
+    return ResultWaiting(node, flowState, startTime);
   }
-
   // Prepare query
   const model = form.model;
   let filter = {};
@@ -107,7 +87,7 @@ export async function executePrismaReadNode(
     const nextNodes = findNextNodes(flow, node.id);
     return {
       nextNodes,
-      status: 'completed',
+      status: 'in_progress',
       message: `Fetched ${result.length} records from ${model}`,
       flowState,
       nodeInfo: {

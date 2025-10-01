@@ -1,5 +1,5 @@
 import { executeNode } from './executeNode';
-import { EXECUTION_STATUS } from '../EXECUTION_STATUS';
+import { EXECUTION_STATUS } from '../../../packages/@flow/EXECUTION_STATUS';
 import { Flow } from '../../../models/flowTypes';
 import { FlowStateDispatcher } from '@n2flowjs/flow/flow-state-dispatcher';
 import { MessagePart } from '../../../models/MessagePart';
@@ -38,7 +38,7 @@ export async function processNode(
     if (/no next node found in the flow/i.test(msg)) {
       const state = dispatcher ? dispatcher.getState() : prevResult.flowState;
       nextResult = {
-        status: 'completed',
+        status: EXECUTION_STATUS.ENDED,
         nextNodes: [],
         flowState: state,
         nodeInfo: {

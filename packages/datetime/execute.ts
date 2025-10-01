@@ -1,7 +1,14 @@
 import { FlowNode } from '../../models/flowTypes';
 import { DateTimeNodeData } from './types';
 import { getInputFromTemplate, processTemplate } from '@n2flowjs/template/template';
-import { findNextNodes, isNodeReady, FlowStateDispatcher, ExecutionResult, FlowExecutionContext } from '@n2flowjs/flow';
+import {
+  findNextNodes,
+  isNodeReady,
+  FlowStateDispatcher,
+  ExecutionResult,
+  FlowExecutionContext,
+  ResultWaiting
+} from '@n2flowjs/flow';
 
 /**
  * Handler for executing DateTime nodes
@@ -16,32 +23,10 @@ export async function executeDateTimeNode(
   const startTime = new Date().toISOString();
 
   // Extract variables from relevant fields
-  const inputs: string[] = [
-    ...getInputFromTemplate(form.inputDate || ''),
-    ...getInputFromTemplate(form.format || ''),
-  ];
-  
-  const ready = isNodeReady(inputs, flowState);
-  
-  if (!ready) {
-    return {
-      nextNodes: [],
-      status: 'waiting',
-      message: 'Waiting for input variables for datetime operation',
-      flowState,
-      nodeInfo: {
-        id: node.id,
-        name: node.data?.label || node.id,
-        type: 'datetime',
-        role: 'developer',
-      },
-      execution: {
-        output: 'Waiting for input variables',
-        nodeId: node.id,
-        nodeName: node.data?.label || node.id,
-        startTime: startTime,
-      },
-    };
+  const inputs: string[] = [...getInputFromTemplate(form.inputDate || ''), ...getInputFromTemplate(form.format || '')];
+
+  if (!isNodeReady(inputs, flowState)) {
+    return ResultWaiting(node, flowState, startTime);
   }
 
   // Prepare variables for template processing
@@ -97,7 +82,7 @@ export async function executeDateTimeNode(
     }
 
     const resultText = typeof result === 'object' ? JSON.stringify(result, null, 2) : String(result);
-    
+
     console.log(`DateTime node completed: ${node.id}`);
 
     // Use shared dispatcher if available
@@ -143,7 +128,7 @@ export async function executeDateTimeNode(
   } catch (error: unknown) {
     console.error('DateTime execution error:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown datetime error';
-    
+
     return {
       nextNodes: [],
       status: 'error',
@@ -170,7 +155,7 @@ export async function executeDateTimeNode(
 async function getCurrentDateTime(form: any) {
   const now = new Date();
   const format = form.format || 'ISO';
-  
+
   switch (format.toLowerCase()) {
     case 'iso':
       return now.toISOString();
@@ -190,13 +175,13 @@ async function getCurrentDateTime(form: any) {
 
 async function formatDateTime(form: any, inputDate: string) {
   const date = new Date(inputDate);
-  
+
   if (isNaN(date.getTime())) {
     throw new Error(`Invalid date: ${inputDate}`);
   }
-  
+
   const format = form.format || 'ISO';
-  
+
   switch (format.toLowerCase()) {
     case 'iso':
       return date.toISOString();
@@ -215,11 +200,11 @@ async function formatDateTime(form: any, inputDate: string) {
 
 async function parseDateTime(_form: any, dateString: string) {
   const date = new Date(dateString);
-  
+
   if (isNaN(date.getTime())) {
     throw new Error(`Unable to parse date: ${dateString}`);
   }
-  
+
   return {
     iso: date.toISOString(),
     timestamp: date.getTime(),
@@ -237,14 +222,14 @@ async function parseDateTime(_form: any, dateString: string) {
 
 async function addToDateTime(form: any, inputDate: string) {
   const date = new Date(inputDate);
-  
+
   if (isNaN(date.getTime())) {
     throw new Error(`Invalid date: ${inputDate}`);
   }
-  
+
   const amount = form.amount || 0;
   const unit = form.unit || 'days';
-  
+
   switch (unit) {
     case 'seconds':
       date.setSeconds(date.getSeconds() + amount);
@@ -259,7 +244,7 @@ async function addToDateTime(form: any, inputDate: string) {
       date.setDate(date.getDate() + amount);
       break;
     case 'weeks':
-      date.setDate(date.getDate() + (amount * 7));
+      date.setDate(date.getDate() + amount * 7);
       break;
     case 'months':
       date.setMonth(date.getMonth() + amount);
@@ -270,7 +255,7 @@ async function addToDateTime(form: any, inputDate: string) {
     default:
       throw new Error(`Unsupported time unit: ${unit}`);
   }
-  
+
   return {
     original: inputDate,
     result: date.toISOString(),
@@ -280,14 +265,14 @@ async function addToDateTime(form: any, inputDate: string) {
 
 async function subtractFromDateTime(form: any, inputDate: string) {
   const date = new Date(inputDate);
-  
+
   if (isNaN(date.getTime())) {
     throw new Error(`Invalid date: ${inputDate}`);
   }
-  
+
   const amount = form.amount || 0;
   const unit = form.unit || 'days';
-  
+
   switch (unit) {
     case 'seconds':
       date.setSeconds(date.getSeconds() - amount);
@@ -302,7 +287,7 @@ async function subtractFromDateTime(form: any, inputDate: string) {
       date.setDate(date.getDate() - amount);
       break;
     case 'weeks':
-      date.setDate(date.getDate() - (amount * 7));
+      date.setDate(date.getDate() - amount * 7);
       break;
     case 'months':
       date.setMonth(date.getMonth() - amount);
@@ -313,7 +298,7 @@ async function subtractFromDateTime(form: any, inputDate: string) {
     default:
       throw new Error(`Unsupported time unit: ${unit}`);
   }
-  
+
   return {
     original: inputDate,
     result: date.toISOString(),
@@ -324,13 +309,13 @@ async function subtractFromDateTime(form: any, inputDate: string) {
 async function compareDateTime(_form: any, inputDate: string) {
   const date1 = new Date(inputDate);
   const date2 = new Date(); // Compare with current time
-  
+
   if (isNaN(date1.getTime())) {
     throw new Error(`Invalid date: ${inputDate}`);
   }
-  
+
   const diff = date1.getTime() - date2.getTime();
-  
+
   return {
     date1: date1.toISOString(),
     date2: date2.toISOString(),
@@ -351,13 +336,13 @@ async function compareDateTime(_form: any, inputDate: string) {
 
 async function convertTimezone(form: any, inputDate: string) {
   const date = new Date(inputDate);
-  
+
   if (isNaN(date.getTime())) {
     throw new Error(`Invalid date: ${inputDate}`);
   }
-  
+
   const timezone = form.timezone || 'UTC';
-  
+
   try {
     const options: Intl.DateTimeFormatOptions = {
       timeZone: timezone,
@@ -369,10 +354,10 @@ async function convertTimezone(form: any, inputDate: string) {
       second: '2-digit',
       timeZoneName: 'short',
     };
-    
+
     const formatter = new Intl.DateTimeFormat('en-US', options);
     const formatted = formatter.format(date);
-    
+
     return {
       original: inputDate,
       timezone: timezone,
@@ -387,18 +372,18 @@ async function convertTimezone(form: any, inputDate: string) {
 function formatDateTimeCustom(date: Date, format: string): string {
   // Basic custom formatting - can be extended
   const replacements: { [key: string]: string } = {
-    'YYYY': date.getFullYear().toString(),
-    'MM': (date.getMonth() + 1).toString().padStart(2, '0'),
-    'DD': date.getDate().toString().padStart(2, '0'),
-    'HH': date.getHours().toString().padStart(2, '0'),
-    'mm': date.getMinutes().toString().padStart(2, '0'),
-    'ss': date.getSeconds().toString().padStart(2, '0'),
+    YYYY: date.getFullYear().toString(),
+    MM: (date.getMonth() + 1).toString().padStart(2, '0'),
+    DD: date.getDate().toString().padStart(2, '0'),
+    HH: date.getHours().toString().padStart(2, '0'),
+    mm: date.getMinutes().toString().padStart(2, '0'),
+    ss: date.getSeconds().toString().padStart(2, '0'),
   };
-  
+
   let result = format;
   for (const [pattern, replacement] of Object.entries(replacements)) {
     result = result.replace(new RegExp(pattern, 'g'), replacement);
   }
-  
+
   return result;
 }

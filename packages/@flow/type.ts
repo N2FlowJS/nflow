@@ -26,7 +26,7 @@ export interface FlowState {
   // History of node executions
   history: FlowExecutionHistoryEntry[];
 }
-export type ExecutionStatus = 'completed' | 'error' | 'in_progress' | 'waiting';
+export type ExecutionStatus = 'token' | 'error' | 'in_progress' | 'ended' | 'add_message' | 'waiting';
 
 export interface ExecutionResult {
   // Status of the execution
@@ -78,7 +78,6 @@ export interface BaseForm {
   inputRefs?: InputReference[]; // Add support for input references
 }
 
-
 // Generic Base Node Data with form type parameter
 export type BaseNodeData<TForm = unknown> = {
   label: string;
@@ -88,4 +87,3 @@ export type BaseNodeData<TForm = unknown> = {
   [key: string]: unknown;
   form: TForm;
 };
-

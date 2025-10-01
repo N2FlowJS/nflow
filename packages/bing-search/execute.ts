@@ -1,6 +1,6 @@
 import type { FlowNode } from "../../models/flowTypes";
 import type { BingSearchNodeData } from "./types";
-import { ExecutionResult, findNextNodes, FlowExecutionContext, FlowStateDispatcher, isNodeReady } from "../@flow";
+import { ExecutionResult, findNextNodes, FlowExecutionContext, FlowStateDispatcher, isNodeReady, ResultWaiting } from "../@flow";
 import { getInputFromTemplate, processTemplate } from "@n2flowjs/template/template";
 
 
@@ -19,27 +19,8 @@ export async function execute(
   // Extract variables from relevant fields
   const inputs: string[] = getInputFromTemplate(form.query || '');
   
-  const ready = isNodeReady(inputs, flowState);
-  
-  if (!ready) {
-    return {
-      nextNodes: [],
-      status: 'waiting',
-      message: 'Waiting for input variables for Bing search',
-      flowState,
-      nodeInfo: {
-        id: node.id,
-        name: node.data?.label || node.id,
-        type: 'bingsearch',
-        role: 'developer',
-      },
-      execution: {
-        output: 'Waiting for input variables',
-        nodeId: node.id,
-        nodeName: node.data?.label || node.id,
-        startTime: startTime,
-      },
-    };
+  if (!isNodeReady(inputs, flowState)) {
+    return ResultWaiting(node, flowState, startTime);
   }
 
   // Prepare variables for template processing

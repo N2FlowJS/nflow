@@ -7,6 +7,6 @@ export function isNodeReady(inputs: string[], flowState: FlowState): boolean {
     if (component && component.executionTime) {
       return component.executionTime > flowState.executionTime;
     }
-    return true; // If component is not found, consider it ready
+    return true;
   });
 }

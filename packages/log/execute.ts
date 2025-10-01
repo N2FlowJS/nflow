@@ -1,7 +1,7 @@
 import { LogNodeData } from './types';
 import { FlowNode } from '../../models/flowTypes';
 import { getInputFromTemplate, processTemplate } from '@n2flowjs/template/template';
-import { findNextNodes, isNodeReady, FlowStateDispatcher, ExecutionResult, FlowExecutionContext } from '@n2flowjs/flow';
+import { findNextNodes, isNodeReady, FlowStateDispatcher, ExecutionResult, FlowExecutionContext, ResultWaiting } from '@n2flowjs/flow';
 
 export async function executeLogNode(
   node: FlowNode,
@@ -17,29 +17,9 @@ export async function executeLogNode(
     ...getInputFromTemplate(form.includeData || ''),
   ];
   
-  const ready = isNodeReady(inputs, flowState);
-  
-  if (!ready) {
-    return {
-      nextNodes: [],
-      status: 'waiting',
-      message: 'Waiting for input variables for log operation',
-      flowState,
-      nodeInfo: {
-        id: node.id,
-        name: node.data?.label || node.id,
-        type: 'log',
-        role: 'developer',
-      },
-      execution: {
-        output: 'Waiting for input variables',
-        nodeId: node.id,
-        nodeName: node.data?.label || node.id,
-        startTime: startTime,
-      },
-    };
+  if (!isNodeReady(inputs, flowState)) {
+    return ResultWaiting(node, flowState, startTime);
   }
-
   try {
     const vars: Record<string, string> = {};
     inputs.forEach((key) => {

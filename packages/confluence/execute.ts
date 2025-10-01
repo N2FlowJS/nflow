@@ -1,6 +1,6 @@
 import { FlowNode } from '../../models/flowTypes';
 import { ConfluenceNodeData } from './types';
-import { findNextNodes } from '../@flow';
+import { findNextNodes, ResultWaiting } from '../@flow';
 import { getInputFromTemplate, processTemplate } from '@n2flowjs/template/template';
 import { isNodeReady } from '../@flow';
 import { FlowStateDispatcher } from '../@flow';
@@ -26,29 +26,9 @@ export async function execute(
     ...getInputFromTemplate(form.searchQuery || ''),
   ];
   
-  const ready = isNodeReady(inputs, flowState);
-  
-  if (!ready) {
-    return {
-      nextNodes: [],
-      status: 'waiting',
-      message: 'Waiting for input variables for Confluence operation',
-      flowState,
-      nodeInfo: {
-        id: node.id,
-        name: node.data?.label || node.id,
-        type: 'confluence',
-        role: 'developer',
-      },
-      execution: {
-        output: 'Waiting for input variables',
-        nodeId: node.id,
-        nodeName: node.data?.label || node.id,
-        startTime: startTime,
-      },
-    };
+  if (!isNodeReady(inputs, flowState)) {
+    return ResultWaiting(node, flowState, startTime);
   }
-
   // Prepare variables for template processing
   const vars: Record<string, string> = {};
   inputs.forEach((key) => {

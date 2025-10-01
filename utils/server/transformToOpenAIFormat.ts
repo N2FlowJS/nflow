@@ -1,6 +1,6 @@
 import { OpenAIExecutionResult } from '../../models/flow';
 import { ExecutionResult } from '../../models/flowExecutionTypes';
-import { EXECUTION_STATUS } from './EXECUTION_STATUS'; // Import EXECUTION_STATUS
+import { EXECUTION_STATUS } from '../../packages/@flow/EXECUTION_STATUS'; // Import EXECUTION_STATUS
 
 // Transform our result to OpenAI format
 export function transformToOpenAIFormat(result: ExecutionResult, conversationId: string): OpenAIExecutionResult {
@@ -29,7 +29,7 @@ export function transformToOpenAIFormat(result: ExecutionResult, conversationId:
 
   // Determine finish reason based on status and node type
   let finish_reason: string | null = null;
-  if (result.status === EXECUTION_STATUS.COMPLETED) {
+  if (result.status === EXECUTION_STATUS.ENDED) {
     finish_reason = 'stop';
   } else if (result.status === EXECUTION_STATUS.IN_PROGRESS) {
     finish_reason = null;

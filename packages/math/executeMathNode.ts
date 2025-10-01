@@ -1,7 +1,7 @@
 import { MathNodeData } from './types';
 import { FlowNode } from '../../models/flowTypes';
 import { getInputFromTemplate, processTemplate } from '@n2flowjs/template/template';
-import { findNextNodes, isNodeReady, FlowStateDispatcher, ExecutionResult, FlowExecutionContext } from '@n2flowjs/flow';
+import { findNextNodes, isNodeReady, FlowStateDispatcher, ExecutionResult, FlowExecutionContext, ResultWaiting } from '@n2flowjs/flow';
 
 /**
  * Handler for executing Math nodes
@@ -21,27 +21,8 @@ export async function executeMathNode(
     ...getInputFromTemplate(form.value2 || ''),
   ];
   
-  const ready = isNodeReady(inputs, flowState);
-  
-  if (!ready) {
-    return {
-      nextNodes: [],
-      status: 'waiting',
-      message: 'Waiting for input variables for math operation',
-      flowState,
-      nodeInfo: {
-        id: node.id,
-        name: node.data?.label || node.id,
-        type: 'math',
-        role: 'developer',
-      },
-      execution: {
-        output: 'Waiting for input variables',
-        nodeId: node.id,
-        nodeName: node.data?.label || node.id,
-        startTime: startTime,
-      },
-    };
+  if (!isNodeReady(inputs, flowState)) {
+    return ResultWaiting(node, flowState, startTime);
   }
 
   // Prepare variables for template processing

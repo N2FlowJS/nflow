@@ -1,6 +1,6 @@
 import type { FlowNode } from '../../models/nodeDataMap';
 import type { ConditionNodeData, ConditionForm } from './types';
-import { findNextNodes } from '../@flow/find-next-node';
+import { findNextNodes, ResultWaiting } from '../@flow/find-next-node';
 import { getInputFromTemplate, processTemplate } from '@n2flowjs/template/template';
 import { isNodeReady } from '../@flow/is-node-ready';
 import { FlowStateDispatcher } from '../@flow';
@@ -28,27 +28,8 @@ export async function execute(
     }
   });
   
-  const ready = isNodeReady(inputs, flowState);
-  
-  if (!ready) {
-    return {
-      nextNodes: [],
-      status: 'waiting',
-      message: 'Waiting for input values for condition check',
-      flowState,
-      nodeInfo: {
-        id: node.id,
-        name: node.data?.label || node.id,
-        type: 'condition',
-        role: 'developer',
-      },
-      execution: {
-        output: 'Waiting for input values',
-        nodeId: node.id,
-        nodeName: node.data?.label || node.id,
-        startTime: startTime,
-      },
-    };
+  if (!isNodeReady(inputs, flowState)) {
+    return ResultWaiting(node, flowState, startTime);
   }
 
   // Prepare variables for template processing

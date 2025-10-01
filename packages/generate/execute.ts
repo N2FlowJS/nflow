@@ -2,13 +2,12 @@ import { FlowNode } from '../../models/flowTypes';
 import { GenerateNodeData } from './types';
 import { ExecutionResult, FlowExecutionContext } from '../../models/flowExecutionTypes';
 import { getInputFromTemplate, processTemplate } from '@n2flowjs/template/template';
-import { findNextNodes } from '@n2flowjs/flow/find-next-node';
+import { findNextNodes, ResultWaiting } from '@n2flowjs/flow/find-next-node';
 import { isNodeReady } from '@n2flowjs/flow/is-node-ready';
 import { FlowStateDispatcher } from '@n2flowjs/flow/flow-state-dispatcher';
 import { prisma } from '../../lib/prisma';
 import { MessagePart } from '../../models/MessagePart';
-import { llmOpenAI } from '../../llm/openai';
-import { llmGemini } from '../../llm/gemini';
+import llm, { SupportedProvider } from 'llm/llm';
 
 /**
  * Handler for executing Generate nodes
@@ -21,7 +20,7 @@ export async function executeGenerateNode(
 ): Promise<ExecutionResult> {
   const data = node.data as GenerateNodeData;
   const form = data.form || {};
-
+  const startTime = new Date().toISOString();
   const inputs: string[] = getInputFromTemplate(form.prompt);
 
   const historyMessages: MessagePart[] =
@@ -32,26 +31,8 @@ export async function executeGenerateNode(
         }))
       : [];
 
-  const ready = isNodeReady(inputs, flowState);
-  if (!ready) {
-    return {
-      nextNodes: [],
-      status: 'waiting',
-      message: 'Waiting for input to generate',
-      flowState,
-      nodeInfo: {
-        id: node.id,
-        name: node.data?.label || node.id,
-        type: 'generate',
-        role: 'developer',
-      },
-      execution: {
-        output: 'Waiting for input to generate',
-        nodeId: node.id,
-        nodeName: node.data?.label || node.id,
-        startTime: new Date().toISOString(),
-      },
-    };
+  if (!isNodeReady(inputs, flowState)) {
+    return ResultWaiting(node, flowState, startTime);
   }
 
   const vars: Record<string, string> = {};
@@ -93,8 +74,9 @@ export async function executeGenerateNode(
     let aiResponse = '';
     const streamCallback = callback
       ? (partial: string) => {
+          console.log('Streaming response:', partial);
           callback({
-            status: 'waiting',
+            status: 'token',
             nextNodes: [],
             flowState,
             nodeInfo: {
@@ -112,74 +94,16 @@ export async function executeGenerateNode(
           });
         }
       : undefined;
-    console.log('Executing LLM model:', {
-      model: model.name,
-      provider: model.provider.providerType,
-      prompt: message,
-      nodeId: node.id,
-    });
-    switch (model.provider.providerType) {
-      case 'openai':
-        aiResponse = await llmOpenAI.completions(
-          model.provider.endpointUrl,
-          model.provider.apiKey,
-          model.name,
-          message,
-          undefined,
-          streamCallback
-        );
-        break;
-      case 'openai-compatible':
-        aiResponse = await llmOpenAI.completions(
-          model.provider.endpointUrl,
-          model.provider.apiKey,
-          model.name,
-          message,
-          undefined,
-          streamCallback
-        );
-        break;
-      case 'grok':
-        // xAI Grok is OpenAI-compatible
-        aiResponse = await llmOpenAI.completions(
-          model.provider.endpointUrl,
-          model.provider.apiKey,
-          model.name,
-          message,
-          undefined,
-          streamCallback
-        );
-        break;
-      case 'gemini':
-        aiResponse = await llmGemini.completions(
-          model.provider.endpointUrl,
-          model.provider.apiKey,
-          model.name,
-          message,
-          undefined,
-          streamCallback
-        );
-        break;
-      default:
-        return {
-          nextNodes: [],
-          status: 'error',
-          message: `Unsupported provider type: ${model.provider.providerType}`,
-          flowState,
-          nodeInfo: {
-            id: node.id,
-            name: node.data?.label || node.id,
-            type: 'generate',
-            role: 'developer',
-          },
-          execution: {
-            output: `Unsupported provider type: ${model.provider.providerType}`,
-            nodeId: node.id,
-            nodeName: node.data?.label || node.id,
-            startTime: new Date().toISOString(),
-          },
-        };
-    }
+
+    aiResponse = await llm.completions(
+      model.provider.providerType as SupportedProvider,
+      model.provider.endpointUrl,
+      model.provider.apiKey,
+      model.name,
+      message,
+      undefined,
+      streamCallback
+    );
 
     // Use shared dispatcher if available
     let finalState = flowState;
@@ -215,14 +139,3 @@ export async function executeGenerateNode(
     throw new Error(`Error generating content: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
-export type LLMProvider = {
-  id: string;
-  createdAt: Date;
-  updatedAt: Date;
-  ownerType: string;
-  providerType: string;
-  endpointUrl: string;
-  apiKey: string;
-  userOwnerId: string | null;
-  teamOwnerId: string | null;
-};

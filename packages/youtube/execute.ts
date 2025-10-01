@@ -1,7 +1,7 @@
 import { YouTubeNodeData } from './types';
 import { FlowNode } from '../../models/flowTypes';
 import { getInputFromTemplate, processTemplate } from '@n2flowjs/template/template';
-import { findNextNodes } from '@n2flowjs/flow/find-next-node';
+import { findNextNodes, ResultWaiting } from '@n2flowjs/flow/find-next-node';
 import { isNodeReady } from '@n2flowjs/flow/is-node-ready';
 import { FlowStateDispatcher } from '@n2flowjs/flow/flow-state-dispatcher';
 import { ExecutionResult, FlowExecutionContext } from '@n2flowjs/flow/type';
@@ -25,27 +25,8 @@ export async function execute(
     ...getInputFromTemplate(form.playlistTitle || ''),
   ];
   
-  const ready = isNodeReady(inputs, flowState);
-  
-  if (!ready) {
-    return {
-      nextNodes: [],
-      status: 'waiting',
-      message: 'Waiting for input variables for YouTube operation',
-      flowState,
-      nodeInfo: {
-        id: node.id,
-        name: node.data?.label || node.id,
-        type: 'youtube',
-        role: 'developer',
-      },
-      execution: {
-        output: 'Waiting for input variables',
-        nodeId: node.id,
-        nodeName: node.data?.label || node.id,
-        startTime: startTime,
-      },
-    };
+  if (!isNodeReady(inputs, flowState)) {
+    return ResultWaiting(node, flowState, startTime);
   }
 
   // Prepare variables for template processing

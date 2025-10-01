@@ -127,7 +127,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
               result.choices?.[0]?.finish_reason === 'error'
                 ? 'error'
                 : result.choices?.[0]?.finish_reason
-                ? 'completed'
+                ? 'ended'
                 : 'in_progress',
             nodeId: result.flowState.currentNode.id,
             nodeName: result.flowState.currentNode.data.form.name,

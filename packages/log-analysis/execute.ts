@@ -1,6 +1,6 @@
 import {  FlowNode } from '../../models/flowTypes';
 import { getInputFromTemplate, processTemplate } from '@n2flowjs/template/template';
-import { findNextNodes, isNodeReady, FlowStateDispatcher, ExecutionResult, FlowExecutionContext } from '@n2flowjs/flow';
+import { findNextNodes, isNodeReady, FlowStateDispatcher, ExecutionResult, FlowExecutionContext, ResultWaiting } from '@n2flowjs/flow';
 import * as fs from 'fs';
 import { LogAnalysisNodeData } from './types';
 
@@ -21,29 +21,9 @@ export async function executeLogAnalysisNode(
     ...getInputFromTemplate(form.logPath || ''),
   ];
 
-  const ready = isNodeReady(inputs, flowState);
-
-  if (!ready) {
-    return {
-      nextNodes: [],
-      status: 'waiting',
-      message: 'Waiting for input variables for log analysis',
-      flowState,
-      nodeInfo: {
-        id: node.id,
-        name: node.data?.label || node.id,
-        type: 'loganalysis',
-        role: 'developer',
-      },
-      execution: {
-        output: 'Waiting for input variables',
-        nodeId: node.id,
-        nodeName: node.data?.label || node.id,
-        startTime: startTime,
-      },
-    };
+  if (!isNodeReady(inputs, flowState)) {
+    return ResultWaiting(node, flowState, startTime);
   }
-
   // Prepare variables for template processing
   const vars: Record<string, string> = {};
   inputs.forEach((key) => {

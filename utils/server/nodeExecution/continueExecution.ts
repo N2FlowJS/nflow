@@ -1,5 +1,5 @@
 import { Flow } from '../../../models/flowTypes';
-import { EXECUTION_STATUS } from '../../../utils/server/EXECUTION_STATUS';
+import { EXECUTION_STATUS } from '../../../packages/@flow/EXECUTION_STATUS';
 import { processNode } from './processNode';
 import { FlowStateDispatcher } from '@n2flowjs/flow/flow-state-dispatcher';
 import { MessagePart } from '../../../models/MessagePart';
@@ -16,7 +16,7 @@ export async function continueExecution(
   if (!result.nextNodes || result.nextNodes.length === 0) {
     // Normalize a final completion event for the current node
     const finalResult: ExecutionResult = {
-      status: 'completed',
+      status: 'ended',
       nextNodes: [],
       flowState: result.flowState,
       nodeInfo: result.nodeInfo,
@@ -35,12 +35,12 @@ export async function continueExecution(
   for (const nodeId of result.nextNodes) {
     const nextResult = await processNode(flow, nodeId, result, callback, history, dispatcher);
 
-    if (nextResult.status !== EXECUTION_STATUS.COMPLETED && nextResult.nextNodes.length > 0) {
+    if (nextResult.status !== EXECUTION_STATUS.ENDED && nextResult.nextNodes.length > 0) {
       await continueExecution(flow, nextResult, callback, history, dispatcher);
     } else if (!nextResult.nextNodes || nextResult.nextNodes.length === 0) {
       // Terminal state reached after executing this next node
       const finalResult: ExecutionResult = {
-        status: 'completed',
+        status: 'ended',
         nextNodes: [],
         flowState: nextResult.flowState,
         nodeInfo: nextResult.nodeInfo,
