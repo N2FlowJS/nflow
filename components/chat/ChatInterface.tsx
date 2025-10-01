@@ -201,7 +201,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                 jsonData.choices?.[0]?.finish_reason === 'error'
                   ? 'error'
                   : jsonData.choices?.[0]?.finish_reason
-                  ? 'completed'
+                  ? 'ended'
                   : 'in_progress',
               nodeId: jsonData.flowState.currentNode.id,
               nodeName: jsonData.flowState.currentNode.data.form.name,
@@ -215,7 +215,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
             isDone = true;
             // If a finish reason is provided, update status to completed/error
             if (executionStatus) {
-              executionStatus.status = jsonData.choices[0].finish_reason === 'error' ? 'error' : 'completed';
+              executionStatus.status = jsonData.choices[0].finish_reason === 'error' ? 'error' : 'ended';
             }
           }
         } catch (e) {
@@ -290,8 +290,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
           text: accumulatedText,
           executionStatus: {
             ...finalExecutionStatus,
-            // Ensure status is marked completed if loop finished normally
-            status: finalExecutionStatus.status !== 'error' ? 'completed' : 'error',
+            // Ensure status is marked ended if loop finished normally
+            status: finalExecutionStatus.status !== 'error' ? 'ended' : 'error',
           },
         };
 
@@ -312,7 +312,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
             result.choices?.[0]?.finish_reason === 'error'
               ? 'error'
               : result.choices?.[0]?.finish_reason
-              ? 'completed'
+              ? 'ended'
               : 'in_progress',
           nodeId: result.flowState.currentNodeId,
           nodeName: result.flowState.currentNodeName,
@@ -481,7 +481,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         text: streamingMessage.text + '\n(Streaming stopped by user)',
         executionStatus: {
           ...streamingMessage.executionStatus,
-          status: 'completed', // Or another appropriate status
+          status: 'ended', // Or another appropriate status
         },
       };
       setMessages((prev) => [...prev, stoppedMessage]);

@@ -105,8 +105,8 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
                   {executionStatus.status === 'in_progress' && (
                     <LoadingOutlined style={{ marginRight: token.marginXS }} />
                   )}
-                  {executionStatus.status === 'completed'
-                    ? 'Completed: '
+                  {executionStatus.status === 'ended'
+                    ? 'Ended: '
                     : executionStatus.status === 'error'
                     ? 'Error: '
                     : 'Processing: '}

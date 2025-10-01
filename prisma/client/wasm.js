@@ -5,13 +5,28 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 
 const {
+  PrismaClientKnownRequestError,
+  PrismaClientUnknownRequestError,
+  PrismaClientRustPanicError,
+  PrismaClientInitializationError,
+  PrismaClientValidationError,
+  getPrismaClient,
+  sqltag,
+  empty,
+  join,
+  raw,
+  skip,
   Decimal,
+  Debug,
   objectEnumValues,
   makeStrictEnum,
+  Extensions,
+  warnOnce,
+  defineDmmfProperty,
   Public,
   getRuntime,
-  skip
-} = require('./runtime/index-browser.js')
+  createParam,
+} = require('./runtime/wasm-engine-edge.js')
 
 
 const Prisma = {}
@@ -20,79 +35,35 @@ exports.Prisma = Prisma
 exports.$Enums = {}
 
 /**
- * Prisma Client JS version: 6.9.0
- * Query Engine version: 81e4af48011447c3cc503a190e86995b66d2a28e
+ * Prisma Client JS version: 6.16.3
+ * Query Engine version: bb420e667c1820a8c05a38023385f6cc7ef8e83a
  */
 Prisma.prismaVersion = {
-  client: "6.9.0",
-  engine: "81e4af48011447c3cc503a190e86995b66d2a28e"
+  client: "6.16.3",
+  engine: "bb420e667c1820a8c05a38023385f6cc7ef8e83a"
 }
 
-Prisma.PrismaClientKnownRequestError = () => {
-  const runtimeName = getRuntime().prettyName;
-  throw new Error(`PrismaClientKnownRequestError is unable to run in this browser environment, or has been bundled for the browser (running in ${runtimeName}).
-In case this error is unexpected for you, please report it in https://pris.ly/prisma-prisma-bug-report`,
-)};
-Prisma.PrismaClientUnknownRequestError = () => {
-  const runtimeName = getRuntime().prettyName;
-  throw new Error(`PrismaClientUnknownRequestError is unable to run in this browser environment, or has been bundled for the browser (running in ${runtimeName}).
-In case this error is unexpected for you, please report it in https://pris.ly/prisma-prisma-bug-report`,
-)}
-Prisma.PrismaClientRustPanicError = () => {
-  const runtimeName = getRuntime().prettyName;
-  throw new Error(`PrismaClientRustPanicError is unable to run in this browser environment, or has been bundled for the browser (running in ${runtimeName}).
-In case this error is unexpected for you, please report it in https://pris.ly/prisma-prisma-bug-report`,
-)}
-Prisma.PrismaClientInitializationError = () => {
-  const runtimeName = getRuntime().prettyName;
-  throw new Error(`PrismaClientInitializationError is unable to run in this browser environment, or has been bundled for the browser (running in ${runtimeName}).
-In case this error is unexpected for you, please report it in https://pris.ly/prisma-prisma-bug-report`,
-)}
-Prisma.PrismaClientValidationError = () => {
-  const runtimeName = getRuntime().prettyName;
-  throw new Error(`PrismaClientValidationError is unable to run in this browser environment, or has been bundled for the browser (running in ${runtimeName}).
-In case this error is unexpected for you, please report it in https://pris.ly/prisma-prisma-bug-report`,
-)}
+Prisma.PrismaClientKnownRequestError = PrismaClientKnownRequestError;
+Prisma.PrismaClientUnknownRequestError = PrismaClientUnknownRequestError
+Prisma.PrismaClientRustPanicError = PrismaClientRustPanicError
+Prisma.PrismaClientInitializationError = PrismaClientInitializationError
+Prisma.PrismaClientValidationError = PrismaClientValidationError
 Prisma.Decimal = Decimal
 
 /**
  * Re-export of sql-template-tag
  */
-Prisma.sql = () => {
-  const runtimeName = getRuntime().prettyName;
-  throw new Error(`sqltag is unable to run in this browser environment, or has been bundled for the browser (running in ${runtimeName}).
-In case this error is unexpected for you, please report it in https://pris.ly/prisma-prisma-bug-report`,
-)}
-Prisma.empty = () => {
-  const runtimeName = getRuntime().prettyName;
-  throw new Error(`empty is unable to run in this browser environment, or has been bundled for the browser (running in ${runtimeName}).
-In case this error is unexpected for you, please report it in https://pris.ly/prisma-prisma-bug-report`,
-)}
-Prisma.join = () => {
-  const runtimeName = getRuntime().prettyName;
-  throw new Error(`join is unable to run in this browser environment, or has been bundled for the browser (running in ${runtimeName}).
-In case this error is unexpected for you, please report it in https://pris.ly/prisma-prisma-bug-report`,
-)}
-Prisma.raw = () => {
-  const runtimeName = getRuntime().prettyName;
-  throw new Error(`raw is unable to run in this browser environment, or has been bundled for the browser (running in ${runtimeName}).
-In case this error is unexpected for you, please report it in https://pris.ly/prisma-prisma-bug-report`,
-)}
+Prisma.sql = sqltag
+Prisma.empty = empty
+Prisma.join = join
+Prisma.raw = raw
 Prisma.validator = Public.validator
 
 /**
 * Extensions
 */
-Prisma.getExtensionContext = () => {
-  const runtimeName = getRuntime().prettyName;
-  throw new Error(`Extensions.getExtensionContext is unable to run in this browser environment, or has been bundled for the browser (running in ${runtimeName}).
-In case this error is unexpected for you, please report it in https://pris.ly/prisma-prisma-bug-report`,
-)}
-Prisma.defineExtension = () => {
-  const runtimeName = getRuntime().prettyName;
-  throw new Error(`Extensions.defineExtension is unable to run in this browser environment, or has been bundled for the browser (running in ${runtimeName}).
-In case this error is unexpected for you, please report it in https://pris.ly/prisma-prisma-bug-report`,
-)}
+Prisma.getExtensionContext = Extensions.getExtensionContext
+Prisma.defineExtension = Extensions.defineExtension
 
 /**
  * Shorthand utilities for JSON filtering
@@ -109,10 +80,11 @@ Prisma.NullTypes = {
 
 
 
+
+
 /**
  * Enums
  */
-
 exports.Prisma.TransactionIsolationLevel = makeStrictEnum({
   Serializable: 'Serializable'
 });
@@ -313,34 +285,82 @@ exports.Prisma.ModelName = {
   Conversation: 'Conversation',
   ConversationMessage: 'ConversationMessage'
 };
-
 /**
- * This is a stub Prisma Client that will error at runtime if called.
+ * Create the Client
  */
-class PrismaClient {
-  constructor() {
-    return new Proxy(this, {
-      get(target, prop) {
-        let message
-        const runtime = getRuntime()
-        if (runtime.isEdge) {
-          message = `PrismaClient is not configured to run in ${runtime.prettyName}. In order to run Prisma Client on edge runtime, either:
-- Use Prisma Accelerate: https://pris.ly/d/accelerate
-- Use Driver Adapters: https://pris.ly/d/driver-adapters
-`;
-        } else {
-          message = 'PrismaClient is unable to run in this browser environment, or has been bundled for the browser (running in `' + runtime.prettyName + '`).'
-        }
-
-        message += `
-If this is unexpected, please open an issue: https://pris.ly/prisma-prisma-bug-report`
-
-        throw new Error(message)
+const config = {
+  "generator": {
+    "name": "client",
+    "provider": {
+      "fromEnvVar": null,
+      "value": "prisma-client-js"
+    },
+    "output": {
+      "value": "D:\\git\\nflow\\prisma\\client",
+      "fromEnvVar": null
+    },
+    "config": {
+      "engineType": "library"
+    },
+    "binaryTargets": [
+      {
+        "fromEnvVar": null,
+        "value": "windows",
+        "native": true
       }
-    })
+    ],
+    "previewFeatures": [],
+    "sourceFilePath": "D:\\git\\nflow\\prisma\\schema.prisma",
+    "isCustomOutput": true
+  },
+  "relativeEnvPaths": {
+    "rootEnvPath": null,
+    "schemaEnvPath": "../../.env"
+  },
+  "relativePath": "..",
+  "clientVersion": "6.16.3",
+  "engineVersion": "bb420e667c1820a8c05a38023385f6cc7ef8e83a",
+  "datasourceNames": [
+    "db"
+  ],
+  "activeProvider": "sqlite",
+  "inlineDatasources": {
+    "db": {
+      "url": {
+        "fromEnvVar": "DATABASE_URL",
+        "value": null
+      }
+    }
+  },
+  "inlineSchema": "generator client {\n  provider = \"prisma-client-js\"\n  output   = \"client\"\n}\n\ndatasource db {\n  provider = \"sqlite\"\n  url      = env(\"DATABASE_URL\")\n}\n\nmodel Team {\n  id          String   @id @default(uuid())\n  name        String\n  description String\n  createdAt   DateTime @default(now())\n  updatedAt   DateTime @updatedAt\n\n  // Creator of the team\n  createdById String\n  createdBy   User   @relation(\"CreatedTeams\", fields: [createdById], references: [id])\n\n  // Team memberships\n  members MemberTeam[]\n\n  // Keep the direct relation temporarily for backward compatibility\n  users User[] @relation(\"TeamToUser\")\n\n  knowledge Knowledge[] @relation(\"TeamKnowledge\")\n\n  // Agent ownership relation\n  ownedAgents Agent[] @relation(\"TeamOwnedAgents\")\n\n  // Team-owned LLM Providers\n  ownedLLMProviders LLMProvider[] @relation(\"TeamOwnedProviders\")\n\n  // Conversations owned by the team\n  conversations Conversation[] @relation(\"TeamConversations\")\n}\n\nmodel MemberTeam {\n  id         String    @id @default(uuid())\n  permission String    @default(\"guest\") // \"owner\", \"admin\", \"maintainer\", \"developer\", \"guest\"\n  joinedAt   DateTime  @default(now())\n  leftAt     DateTime? // null if still active in the team\n\n  // Relations\n  team   Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)\n  teamId String\n  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)\n  userId String\n\n  // Ensure each user can only have one active record per team\n  @@unique([userId, teamId])\n}\n\nmodel Knowledge {\n  id          String   @id @default(uuid())\n  name        String\n  description String\n  config      Json?\n  createdAt   DateTime @default(now())\n  updatedAt   DateTime @default(now())\n\n  // Creator relationship - always required\n  createdBy User   @relation(fields: [userId], references: [id], name: \"CreatedKnowledge\")\n  userId    String\n\n  llmModel LLMModel? @relation(fields: [modelId], references: [id], name: \"ModelKnowledge\")\n  modelId  String?\n\n  // Optional associations\n  users User[] @relation(\"UserKnowledge\")\n  teams Team[] @relation(\"TeamKnowledge\")\n\n  // Files associated with this knowledge\n  files File[]\n}\n\n// New model for API tokens\nmodel ApiToken {\n  id          String    @id @default(uuid())\n  name        String // A descriptive name for the token\n  token       String    @unique // The actual token value\n  description String? // Optional description of token purpose\n  createdAt   DateTime  @default(now())\n  expiresAt   DateTime? // Optional expiration date\n  lastUsedAt  DateTime? // When the token was last used\n  status      String    @default(\"active\") // \"active\" or \"revoked\"\n\n  // Relation to the user who owns this token\n  user   User   @relation(\"UserApiTokens\", fields: [userId], references: [id], onDelete: Cascade)\n  userId String\n\n  @@index([token])\n  @@index([userId])\n}\n\nmodel User {\n  id          String   @id @default(uuid())\n  name        String\n  code        String\n  password    String\n  email       String\n  description String\n  createdAt   DateTime @default(now())\n  updatedAt   DateTime @updatedAt\n  permission  String   @default(\"guest\") // \"owner\", \"maintainer\", \"developer\", \"guest\"\n\n  createdTeams      Team[]            @relation(\"CreatedTeams\")\n  teamMemberships   MemberTeam[]\n  teams             Team[]            @relation(\"TeamToUser\")\n  createdKnowledge  Knowledge[]       @relation(\"CreatedKnowledge\")\n  knowledge         Knowledge[]       @relation(\"UserKnowledge\")\n  ownedAgents       Agent[]           @relation(\"UserOwnedAgents\")\n  createdAgents     Agent[]           @relation(\"AgentCreatedBy\")\n  FileParsingTask   FileParsingTask[] @relation(\"FileParsingTaskCreatedBy\")\n  ownedLLMProviders LLMProvider[]     @relation(\"UserOwnedProviders\")\n  conversations     Conversation[]    @relation(\"UserConversations\")\n\n  apiTokens ApiToken[] @relation(\"UserApiTokens\")\n\n  lmmConfig Json?\n}\n\n// Update the File model to include parsing status\nmodel File {\n  id            String   @id @default(uuid())\n  filename      String\n  originalName  String\n  path          String\n  mimetype      String\n  size          Int\n  content       String? // New field to store parsed file content\n  config        Json?\n  createdAt     DateTime @default(now())\n  parsingStatus String? // \"pending\", \"completed\", \"failed\", null\n\n  // Relationship with Knowledge\n  knowledge   Knowledge @relation(fields: [knowledgeId], references: [id], onDelete: Cascade)\n  knowledgeId String\n\n  // Relation to parsing tasks\n  parsingTasks FileParsingTask[]\n\n  TextChunk TextChunk[]\n}\n\n// New model for file parsing tasks\nmodel FileParsingTask {\n  id          String    @id @default(uuid())\n  status      String // \"pending\", \"processing\", \"completed\", \"failed\"\n  createdAt   DateTime  @default(now())\n  updatedAt   DateTime  @updatedAt\n  completedAt DateTime?\n  message     String? // Changed from errorMessage to message - stores logs, errors, and task information\n\n  // Relationship with File\n  file   File   @relation(fields: [fileId], references: [id], onDelete: Cascade)\n  fileId String\n\n  // Creator of the task\n  createdBy   User   @relation(\"FileParsingTaskCreatedBy\", fields: [createdById], references: [id])\n  createdById String\n}\n\n// New Agent model\nmodel Agent {\n  id          String   @id @default(uuid())\n  name        String\n  description String\n  flowConfig  Json // JSON string to store react-flow configuration\n  isActive    Boolean  @default(true)\n  ownerType   String // \"user\" or \"team\"\n  createdAt   DateTime @default(now())\n  updatedAt   DateTime @default(now())\n\n  // Creator relationship\n  createdBy   User   @relation(\"AgentCreatedBy\", fields: [createdById], references: [id])\n  createdById String\n\n  // User ownership (optional)\n  user   User?   @relation(\"UserOwnedAgents\", fields: [userId], references: [id])\n  userId String?\n\n  // Team ownership (optional)\n  team   Team?   @relation(\"TeamOwnedAgents\", fields: [teamId], references: [id])\n  teamId String?\n\n  // Ensure either userId or teamId is set, but not both simultaneously\n\n  // Conversations using this agent\n  conversations Conversation[]\n}\n\nmodel TextChunk {\n  id         String   @id @default(uuid())\n  fileId     String\n  content    String\n  chunkIndex Int\n  metadata   Json?\n  vectorData String? // Add this field to store serialized vector data\n  createdAt  DateTime @default(now())\n  updatedAt  DateTime @updatedAt\n\n  file File @relation(fields: [fileId], references: [id], onDelete: Cascade)\n\n  @@index([fileId])\n  @@map(\"text_chunks\")\n}\n\n// LLM Provider model\nmodel LLMProvider {\n  id           String   @id @default(uuid())\n  providerType String // \"openai\", \"openai-compatible\"\n  endpointUrl  String // API endpoint URL\n  apiKey       String   @default(\"\")\n  createdAt    DateTime @default(now())\n  updatedAt    DateTime @updatedAt\n\n  // Ownership type - \"user\" or \"team\"\n  ownerType String @default(\"user\")\n\n  // Models available from this provider\n  models LLMModel[]\n\n  // User ownership relation (optional)\n  userOwner   User?   @relation(\"UserOwnedProviders\", fields: [userOwnerId], references: [id])\n  userOwnerId String?\n\n  // Team ownership relation (optional)\n  teamOwner   Team?   @relation(\"TeamOwnedProviders\", fields: [teamOwnerId], references: [id])\n  teamOwnerId String?\n}\n\n// LLM Model details\nmodel LLMModel {\n  id            String   @id @default(uuid())\n  name          String\n  modelType     String // \"chat\", \"embedding\", \"image\", etc.\n  contextWindow Int? // Max context window size\n  createdAt     DateTime @default(now())\n  updatedAt     DateTime @default(now())\n\n  // Relation to provider\n  provider   LLMProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)\n  providerId String\n\n  knowledges Knowledge[] @relation(\"ModelKnowledge\")\n}\n\n// New model for storing conversation data\nmodel Conversation {\n  id            String   @id @default(uuid())\n  title         String? // Auto-generated or user-defined title\n  agentId       String // Reference to the agent used\n  flowState     Json // JSON serialized FlowState\n  status        String   @default(\"active\") // \"active\", \"completed\", \"archived\"\n  createdAt     DateTime @default(now())\n  updatedAt     DateTime @updatedAt\n  lastMessageAt DateTime @default(now())\n\n  // User who initiated or is the primary interactor in the conversation\n  userId String?\n  user   User?   @relation(\"UserConversations\", fields: [userId], references: [id], onDelete: SetNull)\n\n  // Team associated with the conversation (e.g., if a team agent is used)\n  teamId String?\n  team   Team?   @relation(\"TeamConversations\", fields: [teamId], references: [id], onDelete: SetNull)\n\n  // Relationships\n  agent Agent @relation(fields: [agentId], references: [id])\n\n  // History of messages in the conversation\n  messages ConversationMessage[]\n\n  @@index([agentId])\n  @@index([lastMessageAt])\n  @@index([userId])\n  @@index([teamId])\n}\n\n// Model for individual messages in a conversation\nmodel ConversationMessage {\n  id             String   @id @default(uuid())\n  conversationId String\n  content        String // Message content\n  role           String // \"user\", \"agent\", \"system\"\n  timestamp      DateTime @default(now())\n  metadata       Json? // Additional metadata about the message\n\n  // Tracking which node generated this message\n  nodeId   String?\n  nodeType String?\n\n  // Relationship\n  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)\n\n  @@index([conversationId])\n  @@index([timestamp])\n}\n",
+  "inlineSchemaHash": "9c4b2139e24ad99721014a45c120ef032dc0ee4b5fb8a3ffa7e8211f947e7909",
+  "copyEngine": true
+}
+config.dirname = '/'
+
+config.runtimeDataModel = JSON.parse("{\"models\":{\"Team\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"description\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"createdById\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdBy\",\"kind\":\"object\",\"type\":\"User\",\"relationName\":\"CreatedTeams\"},{\"name\":\"members\",\"kind\":\"object\",\"type\":\"MemberTeam\",\"relationName\":\"MemberTeamToTeam\"},{\"name\":\"users\",\"kind\":\"object\",\"type\":\"User\",\"relationName\":\"TeamToUser\"},{\"name\":\"knowledge\",\"kind\":\"object\",\"type\":\"Knowledge\",\"relationName\":\"TeamKnowledge\"},{\"name\":\"ownedAgents\",\"kind\":\"object\",\"type\":\"Agent\",\"relationName\":\"TeamOwnedAgents\"},{\"name\":\"ownedLLMProviders\",\"kind\":\"object\",\"type\":\"LLMProvider\",\"relationName\":\"TeamOwnedProviders\"},{\"name\":\"conversations\",\"kind\":\"object\",\"type\":\"Conversation\",\"relationName\":\"TeamConversations\"}],\"dbName\":null},\"MemberTeam\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"permission\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"joinedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"leftAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"team\",\"kind\":\"object\",\"type\":\"Team\",\"relationName\":\"MemberTeamToTeam\"},{\"name\":\"teamId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"user\",\"kind\":\"object\",\"type\":\"User\",\"relationName\":\"MemberTeamToUser\"},{\"name\":\"userId\",\"kind\":\"scalar\",\"type\":\"String\"}],\"dbName\":null},\"Knowledge\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"description\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"config\",\"kind\":\"scalar\",\"type\":\"Json\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"createdBy\",\"kind\":\"object\",\"type\":\"User\",\"relationName\":\"CreatedKnowledge\"},{\"name\":\"userId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"llmModel\",\"kind\":\"object\",\"type\":\"LLMModel\",\"relationName\":\"ModelKnowledge\"},{\"name\":\"modelId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"users\",\"kind\":\"object\",\"type\":\"User\",\"relationName\":\"UserKnowledge\"},{\"name\":\"teams\",\"kind\":\"object\",\"type\":\"Team\",\"relationName\":\"TeamKnowledge\"},{\"name\":\"files\",\"kind\":\"object\",\"type\":\"File\",\"relationName\":\"FileToKnowledge\"}],\"dbName\":null},\"ApiToken\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"token\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"description\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"expiresAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"lastUsedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"status\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"user\",\"kind\":\"object\",\"type\":\"User\",\"relationName\":\"UserApiTokens\"},{\"name\":\"userId\",\"kind\":\"scalar\",\"type\":\"String\"}],\"dbName\":null},\"User\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"code\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"password\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"email\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"description\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"permission\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdTeams\",\"kind\":\"object\",\"type\":\"Team\",\"relationName\":\"CreatedTeams\"},{\"name\":\"teamMemberships\",\"kind\":\"object\",\"type\":\"MemberTeam\",\"relationName\":\"MemberTeamToUser\"},{\"name\":\"teams\",\"kind\":\"object\",\"type\":\"Team\",\"relationName\":\"TeamToUser\"},{\"name\":\"createdKnowledge\",\"kind\":\"object\",\"type\":\"Knowledge\",\"relationName\":\"CreatedKnowledge\"},{\"name\":\"knowledge\",\"kind\":\"object\",\"type\":\"Knowledge\",\"relationName\":\"UserKnowledge\"},{\"name\":\"ownedAgents\",\"kind\":\"object\",\"type\":\"Agent\",\"relationName\":\"UserOwnedAgents\"},{\"name\":\"createdAgents\",\"kind\":\"object\",\"type\":\"Agent\",\"relationName\":\"AgentCreatedBy\"},{\"name\":\"FileParsingTask\",\"kind\":\"object\",\"type\":\"FileParsingTask\",\"relationName\":\"FileParsingTaskCreatedBy\"},{\"name\":\"ownedLLMProviders\",\"kind\":\"object\",\"type\":\"LLMProvider\",\"relationName\":\"UserOwnedProviders\"},{\"name\":\"conversations\",\"kind\":\"object\",\"type\":\"Conversation\",\"relationName\":\"UserConversations\"},{\"name\":\"apiTokens\",\"kind\":\"object\",\"type\":\"ApiToken\",\"relationName\":\"UserApiTokens\"},{\"name\":\"lmmConfig\",\"kind\":\"scalar\",\"type\":\"Json\"}],\"dbName\":null},\"File\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"filename\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"originalName\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"path\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"mimetype\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"size\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"content\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"config\",\"kind\":\"scalar\",\"type\":\"Json\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"parsingStatus\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"knowledge\",\"kind\":\"object\",\"type\":\"Knowledge\",\"relationName\":\"FileToKnowledge\"},{\"name\":\"knowledgeId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"parsingTasks\",\"kind\":\"object\",\"type\":\"FileParsingTask\",\"relationName\":\"FileToFileParsingTask\"},{\"name\":\"TextChunk\",\"kind\":\"object\",\"type\":\"TextChunk\",\"relationName\":\"FileToTextChunk\"}],\"dbName\":null},\"FileParsingTask\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"status\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"completedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"message\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"file\",\"kind\":\"object\",\"type\":\"File\",\"relationName\":\"FileToFileParsingTask\"},{\"name\":\"fileId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdBy\",\"kind\":\"object\",\"type\":\"User\",\"relationName\":\"FileParsingTaskCreatedBy\"},{\"name\":\"createdById\",\"kind\":\"scalar\",\"type\":\"String\"}],\"dbName\":null},\"Agent\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"description\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"flowConfig\",\"kind\":\"scalar\",\"type\":\"Json\"},{\"name\":\"isActive\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"ownerType\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"createdBy\",\"kind\":\"object\",\"type\":\"User\",\"relationName\":\"AgentCreatedBy\"},{\"name\":\"createdById\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"user\",\"kind\":\"object\",\"type\":\"User\",\"relationName\":\"UserOwnedAgents\"},{\"name\":\"userId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"team\",\"kind\":\"object\",\"type\":\"Team\",\"relationName\":\"TeamOwnedAgents\"},{\"name\":\"teamId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"conversations\",\"kind\":\"object\",\"type\":\"Conversation\",\"relationName\":\"AgentToConversation\"}],\"dbName\":null},\"TextChunk\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"fileId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"content\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"chunkIndex\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"metadata\",\"kind\":\"scalar\",\"type\":\"Json\"},{\"name\":\"vectorData\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"file\",\"kind\":\"object\",\"type\":\"File\",\"relationName\":\"FileToTextChunk\"}],\"dbName\":\"text_chunks\"},\"LLMProvider\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"providerType\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"endpointUrl\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"apiKey\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"ownerType\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"models\",\"kind\":\"object\",\"type\":\"LLMModel\",\"relationName\":\"LLMModelToLLMProvider\"},{\"name\":\"userOwner\",\"kind\":\"object\",\"type\":\"User\",\"relationName\":\"UserOwnedProviders\"},{\"name\":\"userOwnerId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"teamOwner\",\"kind\":\"object\",\"type\":\"Team\",\"relationName\":\"TeamOwnedProviders\"},{\"name\":\"teamOwnerId\",\"kind\":\"scalar\",\"type\":\"String\"}],\"dbName\":null},\"LLMModel\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"modelType\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"contextWindow\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"provider\",\"kind\":\"object\",\"type\":\"LLMProvider\",\"relationName\":\"LLMModelToLLMProvider\"},{\"name\":\"providerId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"knowledges\",\"kind\":\"object\",\"type\":\"Knowledge\",\"relationName\":\"ModelKnowledge\"}],\"dbName\":null},\"Conversation\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"title\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"agentId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"flowState\",\"kind\":\"scalar\",\"type\":\"Json\"},{\"name\":\"status\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"lastMessageAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"userId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"user\",\"kind\":\"object\",\"type\":\"User\",\"relationName\":\"UserConversations\"},{\"name\":\"teamId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"team\",\"kind\":\"object\",\"type\":\"Team\",\"relationName\":\"TeamConversations\"},{\"name\":\"agent\",\"kind\":\"object\",\"type\":\"Agent\",\"relationName\":\"AgentToConversation\"},{\"name\":\"messages\",\"kind\":\"object\",\"type\":\"ConversationMessage\",\"relationName\":\"ConversationToConversationMessage\"}],\"dbName\":null},\"ConversationMessage\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"conversationId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"content\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"role\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"timestamp\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"metadata\",\"kind\":\"scalar\",\"type\":\"Json\"},{\"name\":\"nodeId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"nodeType\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"conversation\",\"kind\":\"object\",\"type\":\"Conversation\",\"relationName\":\"ConversationToConversationMessage\"}],\"dbName\":null}},\"enums\":{},\"types\":{}}")
+defineDmmfProperty(exports.Prisma, config.runtimeDataModel)
+config.engineWasm = {
+  getRuntime: async () => require('./query_engine_bg.js'),
+  getQueryEngineWasmModule: async () => {
+    const loader = (await import('#wasm-engine-loader')).default
+    const engine = (await loader).default
+    return engine
   }
 }
+config.compilerWasm = undefined
 
+config.injectableEdgeEnv = () => ({
+  parsed: {
+    DATABASE_URL: typeof globalThis !== 'undefined' && globalThis['DATABASE_URL'] || typeof process !== 'undefined' && process.env && process.env.DATABASE_URL || undefined
+  }
+})
+
+if (typeof globalThis !== 'undefined' && globalThis['DEBUG'] || typeof process !== 'undefined' && process.env && process.env.DEBUG || undefined) {
+  Debug.enable(typeof globalThis !== 'undefined' && globalThis['DEBUG'] || typeof process !== 'undefined' && process.env && process.env.DEBUG || undefined)
+}
+
+const PrismaClient = getPrismaClient(config)
 exports.PrismaClient = PrismaClient
-
 Object.assign(exports, Prisma)
+
