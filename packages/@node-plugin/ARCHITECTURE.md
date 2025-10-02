@@ -176,13 +176,13 @@ For package "http-request":
 
 1. Try: packages/http-request/.nflow.json
    ↓ (if not found)
-   
+
 2. Try: packages/http-request/http-request.nflow.json
    ↓ (if not found)
-   
+
 3. Try: packages/http-request/package.json → nflow field
    ↓ (if not found)
-   
+
 4. Return: null (plugin has no config)
 
 If found: Normalize config (sort → order)
@@ -248,15 +248,15 @@ Server Scan (Build Time):
 ## 🌐 Browser vs Server
 
 ```
-┌──────────────────────────────────────────┐
-│              Feature Matrix              │
-├──────────────┬──────────┬────────────────┤
-│ Function     │ Browser  │ Server         │
-├──────────────┼──────────┼────────────────┤
-│ Config Load  │ Stub ❌  │ Full ✓         │
-│ Scan Pkgs    │ Stub ❌  │ Full ✓         │
-│ Get Components│ Window ✓│ Scan ✓         │
-│ Get Keys     │ Window ✓│ FS Scan ✓      │
-│ Caching      │ No       │ Yes ✓          │
-└──────────────┴──────────┴────────────────┘
+┌────────────────────────────────────────────────┐
+│              Feature Matrix                    │
+├───────────────┬───────────────┬────────────────┤
+│ Function      │ Browser       │ Server         │
+├───────────────┼───────────────┼────────────────┤
+│ Config Load   │ Stub ❌       │ Full ✓        │
+│ Scan Pkgs     │ Stub ❌       │ Full ✓        │
+│ Get Components│ Window ✓       │ Scan ✓       │
+│ Get Keys      │ Window ✓       │ FS Scan ✓    │
+│ Caching       │ No             │ Yes ✓        │
+└───────────────┴────────────────┴───────────────┘
 ```

@@ -1,5 +1,5 @@
 import type { ExecutionResult, FlowExecutionContext, FlowNode } from '@n2flowjs/flow';
-import { findNextNodes, FlowStateDispatcher } from '@n2flowjs/flow';
+import { findNextNodes, FlowStateDispatcher, isNodeReady, ResultWaiting } from '@n2flowjs/flow';
 import { flowStateReducer } from '../@flow/flow-state-reducer';
 import { getInputs, getQueryFromSource } from '../../hooks/useInputReferences';
 import { searchSimilarContent } from '../../lib/services/vectorSearchService';
@@ -15,20 +15,78 @@ export async function executeRetrievalNode(
 ): Promise<ExecutionResult> {
   const data = node.data as RetrievalNodeData;
   const startTime = new Date().toISOString();
+
   // Ensure form exists with a default empty object to prevent TypeScript errors
   const form = data.form || {};
 
-  const inputs = getInputs(node.id, flowState, []);
+  // Debug logging
+  if (process.env.NODE_ENV !== 'production') {
+    console.log(`[Retrieval Node ${node.id}] Starting execution`);
+  }
 
-  // Get the query - prioritize lastUserInput if available
-  const query = getQueryFromSource(inputs, flowState) || input.content;
-  if (!query) throw new Error('No query available for retrieval');
+  const inputs = getInputs(node.id, flowState, []);
+  if (!isNodeReady(inputs, flowState)) {
+    return ResultWaiting(node, flowState, startTime);
+  }
+  // Get the query - prioritize from multiple sources
+  let query = getQueryFromSource(inputs, flowState);
+
+  // Fallback to input.content
+  if (!query && input?.content) {
+    query = input.content;
+  }
+
+  // Fallback to last message in history
+  if (!query && flowState.history && flowState.history.length > 0) {
+    // Find the last user message with content
+    for (let i = flowState.history.length - 1; i >= 0; i--) {
+      const entry = flowState.history[i];
+      if (entry && entry.output) {
+        query = entry.output;
+        break;
+      }
+    }
+  }
+
+  // Fallback to any component output in flowState
+  if (!query && flowState.components) {
+    const componentIds = Object.keys(flowState.components);
+    for (let i = componentIds.length - 1; i >= 0; i--) {
+      const comp = flowState.components[componentIds[i]];
+      if (comp && comp.output) {
+        query = comp.output;
+        break;
+      }
+    }
+  }
+
+  if (!query) {
+    const errorMsg =
+      'No query available for retrieval. Please provide input text or connect to a previous node with output.';
+    console.error(`[Retrieval Node ${node.id}] ${errorMsg}`, {
+      hasInput: !!input,
+      inputContent: input?.content?.substring(0, 100),
+      inputsLength: inputs.length,
+      historyLength: flowState.history?.length || 0,
+      componentsCount: Object.keys(flowState.components || {}).length,
+    });
+    throw new Error(errorMsg);
+  }
 
   try {
     const knowledgeIds = form.knowledgeIds || [];
     const maxResults = form.maxResults || 3;
 
-    if (knowledgeIds.length === 0) throw new Error('No knowledge base IDs provided for retrieval');
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`[Retrieval Node ${node.id}] Query: "${query.substring(0, 100)}..."`);
+      console.log(`[Retrieval Node ${node.id}] Knowledge bases: ${knowledgeIds.length}, Max results: ${maxResults}`);
+    }
+
+    if (knowledgeIds.length === 0) {
+      throw new Error(
+        'No knowledge base IDs provided for retrieval. Please configure knowledge bases in the node settings.'
+      );
+    }
 
     // Search for similar content
 
@@ -50,6 +108,10 @@ export async function executeRetrievalNode(
     );
 
     const allResults = retrievalResults.flat().slice(0, maxResults);
+
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`[Retrieval Node ${node.id}] Found ${allResults.length} results`);
+    }
 
     const formattedResults = allResults
       .map((result, index) => `[${index + 1}] ${result.text}\nSource: ${result.source}`)
@@ -100,6 +162,8 @@ export async function executeRetrievalNode(
       },
     };
   } catch (error: unknown) {
-    throw new Error(`Error in retrieval node: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+    console.error(`[Retrieval Node ${node.id}] Execution failed:`, errorMsg);
+    throw new Error(`Error in retrieval node (${node.data?.label || node.id}): ${errorMsg}`);
   }
 }
