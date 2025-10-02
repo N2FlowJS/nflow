@@ -1,105 +1,205 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { NodeTypes as ReactFlowNodeTypes } from '@xyflow/react';
 import { getDiscoveredNodeComponents } from '../../@node-plugin/discovery/ui-discover';
 import { normalizeKey } from '../../../utils/normalizeKey';
 
-// Dynamic cache for lazily imported node components (client side)
-const dynamicNodeCache: Record<string, React.ComponentType<any>> = {};
+// Global cache using Map for better performance with dynamic keys
+const componentCache = new Map<string, React.ComponentType<any>>();
+const failedImports = new Set<string>(); // Track failed imports to avoid retry
+const normalizedKeyCache = new Map<string, string>(); // Cache normalized keys
+const loadingPromises = new Map<string, Promise<React.ComponentType<any> | null>>(); // Dedupe concurrent imports
 
-// Helper: normalize a raw node type / package name into the discovery key (match server scan: remove non-alphanumerics, lowercase)
-
-// Load whatever has already been discovered (server scan or window injection)
-function loadDiscovered(): Record<string, React.ComponentType<any>> {
-  if (typeof window !== 'undefined') return (window as any).__NFLOW_NODE_COMPONENTS__ || {};
-  return getDiscoveredNodeComponents() as Record<string, React.ComponentType<any>>;
+// Cached normalize to avoid repeated computation
+function getCachedNormalizedKey(key: string): string {
+  if (!normalizedKeyCache.has(key)) {
+    normalizedKeyCache.set(key, normalizeKey(key));
+  }
+  return normalizedKeyCache.get(key)!;
 }
 
-// Attempt a dynamic (client) import for a given raw type / package name.
-async function tryDynamicImport(rawType: string): Promise<React.ComponentType<any> | null> {
-  const norm = normalizeKey(rawType);
-  if (dynamicNodeCache[norm]) return dynamicNodeCache[norm];
-  const candidates = Array.from(new Set([rawType, norm]));
-  for (const c of candidates) {
-    try {
-      // Expect a /node entry folder similar to server scan (packages/<pkg>/node)
-      const mod = await import(/* webpackMode: "lazy" */ `../../../packages/${c}/node`);
-      const comp = (mod as any).default || Object.values(mod)[0];
-      if (comp) {
-        dynamicNodeCache[norm] = comp as React.ComponentType<any>;
-        return dynamicNodeCache[norm];
-      }
-    } catch {
-      // keep trying other candidates
+// Initialize cache once with discovered components
+let discoveredLoaded = false;
+function ensureDiscoveredLoaded() {
+  if (discoveredLoaded) return;
+  discoveredLoaded = true;
+  
+  const discovered = typeof window !== 'undefined' 
+    ? (window as any).__NFLOW_NODE_COMPONENTS__ || {}
+    : getDiscoveredNodeComponents();
+  
+  for (const [key, comp] of Object.entries(discovered)) {
+    const normalized = getCachedNormalizedKey(key);
+    componentCache.set(normalized, comp as React.ComponentType<any>);
+    // Also set original key if different for faster lookup
+    if (key !== normalized) {
+      componentCache.set(key, comp as React.ComponentType<any>);
     }
   }
-  return null;
 }
 
-// Lazy wrapper component returned when a node type was not pre-discovered.
-function makeLazyWrapper(rawType: string, placeholder?: React.ComponentType<any>): React.ComponentType<any> {
-  const key = normalizeKey(rawType);
-  const Fallback = (props: any) => {
-    const [Comp, setComp] = useState<React.ComponentType<any> | null>(() => dynamicNodeCache[key] || placeholder || null);
+// Attempt dynamic import with deduplication and failure tracking
+async function tryDynamicImport(rawType: string): Promise<React.ComponentType<any> | null> {
+  const normalized = getCachedNormalizedKey(rawType);
+  
+  // Check cache first
+  if (componentCache.has(normalized)) {
+    return componentCache.get(normalized)!;
+  }
+  
+  // Don't retry failed imports
+  if (failedImports.has(normalized)) {
+    return null;
+  }
+  
+  // Dedupe concurrent imports
+  if (loadingPromises.has(normalized)) {
+    return loadingPromises.get(normalized)!;
+  }
+  
+  const loadPromise = (async () => {
+    try {
+      // Try primary path (normalized key is what server uses)
+      const mod = await import(/* webpackMode: "lazy" */ `../../../packages/${normalized}/node`);
+      const comp = (mod as any).default || Object.values(mod).find(v => typeof v === 'function');
+      
+      if (comp) {
+        const component = comp as React.ComponentType<any>;
+        componentCache.set(normalized, component);
+        if (rawType !== normalized) {
+          componentCache.set(rawType, component);
+        }
+        return component;
+      }
+    } catch (err) {
+      // Mark as failed to avoid retry
+      failedImports.add(normalized);
+    } finally {
+      loadingPromises.delete(normalized);
+    }
+    return null;
+  })();
+  
+  loadingPromises.set(normalized, loadPromise);
+  return loadPromise;
+}
+
+// Optimized lazy wrapper that uses global cache and event-driven updates
+function makeLazyWrapper(rawType: string): React.ComponentType<any> {
+  const normalized = getCachedNormalizedKey(rawType);
+  
+  const LazyNode = (props: any) => {
+    const forceUpdateRef = useRef<(() => void) | undefined>(undefined);
+    const [, setTick] = React.useState(0);
+    forceUpdateRef.current = () => setTick(t => t + 1);
+    
     useEffect(() => {
-      let cancelled = false;
-      if (dynamicNodeCache[key]) return; // already loaded
-      (async () => {
-        const loaded = await tryDynamicImport(rawType);
-        if (!cancelled && loaded) setComp(() => loaded);
-      })();
-      return () => { cancelled = true; };
-    }, [rawType]);
-    if (Comp) return React.createElement(Comp as any, { ...props });
+      // Check if already loaded
+      if (componentCache.has(normalized)) {
+        return;
+      }
+      
+      // Start loading
+      let mounted = true;
+      tryDynamicImport(rawType).then(() => {
+        if (mounted && forceUpdateRef.current) {
+          forceUpdateRef.current();
+        }
+      });
+      
+      return () => { mounted = false; };
+    }, []); // Empty deps - only load once per component instance
+    
+    const Component = componentCache.get(normalized);
+    if (Component) {
+      return React.createElement(Component, props);
+    }
+    
+    // Show loading or error state
+    const isFailed = failedImports.has(normalized);
     return React.createElement(
       'div',
       { style: { padding: 8, fontSize: 12, opacity: 0.7 } },
-      'Loading node ',
-      React.createElement('strong', null, rawType),
-      '...'
+      isFailed ? 'Failed to load ' : 'Loading ',
+      React.createElement('strong', null, rawType)
     );
   };
-  return Fallback as React.ComponentType<any>;
+  
+  return LazyNode as React.ComponentType<any>;
 }
 
-let CACHE: ReactFlowNodeTypes | null = null;
+let NODE_TYPES_CACHE: ReactFlowNodeTypes | null = null;
+const lazyWrapperCache = new Map<string, React.ComponentType<any>>(); // Cache lazy wrappers
 
 export function getNodeTypes(): ReactFlowNodeTypes {
-  if (CACHE) return CACHE;
-  const discovered = loadDiscovered();
-  // Seed cache with discovered; ensure both original and normalized alias map to the same comp
-  Object.entries(discovered).forEach(([k, comp]) => {
-    const norm = normalizeKey(k);
-    if (!dynamicNodeCache[norm]) dynamicNodeCache[norm] = comp;
-    if (!dynamicNodeCache[k]) dynamicNodeCache[k] = comp;
-  });
+  if (NODE_TYPES_CACHE) return NODE_TYPES_CACHE;
+  
+  // Ensure discovered components are loaded into cache
+  ensureDiscoveredLoaded();
 
-  // Build initial mapping from dynamic cache (all known so far)
-  const base: Record<string, React.ComponentType<any>> = { ...dynamicNodeCache };
-
-  // Create a Proxy so that access to an unknown key (nodeTypes['xyz']) returns a lazy wrapper.
-  const proxied = new Proxy(base, {
-    get(target, prop: string | symbol, receiver) {
-      if (typeof prop !== 'string') return Reflect.get(target, prop, receiver);
-      if (prop in target) return Reflect.get(target, prop, receiver);
-      const norm = normalizeKey(prop);
-      if (norm in target) {
-        // alias the normalized discovery key to the requested prop for fast reuse
-        (target as any)[prop] = (target as any)[norm];
-        return Reflect.get(target, prop, receiver);
+  // Create a Proxy for on-demand lazy loading
+  const proxied = new Proxy({} as Record<string, React.ComponentType<any>>, {
+    get(_target, prop: string | symbol) {
+      if (typeof prop !== 'string') return undefined;
+      
+      // Check if wrapper already cached
+      if (lazyWrapperCache.has(prop)) {
+        return lazyWrapperCache.get(prop);
       }
-      // Create & cache a lazy loader for this on-demand type
+      
+      const normalized = getCachedNormalizedKey(prop);
+      
+      // Check if component is in cache (by original or normalized key)
+      if (componentCache.has(prop)) {
+        const comp = componentCache.get(prop)!;
+        lazyWrapperCache.set(prop, comp);
+        return comp;
+      }
+      if (componentCache.has(normalized)) {
+        const comp = componentCache.get(normalized)!;
+        lazyWrapperCache.set(prop, comp);
+        return comp;
+      }
+      
+      // Create lazy wrapper and cache it
       const wrapper = makeLazyWrapper(prop);
-      (target as any)[prop] = wrapper;
+      lazyWrapperCache.set(prop, wrapper);
       return wrapper;
+    },
+    
+    has(_target, prop: string | symbol) {
+      if (typeof prop !== 'string') return false;
+      const normalized = getCachedNormalizedKey(prop);
+      return componentCache.has(prop) || componentCache.has(normalized);
+    },
+    
+    ownKeys() {
+      // Return all known component keys
+      return Array.from(componentCache.keys());
+    },
+    
+    getOwnPropertyDescriptor(_target, prop) {
+      if (typeof prop !== 'string') return undefined;
+      const normalized = getCachedNormalizedKey(prop);
+      if (componentCache.has(prop) || componentCache.has(normalized)) {
+        return {
+          enumerable: true,
+          configurable: true,
+        };
+      }
+      return undefined;
     },
   });
 
-  CACHE = proxied as ReactFlowNodeTypes;
-  return CACHE;
+  NODE_TYPES_CACHE = proxied as ReactFlowNodeTypes;
+  return NODE_TYPES_CACHE;
 }
 
 export function reloadNodeTypes() {
-  CACHE = null; // keep dynamicNodeCache so already loaded nodes persist
+  NODE_TYPES_CACHE = null;
+  lazyWrapperCache.clear();
+  // Keep componentCache and failedImports - actual components should persist
+  // Reset discovery flag to reload from window
+  discoveredLoaded = false;
   return getNodeTypes();
 }
 

@@ -1,21 +1,26 @@
+// Core types for node plugin system
 
 import { FlowStateDispatcher } from "@n2flowjs/flow/flow-state-dispatcher";
 import { ExecutionResult, FlowExecutionContext, FlowNode } from "@n2flowjs/flow/type";
+
+/**
+ * Configuration options for a node plugin package
+ */
 export interface NodePluginConfig {
-  enabled?: boolean;
-  order?: number;      // canonical ordering key
-  sort?: number;       // legacy key (mapped to order if order missing)
-  [k: string]: unknown;    // allow future extension
+  enabled?: boolean;       // Whether the plugin is enabled
+  order?: number;          // Canonical ordering key for plugin execution
+  sort?: number;           // Legacy key (mapped to order if order missing)
+  [k: string]: unknown;    // Allow future extension
 }
+
+/**
+ * Map of package names to their configurations
+ */
 export type NodePluginConfigMap = Record<string, NodePluginConfig>;
 
-export interface LoaderOptions {
-  rootDir?: string;    // base directory (defaults to process.cwd())
-  filename?: string;   // primary filename (defaults to .nflow.json)
-  packagesDir?: string;// override packages folder
-}
-
-
+/**
+ * Executor function type for running node logic
+ */
 export type Executor = (
   node: FlowNode,
   context: FlowExecutionContext,
@@ -23,7 +28,9 @@ export type Executor = (
   dispatcher?: FlowStateDispatcher
 ) => Promise<ExecutionResult>;
 
-
+/**
+ * Node plugin definition
+ */
 export type NodePlugin = {
   name: string;
   match: (node: FlowNode) => boolean;
