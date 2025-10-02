@@ -1,14 +1,23 @@
-import React from 'react';
-import { Position, NodeProps, Node } from '@xyflow/react';
+import React, { useMemo } from 'react';
+import { NodeProps, Node } from '@xyflow/react';
 import { VariableNodeData } from '../types';
 import { BaseNode } from '@n2flowjs/flow';
 import { Flex, Typography, Tag } from 'antd';
 import { SettingOutlined } from '@ant-design/icons';
+import { VariableNodeDefinition } from '../definition';
 
 const { Text } = Typography;
 
 const VariableNode = ({ data, id, selected }: NodeProps<Node<VariableNodeData>>) => {
   const { form } = data;
+
+  // Generate dynamic input ports from value templates
+  const inputPorts = useMemo(() => {
+    if (form) {
+      return VariableNodeDefinition.getDynamicInputs?.(form) || VariableNodeDefinition.inputs;
+    }
+    return VariableNodeDefinition.inputs;
+  }, [form?.variableValue, form?.defaultValue]);
 
   const getOperationColor = (operation: string) => {
     const colors: { [key: string]: string } = {
@@ -25,10 +34,8 @@ const VariableNode = ({ data, id, selected }: NodeProps<Node<VariableNodeData>>)
       data={data}
       id={id}
       selected={selected}
-      handlePositions={{
-        input: [Position.Left, Position.Right],
-        output: [Position.Right, Position.Left],
-      }}
+      inputPorts={inputPorts}
+      outputPorts={VariableNodeDefinition.outputs}
       icon={<SettingOutlined style={{ color: '#fa8c16' }} />}
       role={data.form?.role}
     >

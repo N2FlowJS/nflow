@@ -134,3 +134,147 @@ export interface FlowExecutionHistoryEntry {
 
 export type ExecutionStatusType = 'pending' | 'running' | 'completed' | 'error';
 
+
+
+// ============================================================================
+// NEW NODE ARCHITECTURE (Week 1 Implementation)
+// ============================================================================
+
+import type { InputPort, OutputPort } from '../@flow/ports/types';
+import type React from 'react';
+import { FlowStateDispatcher } from './flow-state-dispatcher';
+
+/**
+ * Node categories for organization
+ */
+export enum NodeCategory {
+  INPUT = 'input',
+  OUTPUT = 'output',
+  PROCESSING = 'processing',
+  AI = 'ai',
+  DATABASE = 'database',
+  API = 'api',
+  LOGIC = 'logic',
+  TRANSFORM = 'transform',
+  UTILITY = 'utility',
+}
+
+/**
+ * Node execution context - new format with explicit inputs
+ */
+export interface NodeExecutionContext<TConfig = any> {
+  node: FlowNode;
+  config: TConfig;
+  inputs: Record<string, any>;     // Input port values by port ID
+  flowState: any;                  // Flow state (from @n2flowjs/flow)
+  dispatcher?: FlowStateDispatcher;
+}
+
+/**
+ * Node execution result - new format with explicit outputs
+ */
+export interface NodeExecutionResult {
+  outputs: Record<string, any>;    // Output port values by port ID
+  status: 'success' | 'error' | 'in_progress';
+  error?: string;
+  metadata?: Record<string, any>;
+}
+
+/**
+ * Node executor function - new format
+ */
+export type NodeExecutor<TConfig = any> = (
+  context: NodeExecutionContext<TConfig>
+) => Promise<NodeExecutionResult>;
+
+/**
+ * Node configuration schema
+ */
+export interface NodeConfigSchema<T = any> {
+  properties: Record<string, any>;
+  defaults?: Partial<T>;
+}
+
+/**
+ * Props for node UI component
+ */
+export interface NodeComponentProps {
+  data: any;
+  id: string;
+  selected?: boolean;
+}
+
+/**
+ * Props for node form component
+ */
+export interface NodeFormProps {
+  nodeId: string;
+  data: any;
+  onChange: (data: any) => void;
+}
+
+/**
+ * Node validator function
+ */
+export type NodeValidator = (node: FlowNode) => { valid: boolean; error?: string };
+
+/**
+ * Node lifecycle hook
+ */
+export type NodeHook = (context: NodeExecutionContext) => Promise<void>;
+
+/**
+ * Complete node definition - NEW ARCHITECTURE
+ */
+export interface NodeDefinition<TConfig = any> {
+  // Metadata
+  id: string;                              // Unique node type ID (e.g., 'http-request')
+  name: string;                            // Display name (e.g., 'HTTP Request')
+  description: string;                     // What this node does
+  category: NodeCategory;                  // For organization in UI
+  icon?: React.ComponentType;              // Icon component
+  color?: string;                          // Theme color
+  version?: string;                        // Node version
+  
+  // Port definitions (NEW!)
+  inputs: InputPort[];                     // Input ports
+  outputs: OutputPort[];                   // Output ports
+  
+  // Configuration
+  config?: NodeConfigSchema<TConfig>;      // Configuration schema
+  
+  // Execution (NEW format!)
+  execute: NodeExecutor<TConfig>;          // Execution function
+  
+  // UI Components
+  component?: React.ComponentType<NodeComponentProps>;   // Custom node UI
+  formComponent?: React.ComponentType<NodeFormProps>;    // Settings form
+  
+  // Customization (NEW!)
+  allowCustomInputs?: boolean;             // User can add custom inputs
+  allowCustomOutputs?: boolean;            // User can add custom outputs
+  
+  // Advanced
+  validation?: NodeValidator;              // Validate entire node
+  beforeExecute?: NodeHook;                // Hook before execution
+  afterExecute?: NodeHook;                 // Hook after execution
+  
+  // Metadata
+  tags?: string[];                         // Tags for search/filter
+  deprecated?: boolean;                    // Is this node deprecated?
+  experimental?: boolean;                  // Is this experimental?
+}
+
+/**
+ * Type guard to check if a node uses new definition format
+ */
+export function isNewNodeDefinition(node: any): node is NodeDefinition {
+  return node && 
+         typeof node === 'object' && 
+         'inputs' in node && 
+         'outputs' in node && 
+         'execute' in node &&
+         Array.isArray(node.inputs) &&
+         Array.isArray(node.outputs);
+}
+

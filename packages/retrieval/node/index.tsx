@@ -1,11 +1,12 @@
 import React from 'react';
-import { Position, NodeProps, Node } from '@xyflow/react';
+import { NodeProps, Node } from '@xyflow/react';
 import { RetrievalNodeData } from '../types';
 import { BaseNode } from '@n2flowjs/flow';
 import { Flex } from 'antd';
 import { DatabaseOutlined } from '@ant-design/icons';
 import KnowledgeBaseInfo from './KnowledgeBaseInfo';
 import ResultsInfo from './ResultsInfo';
+import { RetrievalNodeDefinition } from '../definition';
 
 const RetrievalNode = ({ data, id, selected }: NodeProps<Node<RetrievalNodeData>>) => {
   const { form } = data;
@@ -18,13 +19,11 @@ const RetrievalNode = ({ data, id, selected }: NodeProps<Node<RetrievalNodeData>
       data={data}
       id={id}
       selected={selected}
-      handlePositions={{
-        input: [Position.Left, Position.Right],
-        output: [Position.Right, Position.Left],
-      }}
+      // NEW: Port-based handles from NodeDefinition
+      inputPorts={RetrievalNodeDefinition.inputs}
+      outputPorts={RetrievalNodeDefinition.outputs}
       icon={<DatabaseOutlined style={{ color: '#595959' }} />}
       role={data.form?.role}
-
     >
       <Flex vertical gap={8}>
         <KnowledgeBaseInfo knowledgeIds={knowledgeIds} />

@@ -4,12 +4,14 @@ export interface TextProcessForm extends BaseForm {
   name: string;
   description?: string;
   inputText: string;
-  operation: 'uppercase' | 'lowercase' | 'trim' | 'replace' | 'split' | 'join' | 'regex' | 'length';
+  operation: 'uppercase' | 'lowercase' | 'trim' | 'replace' | 'split' | 'join' | 'regex' | 'substring' | 'length';
   searchValue?: string;
   replaceValue?: string;
   separator?: string;
   regexPattern?: string;
   regexFlags?: string;
+  startIndex?: number;
+  endIndex?: number;
 }
 
 export type TextProcessNodeData = BaseNodeData<TextProcessForm> & { type: 'textprocess' };

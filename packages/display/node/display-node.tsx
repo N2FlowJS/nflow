@@ -1,14 +1,23 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Position, NodeProps, Node } from '@xyflow/react';
 import { DisplayNodeData } from '../types';
 import { BaseNode } from '@n2flowjs/flow';
 import { Flex, Typography, Tag } from 'antd';
 import { EyeOutlined } from '@ant-design/icons';
+import { DisplayNodeDefinition } from '../definition';
 
 const { Text } = Typography;
 
 const DisplayNode = ({ data, id, selected }: NodeProps<Node<DisplayNodeData>>) => {
   const { form } = data;
+
+  // Generate dynamic input ports from content template variables
+  const inputPorts = useMemo(() => {
+    if (form) {
+      return DisplayNodeDefinition.getDynamicInputs?.(form) || DisplayNodeDefinition.inputs;
+    }
+    return DisplayNodeDefinition.inputs;
+  }, [form?.content]);
 
   const getFormatColor = (format: string) => {
     const colors: { [key: string]: string } = {
@@ -25,6 +34,8 @@ const DisplayNode = ({ data, id, selected }: NodeProps<Node<DisplayNodeData>>) =
       data={data}
       id={id}
       selected={selected}
+      inputPorts={inputPorts}
+      outputPorts={DisplayNodeDefinition.outputs}
       handlePositions={{
         input: [Position.Left, Position.Right],
         output: [Position.Right, Position.Left],

@@ -7,8 +7,10 @@ import { theme } from 'antd';
 import { useCardStyle } from '../../../../hooks/useCardStyle';
 import { NODE_REGISTRY } from '../../../../utils/client/NODE_REGISTRY';
 import { useNodeExecutionStatus } from '../../../../context/FlowStateContext';
-import type { NodeData } from '../../../../models/flowTypes';
 import { useFlowEditorContext } from '../../editor-context';
+import { useAdaptiveHandles } from './usePortBasedHandles';
+import type { InputPort, OutputPort } from '../../ports';
+import { NodeData } from 'models/flowTypes';
 
 export type HandleStyleOpts = {
   sourceColor: string;
@@ -178,10 +180,14 @@ export const useBaseNode = (args: {
   data: NodeData;
   id: string;
   selected: boolean;
-  handlePositions: { input: Position[]; output: Position[] };
+  // NEW: Port-based handles (preferred)
+  inputPorts?: InputPort[];
+  outputPorts?: OutputPort[];
+  // LEGACY: Position-based handles (for backward compatibility)
+  handlePositions?: { input: Position[]; output: Position[] };
   children?: React.ReactNode;
 }) => {
-  const { data, id, selected, handlePositions, children } = args;
+  const { data, id, selected, inputPorts, outputPorts, handlePositions, children } = args;
 
   // Context and config
   const nodeConfig = NODE_REGISTRY[data.type];
@@ -197,15 +203,21 @@ export const useBaseNode = (args: {
   // Derived UI pieces
   const handleOpts = useHandleOptions(token as any);
   const childrenSection = useChildrenSection(children);
-  const inputHandles = useInputHandles(handlePositions.input, handleOpts);
-  const outputHandles = useOutputHandles({
-    positions: handlePositions.output,
+  
+  // Use adaptive handles: port-based if available, fallback to position-based
+  const { inputHandles, outputHandles } = useAdaptiveHandles({
+    inputPorts,
+    outputPorts,
+    inputPositions: handlePositions?.input,
+    outputPositions: handlePositions?.output,
     opts: handleOpts,
-    id,
-    dataType: String(data.type),
-    getNode: getNode as any,
-    wrapperRef: wrapperRef as React.RefObject<HTMLDivElement | null>,
-    openNextStepModal,
+    outputHandleExtras: {
+      id,
+      dataType: String(data.type),
+      getNode: getNode as any,
+      wrapperRef: wrapperRef as React.RefObject<HTMLDivElement | null>,
+      openNextStepModal,
+    },
   });
 
   // Actions

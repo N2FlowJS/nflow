@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { NodeTypes as ReactFlowNodeTypes } from '@xyflow/react';
 import { getDiscoveredNodeComponents } from '../../@node-plugin/discovery/ui-discover';
 import { normalizeKey } from '../../../utils/normalizeKey';
+import { DynamicNode } from '../node/DynamicNode';
 
 // Global cache using Map for better performance with dynamic keys
 const componentCache = new Map<string, React.ComponentType<any>>();
@@ -38,6 +39,8 @@ function ensureDiscoveredLoaded() {
 }
 
 // Attempt dynamic import with deduplication and failure tracking
+// NOTE: Currently unused - we use DynamicNode by default
+// @ts-ignore - keep for potential future use
 async function tryDynamicImport(rawType: string): Promise<React.ComponentType<any> | null> {
   const normalized = getCachedNormalizedKey(rawType);
   
@@ -84,6 +87,8 @@ async function tryDynamicImport(rawType: string): Promise<React.ComponentType<an
 }
 
 // Optimized lazy wrapper that uses global cache and event-driven updates
+// NOTE: Currently unused - we use DynamicNode by default
+// @ts-ignore - keep for potential future use
 function makeLazyWrapper(rawType: string): React.ComponentType<any> {
   const normalized = getCachedNormalizedKey(rawType);
   
@@ -160,10 +165,16 @@ export function getNodeTypes(): ReactFlowNodeTypes {
         return comp;
       }
       
-      // Create lazy wrapper and cache it
-      const wrapper = makeLazyWrapper(prop);
-      lazyWrapperCache.set(prop, wrapper);
-      return wrapper;
+      // OPTIMIZATION: Use DynamicNode as default instead of lazy loading custom components
+      // This eliminates need for 97 custom node components
+      // Custom components can still be registered in componentCache if needed
+      lazyWrapperCache.set(prop, DynamicNode);
+      return DynamicNode;
+      
+      // OLD: Create lazy wrapper and cache it
+      // const wrapper = makeLazyWrapper(prop);
+      // lazyWrapperCache.set(prop, wrapper);
+      // return wrapper;
     },
     
     has(_target, prop: string | symbol) {

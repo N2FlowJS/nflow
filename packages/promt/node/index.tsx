@@ -1,1 +1,5 @@
-export { default } from './template-node';
+/**
+ * Export DynamicNode for promt package
+ * Uses automatic rendering based on NodeDefinition
+ */
+export { DynamicNode as default } from '@n2flowjs/flow/node/DynamicNode';

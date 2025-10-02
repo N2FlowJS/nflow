@@ -1,24 +1,31 @@
-import React from 'react';
-import { Position, NodeProps, Node } from '@xyflow/react';
+import React, { useMemo } from 'react';
+import { NodeProps, Node } from '@xyflow/react';
 import { JsonParseNodeData } from '../../types';
 import { BaseNode } from '@n2flowjs/flow';
 import { Flex } from 'antd';
 import { CodeOutlined } from '@ant-design/icons';
 import JsonOperationInfo from './JsonOperationInfo';
 import JsonPathInfo from './JsonPathInfo';
+import { JsonParseNodeDefinition } from '../../definition';
 
 const JsonParseNode = ({ data, id, selected }: NodeProps<Node<JsonParseNodeData>>) => {
   const { form } = data;
+
+  // Compute dynamic input ports based on template variables
+  const inputPorts = useMemo(() => {
+    if (form) {
+      return JsonParseNodeDefinition.getDynamicInputs?.(form) || JsonParseNodeDefinition.inputs;
+    }
+    return JsonParseNodeDefinition.inputs;
+  }, [form?.jsonData, form?.jsonPath]);
 
   return (
     <BaseNode
       data={data}
       id={id}
       selected={selected}
-      handlePositions={{
-        input: [Position.Left, Position.Right],
-        output: [Position.Right, Position.Left],
-      }}
+      inputPorts={inputPorts}
+      outputPorts={JsonParseNodeDefinition.outputs}
       icon={<CodeOutlined />}
       role={data.form?.role}>
       <Flex vertical gap={8}>

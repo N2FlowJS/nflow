@@ -5,12 +5,17 @@ import React, { memo } from 'react';
 import NodeHeader from './node-header';
 import { useBaseNode } from './useBaseNodeHooks';
 import { NodeData } from '../../type';
+import type { InputPort, OutputPort } from '../../ports';
 
 interface BaseNodeProps {
   data: NodeData;
   id: string;
   selected: boolean;
-  handlePositions: {
+  // NEW: Port-based handles (preferred)
+  inputPorts?: InputPort[];
+  outputPorts?: OutputPort[];
+  // LEGACY: Position-based handles (for backward compatibility)
+  handlePositions?: {
     input: Position[];
     output: Position[];
   };
@@ -19,11 +24,13 @@ interface BaseNodeProps {
   role?: 'developer' | 'assistant' | 'system' | 'user';
 }
 
-const BaseNode: React.FC<BaseNodeProps> = ({ data, id, selected, handlePositions, children, icon, role }) => {
+const BaseNode: React.FC<BaseNodeProps> = ({ data, id, selected, inputPorts, outputPorts, handlePositions, children, icon, role }) => {
   const { cardStyle, wrapperRef, childrenSection, inputHandles, outputHandles, actions, onMouseEnter } = useBaseNode({
     data,
     id,
     selected,
+    inputPorts,
+    outputPorts,
     handlePositions,
     children,
   });

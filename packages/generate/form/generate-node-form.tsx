@@ -1,71 +1,31 @@
 import { FileTextOutlined } from '@ant-design/icons';
-import { FlowNode, } from '../../../models/flowTypes'; // Import Edge type
-import { Collapse, Form, InputNumber, Select, Slider, Space, Spin, Typography } from 'antd';
-import React, { useMemo } from 'react';
-import { Mention, MentionsInput, SuggestionDataItem } from 'react-mentions';
-import { usePredecessorNodes } from '@n2flowjs/flow/share/usePredecessorNodes';
+import { FlowNode } from '../../../models/flowTypes';
+import { Collapse, Form, Input, InputNumber, Select, Slider, Space, Spin, Tag, Typography } from 'antd';
+import React from 'react';
 import BaseNodeForm from '../../@flow/form';
 import RoleSelector from '@n2flowjs/flow/share/RoleSelector';
 import { FormInstance } from 'antd/lib';
 import { useLocale } from '../../../locale';
 import { useLLMChatModels } from '../../../hooks/useLLMChatModels';
 import { GenerateForm } from '../types';
+import { parseTemplateVariables } from '../../@template/variable-parser';
+
+const { TextArea } = Input;
 
 const { Text } = Typography;
 
-// Basic styling to integrate better with Ant Design
-const mentionsInputStyle = {
-  control: {
-    backgroundColor: '#fff',
-    fontSize: 14,
-    lineHeight: 1.5715,
-    border: '1px solid #d9d9d9',
-    borderRadius: '2px',
-    minHeight: 150, // Match TextArea rows={10} roughly
-  },
-  '&multiLine': {
-    control: {
-      fontFamily: 'inherit',
-    },
-    highlighter: {
-      padding: '9px 11px',
-      border: '1px solid transparent',
-    },
-    input: {
-      padding: '9px 11px',
-      outline: 'none', // Remove focus outline
-    },
-  },
-  suggestions: {
-    list: {
-      backgroundColor: 'white',
-      border: '1px solid #d9d9d9',
-      borderRadius: '4px',
-      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
-      fontSize: 14,
-      maxHeight: 250,
-      overflowY: 'auto' as const,
-      marginTop: '8px',
-      zIndex: 1050,
-    },
-    item: {
-      padding: '8px 12px',
-      transition: 'background-color 0.3s',
-      cursor: 'pointer',
-      '&focused': {
-        backgroundColor: '#e6f7ff', // Ant Design primary color with low opacity
-        color: '#1890ff', // Ant Design primary color
-      },
-    },
-  },
-};
-
-// Custom style for suggestion items
-const mentionItemStyle = {
-  display: 'flex',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  width: '100%',
+/**
+ * Get color for variable type tag
+ */
+const getVariableTypeColor = (type: 'string' | 'number' | 'boolean'): string => {
+  switch (type) {
+    case 'number':
+      return 'green';
+    case 'boolean':
+      return 'orange';
+    default:
+      return 'blue';
+  }
 };
 
 interface GenerateNodeFormProps {
@@ -75,21 +35,9 @@ interface GenerateNodeFormProps {
 }
 
 const GenerateNodeFormComponent: React.FC<GenerateNodeFormProps> = (props) => {
-  const { selectedNode } = props;
   const { t } = useLocale('form.nodeForm');
 
   const { groupedModels, models, loading, error } = useLLMChatModels();
-
-  // Use our new hook to get variables
-  const { predecessorVariables } = usePredecessorNodes(selectedNode.id);
-
-  // Use predecessor variables directly
-  const allVariables: {
-    id: string;
-    display: string;
-  }[] = useMemo(() => [...predecessorVariables], [predecessorVariables]);
-
-  // groupedModels provided by hook
 
   return (
     <BaseNodeForm {...props}>
@@ -168,44 +116,54 @@ const GenerateNodeFormComponent: React.FC<GenerateNodeFormProps> = (props) => {
               <>
                 <Form.Item
                   name="prompt"
-                  // No label needed as it's in the Panel header
-                  rules={[{ required: true, message: t('promptRequired') }]}
-                  // Use getValueFromEvent to correctly handle MentionsInput onChange
-                  getValueFromEvent={(event) => event.target.value}>
-                  <MentionsInput
-                    style={mentionsInputStyle} // Apply custom styles
-                    placeholder={t('promptPlaceholder')}
-                    a11ySuggestionsListLabel={'Suggested variables'}
-                    allowSpaceInQuery={true} // Allows searching for multi-word variables if needed
-                    // Control the component value
-                    onChange={(event: unknown, value: string) => {
-                      console.log(event);
-
-                      if (props.form.getFieldValue('prompt') !== value) props.form.setFieldsValue({ prompt: value });
-                    }} // Update form on change
-                  >
-                    <Mention
-                      trigger="@" // Use @ to trigger suggestions
-                      data={allVariables} // Provide the variable data
-                      markup="{{__id__}}" // Define how the mention is inserted (using Ant Design variable style)
-                      displayTransform={(id: string) => {
-                        // Find the variable with this id to get its display name
-                        const variable = allVariables.find((v) => v.id === id);
-                        return `@${variable ? variable.display : id}`;
-                      }} // Show display name in mentions
-                      appendSpaceOnAdd={true} // Add a space after inserting a mention
-                      renderSuggestion={(suggestion: SuggestionDataItem) => (
-                        <div style={mentionItemStyle}>
-                          <div>
-                            <b>{suggestion.display}</b>
-                          </div>
-                          <div style={{ color: '#8c8c8c', fontSize: '0.85em', marginLeft: '8px' }}>{suggestion.id}</div>
-                        </div>
-                      )}
-                    />
-                  </MentionsInput>
+                  rules={[{ required: true, message: t('promptRequired') }]}>
+                  <TextArea
+                    rows={10}
+                    placeholder={t('promptPlaceholder') + ' - Use {variable} or {variable:type} for dynamic inputs'}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (props.form.getFieldValue('prompt') !== value) {
+                        props.form.setFieldsValue({ prompt: value });
+                      }
+                    }}
+                  />
                 </Form.Item>
-                <div style={{ fontSize: '0.9em', color: '#888', marginTop: 8 }}>{t('variablesHelpTextGenerate')}</div>
+
+                {/* Show detected template variables */}
+                <Form.Item shouldUpdate noStyle>
+                  {({ getFieldValue }) => {
+                    const prompt = getFieldValue('prompt') || '';
+                    const variables = parseTemplateVariables(prompt);
+                    
+                    if (variables.length === 0) {
+                      return (
+                        <div style={{ fontSize: '0.9em', color: '#888', marginTop: -8, marginBottom: 8 }}>
+                          {t('variablesHelpTextGenerate')}
+                        </div>
+                      );
+                    }
+                    
+                    return (
+                      <div style={{ marginTop: -8, marginBottom: 8 }}>
+                        <div style={{ padding: '8px 12px', background: '#f5f5f5', borderRadius: 4 }}>
+                          <Text type="secondary" style={{ fontSize: '0.9em' }}>
+                            Detected variables ({variables.length}):
+                          </Text>
+                          <div style={{ marginTop: 8 }}>
+                            {variables.map(v => (
+                              <Tag key={v.name} color={getVariableTypeColor(v.type)} style={{ marginBottom: 4 }}>
+                                {v.name}: {v.type}
+                              </Tag>
+                            ))}
+                          </div>
+                        </div>
+                        <div style={{ fontSize: '0.9em', color: '#888', marginTop: 8 }}>
+                          {t('variablesHelpTextGenerate')}
+                        </div>
+                      </div>
+                    );
+                  }}
+                </Form.Item>
               </>
             ),
           },

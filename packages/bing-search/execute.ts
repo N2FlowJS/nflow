@@ -1,6 +1,5 @@
-import type { FlowNode } from "../../models/flowTypes";
 import type { BingSearchNodeData } from "./types";
-import { ExecutionResult, findNextNodes, FlowExecutionContext, FlowStateDispatcher, isNodeReady, ResultWaiting } from "../@flow";
+import { ExecutionResult, findNextNodes, FlowExecutionContext, FlowNode, FlowStateDispatcher, isNodeReady, ResultWaiting } from "../@flow";
 import { getInputFromTemplate, processTemplate } from "@n2flowjs/template/template";
 
 

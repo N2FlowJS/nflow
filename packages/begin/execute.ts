@@ -1,7 +1,6 @@
-import { FlowNode, } from '../../models/flowTypes';
 import { findNextNodes } from '../@flow/find-next-node';
 import { FlowStateDispatcher } from '../@flow/flow-state-dispatcher';
-import { ExecutionResult, FlowExecutionContext } from '../@flow/type';
+import { ExecutionResult, FlowExecutionContext, FlowNode } from '../@flow/type';
 import { BeginNodeData } from './types';
 
 /**

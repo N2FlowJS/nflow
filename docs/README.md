@@ -31,6 +31,7 @@
 - 🔍 **Optimized Search:** High-performance vector similarity search.
 - 🔄 **Scalable:** From prototypes to enterprise-grade deployments.
 - 🔥 **Designed for RAG:** Perfect foundation for Retrieval-Augmented Generation.
+- 🚀 **NEW: Auto-Discovery Node System:** Create nodes with just 1 file! Dynamic UI/Forms, zero manual registration. [Learn more →](./COMPLETE_NODE_SYSTEM.md)
 
 ---
 

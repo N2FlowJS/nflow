@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { getDiscoveredNodeForms } from '../../@node-plugin/discovery/ui-discover';
 import { normalizeKey } from '../../../utils/normalizeKey';
 import { FlowNode } from '../type';
+import DynamicForm from '../form/DynamicForm'; // Import generic form generator
 
 interface DynamicNodeFormProps {
   form: any;
@@ -78,14 +79,17 @@ const DynamicNodeForm: React.FC<DynamicNodeFormProps> = ({ form, selectedNode, s
   if (!selectedNode) return null;
 
   const key = normalizeKey(selectedNode.type || '');
-  const DynamicForm: React.ComponentType<any> | undefined = discoveredForms[key];
+  const CustomForm: React.ComponentType<any> | undefined = discoveredForms[key];
   const commonProps = { form, selectedNode, setIsDrawerOpen };
 
-  if (DynamicForm) return <DynamicForm {...commonProps} />;
+  // Priority: Custom form > Loading state > Generic form from definition
+  if (CustomForm) return <CustomForm {...commonProps} />;
   if (loadingType === selectedNode.type) {
     return <div style={{ padding: 12 }}><em>Loading dynamic form for: <strong>{selectedNode.type}</strong>...</em></div>;
   }
-  return <div style={{ padding: 12 }}>Unsupported node type (no dynamic form found): <strong>{selectedNode.type}</strong></div>;
+  
+  // Fallback to generic form generator (uses NodeDefinition.config)
+  return <DynamicForm {...commonProps} />;
 };
 
 export default DynamicNodeForm;

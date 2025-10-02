@@ -69,6 +69,36 @@ const RetrievalNodeFormComponent: React.FC<RetrievalNodeFormProps> = (props) => 
         </div>
       </Form.Item>
 
+      <Form.Item 
+        name='threshold' 
+        label={t('thresholdLabel') || 'Similarity Threshold'}
+        extra={t('thresholdHelp') || 'Minimum similarity score (0-1) for results'}
+        rules={[{ required: true }]}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <Slider
+            min={0}
+            max={1}
+            step={0.01}
+            value={form.getFieldValue('threshold')}
+            onChange={(value) => {
+              if (form.getFieldValue('threshold') !== value) form.setFieldsValue({ threshold: value });
+            }}
+            style={{ flex: 1 }}
+          />
+          <InputNumber
+            min={0}
+            max={1}
+            step={0.01}
+            value={form.getFieldValue('threshold')}
+            onChange={(value) => {
+              if (form.getFieldValue('threshold') !== value) form.setFieldsValue({ threshold: value });
+            }}
+            style={{ width: 70 }}
+          />
+        </div>
+      </Form.Item>
+
       <RoleSelector />
 
       <InputReferences form={props.form} nodeid={selectedNode.id} />

@@ -20,7 +20,9 @@
       "@n2flowjs/template/*": ["packages/@template/*"],
       "@n2flowjs/template": ["packages/@template"],
       "@n2flowjs/input": ["packages/@input"],
-      "@n2flowjs/input/*": ["packages/@input/*"]
+      "@n2flowjs/input/*": ["packages/@input/*"],
+      "@n2flowjs/node-plugin": ["packages/@node-plugin"],
+      "@n2flowjs/node-plugin/*": ["packages/@node-plugin/*"]
     },
     "plugins": [
       {

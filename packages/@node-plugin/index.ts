@@ -4,6 +4,8 @@
 // Export types
 export * from './type';
 
+// Note: Adapters removed - legacy migration complete
+
 // Export discovery functions (UI-friendly, works in browser)
 export * from './discovery/ui-discover';
 
@@ -20,6 +22,20 @@ export {
   getPackageDirectories,
   packageExists,
 } from './core/package-scanner';
+
+// Node definition loading (server)
+export {
+  loadAllNodeDefinitions,
+  loadNodeDefinitions,
+  reloadAllNodeDefinitions,
+  getLoadingStats,
+} from './core/definition-loader';
+
+// Browser-safe registration
+export {
+  registerDefinitions,
+  isDefinitionsLoaded,
+} from './core/definition-loader.browser';
 
 // Re-export server discovery if available
 export {

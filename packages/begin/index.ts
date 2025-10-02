@@ -1,3 +1,4 @@
-import { plugin } from './plugin';
-export { plugin, plugin as beginPlugin } from './plugin';
-export default plugin;
+// NodeDefinition export
+export { BeginNodeDefinition } from './definition';
+export { default as BeginNode } from './definition';
+export { BeginNodeDefinition as default } from './definition';
