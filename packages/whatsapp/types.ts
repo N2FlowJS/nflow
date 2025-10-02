@@ -20,7 +20,7 @@ export type WhatsAppNodeData = BaseNodeData<WhatsAppForm> & { type: 'whatsapp' }
 
 
 // Auto-added augmentation for NodeDataMap
-declare module '../../models/nodeDataMap' {
+declare module '@n2flowjs/flow' {
   interface NodeDataMap {
     WhatsAppNodeData: WhatsAppNodeData;
   }

@@ -20,7 +20,7 @@ export type GitLabNodeData = BaseNodeData<GitLabForm> & { type: 'gitlab' };
 
 
 // Auto-added augmentation for NodeDataMap
-declare module '../../models/nodeDataMap' {
+declare module '@n2flowjs/flow' {
   interface NodeDataMap {
     GitLabNodeData: GitLabNodeData;
   }

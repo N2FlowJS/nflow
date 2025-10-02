@@ -34,4 +34,3 @@ export function getAllNodeTypeKeys(): string[] {
 	return getDynamicNodeTypeKeys();
 }
 
-export function invalidateNodePluginConfigCache(): void {/* noop in browser */}

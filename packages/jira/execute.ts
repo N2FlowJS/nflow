@@ -1,6 +1,5 @@
-import { ExecutionResult, FlowExecutionContext } from '../../models/flowExecutionTypes';
 import { JiraNodeData } from './types';
-import { FlowNode } from '../../models/flowTypes';
+import { ExecutionResult, FlowExecutionContext, FlowNode } from '@n2flowjs/flow';
 import { findNextNodes } from '../@flow/find-next-node';
 import { getInputFromTemplate, processTemplate } from '@n2flowjs/template/template';
 import { isNodeReady } from '../@flow/is-node-ready';

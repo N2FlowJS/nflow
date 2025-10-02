@@ -18,7 +18,7 @@ export type CategorizeNodeData = BaseNodeData<CategorizeForm> & { type: 'categor
 
 
 // Auto-added augmentation for NodeDataMap
-declare module '../../models/nodeDataMap' {
+declare module '@n2flowjs/flow' {
   interface NodeDataMap {
     CategorizeNodeData: CategorizeNodeData;
   }

@@ -1,4 +1,4 @@
-import { FlowNode } from 'models/nodeDataMap';
+import { FlowNode } from '@n2flowjs/flow';
 import { NodePlugin } from '../@node-plugin/type'
 import { executeHttpRequestNode } from './execute'
 

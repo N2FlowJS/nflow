@@ -20,7 +20,7 @@ export type YouTubeNodeData = BaseNodeData<YouTubeForm> & { type: 'youtube' };
 
 
 // Auto-added augmentation for NodeDataMap
-declare module '../../models/nodeDataMap' {
+declare module '@n2flowjs/flow' {
   interface NodeDataMap {
     YouTubeNodeData: YouTubeNodeData;
   }

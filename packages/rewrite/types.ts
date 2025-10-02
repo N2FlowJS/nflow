@@ -14,7 +14,7 @@ export type RewriteNodeData = BaseNodeData<RewriteForm> & { type: 'rewrite' };
 
 
 // Auto-added augmentation for NodeDataMap
-declare module '../../models/nodeDataMap' {
+declare module '@n2flowjs/flow' {
   interface NodeDataMap {
     RewriteNodeData: RewriteNodeData;
   }

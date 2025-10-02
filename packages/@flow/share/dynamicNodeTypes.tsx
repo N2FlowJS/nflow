@@ -1,14 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { NodeTypes as ReactFlowNodeTypes } from '@xyflow/react';
 import { getDiscoveredNodeComponents } from '../../@node-plugin/discovery/ui-discover';
+import { normalizeKey } from '../../../utils/normalizeKey';
 
 // Dynamic cache for lazily imported node components (client side)
 const dynamicNodeCache: Record<string, React.ComponentType<any>> = {};
 
 // Helper: normalize a raw node type / package name into the discovery key (match server scan: remove non-alphanumerics, lowercase)
-function normalizeKey(raw: string) {
-  return (raw || '').replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
-}
 
 // Load whatever has already been discovered (server scan or window injection)
 function loadDiscovered(): Record<string, React.ComponentType<any>> {

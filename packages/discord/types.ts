@@ -19,7 +19,7 @@ export type DiscordNodeData = BaseNodeData<DiscordForm> & { type: 'discord' };
 
 
 // Auto-added augmentation for NodeDataMap
-declare module '../../models/nodeDataMap' {
+declare module '@n2flowjs/flow' {
   interface NodeDataMap {
     DiscordNodeData: DiscordNodeData;
   }

@@ -19,7 +19,7 @@ export type InstagramNodeData = BaseNodeData<InstagramForm> & { type: 'instagram
 
 
 // Auto-added augmentation for NodeDataMap
-declare module '../../models/nodeDataMap' {
+declare module '@n2flowjs/flow' {
   interface NodeDataMap {
     InstagramNodeData: InstagramNodeData;
   }

@@ -66,6 +66,7 @@
     "pg": "^8.16.3",
     "postcss-flexbugs-fixes": "^5.0.2",
     "postcss-preset-env": "^10.1.6",
+    "puppeteer": "^24.23.0",
     "rc-util": "^5.44.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

@@ -16,7 +16,7 @@ export type DuckGoSearchNodeData = BaseNodeData<DuckGoSearchForm> & { type: 'duc
 
 
 // Auto-added augmentation for NodeDataMap
-declare module '../../models/nodeDataMap' {
+declare module '@n2flowjs/flow' {
   interface NodeDataMap {
     DuckGoSearchNodeData: DuckGoSearchNodeData;
   }

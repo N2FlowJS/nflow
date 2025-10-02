@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
-import { NodeTypeString, FlowNode } from '../../../../models/flowTypes';
 import { NODE_REGISTRY } from '../../../../utils/client/NODE_REGISTRY';
+import { FlowNode, NodeTypeString } from '@n2flowjs/flow';
 
 export const useNodeDropper = (
   screenToFlowPosition: (position: { x: number; y: number }) => { x: number; y: number },

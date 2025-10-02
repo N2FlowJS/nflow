@@ -18,7 +18,7 @@ export type LogAnalysisNodeData = BaseNodeData<LogAnalysisForm> & {
 
 
 // Auto-added augmentation for NodeDataMap
-declare module '../../models/nodeDataMap' {
+declare module '@n2flowjs/flow' {
   interface NodeDataMap {
     LogAnalysisNodeData: LogAnalysisNodeData;
   }

@@ -14,7 +14,7 @@ export type WebhookNodeData = BaseNodeData<WebhookForm> & { type: 'webhook' };
 
 
 // Auto-added augmentation for NodeDataMap
-declare module '../../models/nodeDataMap' {
+declare module '@n2flowjs/flow' {
   interface NodeDataMap {
     WebhookNodeData: WebhookNodeData;
   }

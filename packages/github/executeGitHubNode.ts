@@ -1,5 +1,4 @@
-import { ExecutionResult, FlowExecutionContext } from '../../models/flowExecutionTypes';
-import { FlowNode } from '../../models/flowTypes';
+import { ExecutionResult, FlowExecutionContext, FlowNode } from '@n2flowjs/flow';
 import { GitHubNodeData } from './types';
 import { getInputFromTemplate, processTemplate } from '@n2flowjs/template/template';
 import { findNextNodes, isNodeReady, FlowStateDispatcher } from '@n2flowjs/flow';

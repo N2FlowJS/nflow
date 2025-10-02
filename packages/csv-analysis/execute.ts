@@ -1,11 +1,10 @@
-import { ExecutionResult, FlowExecutionContext } from '../../models/flowExecutionTypes';
-import { FlowNode } from '../../models/flowTypes';
 import { CsvAnalysisNodeData } from './types';
 import { findNextNodes } from '../@flow/find-next-node';
 import { getInputFromTemplate, processTemplate } from '@n2flowjs/template/template';
 import { isNodeReady } from '../@flow/is-node-ready';
 import { FlowStateDispatcher } from '../@flow/flow-state-dispatcher';
 import * as fs from 'fs';
+import { ExecutionResult, FlowExecutionContext, FlowNode } from '@n2flowjs/flow';
 
 /**
  * Handler for executing CSV Analysis nodes

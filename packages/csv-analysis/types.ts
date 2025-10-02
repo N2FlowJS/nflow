@@ -20,7 +20,7 @@ export type CsvAnalysisNodeData = BaseNodeData<CsvAnalysisForm> & {
 
 
 // Auto-added augmentation for NodeDataMap
-declare module '../../models/nodeDataMap' {
+declare module '@n2flowjs/flow' {
   interface NodeDataMap {
     CsvAnalysisNodeData: CsvAnalysisNodeData;
   }

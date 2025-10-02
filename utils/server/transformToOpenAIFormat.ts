@@ -1,6 +1,5 @@
+import { EXECUTION_STATUS, ExecutionResult } from '@n2flowjs/flow';
 import { OpenAIExecutionResult } from '../../models/flow';
-import { ExecutionResult } from '../../models/flowExecutionTypes';
-import { EXECUTION_STATUS } from '../../packages/@flow/EXECUTION_STATUS'; // Import EXECUTION_STATUS
 
 // Transform our result to OpenAI format
 export function transformToOpenAIFormat(result: ExecutionResult, conversationId: string): OpenAIExecutionResult {

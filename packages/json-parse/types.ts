@@ -11,7 +11,7 @@ export interface JsonParseForm extends BaseForm {
 
 export type JsonParseNodeData = BaseNodeData<JsonParseForm> & { type: 'json-parse' };
 
-declare module '../../models/nodeDataMap' {
+declare module '@n2flowjs/flow' {
 	interface NodeDataMap {
 		JsonParseNodeData: JsonParseNodeData;
 	}

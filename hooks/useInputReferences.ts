@@ -1,4 +1,4 @@
-import { FlowState } from '../models/flowExecutionTypes';
+import { FlowState } from '../models/flowExecution';
 
 
 export function getQueryFromSource(inputRef: string[] = [], flowState: FlowState): string | null {

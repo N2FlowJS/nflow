@@ -12,7 +12,7 @@ export type DisplayNodeData = BaseNodeData<DisplayForm> & { type: 'display' };
 
 
 // Auto-added augmentation for NodeDataMap
-declare module '../../models/nodeDataMap' {
+declare module '@n2flowjs/flow' {
   interface NodeDataMap {
     DisplayNodeData: DisplayNodeData;
   }

@@ -1,5 +1,5 @@
 import { apiRequest } from './apiUtils';
-import { FlowState } from '../models/flowExecutionTypes';
+import { FlowState } from '../models/flowExecution';
 import { Conversation } from '../prisma'; // Or your specific Conversation type from Prisma
 
 // It's often useful to have a type that represents the conversation with its flowState already parsed

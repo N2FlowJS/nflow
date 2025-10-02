@@ -1,9 +1,8 @@
 import { continueExecution } from '../../../utils/server/nodeExecution/continueExecution';
-import { ExecutionResult, ExecutionStatus, FlowState } from '../../../models/flowExecutionTypes';
-import { Flow } from '../../../models/flowTypes';
 import { MessagePart } from '../../../models/MessagePart';
 import { executeCurrentNode } from './executeCurrentNode';
 import { FlowStateDispatcher } from '@n2flowjs/flow/flow-state-dispatcher';
+import { ExecutionResult, ExecutionStatus, Flow, FlowState } from '@n2flowjs/flow';
 
 export async function executeFlow(
   flow: Flow,

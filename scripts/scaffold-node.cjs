@@ -46,10 +46,8 @@ export const ${pascal}Plugin: NodePlugin = {
 
 fs.writeFileSync(
   path.join(dir, 'execute.ts'),
-  `import { FlowNode } from '../../models/flowTypes';
-import { findNextNodes } from '@n2flowjs/flow/find-next-node';
-import { FlowStateDispatcher } from '@n2flowjs/flow/flow-state-dispatcher';
-import { ExecutionResult, FlowExecutionContext } from '@n2flowjs/flow/type';
+  `import type { ExecutionResult, FlowExecutionContext, FlowNode } from '@n2flowjs/flow';
+import { findNextNodes, FlowStateDispatcher } from '@n2flowjs/flow';
 
 export async function execute${pascal}Node(
   node: FlowNode,
@@ -97,7 +95,7 @@ export async function execute${pascal}Node(
 
 fs.writeFileSync(
   path.join(dir, 'types.ts'),
-  `import { BaseForm, BaseNodeData } from '@n2flowjs/flow/type';
+  `import { BaseForm, BaseNodeData } from '@n2flowjs/flow';
 
 export interface ${pascal}Form extends BaseForm {
   name: string;
@@ -105,7 +103,7 @@ export interface ${pascal}Form extends BaseForm {
 
 export type ${pascal}NodeData = BaseNodeData<${pascal}Form> & { type: '${name}' };
 
-declare module '../../models/nodeDataMap' {
+declare module '@n2flowjs/flow' {
   interface NodeDataMap { ${pascal}NodeData: ${pascal}NodeData; }
 }
 `

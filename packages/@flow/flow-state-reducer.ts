@@ -1,6 +1,4 @@
-import { FlowComponent } from "../../models/flowExecutionTypes";
-import { FlowNode } from "../../models/flowTypes";
-import { FlowState } from "./type";
+import { FlowComponent, FlowNode, FlowState } from "./type";
 
 
 export type FlowStateAction =

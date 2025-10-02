@@ -1,11 +1,9 @@
 import React from 'react';
-import { NodeTypeString, NodeConfig } from '../../models/core-flow-types';
+import { normalizeKey } from '../../utils/normalizeKey';
 import { RobotOutlined } from '@ant-design/icons';
-// IMPORTANT: Do NOT import '../../packages/@node-plugin' here because it uses fs/path.
-// We resolve plugin config lazily inside a guarded function to keep the client bundle clean.
+import { NodeConfig, NodeTypeString } from '@n2flowjs/flow';
 
 
-function normalizeKey(name: string) { return name.replace(/[^a-zA-Z0-9\-]/g, '').toLowerCase(); }
 
 function safeGetPluginConfig(): Record<string, any> {
   // 1. Client: read pre-hydrated global (can be injected server-side) or fallback empty
@@ -27,7 +25,7 @@ function buildNodeRegistry(): Record<NodeTypeString, NodeConfig> {
   Object.entries(pluginCfg).forEach(([pkg, cfg]) => {
     if (!cfg || cfg.enabled === false) return;
     const key = normalizeKey(pkg);
-    const formDefaults = {  ...(cfg.defaults?.form || {}) };
+    const formDefaults = { ...(cfg.defaults?.form || {}) };
 
     // Attempt to load a package-specific icon component: packages/<original-pkg>/icon
     let iconNode: React.ReactNode = <RobotOutlined />;
@@ -39,7 +37,8 @@ function buildNodeRegistry(): Record<NodeTypeString, NodeConfig> {
         if (React.isValidElement(IconExport)) iconNode = IconExport;
         else if (typeof IconExport === 'function') iconNode = <IconExport />;
       }
-    } catch { /* no custom icon provided */ }
+    } catch {
+    }
 
     registry[key] = {
       type: key as NodeTypeString,
@@ -49,13 +48,7 @@ function buildNodeRegistry(): Record<NodeTypeString, NodeConfig> {
       data: { type: key, form: formDefaults } as any,
     };
   });
-  ['begin','interface','generate'].forEach(k => { if (!registry[k]) registry[k] = { type: k as NodeTypeString, icon: <RobotOutlined />, input: 'Input', output: 'Output', data: { type: k, form: {} } as any }; });
   return registry as Record<NodeTypeString, NodeConfig>;
 }
 
 export const NODE_REGISTRY: Record<NodeTypeString, NodeConfig> = buildNodeRegistry();
-export function reloadNodeRegistry() { return buildNodeRegistry(); }
-export const NODE_REGISTRY_PROXY: Record<string, NodeConfig> = new Proxy(NODE_REGISTRY, { get(target, prop: string) { if (prop in target) return (target as any)[prop]; return (target as any)[normalizeKey(prop)]; } });
-export function getQueryInputSources() { return [ { id: 'user_input', name: 'User Input', description: 'Most recent user input' }, { id: 'generated_text', name: 'Generated Text', description: 'Output from last Generate node' }, { id: 'retrieval_results', name: 'Retrieval Results', description: 'Results from last Retrieval node' } ]; }
-export function getNodeInputInfo(nodeType: NodeTypeString) { return NODE_REGISTRY[nodeType]?.input; }
-// END CLEAN DYNAMIC IMPLEMENTATION

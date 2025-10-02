@@ -17,7 +17,7 @@ export type ExecMssqlNodeData = BaseNodeData<ExecMssqlForm> & { type: 'execmssql
 
 
 // Auto-added augmentation for NodeDataMap
-declare module '../../models/nodeDataMap' {
+declare module '@n2flowjs/flow' {
   interface NodeDataMap {
     ExecMssqlNodeData: ExecMssqlNodeData;
   }

@@ -1,5 +1,5 @@
 import { WeatherNodeData } from './types';
-import { FlowNode } from '../../models/flowTypes';
+import { FlowNode } from '@n2flowjs/flow';
 import { getInputFromTemplate, processTemplate } from '@n2flowjs/template/template';
 import { findNextNodes } from '@n2flowjs/flow/find-next-node';
 import { isNodeReady } from '@n2flowjs/flow/is-node-ready';

@@ -1,8 +1,6 @@
-import { ExecutionResult, FlowExecutionContext } from '../../models/flowExecutionTypes';
+import type { ExecutionResult, FlowExecutionContext, FlowNode } from '@n2flowjs/flow';
+import { findNextNodes, FlowStateDispatcher } from '@n2flowjs/flow';
 import { DelayNodeData } from './types';
-import { FlowNode } from '../../models/flowTypes';
-import { findNextNodes } from '@n2flowjs/flow/find-next-node';
-import { FlowStateDispatcher } from '@n2flowjs/flow/flow-state-dispatcher';
 
 /**
  * Handler for executing Delay nodes

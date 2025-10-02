@@ -11,7 +11,7 @@ export type DelayNodeData = BaseNodeData<DelayForm> & { type: 'delay' };
 
 
 // Auto-added augmentation for NodeDataMap
-declare module '../../models/nodeDataMap' {
+declare module '@n2flowjs/flow' {
   interface NodeDataMap {
     DelayNodeData: DelayNodeData;
   }

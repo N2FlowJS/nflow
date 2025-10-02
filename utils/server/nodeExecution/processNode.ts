@@ -1,9 +1,8 @@
 import { executeNode } from './executeNode';
 import { EXECUTION_STATUS } from '../../../packages/@flow/EXECUTION_STATUS';
-import { Flow } from '../../../models/flowTypes';
 import { FlowStateDispatcher } from '@n2flowjs/flow/flow-state-dispatcher';
 import { MessagePart } from '../../../models/MessagePart';
-import { ExecutionResult } from '@n2flowjs/flow/type';
+import { ExecutionResult, Flow, NodeTypeString } from '@n2flowjs/flow/type';
 
 export async function processNode(
   flow: Flow,
@@ -44,12 +43,14 @@ export async function processNode(
         nodeInfo: {
           id: nextNode.id,
           name: nextNode.data?.label || nextNode.id,
-          type: nextNode.type as any,
-          role: (nextNode.data as any)?.form?.role || 'developer',
+          type: (((nextNode.type ?? (nextNode.data as { type?: string })?.type) || 'generate') as NodeTypeString),
+          // Safely extract role from node form if available
+          role: ((nextNode.data as { form?: { role?: 'developer' | 'assistant' | 'system' | 'user' } })?.form?.role) || 'developer',
         },
         execution: {
           nodeId: nextNode.id,
-          nodeName: (nextNode.data as any)?.form?.name || nextNode.id,
+          nodeName:
+            ((nextNode.data as { form?: { name?: string } })?.form?.name) || nextNode.id,
           startTime: new Date().toISOString(),
           endTime: new Date().toISOString(),
           output: state.components?.[nextNode.id]?.output ?? '',

@@ -1,7 +1,6 @@
 
-import type { FlowNode } from "../../models/flowTypes";
 import { FlowStateDispatcher } from "@n2flowjs/flow/flow-state-dispatcher";
-import { ExecutionResult, FlowExecutionContext } from "@n2flowjs/flow/type";
+import { ExecutionResult, FlowExecutionContext, FlowNode } from "@n2flowjs/flow/type";
 export interface NodePluginConfig {
   enabled?: boolean;
   order?: number;      // canonical ordering key

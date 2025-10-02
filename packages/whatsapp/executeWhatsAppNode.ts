@@ -1,10 +1,7 @@
-import { ExecutionResult, FlowExecutionContext } from '../../models/flowExecutionTypes';
-import { WhatsAppNodeData } from './types';
-import { FlowNode } from '../../models/flowTypes';
+import type { ExecutionResult, FlowExecutionContext, FlowNode } from '@n2flowjs/flow';
+import { findNextNodes, isNodeReady, FlowStateDispatcher } from '@n2flowjs/flow';
 import { getInputFromTemplate, processTemplate } from '@n2flowjs/template/template';
-import { findNextNodes } from '@n2flowjs/flow/find-next-node';
-import { isNodeReady } from '@n2flowjs/flow/is-node-ready';
-import { FlowStateDispatcher } from '@n2flowjs/flow/flow-state-dispatcher';
+import { WhatsAppNodeData } from './types';
 
 /**
  * Handler for executing WhatsApp nodes

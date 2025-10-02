@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { getDiscoveredNodeForms } from '../../@node-plugin/discovery/ui-discover';
-import { FlowNode } from '../../../models/flowTypes';
+import { normalizeKey } from '../../../utils/normalizeKey';
+import { FlowNode } from '../type';
 
 interface DynamicNodeFormProps {
   form: any;
@@ -13,8 +14,7 @@ const DynamicNodeForm: React.FC<DynamicNodeFormProps> = ({ form, selectedNode, s
   const [loadingType, setLoadingType] = useState<string | null>(null);
   const [_, forceRender] = useState(0); // simple force update after dynamic load
 
-  // Normalize to match how registry/types are built
-  const normalizeKey = (name: string) => name.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+  // Normalize to match how registry/types are built (shared util)
 
   // Build a mapping from normalized node type => package folder name using injected plugin config
   const typeToPackage = useMemo(() => {

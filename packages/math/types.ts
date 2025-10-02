@@ -17,7 +17,7 @@ export type MathNodeData = BaseNodeData<MathForm> & { type: 'math' };
 
 
 // Auto-added augmentation for NodeDataMap
-declare module '../../models/nodeDataMap' {
+declare module '@n2flowjs/flow' {
   interface NodeDataMap {
     MathNodeData: MathNodeData;
   }

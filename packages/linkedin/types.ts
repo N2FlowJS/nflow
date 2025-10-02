@@ -18,7 +18,7 @@ export type LinkedInNodeData = BaseNodeData<LinkedInForm> & { type: 'linkedin' }
 
 
 // Auto-added augmentation for NodeDataMap
-declare module '../../models/nodeDataMap' {
+declare module '@n2flowjs/flow' {
   interface NodeDataMap {
     LinkedInNodeData: LinkedInNodeData;
   }

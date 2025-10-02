@@ -15,7 +15,7 @@ export type HttpRequestNodeData = BaseNodeData<HttpRequestForm> & { type: 'httpr
 
 
 // Auto-added augmentation for NodeDataMap
-declare module '../../models/nodeDataMap' {
+declare module '@n2flowjs/flow' {
   interface NodeDataMap {
     HttpRequestNodeData: HttpRequestNodeData;
   }

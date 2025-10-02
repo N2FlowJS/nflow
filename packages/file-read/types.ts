@@ -12,7 +12,7 @@ export type FileReadNodeData = BaseNodeData<FileReadForm> & { type: 'file-read' 
 
 
 // Auto-added augmentation for NodeDataMap
-declare module '../../models/nodeDataMap' {
+declare module '@n2flowjs/flow' {
   interface NodeDataMap {
     FileReadNodeData: FileReadNodeData;
   }

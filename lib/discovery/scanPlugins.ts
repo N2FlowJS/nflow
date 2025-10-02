@@ -3,6 +3,7 @@
 // Returned maps use normalized package names (remove dashes) as keys.
 
 import type React from 'react';
+import { normalizeKey } from '../../utils/normalizeKey';
 
 const path: typeof import('path') = (eval('require') as NodeJS.Require)('path');
 const fs: typeof import('fs') = (eval('require') as NodeJS.Require)('fs');
@@ -24,10 +25,7 @@ try {
   // ignore
 }
 
-// Normalize a package folder name to a node type key, e.g. "http-request" => "httprequest"
-function normalizeKey(pkgName: string) {
-  return pkgName.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
-}
+
 
 export function scanNodeComponents(): Record<string, React.ComponentType<any>> {
   const pkgsDir = path.join(process.cwd(), 'packages');

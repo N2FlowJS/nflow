@@ -1,5 +1,5 @@
 import { prisma } from '../lib/prisma';
-import type { FlowState } from '../models/flowExecutionTypes';
+import type { FlowState } from '../models/flowExecution';
 import type { MessagePart } from '../models/MessagePart';
 
 /**

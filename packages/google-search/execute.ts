@@ -1,8 +1,12 @@
-import { ExecutionResult, FlowExecutionContext } from '../../models/flowExecutionTypes';
-import { FlowNode } from '../../models/flowTypes';
+import type {
+  ExecutionResult,
+  FlowExecutionContext,
+  FlowNode,
+  FlowStateDispatcher,
+} from '@n2flowjs/flow';
+import { findNextNodes, isNodeReady } from '@n2flowjs/flow';
 import { GoogleSearchNodeData } from './types';
 import { getInputFromTemplate, processTemplate } from '@n2flowjs/template/template';
-import { findNextNodes, isNodeReady, FlowStateDispatcher } from '@n2flowjs/flow';
 
 /**
  * Handler for executing Google Search nodes

@@ -14,7 +14,7 @@ export type CacheNodeData = BaseNodeData<CacheForm> & { type: 'cache' };
 
 
 // Auto-added augmentation for NodeDataMap
-declare module '../../models/nodeDataMap' {
+declare module '@n2flowjs/flow' {
   interface NodeDataMap {
     CacheNodeData: CacheNodeData;
   }

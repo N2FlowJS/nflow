@@ -1,7 +1,7 @@
-import { Flow, FlowNode, NodeTypeString } from '../../models/flowTypes';
-import { FlowState } from '../../models/flowExecutionTypes';
 
 // Create an initial flow state
+
+import { Flow, FlowNode, FlowState, NodeTypeString } from "@n2flowjs/flow";
 
 type InitialFlowStateProps = {
   beginNode: FlowNode;

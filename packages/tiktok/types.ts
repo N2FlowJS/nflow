@@ -18,7 +18,7 @@ export type TikTokNodeData = BaseNodeData<TikTokForm> & { type: 'tiktok' };
 
 
 // Auto-added augmentation for NodeDataMap
-declare module '../../models/nodeDataMap' {
+declare module '@n2flowjs/flow' {
   interface NodeDataMap {
     TikTokNodeData: TikTokNodeData;
   }

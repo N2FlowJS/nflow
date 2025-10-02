@@ -6,6 +6,7 @@ import { AuthProvider } from "../context/AuthContext";
 import { LocaleProvider, useLocale } from "../locale";
 import { ThemeProvider } from "../theme";
 import '../style/globals.css'
+import { normalizeKey } from '../utils/normalizeKey';
 
 if (typeof window === "undefined") {
   import("../lib/worker-init").then((module) => {
@@ -32,7 +33,7 @@ function IFlowApp({ Component, pageProps }: AppProps) {
     const cfg = window.__NFLOW_NODE_PLUGIN_CONFIG__ || {};
     const compMap = (window.__NFLOW_NODE_COMPONENTS__ ||= {});
     const formMap = (window.__NFLOW_NODE_FORMS__ ||= {});
-    const normalizeKey = (pkg: string) => (pkg || '').replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+  // use shared normalizeKey
 
     const preload = async () => {
       const pkgs = Object.keys(cfg).filter(k => cfg[k]?.enabled !== false);

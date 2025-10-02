@@ -25,11 +25,11 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { v4 as uuidv4 } from 'uuid';
 import { useMobile, useToken } from '../../hooks/useMobile';
 import { OpenAIExecutionResult } from '../../models/flow';
-import { FlowState } from '../../models/flowExecutionTypes';
 import { flowExecutionService } from '../../services/flowExecutionService';
 import ChatMessage from './ChatMessage';
 import { ISender, MessageType } from './types';
 import { useLocale } from '../../locale';
+import { FlowState } from '@n2flowjs/flow';
 
 interface ChatInterfaceProps {
   agentId: string;

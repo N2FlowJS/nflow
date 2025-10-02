@@ -1,16 +1,19 @@
-import { FlowNode } from '../../models/flowTypes';
 import { InterfaceNodeData } from './types';
-import { ExecutionResult, FlowExecutionContext } from '../../models/flowExecutionTypes';
 import { findNextNodes } from '../@flow/find-next-node';
 // Corrected reducer import path
 import { flowStateReducer } from '../@flow/flow-state-reducer';
 import { FlowStateDispatcher } from '../@flow/flow-state-dispatcher';
+import { ExecutionResult, FlowExecutionContext, FlowNode } from '@n2flowjs/flow';
 
 /**
  * Handler for executing Interface nodes
  * Interface nodes display content and wait for user input
  */
-export async function executeInterfaceNode(node: FlowNode, { flow, flowState, input }: FlowExecutionContext, dispatcher?: FlowStateDispatcher): Promise<ExecutionResult> {
+export async function executeInterfaceNode(
+  node: FlowNode,
+  { flow, flowState, input }: FlowExecutionContext,
+  dispatcher?: FlowStateDispatcher
+): Promise<ExecutionResult> {
   const data = node.data as InterfaceNodeData;
   const startTime = new Date().toISOString();
 
@@ -51,7 +54,7 @@ export async function executeInterfaceNode(node: FlowNode, { flow, flowState, in
       type: 'SET_CURRENT_NODE',
       payload: { node },
     });
-    
+
     finalState = updatedState;
   }
 
@@ -60,7 +63,7 @@ export async function executeInterfaceNode(node: FlowNode, { flow, flowState, in
   if (nextNodes.length === 0) throw new Error(`Node ${node.data.label} No next node found in the flow`);
 
   return {
-    status: input.role === 'user' ? 'in_progress' : 'completed',
+    status: input.role === 'user' ? 'in_progress' : 'ended',
     nextNodes,
     nodeInfo: {
       id: node.id,

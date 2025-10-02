@@ -1,7 +1,9 @@
-import { FlowComponent, FlowExecutionHistoryEntry } from '../../models/flowExecutionTypes';
-import { Flow, NodeTypeString } from '../../models/flowTypes';
+import { Edge, Node } from '@xyflow/react';
 import { MessagePart } from '../../models/MessagePart';
-import type { FlowNode } from '../../models/nodeDataMap';
+export interface NodeDataMap {}
+
+export type NodeData = NodeDataMap[keyof NodeDataMap] | (BaseNodeData<any> & { type: string });
+export type FlowNode = Node<NodeData>;
 
 export interface NodeInfo {
   id: string;
@@ -87,3 +89,48 @@ export type BaseNodeData<TForm = unknown> = {
   [key: string]: unknown;
   form: TForm;
 };
+export type NodeTypeString = string & {};
+
+
+export interface Flow {
+  nodes: FlowNode[];
+  edges: Edge[];
+}
+
+// Node configuration
+export interface NodeConfig {
+  type: NodeTypeString;
+  icon?: React.ReactNode;
+  input: string; // Description of what input the node accepts
+  output: string; // Description of what output the node produces
+  references?: InputReference[]; // Optional references for input/output
+  data: Partial<NodeData>;
+}
+/**
+ * Represents a component in the flow execution
+ */
+export interface FlowComponent {
+  type: NodeTypeString;
+  output: string;
+  executionTime: number;
+  inputFlow: {
+    id: string;
+    name: string;
+  }[];
+  inputRefs?: InputReference[];
+}
+
+
+
+export interface FlowExecutionHistoryEntry {
+  nodeId?: string;
+  nodeType?: string;
+  timestamp: string;
+  input?: any;
+  output?: string;
+  status?: 'success' | 'error' | 'skipped';
+  message?: string;
+}
+
+export type ExecutionStatusType = 'pending' | 'running' | 'completed' | 'error';
+

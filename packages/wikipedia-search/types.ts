@@ -13,7 +13,7 @@ export type WikipediaSearchNodeData = BaseNodeData<WikipediaSearchForm> & { type
 
 
 // Auto-added augmentation for NodeDataMap
-declare module '../../models/nodeDataMap' {
+declare module '@n2flowjs/flow' {
   interface NodeDataMap {
     WikipediaSearchNodeData: WikipediaSearchNodeData;
   }

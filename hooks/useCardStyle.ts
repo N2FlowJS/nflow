@@ -1,5 +1,5 @@
+import { NodeConfig } from '@n2flowjs/flow';
 import { useMemo } from 'react';
-import { NodeConfig } from '../models/core-flow-types';
 
 interface UseCardStyleProps {
   selected: boolean;

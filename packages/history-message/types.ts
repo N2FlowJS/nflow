@@ -10,7 +10,7 @@ export interface HistoryMessageForm extends BaseForm {
 export type HistoryMessageNodeData = BaseNodeData<HistoryMessageForm> & { type: 'history-message' };
 
 // Auto-added augmentation for NodeDataMap
-declare module '../../models/nodeDataMap' {
+declare module '@n2flowjs/flow' {
   interface NodeDataMap {
     HistoryMessageNodeData: HistoryMessageNodeData;
   }

@@ -1,6 +1,6 @@
 import { executeExecMysqlNode } from './executeExecMysqlNode';
 import { NodePlugin } from '../@node-plugin/type';
-import { FlowNode } from 'models/nodeDataMap';
+import { FlowNode } from '@n2flowjs/flow';
 
 export const execMysqlPlugin: NodePlugin = {
   name: 'exec-mysql',

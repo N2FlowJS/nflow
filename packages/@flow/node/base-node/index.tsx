@@ -2,9 +2,9 @@ import { Position } from '@xyflow/react';
 import { Card, Button, Space } from 'antd';
 import { DeleteOutlined, BugOutlined, SettingOutlined } from '@ant-design/icons';
 import React, { memo } from 'react';
-import type { NodeData } from '../../../../models/nodeDataMap';
 import NodeHeader from './node-header';
 import { useBaseNode } from './useBaseNodeHooks';
+import { NodeData } from '../../type';
 
 interface BaseNodeProps {
   data: NodeData;

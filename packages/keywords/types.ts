@@ -9,7 +9,7 @@ export interface KeywordsForm extends BaseForm {
 
 export type KeywordsNodeData = BaseNodeData<KeywordsForm> & { type: 'keywords' };
 
-declare module '../../models/nodeDataMap' {
+declare module '@n2flowjs/flow' {
   interface NodeDataMap {
     keywords: KeywordsNodeData;
   }

@@ -1,6 +1,6 @@
 import { NodePlugin } from '../@node-plugin/type'
 import { executeFacebookNode } from './execute'
-import { FlowNode } from 'models/nodeDataMap';
+import { FlowNode } from '@n2flowjs/flow';
 
 export const facebookPlugin: NodePlugin = {
   name: 'facebook',

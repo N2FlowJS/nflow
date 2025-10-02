@@ -12,7 +12,7 @@ export type TransformNodeData = BaseNodeData<TransformForm> & { type: 'transform
 
 
 // Auto-added augmentation for NodeDataMap
-declare module '../../models/nodeDataMap' {
+declare module '@n2flowjs/flow' {
   interface NodeDataMap {
     TransformNodeData: TransformNodeData;
   }

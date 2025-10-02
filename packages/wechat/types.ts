@@ -21,7 +21,7 @@ export type WeChatNodeData = BaseNodeData<WeChatForm> & { type: 'wechat' };
 
 
 // Auto-added augmentation for NodeDataMap
-declare module '../../models/nodeDataMap' {
+declare module '@n2flowjs/flow' {
   interface NodeDataMap {
     WeChatNodeData: WeChatNodeData;
   }

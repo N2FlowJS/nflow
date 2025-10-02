@@ -16,12 +16,11 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { Modal, Form, Layout, Button } from 'antd';
-import React, { memo, useCallback, useMemo, useState } from 'react';
+import React, { memo, useCallback, useMemo, useState, useRef, useEffect } from 'react';
 
 import NodeForm from '../../../packages/@flow/share/DynamicNodeForm';
 
 import { useFlowState } from '../../../context/FlowStateContext';
-import { FlowNode, NodeTypeString } from '../../../models/flowTypes';
 import { useTheme } from '../../../theme';
 import CustomEdge from '../edges/CustomEdge';
 
@@ -42,11 +41,47 @@ import NextNodeModal from './NextNodeModal';
 import { nodeTypes } from '../nodes';
 import { DragContext } from './DragContext';
 import { useFlowEditorPerf } from './hooks/useFlowEditorPerf';
+import { FlowNode, NodeTypeString } from '@n2flowjs/flow';
 
 const edgeTypes: EdgeTypes = {
   default: CustomEdge,
   smoothstep: CustomEdge,
   floating: CustomEdge,
+};
+
+// Static helper functions moved outside component to prevent re-creation
+const rectsOverlap = (
+  a: { x: number; y: number; w: number; h: number },
+  b: { x: number; y: number; w: number; h: number }
+) => {
+  return !(a.x + a.w <= b.x || b.x + b.w <= a.x || a.y + a.h <= b.y || b.y + b.h <= a.y);
+};
+
+const getDirVector = (p: Position) => {
+  switch (p) {
+    case Position.Bottom:
+      return { x: 0, y: 1 };
+    case Position.Top:
+      return { x: 0, y: -1 };
+    case Position.Left:
+      return { x: -1, y: 0 };
+    case Position.Right:
+      return { x: 1, y: 0 };
+    default:
+      return { x: 0, y: 1 };
+  }
+};
+
+const estimateNodeSize = (_: NodeTypeString) => {
+  return { width: 320, height: 180 };
+};
+
+const snapToGrid = (pos: { x: number; y: number }) => {
+  const grid = 20;
+  return {
+    x: Math.round(pos.x / grid) * grid,
+    y: Math.round(pos.y / grid) * grid,
+  };
 };
 
 interface FlowEditorProps {
@@ -89,10 +124,8 @@ const FlowEditor: React.FC<FlowEditorProps> = ({
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [nodeForm] = Form.useForm();
   const { screenToFlowPosition } = useReactFlow();
-  const idCounter = React.useRef(0);
-  // Removed palette state
-  // (Perf handled by useFlowEditorPerf)
-
+  const idCounter = useRef(0);
+  
   const { setFlowState } = useFlowState();
 
   // Next step modal state
@@ -101,61 +134,39 @@ const FlowEditor: React.FC<FlowEditorProps> = ({
 
   const noNodes = nodes.length === 0;
 
-  // Helpers for smart positioning
-  const getDirVector = useCallback((p: Position) => {
-    switch (p) {
-      case Position.Bottom:
-        return { x: 0, y: 1 };
-      case Position.Top:
-        return { x: 0, y: -1 };
-      case Position.Left:
-        return { x: -1, y: 0 };
-      case Position.Right:
-        return { x: 1, y: 0 };
-      default:
-        return { x: 0, y: 1 };
-    }
-  }, []);
-
-  const estimateSize = useCallback((_: NodeTypeString) => {
-    // Fallback estimate; if measured sizes exist on nodes, use them where possible
-    // Could be refined per type
-    return { width: 320, height: 180 };
-  }, []);
-
-  const snapToGrid = useCallback((pos: { x: number; y: number }) => {
-    const grid = 20;
-    return {
-      x: Math.round(pos.x / grid) * grid,
-      y: Math.round(pos.y / grid) * grid,
-    };
-  }, []);
-
-  const rectsOverlap = (
-    a: { x: number; y: number; w: number; h: number },
-    b: { x: number; y: number; w: number; h: number }
-  ) => {
-    return !(a.x + a.w <= b.x || b.x + b.w <= a.x || a.y + a.h <= b.y || b.y + b.h <= a.y);
-  };
-
+  // Memoized collision detection with spatial optimization
   const collides = useCallback(
     (pos: { x: number; y: number }, size: { width: number; height: number }) => {
       const a = { x: pos.x, y: pos.y, w: size.width, h: size.height };
-      for (const n of nodes) {
-        const w = (n as any).width ?? estimateSize(n.type as NodeTypeString).width;
-        const h = (n as any).height ?? estimateSize(n.type as NodeTypeString).height;
-        const b = { x: n.position.x, y: n.position.y, w, h };
-        if (rectsOverlap(a, b)) return true;
+      
+      // Early exit if no nodes
+      if (nodes.length === 0) return false;
+      
+      // Spatial check: only test nodes that could potentially collide
+      for (let i = 0; i < nodes.length; i++) {
+        const n = nodes[i];
+        const w = (n as any).width ?? estimateNodeSize(n.type as NodeTypeString).width;
+        const h = (n as any).height ?? estimateNodeSize(n.type as NodeTypeString).height;
+        
+        // Quick distance check before detailed overlap
+        const dx = Math.abs((n.position.x + w / 2) - (pos.x + size.width / 2));
+        const dy = Math.abs((n.position.y + h / 2) - (pos.y + size.height / 2));
+        
+        if (dx < (w + size.width) / 2 + 10 && dy < (h + size.height) / 2 + 10) {
+          const b = { x: n.position.x, y: n.position.y, w, h };
+          if (rectsOverlap(a, b)) return true;
+        }
       }
       return false;
     },
-    [nodes, estimateSize]
+    [nodes]
   );
 
-  const availableNextTypes = useMemo(() => {
-    // With rules removed, just list all (future: delegate filtering to plugin layer)
-    return Object.entries(NODE_REGISTRY) as Array<[NodeTypeString, any]>;
-  }, []);
+  // Memoize once - NODE_REGISTRY is static
+  const availableNextTypes = useMemo(
+    () => Object.entries(NODE_REGISTRY) as Array<[NodeTypeString, any]>,
+    []
+  );
 
   useConversationStateLoader(activeConversationId, setFlowState);
   useEdgeCleanup(nodes, setEdges);
@@ -193,8 +204,8 @@ const FlowEditor: React.FC<FlowEditorProps> = ({
     setIsNextStepOpen(true);
   }, []);
 
-  const genNodeId = useCallback(() => `node_${Date.now()}_${idCounter.current++}`, [idCounter]);
-  const genEdgeId = useCallback(() => `edge_${Date.now()}_${idCounter.current++}`, [idCounter]);
+  const genNodeId = useCallback(() => `node_${Date.now()}_${idCounter.current++}`, []);
+  const genEdgeId = useCallback(() => `edge_${Date.now()}_${idCounter.current++}`, []);
 
   const addNextNode = useCallback(
     (nodeType: NodeTypeString) => {
@@ -210,7 +221,7 @@ const FlowEditor: React.FC<FlowEditorProps> = ({
           counter++;
         }
 
-        const size = estimateSize(nodeType);
+        const size = estimateNodeSize(nodeType);
         const centerFlow = screenToFlowPosition({ x: window.innerWidth / 2, y: window.innerHeight / 2 });
         let pos = snapToGrid({ x: centerFlow.x - size.width / 2, y: centerFlow.y - size.height / 2 });
         // push down if colliding (unlikely with empty canvas)
@@ -254,12 +265,12 @@ const FlowEditor: React.FC<FlowEditorProps> = ({
       // Desired anchor is the clicked handle location in flow coords
       const clickFlow = screenToFlowPosition({ x: nextStepCtx.clientX, y: nextStepCtx.clientY });
       const dir = getDirVector(nextStepCtx.position);
-      const size = estimateSize(nodeType);
+      const size = estimateNodeSize(nodeType);
 
       // Place new node using source node size for smarter spacing
-      const GAP = 16; // gap between source node bbox and new node bbox
-      const sW = nextStepCtx.sourceW ?? (source as any).width ?? estimateSize(source.type as NodeTypeString).width;
-      const sH = nextStepCtx.sourceH ?? (source as any).height ?? estimateSize(source.type as NodeTypeString).height;
+      const GAP = 16;
+      const sW = nextStepCtx.sourceW ?? (source as any).width ?? estimateNodeSize(source.type as NodeTypeString).width;
+      const sH = nextStepCtx.sourceH ?? (source as any).height ?? estimateNodeSize(source.type as NodeTypeString).height;
 
       let pos: { x: number; y: number };
       switch (nextStepCtx.position) {
@@ -290,11 +301,9 @@ const FlowEditor: React.FC<FlowEditorProps> = ({
           break;
       }
 
-      // Snap to grid
       pos = snapToGrid(pos);
 
-      // Avoid collisions by pushing along the direction vector
-      const STEP = 20; // reduced step from 40 so adjustments are less far
+      const STEP = 20;
       let attempts = 0;
       while (collides(pos, size) && attempts < 20) {
         pos = { x: pos.x + dir.x * STEP, y: pos.y + dir.y * STEP };
@@ -314,7 +323,6 @@ const FlowEditor: React.FC<FlowEditorProps> = ({
         position: pos,
       };
 
-      // Choose target handle: SubAgent -> Top; otherwise opposite of clicked source handle; fallback Top
       let targetHandle: string | undefined;
       if (nodeType === 'subagent') {
         targetHandle = `in-${Position.Top}-0`;
@@ -334,7 +342,7 @@ const FlowEditor: React.FC<FlowEditorProps> = ({
         ...(showEdgeMarkers ? { markerEnd: { type: MarkerType.ArrowClosed } } : {}),
       } as Edge;
 
-      // Single-pass nodes update: append new node and conditionally mutate source node form
+      // Batch state updates
       setNodes((nds) => {
         const next = [...nds, newNode];
         if (nextStepCtx.nodeType === 'categorize' && sourceHandle?.startsWith('out-')) {
@@ -380,18 +388,24 @@ const FlowEditor: React.FC<FlowEditorProps> = ({
       setIsNextStepOpen(false);
       setNextStepCtx(null);
     },
-  [nextStepCtx, nodes, setNodes, setEdges, screenToFlowPosition, getDirVector, estimateSize, snapToGrid, collides, genEdgeId, genNodeId, showEdgeMarkers]
+    [nextStepCtx, nodes, setNodes, setEdges, screenToFlowPosition, collides, genEdgeId, genNodeId, showEdgeMarkers]
   );
 
-  // Inject delete handler once per change of handler identity without recreating edge objects unnecessarily
-  React.useEffect(() => {
-    setEdges((currentEdges) =>
-      currentEdges.map((edge) => {
-        if (edge.data && edge.data.onDelete === onEdgeDelete) return edge;
-        return { ...edge, data: { ...(edge.data || {}), onDelete: onEdgeDelete } };
-      })
-    );
-  }, [onEdgeDelete, setEdges]);
+  // Inject delete handler - use ref to avoid re-running on every onEdgeDelete change
+  const onEdgeDeleteRef = useRef(onEdgeDelete);
+  onEdgeDeleteRef.current = onEdgeDelete;
+  
+  useEffect(() => {
+    setEdges((currentEdges) => {
+      let hasChanges = false;
+      const newEdges = currentEdges.map((edge) => {
+        if (edge.data && edge.data.onDelete === onEdgeDeleteRef.current) return edge;
+        hasChanges = true;
+        return { ...edge, data: { ...(edge.data || {}), onDelete: onEdgeDeleteRef.current } };
+      });
+      return hasChanges ? newEdges : currentEdges;
+    });
+  }, [setEdges]);
 
   // Performance and UX hook
   const {
@@ -417,7 +431,7 @@ const FlowEditor: React.FC<FlowEditorProps> = ({
     return edgesForRender.map((e) => ({ ...e, markerEnd: undefined }));
   }, [edgesForRender, showEdgeMarkers]);
 
-  const modalTitle = nextStepCtx ? 'Select Next Step' : 'Add First Node';
+  const modalTitle = useMemo(() => nextStepCtx ? 'Select Next Step' : 'Add First Node', [nextStepCtx]);
   const onDrawerClose = useCallback(() => nodeForm.submit(), [nodeForm]);
   const drawerWidth = useMemo(() => {
     if (typeof window === 'undefined') return '45%';

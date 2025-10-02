@@ -17,7 +17,7 @@ export type MattermostNodeData = BaseNodeData<MattermostForm> & { type: 'matterm
 
 
 // Auto-added augmentation for NodeDataMap
-declare module '../../models/nodeDataMap' {
+declare module '@n2flowjs/flow' {
   interface NodeDataMap {
     MattermostNodeData: MattermostNodeData;
   }

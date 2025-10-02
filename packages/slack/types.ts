@@ -17,7 +17,7 @@ export type SlackNodeData = BaseNodeData<SlackForm> & { type: 'slack' };
 
 
 // Auto-added augmentation for NodeDataMap
-declare module '../../models/nodeDataMap' {
+declare module '@n2flowjs/flow' {
   interface NodeDataMap {
     SlackNodeData: SlackNodeData;
   }

@@ -22,7 +22,7 @@ export type JiraNodeData = BaseNodeData<JiraForm> & { type: 'jira' };
 
 
 // Auto-added augmentation for NodeDataMap
-declare module '../../models/nodeDataMap' {
+declare module '@n2flowjs/flow' {
   interface NodeDataMap {
     JiraNodeData: JiraNodeData;
   }

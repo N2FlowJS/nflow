@@ -8,7 +8,7 @@ export type AgentNodeData = BaseNodeData<AgentForm> & { type: 'agent' };
 
 
 // Auto-added augmentation for NodeDataMap
-declare module '../../models/nodeDataMap' {
+declare module '@n2flowjs/flow' {
   interface NodeDataMap {
     AgentNodeData: AgentNodeData;
   }

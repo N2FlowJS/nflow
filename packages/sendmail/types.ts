@@ -20,7 +20,7 @@ export type SendMailNodeData = BaseNodeData<SendMailForm> & { type: 'sendmail' }
 
 
 // Auto-added augmentation for NodeDataMap
-declare module '../../models/nodeDataMap' {
+declare module '@n2flowjs/flow' {
   interface NodeDataMap {
     SendMailNodeData: SendMailNodeData;
   }

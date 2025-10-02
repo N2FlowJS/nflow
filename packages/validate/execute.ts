@@ -1,7 +1,6 @@
 import { ValidateNodeData } from './types';
-import { FlowNode } from '../../models/flowTypes';
 import { getInputFromTemplate, processTemplate } from '@n2flowjs/template/template';
-import { findNextNodes, isNodeReady, FlowStateDispatcher, ExecutionResult, FlowExecutionContext, ResultWaiting } from '@n2flowjs/flow';
+import { findNextNodes, isNodeReady, FlowStateDispatcher, ExecutionResult, FlowExecutionContext, ResultWaiting, FlowNode } from '@n2flowjs/flow';
 
 /**
  * Handler for executing Validate nodes

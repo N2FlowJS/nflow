@@ -1,4 +1,4 @@
-import type { FlowNode } from 'models/nodeDataMap';
+import { FlowNode } from '@n2flowjs/flow';
 import { NodePlugin } from '../@node-plugin/type'
 import { executeDelayNode } from './executeDelayNode'
 

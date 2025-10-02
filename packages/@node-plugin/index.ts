@@ -149,12 +149,7 @@ function mergeConfigs(base?: NodePluginConfig | null, override?: NodePluginConfi
   return { ...base, ...override };
 }
 
-// Export internals for potential advanced usages (debug / tooling)
-export const _internalNodePlugin = {
-  invalidateNodePluginConfigCache,
-  normalizeConfigShape,
-  mergeConfigs,
-};
+
 
 // Build a dynamic set of node type keys from installed packages (server-only).
 // We transform package folder names like "http-request" => type key "httprequest".
@@ -192,3 +187,16 @@ export function getAllNodeTypeKeys(options?: LoaderOptions): string[] {
   return getDynamicNodeTypeKeys(options);
 }
 
+export const NODE_TYPES = Object.freeze(
+  (() => {
+    try {
+      const keys = getDynamicNodeTypeKeys();
+      return keys.reduce((acc, k) => {
+        (acc as Record<string, string>)[k] = k;
+        return acc;
+      }, {} as Record<string, string>);
+    } catch {
+      return {} as Record<string, string>;
+    }
+  })()
+);

@@ -12,7 +12,7 @@ export type TemplateNodeData = BaseNodeData<TemplateForm> & { type: 'promt' };
 
 
 // Auto-added augmentation for NodeDataMap
-declare module '../../models/nodeDataMap' {
+declare module '@n2flowjs/flow' {
   interface NodeDataMap {
     TemplateNodeData: TemplateNodeData;
   }

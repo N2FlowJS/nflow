@@ -11,7 +11,7 @@ import { NODE_REGISTRY } from '../../../utils/client/NODE_REGISTRY';
 import { Edge, MarkerType, Position, useReactFlow } from '@xyflow/react';
 import InputReferences from '@n2flowjs/flow/share/InputReferences';
 import RoleSelector from '@n2flowjs/flow/share/RoleSelector';
-import { FlowNode } from 'models/nodeDataMap';
+import { FlowNode } from '@n2flowjs/flow';
 
 const { Text } = Typography;
 

@@ -1,6 +1,6 @@
 import { executeExecMssqlNode } from './execute';
 import { NodePlugin } from '../@node-plugin/type';
-import { FlowNode } from 'models/nodeDataMap';
+import { FlowNode } from '@n2flowjs/flow';
 
 export const execMssqlPlugin: NodePlugin = {
   name: 'execmssql',

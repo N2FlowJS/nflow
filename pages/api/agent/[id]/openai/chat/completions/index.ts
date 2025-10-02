@@ -1,11 +1,8 @@
 // This file is part of the Flow Execution API for handling flow execution requests in a Next.js application.
 
 import type { NextApiRequest, NextApiResponse } from 'next';
-import type { Flow } from '../../../../../../../models/flowTypes';
-import { NODE_TYPES } from '../../../../../../../models/flowTypes';
 import { MessagePart } from '../../../../../../../models/MessagePart';
-import { OpenAIError, OpenAIExecutionResult } from '../../../../../../../models/flow';
-import type { ExecutionResult } from '../../../../../../../models/flowExecutionTypes';
+import {  OpenAIError, OpenAIExecutionResult } from '../../../../../../../models/flow';
 import { executeFlow } from '../../../../../../../utils/server/nodeExecution/executeFlow';
 import { createInitialFlowState } from '../../../../../../../utils/server/createInitialFlowState';
 import { extractUserInputFromMessages } from '../../../../../../../utils/server/extractUserInputFromMessages';
@@ -17,7 +14,8 @@ import {
   getConversationMessages,
 } from '../../../../../../../database/persistConversationState';
 import { transformToOpenAIFormat } from '../../../../../../../utils/server/transformToOpenAIFormat';
-import type { FlowNode } from '../../../../../../../models/flowTypes';
+import { ExecutionResult, Flow, FlowNode } from '@n2flowjs/flow';
+import { NODE_TYPES } from 'packages/@node-plugin';
 
 export default async function handler(
   req: NextApiRequest,
@@ -73,7 +71,7 @@ export default async function handler(
       if (stream && 'write' in res && result) {
         res.write(encoder.encode(`data: ${JSON.stringify(transformToOpenAIFormat(result, conversationId))}\n\n`));
       }
-      if (result.status === 'completed') {
+      if (result.status === 'ended') {
         conversationId = await saveConversationToDatabase({
           flowState: result.flowState,
           agentId: flowId,

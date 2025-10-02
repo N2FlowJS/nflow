@@ -5,7 +5,7 @@ export interface BeginForm extends BaseForm {
 }
 export type BeginNodeData = BaseNodeData<BeginForm> & { type: 'begin' };
 
-declare module '../../models/nodeDataMap' {
+declare module '@n2flowjs/flow' {
   interface NodeDataMap {
     begin: BeginNodeData;
   }

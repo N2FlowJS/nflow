@@ -1,9 +1,8 @@
-import type { FlowNode } from '../../models/nodeDataMap';
 import type { ConditionNodeData, ConditionForm } from './types';
 import { findNextNodes, ResultWaiting } from '../@flow/find-next-node';
 import { getInputFromTemplate, processTemplate } from '@n2flowjs/template/template';
 import { isNodeReady } from '../@flow/is-node-ready';
-import { FlowStateDispatcher } from '../@flow';
+import { FlowNode, FlowStateDispatcher } from '../@flow';
 import { ExecutionResult, FlowExecutionContext } from '../@flow';
 
 /**

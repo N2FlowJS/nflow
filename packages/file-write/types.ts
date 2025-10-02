@@ -13,7 +13,7 @@ export type FileWriteNodeData = BaseNodeData<FileWriteForm> & { type: 'file-writ
 
 
 // Auto-added augmentation for NodeDataMap
-declare module '../../models/nodeDataMap' {
+declare module '@n2flowjs/flow' {
   interface NodeDataMap {
     FileWriteNodeData: FileWriteNodeData;
   }

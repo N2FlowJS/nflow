@@ -11,7 +11,7 @@ export interface PrismaReadForm extends BaseForm {
 export type PrismaReadNodeData = BaseNodeData<PrismaReadForm> & { type: 'prisma-read' };
 
 // Auto-added augmentation for NodeDataMap
-declare module '../../models/nodeDataMap' {
+declare module '@n2flowjs/flow' {
   interface NodeDataMap {
     PrismaReadNodeData: PrismaReadNodeData;
   }

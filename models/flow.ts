@@ -1,5 +1,5 @@
+import { FlowState, NodeInfo } from '@n2flowjs/flow';
 import { ISender } from '../components/chat/types';
-import { FlowState, NodeInfo } from './flowExecutionTypes';
 
 // Define OpenAI-compatible error structure
 export interface OpenAIError {

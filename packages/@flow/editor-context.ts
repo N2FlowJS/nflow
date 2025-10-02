@@ -1,6 +1,6 @@
 import { createContext, useContext } from 'react';
 import { Position } from '@xyflow/react';
-import { NodeTypeString } from '../../models/flowTypes';
+import { NodeTypeString } from './type';
 
 export interface FlowEditorContextType {
   openConfigDrawer: () => void;

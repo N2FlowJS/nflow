@@ -1,10 +1,7 @@
-import { ExecutionResult, FlowExecutionContext } from '../../models/flowExecutionTypes';
-import { FlowNode } from '../../models/flowTypes';
+import type { ExecutionResult, FlowExecutionContext, FlowNode } from '@n2flowjs/flow';
+import { findNextNodes, isNodeReady, FlowStateDispatcher } from '@n2flowjs/flow';
 import { GitLabNodeData } from './types';
-import { findNextNodes } from '../@flow/find-next-node';
 import { getInputFromTemplate, processTemplate } from '@n2flowjs/template/template';
-import { isNodeReady } from '../@flow/is-node-ready';
-import { FlowStateDispatcher } from '../@flow/flow-state-dispatcher';
 
 /**
  * Handler for executing GitLab nodes

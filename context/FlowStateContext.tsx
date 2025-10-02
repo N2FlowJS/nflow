@@ -1,5 +1,5 @@
 import React, { createContext, ReactNode, useContext, useMemo, useCallback, useSyncExternalStore } from 'react';
-import { FlowState } from '../models/flowExecutionTypes';
+import { FlowState } from '../models/flowExecution';
 
 // --- Store for state management ---
 let flowStateStore: FlowState | null = null;

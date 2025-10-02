@@ -1,6 +1,6 @@
 import { NodePlugin } from '../@node-plugin/type'
 import { executeDuckGoSearchNode } from './executeDuckGoSearchNode'
-import { FlowNode } from 'models/nodeDataMap';
+import { FlowNode } from '@n2flowjs/flow';
 
 export const duckGoSearchPlugin: NodePlugin = {
   name: 'duckgosearch',

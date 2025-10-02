@@ -1,4 +1,4 @@
-import { Flow } from "../../models/flowTypes";
+import { Flow } from "@n2flowjs/flow";
 
 export function parseFlowConfig(parsed: any): Flow {
   try {

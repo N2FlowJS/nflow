@@ -11,7 +11,7 @@ export type SubAgentNodeData = BaseNodeData<SubAgentForm> & { type: 'subagent' }
 
 
 // Auto-added augmentation for NodeDataMap
-declare module '../../models/nodeDataMap' {
+declare module '@n2flowjs/flow' {
   interface NodeDataMap {
     SubAgentNodeData: SubAgentNodeData;
   }

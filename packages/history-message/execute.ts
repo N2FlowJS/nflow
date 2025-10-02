@@ -1,7 +1,6 @@
 import { prisma } from '../../lib/prisma';
 
-import type { FlowNode } from 'models/nodeDataMap';
-import type { ExecutionResult, FlowExecutionContext, FlowStateDispatcher } from '@n2flowjs/flow';
+import type { ExecutionResult, FlowExecutionContext, FlowNode, FlowStateDispatcher } from '@n2flowjs/flow';
 import { HistoryMessageForm } from './types';
 import { MessagePart } from 'models/MessagePart';
 export async function getChatHistory(form: HistoryMessageForm): Promise<MessagePart[]> {
@@ -41,7 +40,7 @@ export async function executeHistoryMessageNode(
   }
   return {
     nextNodes: [],
-    status: 'completed',
+  status: 'ended',
     message: `Fetched ${outputArr.length} messages`,
     flowState: c.flowState,
     nodeInfo: {

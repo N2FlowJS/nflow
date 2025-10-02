@@ -1,6 +1,6 @@
+import { ExecutionStatusType, NodeTypeString } from '@n2flowjs/flow';
 import type { EXECUTION_STATUS } from '../../packages/@flow/EXECUTION_STATUS';
-import { ExecutionStatusType } from '../../models/flowExecutionTypes';
-import { NodeTypeString } from '../../models/flowTypes';
+
 
 export interface NodeExecutionStatus {
   nodeId: string;

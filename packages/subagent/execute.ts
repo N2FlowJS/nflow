@@ -1,7 +1,6 @@
 import { SubAgentNodeData } from './types';
-import { FlowNode } from '../../models/flowTypes';
 import { getInputFromTemplate, processTemplate } from '@n2flowjs/template/template';
-import { findNextNodes, FlowStateDispatcher, ExecutionResult, FlowExecutionContext } from '@n2flowjs/flow';
+import { findNextNodes, FlowStateDispatcher, ExecutionResult, FlowExecutionContext, FlowNode } from '@n2flowjs/flow';
 
 /**
  * Handler for executing Sub Agent nodes
@@ -242,7 +241,7 @@ async function executeSubAgent(
           }
 
           // If execution is completed, resolve
-          if (result.status === 'completed') {
+          if (result.status === 'ended') {
             clearTimeout(timeoutId);
             resolve();
           }

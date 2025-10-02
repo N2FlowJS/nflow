@@ -28,7 +28,7 @@ export type ConditionNodeData = BaseNodeData<ConditionForm> & { type: 'condition
 
 
 // Auto-added augmentation for NodeDataMap
-declare module '../../models/nodeDataMap' {
+declare module '@n2flowjs/flow' {
   interface NodeDataMap {
     ConditionNodeData: ConditionNodeData;
   }

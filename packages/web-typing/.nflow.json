@@ -1,0 +1,18 @@
+{
+  "enabled": true,
+  "name": "Web Typing",
+  "order": 605,
+  "input": "Browser Control",
+  "output": "Text Entered",
+  "defaults": {
+    "form": {
+      "name": "Web Typing",
+      "selectorType": "css",
+      "clearBefore": true,
+      "pressEnter": false,
+      "typingDelay": 50,
+      "waitForSelector": true,
+      "timeout": 30000
+    }
+  }
+}

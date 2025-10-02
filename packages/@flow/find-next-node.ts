@@ -1,7 +1,6 @@
 import { Edge } from '@xyflow/react';
-import { Flow, FlowNode } from '../../models/flowTypes';
 import { EXECUTION_STATUS } from './EXECUTION_STATUS';
-import { ExecutionResult, FlowState } from './type';
+import { ExecutionResult, Flow, FlowNode, FlowState } from './type';
 
 export const findNextNodes = (flow: Flow, currentNodeId: string): string[] => {
   const edges = flow.edges.filter((edge: Edge) => edge.source === currentNodeId);

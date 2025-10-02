@@ -5,7 +5,7 @@ export interface InterfaceForm extends BaseForm {
 }
 export type InterfaceNodeData = BaseNodeData<InterfaceForm> & { type: 'interface' };
 
-declare module '../../models/nodeDataMap' {
+declare module '@n2flowjs/flow' {
   interface NodeDataMap {
     interface: InterfaceNodeData;
   }

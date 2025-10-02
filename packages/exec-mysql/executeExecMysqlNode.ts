@@ -1,7 +1,6 @@
-import { ExecutionResult, FlowExecutionContext } from '../../models/flowExecutionTypes';
-import { FlowNode } from '../../models/flowTypes';
+
 import { ExecMysqlNodeData } from './types';
-import { findNextNodes, isNodeReady, FlowStateDispatcher, ResultWaiting } from '@n2flowjs/flow';
+import { findNextNodes, isNodeReady, FlowStateDispatcher, ResultWaiting, FlowExecutionContext, ExecutionResult, FlowNode } from '@n2flowjs/flow';
 import { getInputFromTemplate, processTemplate } from '@n2flowjs/template/template';
 import mysql from 'mysql2/promise';
 

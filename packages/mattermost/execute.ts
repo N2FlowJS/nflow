@@ -1,7 +1,5 @@
-import { ExecutionResult, FlowExecutionContext } from '../../models/flowExecutionTypes';
-import {  FlowNode } from '../../models/flowTypes';
 import { getInputFromTemplate, processTemplate } from '@n2flowjs/template/template';
-import { findNextNodes, isNodeReady, FlowStateDispatcher } from '@n2flowjs/flow';
+import { findNextNodes, isNodeReady, FlowStateDispatcher, FlowNode, FlowExecutionContext, ExecutionResult } from '@n2flowjs/flow';
 import { MattermostNodeData } from './types';
 
 /**
