@@ -1,6 +1,7 @@
 import { NodeCategory, NodeDefinition, NodeExecutionContext, NodeExecutionResult } from '../@node-plugin/type';
 import { PortType } from '../@flow/ports/types';
-import { getInputFromTemplate, processTemplate } from '@n2flowjs/template/template';
+import { getInputFromTemplate } from '@n2flowjs/template/template';
+import MattermostExecutor from './executor';
 
 export const MattermostNode: NodeDefinition = {
   id: 'mattermost',
@@ -9,7 +10,120 @@ export const MattermostNode: NodeDefinition = {
   description: 'Integrates with Mattermost for team communication - send messages, create channels, and manage teams',
   version: '1.0.0',
 
-  inputs: [],
+  inputs: [
+    {
+      id: 'name',
+      name: 'Node Name',
+      type: PortType.TEXT,
+      description: 'Display name for this Mattermost node',
+      defaultValue: 'Mattermost Integration',
+      required: true,
+      metadata: {
+        inputType: 'text',
+      },
+    },
+    {
+      id: 'description',
+      name: 'Description',
+      type: PortType.TEXT,
+      description: 'Optional description for this node',
+      defaultValue: '',
+      required: false,
+      metadata: {
+        inputType: 'textarea',
+        rows: 2,
+      },
+    },
+    {
+      id: 'action',
+      name: 'Action',
+      type: PortType.TEXT,
+      description: 'Mattermost operation to perform',
+      defaultValue: 'send_message',
+      required: true,
+      metadata: {
+        inputType: 'select',
+        options: ['send_message', 'create_channel', 'get_channels', 'get_users'],
+      },
+    },
+    {
+      id: 'serverUrl',
+      name: 'Server URL',
+      type: PortType.TEXT,
+      description: 'Mattermost server URL (e.g., https://mattermost.example.com)',
+      required: true,
+      metadata: {
+        inputType: 'url',
+        placeholder: 'https://mattermost.example.com',
+      },
+    },
+    {
+      id: 'accessToken',
+      name: 'Access Token',
+      type: PortType.TEXT,
+      description: 'Personal Access Token for Mattermost API',
+      required: true,
+      metadata: {
+        inputType: 'password',
+      },
+    },
+    {
+      id: 'channelId',
+      name: 'Channel ID',
+      type: PortType.TEXT,
+      description: 'Channel ID for sending messages (required for send_message action)',
+      required: false,
+      metadata: {
+        inputType: 'text',
+        placeholder: 'channel-id-here',
+      },
+    },
+    {
+      id: 'channelName',
+      name: 'Channel Name',
+      type: PortType.TEXT,
+      description: 'Name for new channel (required for create_channel action). Use {variables} for dynamic content.',
+      required: false,
+      metadata: {
+        inputType: 'text',
+        placeholder: 'my-new-channel',
+      },
+    },
+    {
+      id: 'message',
+      name: 'Message',
+      type: PortType.TEXT,
+      description: 'Message content to send (required for send_message action). Use {variables} for dynamic content.',
+      required: false,
+      metadata: {
+        inputType: 'textarea',
+        rows: 4,
+        placeholder: 'Hello from NFlow! {custom_message}',
+      },
+    },
+    {
+      id: 'username',
+      name: 'Username',
+      type: PortType.TEXT,
+      description: 'Username override. Use {variables} for dynamic content.',
+      required: false,
+      metadata: {
+        inputType: 'text',
+        placeholder: 'bot-user',
+      },
+    },
+    {
+      id: 'teamId',
+      name: 'Team ID',
+      type: PortType.TEXT,
+      description: 'Team ID (required for create_channel and get_channels actions)',
+      required: false,
+      metadata: {
+        inputType: 'text',
+        placeholder: 'team-id-here',
+      },
+    },
+  ],
 
   outputs: [
     {
@@ -19,50 +133,6 @@ export const MattermostNode: NodeDefinition = {
       description: 'API operation result',
     },
   ],
-
-  config: {
-    properties: {
-      serverUrl: {
-        type: 'string',
-        title: 'Server URL',
-        description: 'Mattermost server URL (e.g., https://your-mattermost.com)',
-      },
-      accessToken: {
-        type: 'string',
-        title: 'Access Token',
-        description: 'Personal access token or bot token',
-        format: 'password',
-      },
-      action: {
-        type: 'string',
-        title: 'Action',
-        description: 'Mattermost operation to perform',
-        enum: ['send_message', 'create_channel', 'get_channels', 'get_users'],
-        default: 'send_message',
-      },
-      channelId: {
-        type: 'string',
-        title: 'Channel ID',
-        description: 'Channel ID for sending messages',
-      },
-      channelName: {
-        type: 'string',
-        title: 'Channel Name',
-        description: 'Channel name for creating channels (supports template variables)',
-      },
-      teamId: {
-        type: 'string',
-        title: 'Team ID',
-        description: 'Team ID for channel operations',
-      },
-      message: {
-        type: 'string',
-        title: 'Message',
-        description: 'Message to send (supports template variables)',
-        format: 'textarea',
-      },
-    },
-  },
 
   getDynamicInputs: (config: any) => {
     const variableNames: string[] = [];
@@ -87,14 +157,10 @@ export const MattermostNode: NodeDefinition = {
 
   async execute(context: NodeExecutionContext): Promise<NodeExecutionResult> {
     const { config, inputs } = context;
-    const { serverUrl, accessToken, action, channelId, channelName, teamId, message } = config;
-
-    // Check if template variables are ready
     const templateVars = [
-      ...getInputFromTemplate(message || ''),
-      ...getInputFromTemplate(channelName || ''),
+      ...getInputFromTemplate(config.message || ''),
+      ...getInputFromTemplate(config.channelName || ''),
     ];
-
     for (const varName of templateVars) {
       if (!inputs[varName]) {
         return {
@@ -106,64 +172,28 @@ export const MattermostNode: NodeDefinition = {
         };
       }
     }
-
     try {
-      // Validate required fields
-      if (!serverUrl || !accessToken) {
-        throw new Error('Mattermost server URL and access token are required');
-      }
-
-      // Prepare variables for template processing
-      const vars: Record<string, string> = {};
+      // Prepare templateVariables for executor
+      const templateVariables: Record<string, string> = {};
       templateVars.forEach((key) => {
-        vars[key] = String(inputs[key] || '');
+        templateVariables[key] = String(inputs[key] || '');
       });
-
-      let result: any;
-      const apiUrl = `${serverUrl.replace(/\/$/, '')}/api/v4`;
-
-      switch (action) {
-        case 'send_message':
-          if (!channelId || !message) {
-            throw new Error('Channel ID and message are required for sending messages');
-          }
-          const processedMessage = processTemplate(message, vars);
-          result = await sendMattermostMessage(apiUrl, accessToken, channelId, processedMessage);
-          break;
-
-        case 'create_channel':
-          if (!channelName || !teamId) {
-            throw new Error('Channel name and team ID are required for creating channels');
-          }
-          const processedChannelName = processTemplate(channelName, vars);
-          result = await createMattermostChannel(apiUrl, accessToken, teamId, processedChannelName);
-          break;
-
-        case 'get_channels':
-          if (!teamId) {
-            throw new Error('Team ID is required for getting channels');
-          }
-          result = await getMattermostChannels(apiUrl, accessToken, teamId);
-          break;
-
-        case 'get_users':
-          result = await getMattermostUsers(apiUrl, accessToken);
-          break;
-
-        default:
-          throw new Error(`Unsupported Mattermost action: ${action}`);
-      }
-
+      // Build ExecutionContext for executor
+      // (executorContext is not needed)
+      const executor = new MattermostExecutor();
+      // Build a minimal FlowNode and FlowExecutionContext for the executor
+      const node = { id: 'mattermost', data: { form: config } } as any;
+      const flowExecutionContext = { flow: {}, flowState: {} } as any;
+      const execResult = await executor.execute(node, flowExecutionContext);
       return {
-        outputs: {
-          result,
-        },
-        status: 'success',
+        outputs: { result: execResult },
+        status: execResult?.status === 'error' ? 'error' : 'success',
+  error: execResult?.status === 'error' ? execResult?.message : undefined,
         metadata: {
-          action,
-          serverUrl,
-          ...(channelId && { channelId }),
-          ...(teamId && { teamId }),
+          action: config.action,
+          serverUrl: config.serverUrl,
+          ...(config.channelId && { channelId: config.channelId }),
+          ...(config.teamId && { teamId: config.teamId }),
         },
       };
     } catch (error: unknown) {
@@ -173,82 +203,9 @@ export const MattermostNode: NodeDefinition = {
         status: 'error',
         error: `Mattermost operation failed: ${errorMessage}`,
         metadata: {
-          action,
+          action: config.action,
         },
       };
     }
   },
 };
-
-// Helper functions
-async function sendMattermostMessage(apiUrl: string, accessToken: string, channelId: string, message: string) {
-  const response = await fetch(`${apiUrl}/posts`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      channel_id: channelId,
-      message: message,
-    }),
-  });
-
-  if (!response.ok) {
-    throw new Error(`Mattermost API error: ${response.status} ${response.statusText}`);
-  }
-
-  return await response.json();
-}
-
-async function createMattermostChannel(apiUrl: string, accessToken: string, teamId: string, channelName: string) {
-  const response = await fetch(`${apiUrl}/channels`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      team_id: teamId,
-      name: channelName.toLowerCase().replace(/\s+/g, '-'),
-      display_name: channelName,
-      type: 'O', // Open channel
-    }),
-  });
-
-  if (!response.ok) {
-    throw new Error(`Mattermost API error: ${response.status} ${response.statusText}`);
-  }
-
-  return await response.json();
-}
-
-async function getMattermostChannels(apiUrl: string, accessToken: string, teamId: string) {
-  const response = await fetch(`${apiUrl}/teams/${teamId}/channels`, {
-    method: 'GET',
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error(`Mattermost API error: ${response.status} ${response.statusText}`);
-  }
-
-  return await response.json();
-}
-
-async function getMattermostUsers(apiUrl: string, accessToken: string) {
-  const response = await fetch(`${apiUrl}/users`, {
-    method: 'GET',
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error(`Mattermost API error: ${response.status} ${response.statusText}`);
-  }
-
-  return await response.json();
-}

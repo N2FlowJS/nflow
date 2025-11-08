@@ -1,14 +1,10 @@
 import {
   NodeCategory,
   NodeDefinition,
-  NodeExecutionContext,
-  NodeExecutionResult,
 } from '../@node-plugin/type';
 import { PortType, InputPort, OutputPort } from '../@flow/ports/types';
-import { getInputFromTemplate, processTemplate } from '@n2flowjs/template/template';
-import { isNodeReady } from '@n2flowjs/flow/is-node-ready';
-import * as fs from 'fs';
-import * as path from 'path';
+import { getInputFromTemplate } from '@n2flowjs/template/template';
+import PdfAnalysisExecutor from './executor';
 
 /**
  * PDF Analysis Node Definition
@@ -128,158 +124,28 @@ export const PdfAnalysisNodeDefinition: NodeDefinition = {
     return [...PdfAnalysisNodeDefinition.inputs, ...dynamicPorts];
   },
 
-  async execute(context: NodeExecutionContext): Promise<NodeExecutionResult> {
-    const { config, inputs, dispatcher, node, flowState } = context;
-    const startTime = new Date().toISOString();
-
-    const templateVars = [
-      ...getInputFromTemplate((config.pdfPath as string) || ''),
-      ...getInputFromTemplate((config.pageRange as string) || ''),
-      ...getInputFromTemplate((config.outputDir as string) || '')
-    ];
-
-    if (!isNodeReady(templateVars, flowState)) {
-      return {
-        outputs: { result: null, pageCount: 0 },
-        status: 'in_progress',
-        metadata: { message: 'Waiting for input variables' }
-      };
-    }
-
+  async execute(context) {
+    // Delegate to new executor for unified execution
+    const executor = new PdfAnalysisExecutor();
+    const { node, flowState, dispatcher } = context;
+    // Compose minimal FlowExecutionContext
+    const execResult = await executor.execute(node, {
+      flow: { nodes: [], edges: [] },
+      flowState,
+      input: { role: 'system', content: '' },
+    }, dispatcher);
+    let outputs: Record<string, any> = {};
     try {
-      const vars: Record<string, string> = {};
-      templateVars.forEach((key) => {
-        if (inputs?.[key] !== undefined) {
-          vars[key] = String(inputs[key]);
-        } else if (flowState.components[key] !== undefined) {
-          vars[key] = flowState.components[key].output || '';
-        }
-      });
-
-      const pdfPath = processTemplate(config.pdfPath as string, vars);
-
-      if (!pdfPath) {
-        throw new Error('PDF path is required for PDF analysis');
-      }
-
-      // Check if file exists and is readable
-      await fs.promises.access(pdfPath, fs.constants.R_OK);
-
-      let result: any;
-
-      switch (config.operation) {
-        case 'extract_text':
-          result = await extractPdfText(pdfPath, config);
-          break;
-        case 'extract_metadata':
-          result = await extractPdfMetadata(pdfPath, config);
-          break;
-        case 'extract_images':
-          const outputDir = config.outputDir ? processTemplate(config.outputDir as string, vars) : path.dirname(pdfPath);
-          result = await extractPdfImages(pdfPath, outputDir, config);
-          break;
-        case 'split_pages':
-          const splitOutputDir = config.outputDir ? processTemplate(config.outputDir as string, vars) : path.dirname(pdfPath);
-          result = await splitPdfPages(pdfPath, splitOutputDir, config);
-          break;
-        default:
-          throw new Error(`Unsupported PDF operation: ${config.operation}`);
-      }
-
-      const resultText = JSON.stringify(result, null, 2);
-
-      if (dispatcher) {
-        dispatcher.setNodeOutput(node.id, resultText, 'pdfanalysis');
-        dispatcher.setCurrentNode(node);
-      }
-
-      return {
-        outputs: {
-          result,
-          pageCount: result.pageCount || 0
-        },
-        status: 'success',
-        metadata: {
-          startTime,
-          endTime: new Date().toISOString(),
-          pdfPath,
-          operation: config.operation,
-          pageCount: result.pageCount || 0
-        }
-      };
-    } catch (error: unknown) {
-      console.error('PDF analysis error:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Unknown PDF analysis error';
-
-      return {
-        outputs: {
-          result: null,
-          pageCount: 0
-        },
-        status: 'error',
-        metadata: {
-          startTime,
-          endTime: new Date().toISOString(),
-          error: errorMessage
-        }
-      };
+      outputs = JSON.parse(execResult.execution.output);
+    } catch {
+      outputs = { result: execResult.execution.output };
     }
-  }
+    return {
+      outputs,
+      status: execResult.status as any,
+      error: execResult.status === 'error' ? execResult.message : undefined,
+      metadata: execResult.nodeInfo,
+    };
+  },
 };
 
-async function extractPdfText(pdfPath: string, _config: any) {
-  // Simplified implementation - would use pdf-parse or similar in production
-  const stats = await fs.promises.stat(pdfPath);
-  
-  return {
-    pdfPath,
-    operation: 'extract_text',
-    text: '',
-    pageCount: 0,
-    fileSize: stats.size,
-    note: 'Requires pdf-parse library for full implementation'
-  };
-}
-
-async function extractPdfMetadata(pdfPath: string, _config: any) {
-  // Simplified implementation - would use pdf-lib or similar in production
-  const stats = await fs.promises.stat(pdfPath);
-  
-  return {
-    pdfPath,
-    operation: 'extract_metadata',
-    pageCount: 0,
-    fileSize: stats.size,
-    created: stats.birthtime,
-    modified: stats.mtime,
-    note: 'Requires pdf-lib library for full implementation'
-  };
-}
-
-async function extractPdfImages(pdfPath: string, outputDir: string, _config: any) {
-  // Simplified implementation - would use pdf-lib or pdfjs in production
-  const stats = await fs.promises.stat(pdfPath);
-  
-  return {
-    pdfPath,
-    operation: 'extract_images',
-    outputDir,
-    imagesExtracted: 0,
-    fileSize: stats.size,
-    note: 'Requires pdf-lib library for full implementation'
-  };
-}
-
-async function splitPdfPages(pdfPath: string, outputDir: string, _config: any) {
-  // Simplified implementation - would use pdf-lib in production
-  const stats = await fs.promises.stat(pdfPath);
-  
-  return {
-    pdfPath,
-    operation: 'split_pages',
-    outputDir,
-    pagesCreated: 0,
-    fileSize: stats.size,
-    note: 'Requires pdf-lib library for full implementation'
-  };
-}

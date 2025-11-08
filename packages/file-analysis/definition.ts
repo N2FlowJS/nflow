@@ -1,14 +1,10 @@
 import {
   NodeCategory,
   NodeDefinition,
-  NodeExecutionContext,
-  NodeExecutionResult,
 } from '../@node-plugin/type';
 import { PortType, InputPort, OutputPort } from '../@flow/ports/types';
-import { getInputFromTemplate, processTemplate } from '@n2flowjs/template/template';
-import { isNodeReady } from '@n2flowjs/flow/is-node-ready';
-import * as fs from 'fs';
-import * as path from 'path';
+import { getInputFromTemplate } from '@n2flowjs/template/template';
+import FileAnalysisExecutor from './executor';
 
 /**
  * File Analysis Node Definition
@@ -112,143 +108,44 @@ export const FileAnalysisNodeDefinition: NodeDefinition = {
     return [...FileAnalysisNodeDefinition.inputs, ...dynamicPorts];
   },
 
-  async execute(context: NodeExecutionContext): Promise<NodeExecutionResult> {
-    const { config, inputs, dispatcher, node, flowState } = context;
-    const startTime = new Date().toISOString();
-
-    const templateVars = getInputFromTemplate((config.filePath as string) || '');
-
-    if (!isNodeReady(templateVars, flowState)) {
-      return {
-        outputs: { result: null, fileSize: 0 },
-        status: 'in_progress',
-        metadata: { message: 'Waiting for input variables' }
-      };
+  
+  async execute({ node, inputs, dispatcher }) {
+    const executor = new FileAnalysisExecutor();
+    const context = {
+      flow: { nodes: [], edges: [] },
+      flowState: {
+        currentNode: node,
+        executionTime: Date.now(),
+        components: { ...inputs },
+        variables: {},
+        history: [],
+      },
+      input: { role: 'developer' as 'developer', content: inputs.filePath || '' },
+    };
+    const output = await executor.execute(node, context, dispatcher);
+    let resultObj: any = {};
+    let fileSize = 0;
+    if (output.execution && output.execution.output) {
+      try {
+        resultObj = JSON.parse(output.execution.output);
+        fileSize = resultObj.size || 0;
+      } catch {
+        resultObj = output.execution.output;
+        fileSize = 0;
+      }
     }
-
-    try {
-      const vars: Record<string, string> = {};
-      templateVars.forEach((key) => {
-        if (inputs?.[key] !== undefined) {
-          vars[key] = String(inputs[key]);
-        } else if (flowState.components[key] !== undefined) {
-          vars[key] = flowState.components[key].output || '';
-        }
-      });
-
-      const filePath = processTemplate(config.filePath as string, vars);
-
-      if (!filePath) {
-        throw new Error('File path is required for file analysis');
-      }
-
-      let result: any;
-
-      switch (config.analysisType) {
-        case 'metadata':
-          result = await getFileMetadata(filePath, config);
-          break;
-        case 'content':
-          result = await analyzeFileContent(filePath, config);
-          break;
-        case 'structure':
-          result = await analyzeFileStructure(filePath, config);
-          break;
-        default:
-          throw new Error(`Unsupported file analysis type: ${config.analysisType}`);
-      }
-
-      const resultText = JSON.stringify(result, null, 2);
-
-      if (dispatcher) {
-        dispatcher.setNodeOutput(node.id, resultText, 'fileanalysis');
-        dispatcher.setCurrentNode(node);
-      }
-
-      return {
-        outputs: {
-          result,
-          fileSize: result.size || 0
-        },
-        status: 'success',
-        metadata: {
-          startTime,
-          endTime: new Date().toISOString(),
-          filePath,
-          analysisType: config.analysisType,
-          fileSize: result.size || 0
-        }
-      };
-    } catch (error: unknown) {
-      console.error('File analysis error:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Unknown file analysis error';
-
-      return {
-        outputs: {
-          result: null,
-          fileSize: 0
-        },
-        status: 'error',
-        metadata: {
-          startTime,
-          endTime: new Date().toISOString(),
-          error: errorMessage
-        }
-      };
-    }
-  }
+    return {
+      outputs: {
+        result: resultObj,
+        fileSize,
+      },
+      status: output.status === 'error' ? 'error' : 'success',
+      metadata: {
+        startTime: output.execution?.startTime,
+        endTime: output.execution?.endTime,
+        message: output.message,
+      },
+    };
+  },
 };
 
-async function getFileMetadata(filePath: string, config: any) {
-  const stats = await fs.promises.stat(filePath);
-  const ext = path.extname(filePath);
-  const basename = path.basename(filePath);
-
-  const result: any = {
-    filePath,
-    filename: basename,
-    extension: ext,
-    size: stats.size,
-    created: stats.birthtime,
-    modified: stats.mtime,
-    accessed: stats.atime,
-    isDirectory: stats.isDirectory(),
-    isFile: stats.isFile()
-  };
-
-  if (config.includeHash) {
-    const crypto = await import('crypto');
-    const content = await fs.promises.readFile(filePath);
-    result.hash = crypto.createHash('sha256').update(content).digest('hex');
-  }
-
-  return result;
-}
-
-async function analyzeFileContent(filePath: string, _config: any) {
-  const stats = await fs.promises.stat(filePath);
-  const content = await fs.promises.readFile(filePath, 'utf8');
-  const lines = content.split('\n');
-
-  return {
-    filePath,
-    size: stats.size,
-    lineCount: lines.length,
-    characterCount: content.length,
-    encoding: 'utf8',
-    isEmpty: content.trim() === ''
-  };
-}
-
-async function analyzeFileStructure(filePath: string, _config: any) {
-  const stats = await fs.promises.stat(filePath);
-  const ext = path.extname(filePath);
-
-  return {
-    filePath,
-    extension: ext,
-    size: stats.size,
-    structure: 'Basic file structure',
-    note: 'Full structure analysis requires format-specific parsers'
-  };
-}

@@ -1,13 +1,11 @@
 import {
   NodeCategory,
   NodeDefinition,
-  NodeExecutionContext,
-  NodeExecutionResult,
 } from '../@node-plugin/type';
 import { PortType, InputPort, OutputPort } from '../@flow/ports/types';
+import { CounterNodeExecutor } from './executor';
 
-// In-memory counter storage
-const counters: Map<string, number> = new Map();
+// (Legacy in-memory counter storage removed; now handled in executor)
 
 /**
  * Counter Node Definition
@@ -137,107 +135,23 @@ export const CounterNodeDefinition: NodeDefinition = {
     },
   ] as OutputPort[],
 
-  async execute(context: NodeExecutionContext): Promise<NodeExecutionResult> {
-    const { config, dispatcher, node } = context;
-    const startTime = new Date().toISOString();
-
+  async execute(context) {
+    // Delegate to new executor
+    const executor = new CounterNodeExecutor();
+    const { node, flowState, dispatcher } = context;
+    // Compose minimal FlowExecutionContext
+    const execResult = await executor.execute(node, { flow: { nodes: [], edges: [] }, flowState, input: { role: 'system', content: '' } }, dispatcher);
+    let outputs: Record<string, any> = {};
     try {
-      const counterName = (config.counterName as string) || 'defaultCounter';
-      const operation = (config.operation as string) || 'increment';
-      const stepValue = (config.stepValue as number) || 1;
-      const initialValue = (config.initialValue as number) || 0;
-      const maxValue = config.maxValue as number | undefined;
-      const minValue = config.minValue as number | undefined;
-
-      // Get current counter value or initialize it
-      let currentValue = counters.get(counterName) ?? initialValue;
-      let newValue = currentValue;
-
-      switch (operation) {
-        case 'increment':
-          newValue = currentValue + stepValue;
-          if (maxValue !== undefined && newValue > maxValue) {
-            newValue = maxValue;
-          }
-          break;
-
-        case 'decrement':
-          newValue = currentValue - stepValue;
-          if (minValue !== undefined && newValue < minValue) {
-            newValue = minValue;
-          }
-          break;
-
-        case 'reset':
-          newValue = initialValue;
-          break;
-
-        case 'set':
-          newValue = initialValue;
-          if (maxValue !== undefined && newValue > maxValue) {
-            newValue = maxValue;
-          }
-          if (minValue !== undefined && newValue < minValue) {
-            newValue = minValue;
-          }
-          break;
-
-        default:
-          throw new Error(`Unsupported counter operation: ${operation}`);
-      }
-
-      // Update counter in storage
-      counters.set(counterName, newValue);
-
-      const result = {
-        counterName: counterName,
-        operation: operation,
-        previousValue: currentValue,
-        currentValue: newValue,
-        stepValue: stepValue,
-        constraints: {
-          maxValue: maxValue,
-          minValue: minValue,
-        },
-      };
-
-      if (dispatcher) {
-        dispatcher.setNodeOutput(node.id, newValue.toString(), 'counter');
-        dispatcher.setCurrentNode(node);
-      }
-
-      return {
-        outputs: {
-          currentValue: newValue,
-          previousValue: currentValue,
-          result: result
-        },
-        status: 'success',
-        metadata: {
-          startTime,
-          endTime: new Date().toISOString(),
-          counterName,
-          operation,
-          changed: newValue !== currentValue
-        }
-      };
-    } catch (error: unknown) {
-      console.error('Counter node error:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Unknown counter error';
-
-      return {
-        outputs: {
-          currentValue: 0,
-          previousValue: 0,
-          result: { error: errorMessage }
-        },
-        status: 'error',
-        metadata: {
-          startTime,
-          endTime: new Date().toISOString(),
-          error: errorMessage
-        }
-      };
+      outputs = JSON.parse(execResult.execution.output);
+    } catch {
+      outputs = { result: execResult.execution.output };
     }
+    return {
+      outputs,
+      status: execResult.status as any,
+      error: execResult.status === 'error' ? execResult.message : undefined,
+      metadata: execResult.nodeInfo,
+    };
   }
 };

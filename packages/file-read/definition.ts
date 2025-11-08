@@ -1,14 +1,9 @@
 import {
   NodeCategory,
   NodeDefinition,
-  NodeExecutionContext,
-  NodeExecutionResult,
 } from '../@node-plugin/type';
 import { PortType } from '../@flow/ports/types';
-import { getInputFromTemplate, processTemplate } from '@n2flowjs/template/template';
-import { isNodeReady } from '@n2flowjs/flow/is-node-ready';
-import * as fs from 'fs/promises';
-import * as path from 'path';
+import FileReadExecutor from './executor';
 
 /**
  * File Read Node Definition
@@ -100,124 +95,50 @@ export const FileReadNodeDefinition: NodeDefinition = {
     }
   ],
 
-  getDynamicInputs: (config) => {
-    const variableNames: Set<string> = new Set();
+  getDynamicInputs: () => [],
 
-    if (config.filePath) {
-      const vars = getInputFromTemplate(config.filePath as string);
-      vars.forEach(v => variableNames.add(v));
-    }
-
-    return Array.from(variableNames).map(varName => ({
-      id: varName,
-      name: varName,
-      type: PortType.TEXT,
-      required: false,
-      description: `Template variable: {${varName}}`,
-      metadata: {
-        isDynamic: true,
-        sourceTemplate: `{${varName}}`,
+  async execute({ node, inputs, dispatcher }) {
+    const executor = new FileReadExecutor();
+    const context = {
+      flow: { nodes: [], edges: [] },
+      flowState: {
+        currentNode: node,
+        executionTime: Date.now(),
+        components: { ...inputs },
+        variables: {},
+        history: [],
       },
-    }));
+      input: { role: 'developer' as 'developer', content: inputs.filePath || '' },
+    };
+    const output = await executor.execute(node, context, dispatcher);
+    let parsed: any = {};
+    let content = null;
+    let path = '';
+    let size = 0;
+    if (output.execution && output.execution.output) {
+      try {
+        parsed = JSON.parse(output.execution.output);
+        content = parsed.content;
+        path = parsed.path;
+        size = parsed.size;
+      } catch {
+        content = output.execution.output;
+        path = '';
+        size = 0;
+      }
+    }
+    return {
+      outputs: {
+        content,
+        path,
+        size,
+      },
+      status: output.status === 'error' ? 'error' : 'success',
+      metadata: {
+        startTime: output.execution?.startTime,
+        endTime: output.execution?.endTime,
+        message: output.message,
+      },
+    };
   },
-
-  async execute(context: NodeExecutionContext): Promise<NodeExecutionResult> {
-    const { config, inputs, dispatcher, node, flowState } = context;
-    const startTime = new Date().toISOString();
-
-    const templateVars = getInputFromTemplate((config.filePath as string) || '');
-
-    if (!isNodeReady(templateVars, flowState)) {
-      return {
-        outputs: { content: '', path: '', size: 0 },
-        status: 'in_progress',
-        metadata: { message: 'Waiting for input variables' }
-      };
-    }
-
-    try {
-      const vars: Record<string, string> = {};
-      templateVars.forEach((key) => {
-        if (inputs?.[key] !== undefined) {
-          vars[key] = String(inputs[key]);
-        } else if (flowState.components[key] !== undefined) {
-          vars[key] = flowState.components[key].output || '';
-        }
-      });
-
-      if (!config.filePath || String(config.filePath).trim() === '') {
-        throw new Error('No file path specified');
-      }
-
-      const processedFilePath = processTemplate(config.filePath as string, vars);
-      
-      // Security check: prevent directory traversal
-      const resolvedPath = path.resolve(processedFilePath);
-      const allowedBasePath = process.cwd();
-      if (!resolvedPath.startsWith(allowedBasePath)) {
-        throw new Error('File path outside allowed directory');
-      }
-
-      // Check file size if maxSize is specified
-      const stats = await fs.stat(resolvedPath);
-      if (config.maxSize && stats.size > (config.maxSize as number)) {
-        throw new Error(
-          `File size (${stats.size} bytes) exceeds maximum allowed size (${config.maxSize} bytes)`
-        );
-      }
-
-      // Read file content
-      let fileContent: string;
-      const encoding = (config.encoding as string) || 'utf8';
-      
-      if (encoding === 'base64') {
-        const buffer = await fs.readFile(resolvedPath);
-        fileContent = buffer.toString('base64');
-      } else if (encoding === 'binary') {
-        const buffer = await fs.readFile(resolvedPath);
-        fileContent = buffer.toString('binary');
-      } else {
-        fileContent = await fs.readFile(resolvedPath, 'utf8');
-      }
-
-      if (dispatcher) {
-        dispatcher.setNodeOutput(node.id, fileContent, 'fileread');
-        dispatcher.setCurrentNode(node);
-      }
-
-      return {
-        outputs: {
-          content: fileContent,
-          path: resolvedPath,
-          size: stats.size
-        },
-        status: 'success',
-        metadata: {
-          startTime,
-          endTime: new Date().toISOString(),
-          filePath: resolvedPath,
-          encoding,
-          size: stats.size,
-          contentLength: fileContent.length
-        }
-      };
-    } catch (error: unknown) {
-      console.error('File Read node error:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Unknown file read error';
-
-      return {
-        outputs: {
-          content: `Error: ${errorMessage}`,
-          path: '',
-          size: 0
-        },
-        status: 'error',
-        metadata: {
-          startTime,
-          endTime: new Date().toISOString(),
-          error: errorMessage
-        }
-      };
-    }
-  }
 };

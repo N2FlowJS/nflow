@@ -15,11 +15,10 @@
 import {
   NodeDefinition,
   NodeCategory,
-  NodeExecutionResult,
 } from '../@node-plugin/type';
 import { PortType } from '../@flow/ports';
 import { TransformForm } from './types';
-import { getInputFromTemplate, processTemplate } from '@n2flowjs/template/template';
+import { getInputFromTemplate } from '@n2flowjs/template/template';
 
 /**
  * Transform Node Definition
@@ -122,137 +121,48 @@ export const TransformNodeDefinition: NodeDefinition<TransformForm> = {
       }));
   },
 
-  // Execution Logic
-  async execute({ node, config, inputs, dispatcher }): Promise<NodeExecutionResult> {
-    const startTime = new Date().toISOString();
-
+  async execute({ node, config, inputs, dispatcher }) {
+    const executor = new (await import('./executor')).TransformExecutor();
+    const form = { ...config, ...inputs };
+    const context = {
+      flow: { nodes: [], edges: [] },
+      flowState: {
+        currentNode: node,
+        executionTime: Date.now(),
+        components: { ...inputs },
+        variables: {},
+        history: [],
+      },
+      input: { role: 'user' as 'user', content: '' },
+    };
     try {
-      // Get config values (prefer inputs over config)
-      let inputData = inputs.inputData !== undefined ? inputs.inputData : config.inputData;
-      const transformation = inputs.transformation || config.transformation;
-      const transformType = inputs.transformType || config.transformType || 'json';
-
-      // Validate
-      if (!inputData && inputData !== 0 && inputData !== false) {
-        throw new Error('Input data is required for transformation');
-      }
-
-      if (!transformation) {
-        throw new Error('Transformation logic is required');
-      }
-
-      // Extract template variables from inputData if it's a string
-      if (typeof inputData === 'string') {
-        const templateVars = new Set<string>();
-        getInputFromTemplate(inputData).forEach(v => templateVars.add(v));
-
-        // Build variable map from inputs
-        const vars: Record<string, string> = {};
-        templateVars.forEach(varName => {
-          if (inputs[varName] !== undefined) {
-            vars[varName] = String(inputs[varName]);
-          }
-        });
-
-        // Process template
-        if (templateVars.size > 0) {
-          inputData = processTemplate(inputData, vars);
-        }
-      }
-
-      // Parse input data based on type
-      let parsedData: any;
-      try {
-        switch (transformType) {
-          case 'json':
-          case 'array':
-          case 'object':
-            if (typeof inputData === 'string') {
-              parsedData = JSON.parse(inputData);
-            } else {
-              parsedData = inputData;
-            }
-            break;
-          case 'text':
-          default:
-            parsedData = String(inputData);
-            break;
-        }
-      } catch (parseError) {
-        throw new Error(`Failed to parse input data as ${transformType}: ${parseError instanceof Error ? parseError.message : 'Parse error'}`);
-      }
-
-      // Create safe execution environment
-      const safeGlobals = {
-        JSON,
-        Object,
-        Array,
-        String,
-        Number,
-        Boolean,
-        Math,
-        Date,
-        RegExp,
-        parseInt,
-        parseFloat,
-        isNaN,
-        isFinite,
-      };
-
-      // Execute transformation
-      let transformedData: any;
-      try {
-        // Wrap transformation in function for safe execution
-        const transformFunction = new Function(
-          'data',
-          ...Object.keys(safeGlobals),
-          `"use strict"; return (${transformation});`
-        );
-
-        // Execute
-        transformedData = transformFunction(parsedData, ...Object.values(safeGlobals));
-      } catch (execError) {
-        throw new Error(`Transformation execution failed: ${execError instanceof Error ? execError.message : 'Execution error'}`);
-      }
-
-      // Format output
+      const output = await executor.execute(node, context, dispatcher);
       let resultText: string;
       let outputType: string;
-
-      if (typeof transformedData === 'object' && transformedData !== null) {
-        resultText = JSON.stringify(transformedData, null, 2);
-        outputType = Array.isArray(transformedData) ? 'array' : 'object';
+      if (typeof output.execution.output === 'object' && output.execution.output !== null) {
+        resultText = JSON.stringify(output.execution.output, null, 2);
+        outputType = Array.isArray(output.execution.output) ? 'array' : 'object';
       } else {
-        resultText = String(transformedData);
-        outputType = typeof transformedData;
+        resultText = String(output.execution.output);
+        outputType = typeof output.execution.output;
       }
-
-      console.log(`[Transform] ${node.id} => ${outputType}, length: ${resultText.length}`);
-
-      // Update state via dispatcher
-      if (dispatcher) {
-        dispatcher.setNodeOutput(node.id, resultText, 'transform');
-        dispatcher.setCurrentNode(node);
-      }
-
       return {
         outputs: {
-          result: transformedData,
+          result: output.execution.output,
           resultText,
           type: outputType,
         },
-        status: 'success',
+        status: output.status === 'error' ? 'error' : 'success',
         metadata: {
-          startTime,
-          endTime: new Date().toISOString(),
-          transformType,
+          startTime: output.execution.startTime,
+          endTime: output.execution.endTime,
+          transformType: form.transformType,
           outputType,
           resultLength: resultText.length,
         },
       };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-
       return {
         outputs: {
           result: null,
@@ -262,7 +172,7 @@ export const TransformNodeDefinition: NodeDefinition<TransformForm> = {
         status: 'error',
         error: `Transform failed: ${errorMessage}`,
         metadata: {
-          startTime,
+          startTime: new Date().toISOString(),
           endTime: new Date().toISOString(),
           error: errorMessage,
         },

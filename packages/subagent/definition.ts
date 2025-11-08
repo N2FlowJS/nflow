@@ -33,44 +33,6 @@ export const SubAgentNode: NodeDefinition = {
     },
   ],
 
-  config: {
-    properties: {
-      agentId: {
-        type: 'string',
-        title: 'Agent ID',
-        description: 'ID of the agent to execute as sub-agent',
-      },
-      agentName: {
-        type: 'string',
-        title: 'Agent Name',
-        description: 'Display name of the sub-agent (for reference)',
-      },
-      variables: {
-        type: 'object',
-        title: 'Variables',
-        description: 'Variables to pass to the sub-agent (supports template variables)',
-        additionalProperties: {
-          type: 'string',
-        },
-        default: {},
-      },
-      inheritContext: {
-        type: 'boolean',
-        title: 'Inherit Context',
-        description: 'Pass current context (input, variables, history) to sub-agent',
-        default: false,
-      },
-      timeout: {
-        type: 'number',
-        title: 'Timeout (seconds)',
-        description: 'Maximum execution time for the sub-agent',
-        default: 300,
-        minimum: 10,
-        maximum: 3600,
-      },
-    },
-  },
-
   getDynamicInputs: (config: any) => {
     // Extract template variables from all variable mappings
     const variableNames: string[] = [];

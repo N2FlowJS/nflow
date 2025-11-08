@@ -73,55 +73,6 @@ export const WebClickNodeDefinition: NodeDefinition = {
     }));
   },
 
-  config: {
-    properties: {
-      selector: {
-        type: 'string',
-        title: 'Selector',
-        description: 'Element selector (supports {variable} templates)',
-        required: true
-      },
-      selectorType: {
-        type: 'string',
-        title: 'Selector Type',
-        description: 'Type of selector',
-        enum: ['css', 'xpath', 'text'],
-        default: 'css',
-        required: false
-      },
-      clickType: {
-        type: 'string',
-        title: 'Click Type',
-        description: 'Type of click',
-        enum: ['single', 'double', 'right'],
-        default: 'single',
-        required: false
-      },
-      waitForSelector: {
-        type: 'boolean',
-        title: 'Wait for Selector',
-        description: 'Wait for selector before clicking',
-        default: true,
-        required: false
-      },
-      timeout: {
-        type: 'number',
-        title: 'Timeout (ms)',
-        description: 'Selector wait timeout in milliseconds',
-        default: 30000,
-        required: false
-      },
-      delay: {
-        type: 'number',
-        title: 'Delay (ms)',
-        description: 'Delay before clicking in milliseconds',
-        default: 0,
-        minimum: 0,
-        required: false
-      }
-    }
-  },
-
   async execute(context: NodeExecutionContext): Promise<NodeExecutionResult> {
     const { config, inputs, dispatcher, node, flowState } = context;
     const startTime = new Date().toISOString();

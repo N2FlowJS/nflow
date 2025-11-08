@@ -82,14 +82,6 @@ export type NodeExecutor<TConfig = any> = (
 ) => Promise<NodeExecutionResult>;
 
 /**
- * Node configuration schema
- */
-export interface NodeConfigSchema<T = any> {
-  properties: Record<string, any>;
-  defaults?: Partial<T>;
-}
-
-/**
  * Complete NodeDefinition interface
  * Defines structure, behavior, and UI for a node type
  */
@@ -119,9 +111,4 @@ export interface NodeDefinition<TConfig = any> {
 
   // Execution
   execute: NodeExecutor<TConfig>;
-  
-  // Legacy compatibility (56 packages still using - TODO: migrate all to InputPort pattern)
-  config?: NodeConfigSchema<TConfig>;
-  configSchema?: NodeConfigSchema<TConfig>;
-  defaultConfig?: Partial<TConfig>;
 }

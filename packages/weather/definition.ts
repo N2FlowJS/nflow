@@ -5,7 +5,7 @@
  */
 
 import { NodeDefinition, NodeCategory } from '@n2flowjs/node-plugin';
-import { PortType } from '@n2flowjs/flow/ports';
+import { PortType, InputPort, OutputPort } from '@n2flowjs/flow/ports';
 import { getInputFromTemplate, processTemplate } from '@n2flowjs/template/template';
 
 interface WeatherConfig {
@@ -25,57 +25,80 @@ const WeatherNodeDefinition: NodeDefinition<WeatherConfig> = {
   
   inputs: [
     {
-      id: 'trigger',
-      name: 'Trigger',
-      type: PortType.ANY,
-      required: false,
+      id: 'action',
+      name: 'Action',
+      type: PortType.TEXT,
+      description: 'Weather operation to perform',
+      required: true,
+      defaultValue: 'current_weather',
+      metadata: {
+        inputType: 'select',
+        options: [
+          { label: 'Current Weather', value: 'current_weather' },
+          { label: 'Forecast', value: 'forecast' },
+          { label: 'Weather Alerts', value: 'weather_alerts' },
+          { label: 'Historical Weather', value: 'historical_weather' },
+        ],
+      },
     },
-  ],
+    {
+      id: 'apiKey',
+      name: 'API Key',
+      type: PortType.TEXT,
+      description: 'Weather API key',
+      required: false,
+      metadata: { inputType: 'text', placeholder: 'Enter API key...', isPassword: true },
+    },
+    {
+      id: 'location',
+      name: 'Location',
+      type: PortType.TEXT,
+      description: 'City name or coordinates (supports {variable} templates)',
+      required: true,
+      metadata: { inputType: 'text', placeholder: 'London, UK' },
+    },
+    {
+      id: 'units',
+      name: 'Units',
+      type: PortType.TEXT,
+      description: 'Temperature units',
+      required: false,
+      defaultValue: 'metric',
+      metadata: {
+        inputType: 'select',
+        options: [
+          { label: 'Metric (°C)', value: 'metric' },
+          { label: 'Imperial (°F)', value: 'imperial' },
+        ],
+      },
+    },
+  ] as InputPort[],
   
   outputs: [
     {
       id: 'output',
       name: 'Weather Data',
       type: PortType.JSON,
+      description: 'Weather information',
     },
-  ],
+  ] as OutputPort[],
   
   getDynamicInputs: (config: WeatherConfig) => {
-    const variables = new Set<string>();
+    const variableNames = new Set<string>();
     if (config.location) {
-      getInputFromTemplate(config.location).forEach(v => variables.add(v));
+      getInputFromTemplate(config.location).forEach(v => variableNames.add(v));
     }
     
-    return Array.from(variables).map(varName => ({
+    const dynamicPorts: InputPort[] = Array.from(variableNames).map(varName => ({
       id: varName,
       name: varName,
       type: PortType.TEXT,
-      required: false,
+      required: true,
+      description: `Template variable: ${varName}`,
+      metadata: { isDynamic: true, inputType: 'text' },
     }));
-  },
-  
-  config: {
-    properties: {
-      name: { type: 'string', title: 'Name', default: 'Weather' },
-      action: {
-        type: 'string',
-        title: 'Action',
-        enum: ['current_weather', 'forecast', 'weather_alerts', 'historical_weather'],
-        default: 'current_weather',
-      },
-      apiKey: { type: 'string', title: 'API Key', format: 'password' },
-      location: {
-        type: 'string',
-        title: 'Location',
-        description: 'City name or coordinates (supports {variable} templates)',
-      },
-      units: {
-        type: 'string',
-        title: 'Units',
-        enum: ['metric', 'imperial'],
-        default: 'metric',
-      },
-    },
+    
+    return [...WeatherNodeDefinition.inputs, ...dynamicPorts];
   },
   
   async execute({ config, inputs, node }) {

@@ -1,5 +1,5 @@
 import { NodeCategory, NodeDefinition, NodeExecutionContext, NodeExecutionResult } from '../@node-plugin/type';
-import { PortType } from '../@flow/ports/types';
+import { PortType, InputPort, OutputPort } from '../@flow/ports/types';
 
 export const AgentToolsNode: NodeDefinition = {
   id: 'agent-tools',
@@ -8,7 +8,33 @@ export const AgentToolsNode: NodeDefinition = {
   description: 'Defines a set of tools/functions that an AI agent can use during execution',
   version: '1.0.0',
 
-  inputs: [],
+  inputs: [
+    {
+      id: 'toolIds',
+      name: 'Tool IDs',
+      type: PortType.TEXT,
+      description: 'Comma-separated list of tool/function IDs to make available to the agent',
+      required: false,
+      defaultValue: '',
+      metadata: { inputType: 'textarea', placeholder: 'tool1, tool2, tool3' },
+    },
+    {
+      id: 'role',
+      name: 'Role',
+      type: PortType.TEXT,
+      description: 'Role context for tool usage',
+      required: false,
+      defaultValue: 'developer',
+      metadata: {
+        inputType: 'select',
+        options: [
+          { label: 'Developer', value: 'developer' },
+          { label: 'Assistant', value: 'assistant' },
+          { label: 'System', value: 'system' },
+        ],
+      },
+    },
+  ] as InputPort[],
 
   outputs: [
     {
@@ -23,40 +49,19 @@ export const AgentToolsNode: NodeDefinition = {
       type: PortType.JSON,
       description: 'Tools configuration as JSON',
     },
-  ],
-
-  config: {
-    properties: {
-      toolIds: {
-        type: 'array',
-        title: 'Tool IDs',
-        description: 'List of tool/function IDs to make available to the agent',
-        items: {
-          type: 'string',
-        },
-        default: [],
-      },
-      role: {
-        type: 'string',
-        title: 'Role',
-        description: 'Role context for tool usage',
-        enum: ['developer', 'assistant', 'system'],
-        default: 'developer',
-      },
-    },
-  },
+  ] as OutputPort[],
 
   getDynamicInputs: () => {
-    // No dynamic inputs - tools are configured statically
-    return [];
+    return [...AgentToolsNode.inputs];
   },
 
   async execute(context: NodeExecutionContext): Promise<NodeExecutionResult> {
-    const { config } = context;
-    const { toolIds, role } = config;
+    const { config, inputs } = context;
+    const toolIdsInput = (inputs.toolIds || config.toolIds || '') as string;
+    const role = (inputs.role || config.role || 'developer') as string;
 
     try {
-      const tools = Array.isArray(toolIds) ? toolIds : [];
+      const tools = toolIdsInput ? toolIdsInput.split(',').map(t => t.trim()).filter(Boolean) : [];
 
       const payload = {
         tools: tools,

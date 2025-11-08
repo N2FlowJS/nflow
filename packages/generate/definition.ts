@@ -14,15 +14,11 @@
 import {
   NodeDefinition,
   NodeCategory,
-  NodeExecutionContext,
-  NodeExecutionResult,
 } from '../@node-plugin/type';
+import { GenerateExecutor } from './executor';
 import { PortType } from '../@flow/ports/types';
 import { GenerateForm } from './types';
-import { getInputFromTemplate, processTemplate } from '@n2flowjs/template/template';
-import { prisma } from '../../lib/prisma';
-import { MessagePart } from '../../models/MessagePart';
-import llm, { SupportedProvider } from '../../llm/llm';
+import { getInputFromTemplate } from '../@template/template';
 
 /**
  * Generate/LLM Node Definition
@@ -173,119 +169,38 @@ export const GenerateNodeDefinition: NodeDefinition<GenerateForm> = {
   },
 
   // Execution Function
-  async execute(context: NodeExecutionContext<GenerateForm>): Promise<NodeExecutionResult> {
-    const { config, inputs, flowState, dispatcher } = context;
-    const startTime = new Date().toISOString();
-
+  async execute({ node, config, inputs, dispatcher }) {
+    const executor = new GenerateExecutor();
+    // Merge config and inputs for form
+    const form = { ...config, ...inputs };
+    // Minimal context for executor
+    const context = {
+      flow: { nodes: [], edges: [] },
+      flowState: {
+        currentNode: node,
+        executionTime: Date.now(),
+        components: { ...inputs },
+        variables: {},
+        history: [],
+      },
+      input: { role: 'user' as 'user', content: inputs.prompt || '' },
+    };
     try {
-      // Get prompt from input or config
-      const promptTemplate = (inputs.prompt as string) || config.prompt || '';
-      if (!promptTemplate) {
-        throw new Error('Prompt is required');
-      }
-
-      // Get model from input or config
-      const modelId = (inputs.model as string) || config.model || '';
-      if (!modelId) {
-        throw new Error('Model ID is required');
-      }
-
-      // Extract template variables from prompt
-      const templateVars = getInputFromTemplate(promptTemplate);
-
-      // Build variables object from flowState
-      const vars: Record<string, string> = {};
-      templateVars.forEach((key) => {
-        if (flowState?.components?.[key]?.output !== undefined) {
-          vars[key] = flowState.components[key].output || '';
-        }
-      });
-
-      // Process the prompt template
-      const processedPrompt = processTemplate(promptTemplate, vars);
-
-      // Build message history
-      const historyCount = 
-        (inputs.historyCount as number) || 
-        config.numberHistory || 
-        0;
-
-      const historyMessages: MessagePart[] =
-        historyCount > 0 && flowState?.history
-          ? (flowState.history as MessagePart[])
-              .slice(-historyCount)
-              .map((msg: MessagePart) => ({
-                role: msg.role === 'user' ? 'user' : 'assistant',
-                content: msg.content || '',
-              }))
-          : [];
-
-      // Build message array
-      const messages: MessagePart[] = [
-        // System prompt (if provided)
-        ...(inputs.systemPrompt
-          ? [{ role: 'system' as const, content: inputs.systemPrompt as string }]
-          : []),
-        // User prompt
-        { role: 'system' as const, content: processedPrompt },
-        // History messages
-        ...historyMessages,
-      ].filter((msg) => msg.content && msg.content.trim() !== '');
-
-      // Fetch model from database
-      const model = await prisma.lLMModel.findUnique({
-        where: { id: modelId },
-        include: { provider: true },
-      });
-
-      if (!model) {
-        throw new Error(`Model not found: ${modelId}`);
-      }
-
-      if (!model.provider) {
-        throw new Error(`Provider not found for model: ${modelId}`);
-      }
-
-      // Call LLM
-      const response = await llm.completions(
-        model.provider.providerType as SupportedProvider,
-        model.provider.endpointUrl,
-        model.provider.apiKey,
-        model.name,
-        messages,
-        {
-          temperature: inputs.temperature,
-          max_tokens: inputs.maxTokens,
-        },
-        undefined // No streaming callback in this version
-      );
-
-      // Update flow state through dispatcher
-      if (dispatcher) {
-        dispatcher.setNodeOutput(context.node.id, response, 'generate');
-        dispatcher.setCurrentNode(context.node);
-      }
-
+      const output = await executor.execute(node, context, dispatcher);
       return {
         outputs: {
-          response,
-          model: model.name,
-          provider: model.provider.providerType,
-          tokens: undefined, // TODO: Get from response metadata
+          response: output.execution.output,
+          model: form.model,
+          provider: '', // Optionally fill from model/provider if needed
+          tokens: undefined,
         },
-        status: 'success',
+        status: output.status === 'error' ? 'error' : 'success',
         metadata: {
-          startTime,
-          endTime: new Date().toISOString(),
-          modelId: model.id,
-          providerType: model.provider.providerType,
-          promptLength: processedPrompt.length,
-          historyCount,
+          modelId: form.model,
         },
       };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-
       return {
         outputs: {
           response: '',
@@ -296,9 +211,7 @@ export const GenerateNodeDefinition: NodeDefinition<GenerateForm> = {
         status: 'error',
         error: `LLM generation failed: ${errorMessage}`,
         metadata: {
-          startTime,
-          endTime: new Date().toISOString(),
-          error: errorMessage,
+          modelId: form.model,
         },
       };
     }

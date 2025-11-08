@@ -49,97 +49,136 @@ export const DateTimeNodeDefinition: NodeDefinition = {
   description: 'Date/time operations: format, parse, add, subtract, compare, timezone',
   version: '1.0.0',
 
-  inputs: [],
+  inputs: [
+    {
+      id: 'operation',
+      name: 'Operation',
+      type: PortType.TEXT,
+      description: 'DateTime operation',
+      required: true,
+      defaultValue: 'now',
+      metadata: {
+        inputType: 'select',
+        options: [
+          { label: 'Now', value: 'now' },
+          { label: 'Format', value: 'format' },
+          { label: 'Parse', value: 'parse' },
+          { label: 'Add', value: 'add' },
+          { label: 'Subtract', value: 'subtract' },
+          { label: 'Compare', value: 'compare' },
+          { label: 'Timezone', value: 'timezone' },
+        ],
+      },
+    },
+    {
+      id: 'inputDate',
+      name: 'Input Date',
+      type: PortType.TEXT,
+      description: 'Date string or template variable (not needed for "now")',
+      required: false,
+      metadata: { inputType: 'text', placeholder: '2025-10-07T12:00:00Z' },
+    },
+    {
+      id: 'format',
+      name: 'Format',
+      type: PortType.TEXT,
+      description: 'Output format',
+      required: false,
+      defaultValue: 'ISO',
+      metadata: {
+        inputType: 'select',
+        options: [
+          { label: 'ISO', value: 'ISO' },
+          { label: 'Timestamp', value: 'timestamp' },
+          { label: 'Date', value: 'date' },
+          { label: 'Time', value: 'time' },
+          { label: 'Locale', value: 'locale' },
+          { label: 'Custom', value: 'custom' },
+        ],
+      },
+    },
+    {
+      id: 'customFormat',
+      name: 'Custom Format',
+      type: PortType.TEXT,
+      description: 'Custom format string (e.g., YYYY-MM-DD)',
+      required: false,
+      metadata: { inputType: 'text', placeholder: 'YYYY-MM-DD HH:mm:ss' },
+    },
+    {
+      id: 'amount',
+      name: 'Amount',
+      type: PortType.NUMBER,
+      description: 'Amount to add/subtract',
+      required: false,
+      defaultValue: 0,
+      metadata: { inputType: 'number' },
+    },
+    {
+      id: 'unit',
+      name: 'Unit',
+      type: PortType.TEXT,
+      description: 'Time unit',
+      required: false,
+      defaultValue: 'days',
+      metadata: {
+        inputType: 'select',
+        options: [
+          { label: 'Seconds', value: 'seconds' },
+          { label: 'Minutes', value: 'minutes' },
+          { label: 'Hours', value: 'hours' },
+          { label: 'Days', value: 'days' },
+          { label: 'Weeks', value: 'weeks' },
+          { label: 'Months', value: 'months' },
+          { label: 'Years', value: 'years' },
+        ],
+      },
+    },
+    {
+      id: 'timezone',
+      name: 'Timezone',
+      type: PortType.TEXT,
+      description: 'Target timezone (e.g., America/New_York)',
+      required: false,
+      metadata: { inputType: 'text', placeholder: 'America/New_York' },
+    },
+  ] as InputPort[],
 
   outputs: [
     {
       id: 'output',
       name: 'Result',
       type: PortType.TEXT,
-      description: 'Formatted datetime or operation result'
+      description: 'Formatted datetime or operation result',
     },
     {
       id: 'details',
       name: 'Details',
       type: PortType.JSON,
-      description: 'Detailed datetime components (for parse operation)'
-    }
-  ],
+      description: 'Detailed datetime components (for parse operation)',
+    },
+  ] as OutputPort[],
 
   getDynamicInputs: (config) => {
-    const inputs: Set<string> = new Set();
+    const variableNames: Set<string> = new Set();
 
     if (config.inputDate) {
-      const vars = getInputFromTemplate(config.inputDate as string);
-      vars.forEach(v => inputs.add(v));
+      getInputFromTemplate(config.inputDate as string).forEach(v => variableNames.add(v));
+    }
+    if (config.format && typeof config.format === 'string') {
+      getInputFromTemplate(config.format).forEach(v => variableNames.add(v));
     }
 
-    if (config.format) {
-      const formatVars = getInputFromTemplate(config.format as string);
-      formatVars.forEach(v => inputs.add(v));
-    }
-
-    return Array.from(inputs).map(varName => ({
+    const dynamicPorts: InputPort[] = Array.from(variableNames).map(varName => ({
       id: varName,
       name: varName,
       type: PortType.TEXT,
       required: true,
-      description: `Template variable: ${varName}`
+      description: `Template variable: ${varName}`,
+      metadata: { isDynamic: true, inputType: 'text' },
     }));
-  },
 
-  config: {
-    properties: {
-      operation: {
-        type: 'string',
-        title: 'Operation',
-        description: 'DateTime operation',
-        enum: ['now', 'format', 'parse', 'add', 'subtract', 'compare', 'timezone'],
-        default: 'now',
-        required: true
-      },
-      inputDate: {
-        type: 'string',
-        title: 'Input Date',
-        description: 'Date string or template variable (not needed for "now")',
-        required: false
-      },
-      format: {
-        type: 'string',
-        title: 'Format',
-        description: 'Output format',
-        enum: ['ISO', 'timestamp', 'date', 'time', 'locale', 'custom'],
-        default: 'ISO',
-        required: false
-      },
-      customFormat: {
-        type: 'string',
-        title: 'Custom Format',
-        description: 'Custom format string (e.g., YYYY-MM-DD)',
-        required: false
-      },
-      amount: {
-        type: 'number',
-        title: 'Amount',
-        description: 'Amount to add/subtract',
-        default: 0,
-        required: false
-      },
-      unit: {
-        type: 'string',
-        title: 'Unit',
-        description: 'Time unit',
-        enum: ['seconds', 'minutes', 'hours', 'days', 'weeks', 'months', 'years'],
-        default: 'days',
-        required: false
-      },
-      timezone: {
-        type: 'string',
-        title: 'Timezone',
-        description: 'Target timezone (e.g., America/New_York)',
-        required: false
-      }
-    }
+    return [...DateTimeNodeDefinition.inputs, ...dynamicPorts];
   },
 
   async execute(context: NodeExecutionContext): Promise<NodeExecutionResult> {

@@ -87,55 +87,6 @@ export const WebOpenNodeDefinition: NodeDefinition = {
     }));
   },
 
-  config: {
-    properties: {
-      url: {
-        type: 'string',
-        title: 'URL',
-        description: 'Website URL to open (supports {variable} templates)',
-        required: true
-      },
-      headless: {
-        type: 'boolean',
-        title: 'Headless Mode',
-        description: 'Run browser in headless mode',
-        default: true,
-        required: false
-      },
-      viewport: {
-        type: 'object',
-        title: 'Viewport',
-        description: 'Viewport size',
-        properties: {
-          width: { type: 'number', default: 1920 },
-          height: { type: 'number', default: 1080 }
-        },
-        required: false
-      },
-      timeout: {
-        type: 'number',
-        title: 'Timeout (ms)',
-        description: 'Navigation timeout in milliseconds',
-        default: 30000,
-        required: false
-      },
-      waitUntil: {
-        type: 'string',
-        title: 'Wait Until',
-        description: 'Wait condition',
-        enum: ['load', 'domcontentloaded', 'networkidle0', 'networkidle2'],
-        default: 'networkidle2',
-        required: false
-      },
-      userAgent: {
-        type: 'string',
-        title: 'User Agent',
-        description: 'Custom user agent string (optional)',
-        required: false
-      }
-    }
-  },
-
   async execute(context: NodeExecutionContext): Promise<NodeExecutionResult> {
     const { config, inputs, dispatcher, node, flowState } = context;
     const startTime = new Date().toISOString();

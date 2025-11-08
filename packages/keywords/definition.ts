@@ -1,6 +1,7 @@
-import { NodeCategory, NodeDefinition, NodeExecutionContext, NodeExecutionResult } from '../@node-plugin/type';
+import { NodeCategory, NodeDefinition } from '../@node-plugin/type';
+import { KeywordsExecutor } from './executor';
 import { PortType } from '../@flow/ports/types';
-import { getInputFromTemplate, processTemplate } from '@n2flowjs/template/template';
+import { getInputFromTemplate } from '@n2flowjs/template/template';
 
 export const KeywordsNode: NodeDefinition = {
   id: 'keywords',
@@ -12,9 +13,58 @@ export const KeywordsNode: NodeDefinition = {
   inputs: [
     {
       id: 'text',
-      name: 'text',
+      name: 'Text',
       type: PortType.TEXT,
       description: 'Text to extract keywords from',
+      required: true,
+    },
+    {
+      id: 'model',
+      name: 'AI Model',
+      type: PortType.TEXT,
+      description: 'AI model to use for keyword extraction',
+      required: true,
+      metadata: {
+        inputType: 'model-selector',
+      },
+    },
+    {
+      id: 'prompt',
+      name: 'Prompt Template',
+      type: PortType.TEXT,
+      description: 'Instructions for the AI on how to extract keywords. Use {variables} for dynamic content.',
+      defaultValue: 'Extract the most important keywords from the following text. Return them as a comma-separated list:\n\n{text}',
+      required: true,
+      metadata: {
+        inputType: 'textarea',
+        rows: 4,
+      },
+    },
+    {
+      id: 'maxResults',
+      name: 'Max Keywords',
+      type: PortType.NUMBER,
+      description: 'Maximum number of keywords to extract',
+      defaultValue: 10,
+      required: false,
+      metadata: {
+        inputType: 'number',
+        min: 1,
+        max: 50,
+      },
+    },
+    {
+      id: 'numberHistory',
+      name: 'History Messages',
+      type: PortType.NUMBER,
+      description: 'Number of previous messages to include in context',
+      defaultValue: 0,
+      required: false,
+      metadata: {
+        inputType: 'number',
+        min: 0,
+        max: 10,
+      },
     },
   ],
 
@@ -32,37 +82,6 @@ export const KeywordsNode: NodeDefinition = {
       description: 'Array of keywords',
     },
   ],
-
-  config: {
-    properties: {
-      model: {
-        type: 'string',
-        title: 'AI Model',
-        description: 'Model ID from database to use for keyword extraction',
-      },
-      prompt: {
-        type: 'string',
-        title: 'Prompt Template',
-        description: 'System prompt for keyword extraction (supports template variables)',
-        default: 'Extract the most important keywords from the following text. Return only keywords separated by commas.',
-      },
-      maxResults: {
-        type: 'number',
-        title: 'Max Results',
-        description: 'Maximum number of keywords to extract',
-        default: 10,
-        minimum: 1,
-        maximum: 100,
-      },
-      numberHistory: {
-        type: 'number',
-        title: 'History Messages',
-        description: 'Number of previous messages to include as context',
-        default: 0,
-        minimum: 0,
-      },
-    },
-  },
 
   getDynamicInputs: (config) => {
     const variableNames: string[] = [];
@@ -82,125 +101,38 @@ export const KeywordsNode: NodeDefinition = {
     }));
   },
 
-  async execute(context: NodeExecutionContext): Promise<NodeExecutionResult> {
-    const { config, inputs } = context;
-    const { model: modelId, prompt: promptTemplate, maxResults } = config;
-
-    // Check if template variables are ready
-    const templateVars = getInputFromTemplate(promptTemplate || '');
-    for (const varName of templateVars) {
-      if (!inputs[varName]) {
-        return {
-          outputs: { keywords: '', keywordArray: [] },
-          status: 'success',
-          metadata: {
-            waitingFor: templateVars,
-          },
-        };
-      }
-    }
-
+  async execute({ node, config, inputs, dispatcher }) {
+    const executor = new KeywordsExecutor();
+    // Merge config and inputs for form
+    const form = { ...config, ...inputs };
+    // Minimal context for executor
+    const context = {
+      flow: { nodes: [], edges: [] },
+      flowState: {
+        currentNode: node,
+        executionTime: Date.now(),
+        components: { ...inputs },
+        variables: {},
+        history: [],
+      },
+      input: { role: 'user' as 'user', content: '' },
+    };
     try {
-      // Import dependencies dynamically
-      const { prisma } = await import('../../lib/prisma');
-      const { llmOpenAI } = await import('../../llm/openai');
-      const { llmGemini } = await import('../../llm/gemini');
-
-      // Get input text
-      const inputText = String(inputs.text || '');
-      if (!inputText) {
-        throw new Error('No input text available for keyword extraction');
-      }
-
-      // Process template
-      const vars: Record<string, string> = {};
-      templateVars.forEach((key) => {
-        vars[key] = String(inputs[key] || '');
-      });
-
-      const prompt = processTemplate(promptTemplate || '', vars);
-
-      // Fetch model details from database
-      if (!modelId) {
-        throw new Error('No AI model specified');
-      }
-
-      const model = await prisma.lLMModel.findUnique({
-        where: { id: modelId },
-        include: { provider: true },
-      });
-
-      if (!model) {
-        throw new Error('Model not found in the database');
-      }
-      if (!model.provider) {
-        throw new Error('Provider not found for this model');
-      }
-
-      // Prepare messages
-      const message: Array<{ role: 'system' | 'user'; content: string }> = [
-        {
-          role: 'system',
-          content: prompt,
-        },
-        {
-          role: 'user',
-          content: inputText,
-        },
-      ];
-
-      // Call AI model based on provider type
-      let aiResponse = '';
-      switch (model.provider.providerType) {
-        case 'openai':
-        case 'openai-compatible':
-        case 'grok':
-          aiResponse = await llmOpenAI.completions(
-            model.provider.endpointUrl,
-            model.provider.apiKey,
-            model.name,
-            message
-          );
-          break;
-        case 'gemini':
-          aiResponse = await llmGemini.completions(
-            model.provider.endpointUrl,
-            model.provider.apiKey,
-            model.name,
-            message
-          );
-          break;
-        default:
-          throw new Error(`Unsupported provider type: ${model.provider.providerType}`);
-      }
-
-      // Process keywords response
-      const maxKeywords = maxResults || 10;
-      let keywords = aiResponse
-        .split(',')
-        .map((k) => k.trim())
-        .filter((k) => k.length > 0);
-
-      if (keywords.length > maxKeywords) {
-        keywords = keywords.slice(0, maxKeywords);
-      }
-
-      const formattedKeywords = keywords.join(', ');
-
+      const output = await executor.execute(node, context, dispatcher);
+      const keywords = output.execution.output.split(',').map(k => k.trim()).filter(k => k.length > 0);
       return {
         outputs: {
-          keywords: formattedKeywords,
+          keywords: output.execution.output,
           keywordArray: keywords,
         },
-        status: 'success',
+        status: output.status === 'error' ? 'error' : 'success',
         metadata: {
-          modelId,
-          providerType: model.provider.providerType,
+          modelId: form.model,
           keywordCount: keywords.length,
-          maxResults: maxKeywords,
+          maxResults: form.maxResults || 10,
         },
       };
-    } catch (error: unknown) {
+    } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       return {
         outputs: {
@@ -210,7 +142,7 @@ export const KeywordsNode: NodeDefinition = {
         status: 'error',
         error: `Keyword extraction failed: ${errorMessage}`,
         metadata: {
-          modelId,
+          modelId: form.model,
         },
       };
     }

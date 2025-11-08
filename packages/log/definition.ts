@@ -4,7 +4,7 @@ import {
   NodeExecutionContext,
   NodeExecutionResult,
 } from '../@node-plugin/type';
-import { PortType } from '../@flow/ports/types';
+import { PortType, InputPort, OutputPort } from '../@flow/ports/types';
 import { getInputFromTemplate, processTemplate } from '@n2flowjs/template/template';
 import { isNodeReady } from '@n2flowjs/flow/is-node-ready';
 
@@ -44,76 +44,89 @@ export const LogNodeDefinition: NodeDefinition = {
   description: 'Log messages with different severity levels and structured data',
   version: '1.0.0',
 
-  inputs: [],
+  inputs: [
+    {
+      id: 'message',
+      name: 'Message',
+      type: PortType.TEXT,
+      description: 'Log message (supports {variable} templates)',
+      required: true,
+      metadata: { inputType: 'textarea', placeholder: 'Enter log message...' },
+    },
+    {
+      id: 'logLevel',
+      name: 'Log Level',
+      type: PortType.TEXT,
+      description: 'Severity level',
+      required: true,
+      defaultValue: 'info',
+      metadata: {
+        inputType: 'select',
+        options: [
+          { label: 'Debug', value: 'debug' },
+          { label: 'Info', value: 'info' },
+          { label: 'Warning', value: 'warn' },
+          { label: 'Error', value: 'error' },
+        ],
+      },
+    },
+    {
+      id: 'includeTimestamp',
+      name: 'Include Timestamp',
+      type: PortType.BOOLEAN,
+      description: 'Add timestamp to log entry',
+      required: false,
+      defaultValue: true,
+      metadata: { inputType: 'checkbox' },
+    },
+    {
+      id: 'includeNodeInfo',
+      name: 'Include Node Info',
+      type: PortType.BOOLEAN,
+      description: 'Add node metadata to log',
+      required: false,
+      defaultValue: false,
+      metadata: { inputType: 'checkbox' },
+    },
+    {
+      id: 'includeData',
+      name: 'Additional Data',
+      type: PortType.TEXT,
+      description: 'Extra JSON data (supports {variable})',
+      required: false,
+      metadata: { inputType: 'textarea', placeholder: '{"key": "value"}' },
+    },
+  ] as InputPort[],
 
   outputs: [
     {
       id: 'output',
       name: 'Log Result',
       type: PortType.JSON,
-      description: 'Log entry confirmation with metadata'
-    }
-  ],
+      description: 'Log entry confirmation with metadata',
+    },
+  ] as OutputPort[],
 
   getDynamicInputs: (config) => {
-    const inputs: Set<string> = new Set();
+    const variableNames: Set<string> = new Set();
 
     if (config.message) {
-      const vars = getInputFromTemplate(config.message as string);
-      vars.forEach(v => inputs.add(v));
+      getInputFromTemplate(config.message as string).forEach(v => variableNames.add(v));
     }
-
     if (config.includeData) {
-      const dataVars = getInputFromTemplate(config.includeData as string);
-      dataVars.forEach(v => inputs.add(v));
+      getInputFromTemplate(config.includeData as string).forEach(v => variableNames.add(v));
     }
 
-    return Array.from(inputs).map(varName => ({
+    const dynamicPorts: InputPort[] = Array.from(variableNames).map(varName => ({
       id: varName,
       name: varName,
       type: PortType.TEXT,
       required: true,
-      description: `Template variable: ${varName}`
+      description: `Template variable: ${varName}`,
+      metadata: { isDynamic: true, inputType: 'text' },
     }));
-  },
 
-  config: {
-    properties: {
-      message: {
-        type: 'string',
-        title: 'Message',
-        description: 'Log message (supports {variable} templates)',
-        required: true
-      },
-      logLevel: {
-        type: 'string',
-        title: 'Log Level',
-        description: 'Severity level',
-        enum: ['debug', 'info', 'warn', 'error'],
-        default: 'info',
-        required: true
-      },
-      includeTimestamp: {
-        type: 'boolean',
-        title: 'Include Timestamp',
-        description: 'Add timestamp to log entry',
-        default: true,
-        required: false
-      },
-      includeNodeInfo: {
-        type: 'boolean',
-        title: 'Include Node Info',
-        description: 'Add node metadata to log',
-        default: false,
-        required: false
-      },
-      includeData: {
-        type: 'string',
-        title: 'Additional Data',
-        description: 'Extra JSON data (supports {variable})',
-        required: false
-      }
-    }
+    return [...LogNodeDefinition.inputs, ...dynamicPorts];
   },
 
   async execute(context: NodeExecutionContext): Promise<NodeExecutionResult> {

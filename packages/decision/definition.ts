@@ -141,20 +141,6 @@ export const DecisionNodeDefinition: NodeDefinition<DecisionForm> = {
     );
   },
 
-  // Configuration Schema
-  config: {
-    properties: {
-      branches: {
-        type: 'array',
-        description: 'Decision branches with conditions',
-      },
-      defaultTarget: {
-        type: 'string',
-        description: 'Default target node if no branch matches',
-      },
-    },
-  },
-
   // Execution Logic
   async execute({ node, config, inputs, dispatcher }): Promise<NodeExecutionResult> {
     const startTime = new Date().toISOString();

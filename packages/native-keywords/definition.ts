@@ -34,9 +34,75 @@ export const NativeKeywordsNode: NodeDefinition = {
   inputs: [
     {
       id: 'text',
-      name: 'text',
+      name: 'Text',
       type: PortType.TEXT,
-      description: 'Text to extract keywords from',
+      description: 'Text to extract keywords from. Use {variables} for dynamic content.',
+      required: true,
+      metadata: {
+        inputType: 'textarea',
+        rows: 6,
+      },
+    },
+    {
+      id: 'language',
+      name: 'Language',
+      type: PortType.TEXT,
+      description: 'Language for keyword extraction. Auto-detects if not specified.',
+      defaultValue: 'auto',
+      required: false,
+      metadata: {
+        inputType: 'select',
+        options: ['auto', 'en', 'vi', 'es', 'fr', 'de', 'pt', 'it', 'nl', 'id', 'tr', 'ru'],
+      },
+    },
+    {
+      id: 'maxResults',
+      name: 'Max Keywords',
+      type: PortType.NUMBER,
+      description: 'Maximum number of keywords to extract',
+      defaultValue: 10,
+      required: false,
+      metadata: {
+        inputType: 'number',
+        min: 1,
+        max: 100,
+      },
+    },
+    {
+      id: 'minLength',
+      name: 'Min Word Length',
+      type: PortType.NUMBER,
+      description: 'Minimum length of keywords to extract',
+      defaultValue: 3,
+      required: false,
+      metadata: {
+        inputType: 'number',
+        min: 1,
+        max: 20,
+      },
+    },
+    {
+      id: 'removeDigits',
+      name: 'Remove Digits',
+      type: PortType.BOOLEAN,
+      description: 'Remove words that contain only digits',
+      defaultValue: true,
+      required: false,
+      metadata: {
+        inputType: 'checkbox',
+      },
+    },
+    {
+      id: 'extraStopwords',
+      name: 'Extra Stopwords',
+      type: PortType.TEXT,
+      description: 'Additional stopwords to filter out (comma-separated)',
+      defaultValue: '',
+      required: false,
+      metadata: {
+        inputType: 'text',
+        placeholder: 'word1, word2, word3',
+      },
     },
   ],
 
@@ -60,47 +126,6 @@ export const NativeKeywordsNode: NodeDefinition = {
       description: 'Detected language code',
     },
   ],
-
-  config: {
-    properties: {
-      text: {
-        type: 'string',
-        title: 'Text',
-        description: 'Text to extract keywords from (supports template variables)',
-      },
-      maxResults: {
-        type: 'number',
-        title: 'Max Results',
-        description: 'Maximum number of keywords to extract',
-        default: 10,
-        minimum: 1,
-        maximum: 100,
-      },
-      minLength: {
-        type: 'number',
-        title: 'Min Length',
-        description: 'Minimum length of keywords',
-        default: 3,
-        minimum: 1,
-        maximum: 20,
-      },
-      removeDigits: {
-        type: 'boolean',
-        title: 'Remove Digits',
-        description: 'Filter out pure numeric keywords',
-        default: false,
-      },
-      extraStopwords: {
-        type: 'array',
-        title: 'Extra Stopwords',
-        description: 'Additional stopwords to filter out',
-        items: {
-          type: 'string',
-        },
-        default: [],
-      },
-    },
-  },
 
   getDynamicInputs: (config: any) => {
     const variableNames: string[] = [];

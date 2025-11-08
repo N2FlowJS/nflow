@@ -81,67 +81,6 @@ export const WebTypingNodeDefinition: NodeDefinition = {
     }));
   },
 
-  config: {
-    properties: {
-      selector: {
-        type: 'string',
-        title: 'Selector',
-        description: 'Input element selector (supports {variable} templates)',
-        required: true
-      },
-      text: {
-        type: 'string',
-        title: 'Text',
-        description: 'Text to type (supports {variable} templates)',
-        required: true
-      },
-      selectorType: {
-        type: 'string',
-        title: 'Selector Type',
-        description: 'Type of selector',
-        enum: ['css', 'xpath', 'text'],
-        default: 'css',
-        required: false
-      },
-      clearBefore: {
-        type: 'boolean',
-        title: 'Clear Before',
-        description: 'Clear existing text before typing',
-        default: true,
-        required: false
-      },
-      pressEnter: {
-        type: 'boolean',
-        title: 'Press Enter',
-        description: 'Press Enter after typing',
-        default: false,
-        required: false
-      },
-      typingDelay: {
-        type: 'number',
-        title: 'Typing Delay (ms)',
-        description: 'Delay between keystrokes in milliseconds',
-        default: 50,
-        minimum: 0,
-        required: false
-      },
-      waitForSelector: {
-        type: 'boolean',
-        title: 'Wait for Selector',
-        description: 'Wait for selector before typing',
-        default: true,
-        required: false
-      },
-      timeout: {
-        type: 'number',
-        title: 'Timeout (ms)',
-        description: 'Selector wait timeout in milliseconds',
-        default: 30000,
-        required: false
-      }
-    }
-  },
-
   async execute(context: NodeExecutionContext): Promise<NodeExecutionResult> {
     const { config, inputs, dispatcher, node, flowState } = context;
     const startTime = new Date().toISOString();

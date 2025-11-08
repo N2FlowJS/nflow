@@ -4,8 +4,8 @@ import {
   NodeExecutionContext,
   NodeExecutionResult,
 } from '../@node-plugin/type';
-import { PortType } from '../@flow/ports/types';
-import { getInputFromTemplate, processTemplate } from '@n2flowjs/template/template';
+import { PortType, InputPort, OutputPort } from '../@flow/ports/types';
+import { getInputFromTemplate } from '@n2flowjs/template/template';
 import { isNodeReady } from '@n2flowjs/flow/is-node-ready';
 
 /**
@@ -43,100 +43,114 @@ import { isNodeReady } from '@n2flowjs/flow/is-node-ready';
 export const ValidateNodeDefinition: NodeDefinition = {
   id: 'validate',
   name: 'Validate',
-  category: NodeCategory.LOGIC,
   description: 'Validate input data against various rules (email, URL, phone, JSON, etc.)',
   version: '1.0.0',
-
-  inputs: [],
-
+  category: NodeCategory.LOGIC,
+  inputs: [
+    {
+      id: 'inputData',
+      name: 'Input Data',
+      type: PortType.TEXT,
+      description: 'Data to validate (supports {variable} templates)',
+      required: true,
+      metadata: { inputType: 'text', placeholder: 'Enter data to validate...' },
+    },
+    {
+      id: 'validationType',
+      name: 'Validation Type',
+      type: PortType.TEXT,
+      description: 'Type of validation',
+      required: true,
+      defaultValue: 'email',
+      metadata: {
+        inputType: 'select',
+        options: [
+          { label: 'Email', value: 'email' },
+          { label: 'URL', value: 'url' },
+          { label: 'Phone', value: 'phone' },
+          { label: 'JSON', value: 'json' },
+          { label: 'Number', value: 'number' },
+          { label: 'Date', value: 'date' },
+          { label: 'Custom Regex', value: 'custom' },
+        ],
+      },
+    },
+    {
+      id: 'required',
+      name: 'Required',
+      type: PortType.BOOLEAN,
+      description: 'Field must not be empty',
+      required: false,
+      defaultValue: false,
+      metadata: { inputType: 'checkbox' },
+    },
+    {
+      id: 'minLength',
+      name: 'Min Length',
+      type: PortType.NUMBER,
+      description: 'Minimum string length',
+      required: false,
+      metadata: { inputType: 'number', min: 0 },
+    },
+    {
+      id: 'maxLength',
+      name: 'Max Length',
+      type: PortType.NUMBER,
+      description: 'Maximum string length',
+      required: false,
+      metadata: { inputType: 'number', min: 0 },
+    },
+    {
+      id: 'customPattern',
+      name: 'Custom Pattern',
+      type: PortType.TEXT,
+      description: 'Regex pattern for custom validation',
+      required: false,
+      metadata: { inputType: 'text', placeholder: '^[a-z]+$' },
+    },
+  ] as InputPort[],
   outputs: [
     {
       id: 'valid',
       name: 'Is Valid',
       type: PortType.BOOLEAN,
-      description: 'Validation result (true/false)'
+      description: 'Validation result (true/false)',
     },
     {
       id: 'message',
       name: 'Message',
       type: PortType.TEXT,
-      description: 'Validation message'
+      description: 'Validation message',
     },
     {
       id: 'result',
       name: 'Result',
       type: PortType.JSON,
-      description: 'Complete validation result'
-    }
-  ],
+      description: 'Complete validation result',
+    },
+  ] as OutputPort[],
 
   getDynamicInputs: (config) => {
-    const inputs: Set<string> = new Set();
-
+    const variableNames: Set<string> = new Set();
     if (config.inputData) {
-      const vars = getInputFromTemplate(config.inputData as string);
-      vars.forEach(v => inputs.add(v));
+      getInputFromTemplate(config.inputData as string).forEach(v => variableNames.add(v));
     }
-
-    return Array.from(inputs).map(varName => ({
+    const dynamicPorts: InputPort[] = Array.from(variableNames).map(varName => ({
       id: varName,
       name: varName,
       type: PortType.TEXT,
       required: true,
-      description: `Template variable: ${varName}`
+      description: `Template variable: ${varName}`,
+      metadata: { isDynamic: true, inputType: 'text' },
     }));
-  },
-
-  config: {
-    properties: {
-      inputData: {
-        type: 'string',
-        title: 'Input Data',
-        description: 'Data to validate (supports {variable} templates)',
-        required: true
-      },
-      validationType: {
-        type: 'string',
-        title: 'Validation Type',
-        description: 'Type of validation',
-        enum: ['email', 'url', 'phone', 'json', 'number', 'date', 'custom'],
-        default: 'email',
-        required: true
-      },
-      required: {
-        type: 'boolean',
-        title: 'Required',
-        description: 'Field must not be empty',
-        default: false,
-        required: false
-      },
-      minLength: {
-        type: 'number',
-        title: 'Min Length',
-        description: 'Minimum string length',
-        required: false
-      },
-      maxLength: {
-        type: 'number',
-        title: 'Max Length',
-        description: 'Maximum string length',
-        required: false
-      },
-      customPattern: {
-        type: 'string',
-        title: 'Custom Pattern',
-        description: 'Regex pattern for custom validation',
-        required: false
-      }
-    }
+    return [...dynamicPorts];
   },
 
   async execute(context: NodeExecutionContext): Promise<NodeExecutionResult> {
-    const { config, inputs, dispatcher, node, flowState } = context;
+    // Delegate to new executor
+        const { config, inputs, flowState } = context;
     const startTime = new Date().toISOString();
-
     const templateVars = getInputFromTemplate((config.inputData as string) || '');
-
     if (!isNodeReady(templateVars, flowState)) {
       return {
         outputs: { valid: false, message: 'Waiting for input', result: {} },
@@ -144,194 +158,41 @@ export const ValidateNodeDefinition: NodeDefinition = {
         metadata: { message: 'Waiting for input variables' }
       };
     }
-
-    try {
-      const vars: Record<string, string> = {};
-      templateVars.forEach((key) => {
-        if (inputs?.[key] !== undefined) {
-          vars[key] = String(inputs[key]);
-        } else if (flowState.components[key] !== undefined) {
-          vars[key] = flowState.components[key].output || '';
-        }
-      });
-
-      const processedInputData = processTemplate((config.inputData as string) || '', vars);
-
-      // Check required field
-      if (config.required && (!processedInputData || processedInputData.trim() === '')) {
-        const result = {
-          valid: false,
-          message: 'Field is required but empty',
-          value: processedInputData,
-        };
-
-        if (dispatcher) {
-          dispatcher.setNodeOutput(node.id, JSON.stringify(result), 'validate');
-          dispatcher.setCurrentNode(node);
-        }
-
-        return {
-          outputs: {
-            valid: false,
-            message: result.message,
-            result
-          },
-          status: 'success',
-          metadata: { startTime, endTime: new Date().toISOString() }
-        };
+    // Prepare form for executor
+    const form: any = { ...config };
+    templateVars.forEach((key) => {
+      if (inputs?.[key] !== undefined) {
+        form[key] = String(inputs[key]);
+      } else if (flowState.components[key] !== undefined) {
+        form[key] = flowState.components[key].output || '';
       }
-
-      // Check length constraints
-      if (config.minLength !== undefined && processedInputData.length < (config.minLength as number)) {
-        const result = {
-          valid: false,
-          message: `Value length (${processedInputData.length}) is less than minimum required (${config.minLength})`,
-          value: processedInputData,
-        };
-
-        if (dispatcher) {
-          dispatcher.setNodeOutput(node.id, JSON.stringify(result), 'validate');
-          dispatcher.setCurrentNode(node);
-        }
-
-        return {
-          outputs: { valid: false, message: result.message, result },
-          status: 'success',
-          metadata: { startTime, endTime: new Date().toISOString() }
-        };
-      }
-
-      if (config.maxLength !== undefined && processedInputData.length > (config.maxLength as number)) {
-        const result = {
-          valid: false,
-          message: `Value length (${processedInputData.length}) exceeds maximum allowed (${config.maxLength})`,
-          value: processedInputData,
-        };
-
-        if (dispatcher) {
-          dispatcher.setNodeOutput(node.id, JSON.stringify(result), 'validate');
-          dispatcher.setCurrentNode(node);
-        }
-
-        return {
-          outputs: { valid: false, message: result.message, result },
-          status: 'success',
-          metadata: { startTime, endTime: new Date().toISOString() }
-        };
-      }
-
-      // Validate based on type
-      let isValid = false;
-      let message = '';
-
-      switch (config.validationType) {
-        case 'email':
-          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-          isValid = emailRegex.test(processedInputData);
-          message = isValid ? 'Valid email address' : 'Invalid email format';
-          break;
-
-        case 'url':
-          try {
-            new URL(processedInputData);
-            isValid = true;
-            message = 'Valid URL';
-          } catch {
-            isValid = false;
-            message = 'Invalid URL format';
-          }
-          break;
-
-        case 'phone':
-          const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
-          isValid = phoneRegex.test(processedInputData.replace(/[\s\-\(\)]/g, ''));
-          message = isValid ? 'Valid phone number' : 'Invalid phone number format';
-          break;
-
-        case 'json':
-          try {
-            JSON.parse(processedInputData);
-            isValid = true;
-            message = 'Valid JSON';
-          } catch {
-            isValid = false;
-            message = 'Invalid JSON format';
-          }
-          break;
-
-        case 'number':
-          isValid = !isNaN(parseFloat(processedInputData)) && isFinite(parseFloat(processedInputData));
-          message = isValid ? 'Valid number' : 'Invalid number format';
-          break;
-
-        case 'date':
-          const dateValue = new Date(processedInputData);
-          isValid = !isNaN(dateValue.getTime());
-          message = isValid ? 'Valid date' : 'Invalid date format';
-          break;
-
-        case 'custom':
-          if (config.customPattern) {
-            try {
-              const regex = new RegExp(config.customPattern as string);
-              isValid = regex.test(processedInputData);
-              message = isValid ? 'Matches custom pattern' : 'Does not match custom pattern';
-            } catch {
-              isValid = false;
-              message = 'Invalid custom pattern';
-            }
-          } else {
-            isValid = false;
-            message = 'No custom pattern specified';
-          }
-          break;
-
-        default:
-          throw new Error(`Unsupported validation type: ${config.validationType}`);
-      }
-
-      const result = {
-        valid: isValid,
-        message: message,
-        value: processedInputData,
-      };
-
-      if (dispatcher) {
-        dispatcher.setNodeOutput(node.id, JSON.stringify(result), 'validate');
-        dispatcher.setCurrentNode(node);
-      }
-
-      return {
-        outputs: {
-          valid: isValid,
-          message: message,
-          result
-        },
-        status: 'success',
-        metadata: {
-          startTime,
-          endTime: new Date().toISOString(),
-          validationType: config.validationType,
-          isValid
-        }
-      };
-    } catch (error: unknown) {
-      console.error('Validate node error:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Unknown validation error';
-
-      return {
-        outputs: {
-          valid: false,
-          message: `Error: ${errorMessage}`,
-          result: { error: errorMessage }
-        },
-        status: 'error',
-        metadata: {
-          startTime,
-          endTime: new Date().toISOString(),
-          error: errorMessage
-        }
-      };
-    }
+    });
+    // Use new executor
+    const { validateExecutor } = await import('./executor');
+    // Construct minimal FlowExecutionContext
+    const inputPart: import('../../models/MessagePart').MessagePart = { role: 'user', content: String(context.inputs?.inputData ?? '') };
+    const flowExecutionContext = {
+      flow: context.flowState?.flow,
+      flowState: context.flowState,
+      input: inputPart,
+    };
+    const execResult = await validateExecutor.execute(context.node, flowExecutionContext);
+    let status: 'success' | 'error' | 'in_progress' = 'success';
+    if (execResult.status === 'error') status = 'error';
+    else if (execResult.status === 'in_progress') status = 'in_progress';
+    return {
+      outputs: {
+        valid: execResult.message === 'Valid email address' || execResult.message === 'Valid URL' || execResult.message === 'Valid phone number' || execResult.message === 'Valid JSON' || execResult.message === 'Valid number' || execResult.message === 'Valid date' || execResult.message === 'Matches custom pattern',
+        message: execResult.message ?? '',
+        result: execResult.execution?.output ?? {},
+      },
+      status,
+      metadata: {
+        startTime,
+        endTime: new Date().toISOString(),
+        validationType: config.validationType,
+        isValid: execResult.message === 'Valid email address' || execResult.message === 'Valid URL' || execResult.message === 'Valid phone number' || execResult.message === 'Valid JSON' || execResult.message === 'Valid number' || execResult.message === 'Valid date' || execResult.message === 'Matches custom pattern',
+      },
+    };
   }
 };

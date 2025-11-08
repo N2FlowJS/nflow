@@ -5,7 +5,7 @@
  */
 
 import { NodeDefinition, NodeCategory } from '@n2flowjs/node-plugin';
-import { PortType } from '@n2flowjs/flow/ports';
+import { PortType, InputPort, OutputPort } from '@n2flowjs/flow/ports';
 import { getInputFromTemplate, processTemplate } from '@n2flowjs/template/template';
 
 interface WeChatConfig {
@@ -30,85 +30,125 @@ const WeChatNodeDefinition: NodeDefinition<WeChatConfig> = {
   
   inputs: [
     {
-      id: 'trigger',
-      name: 'Trigger',
-      type: PortType.ANY,
-      required: false,
+      id: 'action',
+      name: 'Action',
+      type: PortType.TEXT,
+      description: 'WeChat operation to perform',
+      required: true,
+      defaultValue: 'send_message',
+      metadata: {
+        inputType: 'select',
+        options: [
+          { label: 'Send Message', value: 'send_message' },
+          { label: 'Send Template', value: 'send_template' },
+          { label: 'Get User Info', value: 'get_user_info' },
+          { label: 'Create Menu', value: 'create_menu' },
+          { label: 'Get QR Code', value: 'get_qrcode' },
+        ],
+      },
     },
-  ],
+    {
+      id: 'appId',
+      name: 'App ID',
+      type: PortType.TEXT,
+      description: 'WeChat App ID',
+      required: true,
+      metadata: { inputType: 'text', placeholder: 'wx...' },
+    },
+    {
+      id: 'appSecret',
+      name: 'App Secret',
+      type: PortType.TEXT,
+      description: 'WeChat App Secret',
+      required: true,
+      metadata: { inputType: 'text', placeholder: 'Enter app secret...', isPassword: true },
+    },
+    {
+      id: 'accessToken',
+      name: 'Access Token',
+      type: PortType.TEXT,
+      description: 'Access token (optional, will be generated if not provided)',
+      required: false,
+      metadata: { inputType: 'text', placeholder: 'Access token...', isPassword: true },
+    },
+    {
+      id: 'openId',
+      name: 'OpenID',
+      type: PortType.TEXT,
+      description: 'User OpenID (supports {variable} templates)',
+      required: false,
+      metadata: { inputType: 'text', placeholder: 'User OpenID' },
+    },
+    {
+      id: 'message',
+      name: 'Message',
+      type: PortType.TEXT,
+      description: 'Message content (supports {variable} templates)',
+      required: false,
+      metadata: { inputType: 'textarea', placeholder: 'Enter message...' },
+    },
+    {
+      id: 'templateId',
+      name: 'Template ID',
+      type: PortType.TEXT,
+      description: 'WeChat template ID (supports {variable} templates)',
+      required: false,
+      metadata: { inputType: 'text', placeholder: 'Template ID' },
+    },
+    {
+      id: 'menuData',
+      name: 'Menu Data',
+      type: PortType.TEXT,
+      description: 'Menu configuration JSON (supports {variable} templates)',
+      required: false,
+      metadata: { inputType: 'textarea', placeholder: '{"button":[...]}' },
+    },
+    {
+      id: 'scene',
+      name: 'Scene',
+      type: PortType.TEXT,
+      description: 'QR code scene (supports {variable} templates)',
+      required: false,
+      metadata: { inputType: 'text', placeholder: 'QR code scene' },
+    },
+  ] as InputPort[],
   
   outputs: [
     {
       id: 'output',
       name: 'Result',
       type: PortType.JSON,
+      description: 'WeChat API response',
     },
-  ],
+  ] as OutputPort[],
   
   getDynamicInputs: (config: WeChatConfig) => {
+    const variableNames = new Set<string>();
+    
     const templateFields = [
       config.message,
       config.openId,
       config.templateId,
       config.menuData,
       config.scene,
-    ].filter(Boolean);
+    ];
     
-    const variables = new Set<string>();
     templateFields.forEach(field => {
       if (field) {
-        getInputFromTemplate(field).forEach(v => variables.add(v));
+        getInputFromTemplate(field).forEach(v => variableNames.add(v));
       }
     });
     
-    return Array.from(variables).map(varName => ({
+    const dynamicPorts: InputPort[] = Array.from(variableNames).map(varName => ({
       id: varName,
       name: varName,
       type: PortType.TEXT,
-      required: false,
+      required: true,
+      description: `Template variable: ${varName}`,
+      metadata: { isDynamic: true, inputType: 'text' },
     }));
-  },
-  
-  config: {
-    properties: {
-      name: { type: 'string', title: 'Name', default: 'WeChat' },
-      action: {
-        type: 'string',
-        title: 'Action',
-        enum: ['send_message', 'send_template', 'get_user_info', 'create_menu', 'get_qrcode'],
-        default: 'send_message',
-      },
-      appId: { type: 'string', title: 'App ID' },
-      appSecret: { type: 'string', title: 'App Secret', format: 'password' },
-      accessToken: { type: 'string', title: 'Access Token (optional)', format: 'password' },
-      openId: {
-        type: 'string',
-        title: 'OpenID',
-        description: 'User OpenID (supports {variable} templates)',
-      },
-      message: {
-        type: 'string',
-        title: 'Message',
-        format: 'textarea',
-        description: 'Message content (supports {variable} templates)',
-      },
-      templateId: {
-        type: 'string',
-        title: 'Template ID',
-        description: 'WeChat template ID (supports {variable} templates)',
-      },
-      menuData: {
-        type: 'string',
-        title: 'Menu Data',
-        format: 'textarea',
-        description: 'Menu configuration JSON (supports {variable} templates)',
-      },
-      scene: {
-        type: 'string',
-        title: 'Scene',
-        description: 'QR code scene (supports {variable} templates)',
-      },
-    },
+    
+    return [...WeChatNodeDefinition.inputs, ...dynamicPorts];
   },
   
   async execute({ config, inputs, node }) {

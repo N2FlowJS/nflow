@@ -12,7 +12,7 @@ import {
 } from '../@node-plugin/type';
 import { PortType, createInputPort, createOutputPort } from '../@flow/ports';
 import { MathForm } from './types';
-import { getInputFromTemplate, processTemplate } from '@n2flowjs/template/template';
+import { getInputFromTemplate } from '@n2flowjs/template/template';
 
 /**
  * Math Node Definition
@@ -89,167 +89,34 @@ export const MathNodeDefinition: NodeDefinition<MathForm> = {
     ];
   },
 
-  // Configuration Schema
-  config: {
-    properties: {
-      value1: {
-        type: 'string',
-        description: 'First value (supports template variables)',
-      },
-      value2: {
-        type: 'string',
-        description: 'Second value (supports template variables)',
-      },
-      operation: {
-        type: 'string',
-        enum: ['add', 'subtract', 'multiply', 'divide', 'power', 'sqrt', 'abs', 'round', 'min', 'max'],
-        default: 'add',
-        description: 'Mathematical operation',
-      },
-      precision: {
-        type: 'number',
-        minimum: 0,
-        maximum: 10,
-        default: 2,
-        description: 'Decimal precision',
-      },
-    },
-  },
-
-  // Execution Logic
-  async execute({ node, config, inputs, dispatcher }): Promise<NodeExecutionResult> {
-    const startTime = new Date().toISOString();
-
+  async execute(context): Promise<NodeExecutionResult> {
+    // Construct FlowExecutionContext for executor
+    const { mathExecutor } = await import('./executor');
+  const inputPart: { role: 'developer', content: string } = { role: 'developer', content: String(context.inputs.value1 ?? context.config.value1 ?? '') };
+    const flowExecutionContext = {
+      flow: context.flowState?.flow,
+      flowState: context.flowState,
+      input: inputPart,
+    };
+    const execResult = await mathExecutor.execute(context.node, flowExecutionContext);
+    let resultObj;
     try {
-      let value1Str = String(inputs.value1 !== undefined ? inputs.value1 : config.value1 || '0');
-      let value2Str = String(inputs.value2 !== undefined ? inputs.value2 : config.value2 || '0');
-      const operation = inputs.operation || config.operation || 'add';
-      const precision = config.precision !== undefined ? config.precision : 2;
-
-      // Process template variables
-      const allTemplateVars = new Set<string>();
-      [value1Str, value2Str].forEach(str => {
-        if (typeof str === 'string') {
-          getInputFromTemplate(str).forEach(v => allTemplateVars.add(v));
-        }
-      });
-
-      if (allTemplateVars.size > 0) {
-        const vars: Record<string, string> = {};
-        allTemplateVars.forEach(varName => {
-          if (inputs[varName] !== undefined) {
-            vars[varName] = String(inputs[varName]);
-          }
-        });
-
-        value1Str = processTemplate(value1Str, vars);
-        value2Str = processTemplate(value2Str, vars);
-      }
-
-      // Parse numbers
-      const value1 = parseFloat(value1Str);
-      const value2 = parseFloat(value2Str);
-
-      if (isNaN(value1)) {
-        throw new Error(`Invalid number for value1: ${value1Str}`);
-      }
-
-      let result: number;
-
-      switch (operation) {
-        case 'add':
-          result = value1 + value2;
-          break;
-
-        case 'subtract':
-          result = value1 - value2;
-          break;
-
-        case 'multiply':
-          result = value1 * value2;
-          break;
-
-        case 'divide':
-          if (value2 === 0) {
-            throw new Error('Division by zero');
-          }
-          result = value1 / value2;
-          break;
-
-        case 'power':
-          result = Math.pow(value1, value2);
-          break;
-
-        case 'sqrt':
-          if (value1 < 0) {
-            throw new Error('Square root of negative number');
-          }
-          result = Math.sqrt(value1);
-          break;
-
-        case 'abs':
-          result = Math.abs(value1);
-          break;
-
-        case 'round':
-          result = Math.round(value1);
-          break;
-
-        case 'min':
-          result = Math.min(value1, value2);
-          break;
-
-        case 'max':
-          result = Math.max(value1, value2);
-          break;
-
-        default:
-          throw new Error(`Unsupported operation: ${operation}`);
-      }
-
-      // Apply precision
-      const formattedResult = parseFloat(result.toFixed(precision));
-      const resultText = String(formattedResult);
-
-      console.log(`[Math] ${operation}(${value1}, ${value2}) = ${formattedResult}`);
-
-      // Update state via dispatcher
-      if (dispatcher) {
-        dispatcher.setNodeOutput(node.id, resultText, 'math');
-        dispatcher.setCurrentNode(node);
-      }
-
-      return {
-        outputs: {
-          result: formattedResult,
-          resultText,
-        },
-        status: 'success',
-        metadata: {
-          startTime,
-          endTime: new Date().toISOString(),
-          operation,
-          value1,
-          value2,
-        },
-      };
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-
-      return {
-        outputs: {
-          result: 0,
-          resultText: '0',
-        },
-        status: 'error',
-        error: `Math operation failed: ${errorMessage}`,
-        metadata: {
-          startTime,
-          endTime: new Date().toISOString(),
-          error: errorMessage,
-        },
-      };
+      resultObj = typeof execResult === 'string' ? JSON.parse(execResult) : execResult;
+    } catch {
+      resultObj = { result: 0, resultText: '0' };
     }
+    return {
+      outputs: {
+        result: resultObj.result,
+        resultText: resultObj.resultText,
+      },
+      status: 'success',
+      metadata: {
+        operation: context.config.operation,
+        value1: context.inputs.value1,
+        value2: context.inputs.value2,
+      },
+    };
   },
 };
 

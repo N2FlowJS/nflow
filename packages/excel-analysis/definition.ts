@@ -1,13 +1,10 @@
 import {
   NodeCategory,
   NodeDefinition,
-  NodeExecutionContext,
-  NodeExecutionResult,
 } from '../@node-plugin/type';
 import { PortType, InputPort, OutputPort } from '../@flow/ports/types';
-import { getInputFromTemplate, processTemplate } from '@n2flowjs/template/template';
-import { isNodeReady } from '@n2flowjs/flow/is-node-ready';
-import * as fs from 'fs';
+import { getInputFromTemplate } from '@n2flowjs/template/template';
+import ExcelAnalysisExecutor from './executor';
 
 /**
  * Excel Analysis Node Definition
@@ -121,119 +118,29 @@ export const ExcelAnalysisNodeDefinition: NodeDefinition = {
     return [...ExcelAnalysisNodeDefinition.inputs, ...dynamicPorts];
   },
 
-  async execute(context: NodeExecutionContext): Promise<NodeExecutionResult> {
-    const { config, inputs, dispatcher, node, flowState } = context;
-    const startTime = new Date().toISOString();
-
-    const templateVars = [
-      ...getInputFromTemplate((config.filePath as string) || ''),
-      ...getInputFromTemplate((config.sheetName as string) || '')
-    ];
-
-    if (!isNodeReady(templateVars, flowState)) {
-      return {
-        outputs: { result: null, sheetCount: 0 },
-        status: 'in_progress',
-        metadata: { message: 'Waiting for input variables' }
-      };
-    }
-
+  async execute(context) {
+    // Delegate to new executor for unified execution
+    const executor = new ExcelAnalysisExecutor();
+    const { node, flowState, dispatcher } = context;
+    // Compose minimal FlowExecutionContext
+    const execResult = await executor.execute(node, {
+      flow: { nodes: [], edges: [] },
+      flowState,
+      input: { role: 'system', content: '' },
+    }, dispatcher);
+    let outputs: Record<string, any> = {};
     try {
-      const vars: Record<string, string> = {};
-      templateVars.forEach((key) => {
-        if (inputs?.[key] !== undefined) {
-          vars[key] = String(inputs[key]);
-        } else if (flowState.components[key] !== undefined) {
-          vars[key] = flowState.components[key].output || '';
-        }
-      });
-
-      const filePath = processTemplate(config.filePath as string, vars);
-
-      if (!filePath) {
-        throw new Error('File path is required for Excel analysis');
-      }
-
-      // Check if file exists
-      await fs.promises.access(filePath);
-
-      let result: any;
-
-      switch (config.operation) {
-        case 'read_sheets':
-          result = await analyzeExcelSheets(filePath, config);
-          break;
-        case 'analyze_data':
-          result = await analyzeExcelData(filePath, config);
-          break;
-        default:
-          throw new Error(`Unsupported Excel operation: ${config.operation}`);
-      }
-
-      const resultText = JSON.stringify(result, null, 2);
-
-      if (dispatcher) {
-        dispatcher.setNodeOutput(node.id, resultText, 'excelanalysis');
-        dispatcher.setCurrentNode(node);
-      }
-
-      return {
-        outputs: {
-          result,
-          sheetCount: result.sheetCount || result.sheets?.length || 0
-        },
-        status: 'success',
-        metadata: {
-          startTime,
-          endTime: new Date().toISOString(),
-          filePath,
-          operation: config.operation,
-          sheetCount: result.sheetCount || result.sheets?.length || 0
-        }
-      };
-    } catch (error: unknown) {
-      console.error('Excel analysis error:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Unknown Excel analysis error';
-
-      return {
-        outputs: {
-          result: null,
-          sheetCount: 0
-        },
-        status: 'error',
-        metadata: {
-          startTime,
-          endTime: new Date().toISOString(),
-          error: errorMessage
-        }
-      };
+      outputs = JSON.parse(execResult.execution.output);
+    } catch {
+      outputs = { result: execResult.execution.output };
     }
+    return {
+      outputs,
+      status: execResult.status as any,
+      error: execResult.status === 'error' ? execResult.message : undefined,
+      metadata: execResult.nodeInfo,
+    };
   }
 };
 
-async function analyzeExcelSheets(filePath: string, _config: any) {
-  // Simplified implementation - would use xlsx library in production
-  const stats = await fs.promises.stat(filePath);
-  
-  return {
-    filePath,
-    operation: 'read_sheets',
-    sheetCount: 1,
-    sheets: [{ name: 'Sheet1', rowCount: 0, columnCount: 0 }],
-    fileSize: stats.size,
-    note: 'Requires xlsx library for full implementation'
-  };
-}
 
-async function analyzeExcelData(filePath: string, config: any) {
-  // Simplified implementation - would use xlsx library in production
-  const stats = await fs.promises.stat(filePath);
-  
-  return {
-    filePath,
-    operation: 'analyze_data',
-    sheetName: config.sheetName || 'Sheet1',
-    fileSize: stats.size,
-    note: 'Requires xlsx library for full implementation'
-  };
-}

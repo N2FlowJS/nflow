@@ -96,51 +96,6 @@ export const LoopNodeDefinition: NodeDefinition<LoopForm> = {
     ];
   },
 
-  // Configuration Schema
-  config: {
-    properties: {
-      inputData: {
-        description: 'Data to iterate over (supports template variables)',
-      },
-      loopType: {
-        type: 'string',
-        enum: ['array', 'object', 'range'],
-        default: 'array',
-        description: 'Type of loop iteration',
-      },
-      maxIterations: {
-        type: 'number',
-        default: 100,
-        description: 'Maximum number of iterations',
-      },
-      currentIndexVariable: {
-        type: 'string',
-        default: 'index',
-        description: 'Variable name for current index',
-      },
-      currentItemVariable: {
-        type: 'string',
-        default: 'item',
-        description: 'Variable name for current item',
-      },
-      startIndex: {
-        type: 'number',
-        default: 0,
-        description: 'Start index for range loop',
-      },
-      endIndex: {
-        type: 'number',
-        default: 10,
-        description: 'End index for range loop',
-      },
-      stepSize: {
-        type: 'number',
-        default: 1,
-        description: 'Step size for range loop',
-      },
-    },
-  },
-
   // Execution Logic
   async execute({ node, config, inputs, dispatcher }): Promise<NodeExecutionResult> {
     const startTime = new Date().toISOString();
