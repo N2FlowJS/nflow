@@ -35,6 +35,9 @@ model Team {
 
   // Conversations owned by the team
   conversations Conversation[] @relation("TeamConversations")
+
+  // Team-owned custom nodes
+  customNodes CustomNode[] @relation("TeamCustomNodes")
 }
 
 model MemberTeam {
@@ -118,6 +121,9 @@ model User {
   conversations     Conversation[]    @relation("UserConversations")
 
   apiTokens ApiToken[] @relation("UserApiTokens")
+
+  // Custom nodes created by this user
+  customNodes CustomNode[] @relation("CustomNodeCreatedBy")
 
   lmmConfig Json?
 }
@@ -297,4 +303,31 @@ model ConversationMessage {
 
   @@index([conversationId])
   @@index([timestamp])
+}
+
+// Custom Node model for user-defined nodes
+model CustomNode {
+  id          String   @id @default(uuid())
+  name        String // Display name of the custom node
+  description String // Description of what the node does
+  code        String // JavaScript/TypeScript code to execute
+  inputPorts  Json // Array of input port definitions: [{name: string, type: string, required: boolean}]
+  outputPorts Json // Array of output port definitions: [{name: string, type: string}]
+  icon        String? // Icon name or emoji
+  category    String   @default("custom") // Category for organization
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Creator relationship
+  createdBy   User   @relation("CustomNodeCreatedBy", fields: [createdById], references: [id])
+  createdById String
+
+  // Team ownership (optional)
+  team   Team?   @relation("TeamCustomNodes", fields: [teamId], references: [id])
+  teamId String?
+
+  @@index([createdById])
+  @@index([teamId])
+  @@index([category])
 }

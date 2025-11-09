@@ -2,6 +2,7 @@ import React from 'react';
 import { normalizeKey } from '../../utils/normalizeKey';
 import { RobotOutlined } from '@ant-design/icons';
 import { NodeConfig, NodeTypeString } from '@n2flowjs/flow';
+import { getCustomNodeConfig } from '../../packages/custom-node/definition';
 
 
 
@@ -22,6 +23,8 @@ function safeGetPluginConfig(): Record<string, any> {
 function buildNodeRegistry(): Record<NodeTypeString, NodeConfig> {
   const pluginCfg: Record<string, any> = safeGetPluginConfig();
   const registry: Record<string, NodeConfig> = {};
+
+  // Add built-in packages
   Object.entries(pluginCfg).forEach(([pkg, cfg]) => {
     if (!cfg || cfg.enabled === false) return;
     const key = normalizeKey(pkg);
@@ -48,6 +51,25 @@ function buildNodeRegistry(): Record<NodeTypeString, NodeConfig> {
       data: { type: key, form: formDefaults } as any,
     };
   });
+
+  // Add custom node placeholder (will be populated dynamically)
+  registry['custom-node'] = {
+    type: 'custom-node' as NodeTypeString,
+    icon: <RobotOutlined />,
+    input: 'Custom Inputs',
+    output: 'Custom Outputs',
+    data: {
+      type: 'custom-node',
+      form: {
+        name: 'Custom Node',
+        description: 'User-defined custom node',
+        code: '',
+        inputPorts: [],
+        outputPorts: []
+      }
+    } as any,
+  };
+
   return registry as Record<NodeTypeString, NodeConfig>;
 }
 

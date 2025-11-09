@@ -78,6 +78,11 @@ export type Conversation = $Result.DefaultSelection<Prisma.$ConversationPayload>
  * 
  */
 export type ConversationMessage = $Result.DefaultSelection<Prisma.$ConversationMessagePayload>
+/**
+ * Model CustomNode
+ * 
+ */
+export type CustomNode = $Result.DefaultSelection<Prisma.$CustomNodePayload>
 
 /**
  * ##  Prisma Client ʲˢ
@@ -326,6 +331,16 @@ export class PrismaClient<
     * ```
     */
   get conversationMessage(): Prisma.ConversationMessageDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.customNode`: Exposes CRUD operations for the **CustomNode** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more CustomNodes
+    * const customNodes = await prisma.customNode.findMany()
+    * ```
+    */
+  get customNode(): Prisma.CustomNodeDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -778,7 +793,8 @@ export namespace Prisma {
     LLMProvider: 'LLMProvider',
     LLMModel: 'LLMModel',
     Conversation: 'Conversation',
-    ConversationMessage: 'ConversationMessage'
+    ConversationMessage: 'ConversationMessage',
+    CustomNode: 'CustomNode'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -797,7 +813,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "team" | "memberTeam" | "knowledge" | "apiToken" | "user" | "file" | "fileParsingTask" | "agent" | "textChunk" | "lLMProvider" | "lLMModel" | "conversation" | "conversationMessage"
+      modelProps: "team" | "memberTeam" | "knowledge" | "apiToken" | "user" | "file" | "fileParsingTask" | "agent" | "textChunk" | "lLMProvider" | "lLMModel" | "conversation" | "conversationMessage" | "customNode"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1763,6 +1779,80 @@ export namespace Prisma {
           }
         }
       }
+      CustomNode: {
+        payload: Prisma.$CustomNodePayload<ExtArgs>
+        fields: Prisma.CustomNodeFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.CustomNodeFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomNodePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.CustomNodeFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomNodePayload>
+          }
+          findFirst: {
+            args: Prisma.CustomNodeFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomNodePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.CustomNodeFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomNodePayload>
+          }
+          findMany: {
+            args: Prisma.CustomNodeFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomNodePayload>[]
+          }
+          create: {
+            args: Prisma.CustomNodeCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomNodePayload>
+          }
+          createMany: {
+            args: Prisma.CustomNodeCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.CustomNodeCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomNodePayload>[]
+          }
+          delete: {
+            args: Prisma.CustomNodeDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomNodePayload>
+          }
+          update: {
+            args: Prisma.CustomNodeUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomNodePayload>
+          }
+          deleteMany: {
+            args: Prisma.CustomNodeDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.CustomNodeUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.CustomNodeUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomNodePayload>[]
+          }
+          upsert: {
+            args: Prisma.CustomNodeUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomNodePayload>
+          }
+          aggregate: {
+            args: Prisma.CustomNodeAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateCustomNode>
+          }
+          groupBy: {
+            args: Prisma.CustomNodeGroupByArgs<ExtArgs>
+            result: $Utils.Optional<CustomNodeGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.CustomNodeCountArgs<ExtArgs>
+            result: $Utils.Optional<CustomNodeCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -1872,6 +1962,7 @@ export namespace Prisma {
     lLMModel?: LLMModelOmit
     conversation?: ConversationOmit
     conversationMessage?: ConversationMessageOmit
+    customNode?: CustomNodeOmit
   }
 
   /* Types for Logging */
@@ -1958,6 +2049,7 @@ export namespace Prisma {
     ownedAgents: number
     ownedLLMProviders: number
     conversations: number
+    customNodes: number
   }
 
   export type TeamCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -1967,6 +2059,7 @@ export namespace Prisma {
     ownedAgents?: boolean | TeamCountOutputTypeCountOwnedAgentsArgs
     ownedLLMProviders?: boolean | TeamCountOutputTypeCountOwnedLLMProvidersArgs
     conversations?: boolean | TeamCountOutputTypeCountConversationsArgs
+    customNodes?: boolean | TeamCountOutputTypeCountCustomNodesArgs
   }
 
   // Custom InputTypes
@@ -2020,6 +2113,13 @@ export namespace Prisma {
    */
   export type TeamCountOutputTypeCountConversationsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: ConversationWhereInput
+  }
+
+  /**
+   * TeamCountOutputType without action
+   */
+  export type TeamCountOutputTypeCountCustomNodesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CustomNodeWhereInput
   }
 
 
@@ -2088,6 +2188,7 @@ export namespace Prisma {
     ownedLLMProviders: number
     conversations: number
     apiTokens: number
+    customNodes: number
   }
 
   export type UserCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -2102,6 +2203,7 @@ export namespace Prisma {
     ownedLLMProviders?: boolean | UserCountOutputTypeCountOwnedLLMProvidersArgs
     conversations?: boolean | UserCountOutputTypeCountConversationsArgs
     apiTokens?: boolean | UserCountOutputTypeCountApiTokensArgs
+    customNodes?: boolean | UserCountOutputTypeCountCustomNodesArgs
   }
 
   // Custom InputTypes
@@ -2190,6 +2292,13 @@ export namespace Prisma {
    */
   export type UserCountOutputTypeCountApiTokensArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: ApiTokenWhereInput
+  }
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountCustomNodesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CustomNodeWhereInput
   }
 
 
@@ -2540,6 +2649,7 @@ export namespace Prisma {
     ownedAgents?: boolean | Team$ownedAgentsArgs<ExtArgs>
     ownedLLMProviders?: boolean | Team$ownedLLMProvidersArgs<ExtArgs>
     conversations?: boolean | Team$conversationsArgs<ExtArgs>
+    customNodes?: boolean | Team$customNodesArgs<ExtArgs>
     _count?: boolean | TeamCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["team"]>
 
@@ -2581,6 +2691,7 @@ export namespace Prisma {
     ownedAgents?: boolean | Team$ownedAgentsArgs<ExtArgs>
     ownedLLMProviders?: boolean | Team$ownedLLMProvidersArgs<ExtArgs>
     conversations?: boolean | Team$conversationsArgs<ExtArgs>
+    customNodes?: boolean | Team$customNodesArgs<ExtArgs>
     _count?: boolean | TeamCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type TeamIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -2600,6 +2711,7 @@ export namespace Prisma {
       ownedAgents: Prisma.$AgentPayload<ExtArgs>[]
       ownedLLMProviders: Prisma.$LLMProviderPayload<ExtArgs>[]
       conversations: Prisma.$ConversationPayload<ExtArgs>[]
+      customNodes: Prisma.$CustomNodePayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -3009,6 +3121,7 @@ export namespace Prisma {
     ownedAgents<T extends Team$ownedAgentsArgs<ExtArgs> = {}>(args?: Subset<T, Team$ownedAgentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AgentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     ownedLLMProviders<T extends Team$ownedLLMProvidersArgs<ExtArgs> = {}>(args?: Subset<T, Team$ownedLLMProvidersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$LLMProviderPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     conversations<T extends Team$conversationsArgs<ExtArgs> = {}>(args?: Subset<T, Team$conversationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ConversationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    customNodes<T extends Team$customNodesArgs<ExtArgs> = {}>(args?: Subset<T, Team$customNodesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CustomNodePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -3579,6 +3692,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: ConversationScalarFieldEnum | ConversationScalarFieldEnum[]
+  }
+
+  /**
+   * Team.customNodes
+   */
+  export type Team$customNodesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomNode
+     */
+    select?: CustomNodeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomNode
+     */
+    omit?: CustomNodeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomNodeInclude<ExtArgs> | null
+    where?: CustomNodeWhereInput
+    orderBy?: CustomNodeOrderByWithRelationInput | CustomNodeOrderByWithRelationInput[]
+    cursor?: CustomNodeWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: CustomNodeScalarFieldEnum | CustomNodeScalarFieldEnum[]
   }
 
   /**
@@ -7200,6 +7337,7 @@ export namespace Prisma {
     ownedLLMProviders?: boolean | User$ownedLLMProvidersArgs<ExtArgs>
     conversations?: boolean | User$conversationsArgs<ExtArgs>
     apiTokens?: boolean | User$apiTokensArgs<ExtArgs>
+    customNodes?: boolean | User$customNodesArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["user"]>
 
@@ -7255,6 +7393,7 @@ export namespace Prisma {
     ownedLLMProviders?: boolean | User$ownedLLMProvidersArgs<ExtArgs>
     conversations?: boolean | User$conversationsArgs<ExtArgs>
     apiTokens?: boolean | User$apiTokensArgs<ExtArgs>
+    customNodes?: boolean | User$customNodesArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type UserIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -7274,6 +7413,7 @@ export namespace Prisma {
       ownedLLMProviders: Prisma.$LLMProviderPayload<ExtArgs>[]
       conversations: Prisma.$ConversationPayload<ExtArgs>[]
       apiTokens: Prisma.$ApiTokenPayload<ExtArgs>[]
+      customNodes: Prisma.$CustomNodePayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -7691,6 +7831,7 @@ export namespace Prisma {
     ownedLLMProviders<T extends User$ownedLLMProvidersArgs<ExtArgs> = {}>(args?: Subset<T, User$ownedLLMProvidersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$LLMProviderPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     conversations<T extends User$conversationsArgs<ExtArgs> = {}>(args?: Subset<T, User$conversationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ConversationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     apiTokens<T extends User$apiTokensArgs<ExtArgs> = {}>(args?: Subset<T, User$apiTokensArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ApiTokenPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    customNodes<T extends User$customNodesArgs<ExtArgs> = {}>(args?: Subset<T, User$customNodesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CustomNodePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -8377,6 +8518,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: ApiTokenScalarFieldEnum | ApiTokenScalarFieldEnum[]
+  }
+
+  /**
+   * User.customNodes
+   */
+  export type User$customNodesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomNode
+     */
+    select?: CustomNodeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomNode
+     */
+    omit?: CustomNodeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomNodeInclude<ExtArgs> | null
+    where?: CustomNodeWhereInput
+    orderBy?: CustomNodeOrderByWithRelationInput | CustomNodeOrderByWithRelationInput[]
+    cursor?: CustomNodeWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: CustomNodeScalarFieldEnum | CustomNodeScalarFieldEnum[]
   }
 
   /**
@@ -17685,6 +17850,1185 @@ export namespace Prisma {
 
 
   /**
+   * Model CustomNode
+   */
+
+  export type AggregateCustomNode = {
+    _count: CustomNodeCountAggregateOutputType | null
+    _min: CustomNodeMinAggregateOutputType | null
+    _max: CustomNodeMaxAggregateOutputType | null
+  }
+
+  export type CustomNodeMinAggregateOutputType = {
+    id: string | null
+    name: string | null
+    description: string | null
+    code: string | null
+    icon: string | null
+    category: string | null
+    isActive: boolean | null
+    createdAt: Date | null
+    updatedAt: Date | null
+    createdById: string | null
+    teamId: string | null
+  }
+
+  export type CustomNodeMaxAggregateOutputType = {
+    id: string | null
+    name: string | null
+    description: string | null
+    code: string | null
+    icon: string | null
+    category: string | null
+    isActive: boolean | null
+    createdAt: Date | null
+    updatedAt: Date | null
+    createdById: string | null
+    teamId: string | null
+  }
+
+  export type CustomNodeCountAggregateOutputType = {
+    id: number
+    name: number
+    description: number
+    code: number
+    inputPorts: number
+    outputPorts: number
+    icon: number
+    category: number
+    isActive: number
+    createdAt: number
+    updatedAt: number
+    createdById: number
+    teamId: number
+    _all: number
+  }
+
+
+  export type CustomNodeMinAggregateInputType = {
+    id?: true
+    name?: true
+    description?: true
+    code?: true
+    icon?: true
+    category?: true
+    isActive?: true
+    createdAt?: true
+    updatedAt?: true
+    createdById?: true
+    teamId?: true
+  }
+
+  export type CustomNodeMaxAggregateInputType = {
+    id?: true
+    name?: true
+    description?: true
+    code?: true
+    icon?: true
+    category?: true
+    isActive?: true
+    createdAt?: true
+    updatedAt?: true
+    createdById?: true
+    teamId?: true
+  }
+
+  export type CustomNodeCountAggregateInputType = {
+    id?: true
+    name?: true
+    description?: true
+    code?: true
+    inputPorts?: true
+    outputPorts?: true
+    icon?: true
+    category?: true
+    isActive?: true
+    createdAt?: true
+    updatedAt?: true
+    createdById?: true
+    teamId?: true
+    _all?: true
+  }
+
+  export type CustomNodeAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which CustomNode to aggregate.
+     */
+    where?: CustomNodeWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CustomNodes to fetch.
+     */
+    orderBy?: CustomNodeOrderByWithRelationInput | CustomNodeOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: CustomNodeWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CustomNodes from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CustomNodes.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned CustomNodes
+    **/
+    _count?: true | CustomNodeCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: CustomNodeMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: CustomNodeMaxAggregateInputType
+  }
+
+  export type GetCustomNodeAggregateType<T extends CustomNodeAggregateArgs> = {
+        [P in keyof T & keyof AggregateCustomNode]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateCustomNode[P]>
+      : GetScalarType<T[P], AggregateCustomNode[P]>
+  }
+
+
+
+
+  export type CustomNodeGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CustomNodeWhereInput
+    orderBy?: CustomNodeOrderByWithAggregationInput | CustomNodeOrderByWithAggregationInput[]
+    by: CustomNodeScalarFieldEnum[] | CustomNodeScalarFieldEnum
+    having?: CustomNodeScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: CustomNodeCountAggregateInputType | true
+    _min?: CustomNodeMinAggregateInputType
+    _max?: CustomNodeMaxAggregateInputType
+  }
+
+  export type CustomNodeGroupByOutputType = {
+    id: string
+    name: string
+    description: string
+    code: string
+    inputPorts: JsonValue
+    outputPorts: JsonValue
+    icon: string | null
+    category: string
+    isActive: boolean
+    createdAt: Date
+    updatedAt: Date
+    createdById: string
+    teamId: string | null
+    _count: CustomNodeCountAggregateOutputType | null
+    _min: CustomNodeMinAggregateOutputType | null
+    _max: CustomNodeMaxAggregateOutputType | null
+  }
+
+  type GetCustomNodeGroupByPayload<T extends CustomNodeGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<CustomNodeGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof CustomNodeGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], CustomNodeGroupByOutputType[P]>
+            : GetScalarType<T[P], CustomNodeGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type CustomNodeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+    description?: boolean
+    code?: boolean
+    inputPorts?: boolean
+    outputPorts?: boolean
+    icon?: boolean
+    category?: boolean
+    isActive?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    createdById?: boolean
+    teamId?: boolean
+    createdBy?: boolean | UserDefaultArgs<ExtArgs>
+    team?: boolean | CustomNode$teamArgs<ExtArgs>
+  }, ExtArgs["result"]["customNode"]>
+
+  export type CustomNodeSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+    description?: boolean
+    code?: boolean
+    inputPorts?: boolean
+    outputPorts?: boolean
+    icon?: boolean
+    category?: boolean
+    isActive?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    createdById?: boolean
+    teamId?: boolean
+    createdBy?: boolean | UserDefaultArgs<ExtArgs>
+    team?: boolean | CustomNode$teamArgs<ExtArgs>
+  }, ExtArgs["result"]["customNode"]>
+
+  export type CustomNodeSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+    description?: boolean
+    code?: boolean
+    inputPorts?: boolean
+    outputPorts?: boolean
+    icon?: boolean
+    category?: boolean
+    isActive?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    createdById?: boolean
+    teamId?: boolean
+    createdBy?: boolean | UserDefaultArgs<ExtArgs>
+    team?: boolean | CustomNode$teamArgs<ExtArgs>
+  }, ExtArgs["result"]["customNode"]>
+
+  export type CustomNodeSelectScalar = {
+    id?: boolean
+    name?: boolean
+    description?: boolean
+    code?: boolean
+    inputPorts?: boolean
+    outputPorts?: boolean
+    icon?: boolean
+    category?: boolean
+    isActive?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    createdById?: boolean
+    teamId?: boolean
+  }
+
+  export type CustomNodeOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "description" | "code" | "inputPorts" | "outputPorts" | "icon" | "category" | "isActive" | "createdAt" | "updatedAt" | "createdById" | "teamId", ExtArgs["result"]["customNode"]>
+  export type CustomNodeInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    createdBy?: boolean | UserDefaultArgs<ExtArgs>
+    team?: boolean | CustomNode$teamArgs<ExtArgs>
+  }
+  export type CustomNodeIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    createdBy?: boolean | UserDefaultArgs<ExtArgs>
+    team?: boolean | CustomNode$teamArgs<ExtArgs>
+  }
+  export type CustomNodeIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    createdBy?: boolean | UserDefaultArgs<ExtArgs>
+    team?: boolean | CustomNode$teamArgs<ExtArgs>
+  }
+
+  export type $CustomNodePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "CustomNode"
+    objects: {
+      createdBy: Prisma.$UserPayload<ExtArgs>
+      team: Prisma.$TeamPayload<ExtArgs> | null
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      name: string
+      description: string
+      code: string
+      inputPorts: Prisma.JsonValue
+      outputPorts: Prisma.JsonValue
+      icon: string | null
+      category: string
+      isActive: boolean
+      createdAt: Date
+      updatedAt: Date
+      createdById: string
+      teamId: string | null
+    }, ExtArgs["result"]["customNode"]>
+    composites: {}
+  }
+
+  type CustomNodeGetPayload<S extends boolean | null | undefined | CustomNodeDefaultArgs> = $Result.GetResult<Prisma.$CustomNodePayload, S>
+
+  type CustomNodeCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<CustomNodeFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: CustomNodeCountAggregateInputType | true
+    }
+
+  export interface CustomNodeDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['CustomNode'], meta: { name: 'CustomNode' } }
+    /**
+     * Find zero or one CustomNode that matches the filter.
+     * @param {CustomNodeFindUniqueArgs} args - Arguments to find a CustomNode
+     * @example
+     * // Get one CustomNode
+     * const customNode = await prisma.customNode.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends CustomNodeFindUniqueArgs>(args: SelectSubset<T, CustomNodeFindUniqueArgs<ExtArgs>>): Prisma__CustomNodeClient<$Result.GetResult<Prisma.$CustomNodePayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one CustomNode that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {CustomNodeFindUniqueOrThrowArgs} args - Arguments to find a CustomNode
+     * @example
+     * // Get one CustomNode
+     * const customNode = await prisma.customNode.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends CustomNodeFindUniqueOrThrowArgs>(args: SelectSubset<T, CustomNodeFindUniqueOrThrowArgs<ExtArgs>>): Prisma__CustomNodeClient<$Result.GetResult<Prisma.$CustomNodePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first CustomNode that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CustomNodeFindFirstArgs} args - Arguments to find a CustomNode
+     * @example
+     * // Get one CustomNode
+     * const customNode = await prisma.customNode.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends CustomNodeFindFirstArgs>(args?: SelectSubset<T, CustomNodeFindFirstArgs<ExtArgs>>): Prisma__CustomNodeClient<$Result.GetResult<Prisma.$CustomNodePayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first CustomNode that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CustomNodeFindFirstOrThrowArgs} args - Arguments to find a CustomNode
+     * @example
+     * // Get one CustomNode
+     * const customNode = await prisma.customNode.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends CustomNodeFindFirstOrThrowArgs>(args?: SelectSubset<T, CustomNodeFindFirstOrThrowArgs<ExtArgs>>): Prisma__CustomNodeClient<$Result.GetResult<Prisma.$CustomNodePayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more CustomNodes that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CustomNodeFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all CustomNodes
+     * const customNodes = await prisma.customNode.findMany()
+     * 
+     * // Get first 10 CustomNodes
+     * const customNodes = await prisma.customNode.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const customNodeWithIdOnly = await prisma.customNode.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends CustomNodeFindManyArgs>(args?: SelectSubset<T, CustomNodeFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CustomNodePayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a CustomNode.
+     * @param {CustomNodeCreateArgs} args - Arguments to create a CustomNode.
+     * @example
+     * // Create one CustomNode
+     * const CustomNode = await prisma.customNode.create({
+     *   data: {
+     *     // ... data to create a CustomNode
+     *   }
+     * })
+     * 
+     */
+    create<T extends CustomNodeCreateArgs>(args: SelectSubset<T, CustomNodeCreateArgs<ExtArgs>>): Prisma__CustomNodeClient<$Result.GetResult<Prisma.$CustomNodePayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many CustomNodes.
+     * @param {CustomNodeCreateManyArgs} args - Arguments to create many CustomNodes.
+     * @example
+     * // Create many CustomNodes
+     * const customNode = await prisma.customNode.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends CustomNodeCreateManyArgs>(args?: SelectSubset<T, CustomNodeCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many CustomNodes and returns the data saved in the database.
+     * @param {CustomNodeCreateManyAndReturnArgs} args - Arguments to create many CustomNodes.
+     * @example
+     * // Create many CustomNodes
+     * const customNode = await prisma.customNode.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many CustomNodes and only return the `id`
+     * const customNodeWithIdOnly = await prisma.customNode.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends CustomNodeCreateManyAndReturnArgs>(args?: SelectSubset<T, CustomNodeCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CustomNodePayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a CustomNode.
+     * @param {CustomNodeDeleteArgs} args - Arguments to delete one CustomNode.
+     * @example
+     * // Delete one CustomNode
+     * const CustomNode = await prisma.customNode.delete({
+     *   where: {
+     *     // ... filter to delete one CustomNode
+     *   }
+     * })
+     * 
+     */
+    delete<T extends CustomNodeDeleteArgs>(args: SelectSubset<T, CustomNodeDeleteArgs<ExtArgs>>): Prisma__CustomNodeClient<$Result.GetResult<Prisma.$CustomNodePayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one CustomNode.
+     * @param {CustomNodeUpdateArgs} args - Arguments to update one CustomNode.
+     * @example
+     * // Update one CustomNode
+     * const customNode = await prisma.customNode.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends CustomNodeUpdateArgs>(args: SelectSubset<T, CustomNodeUpdateArgs<ExtArgs>>): Prisma__CustomNodeClient<$Result.GetResult<Prisma.$CustomNodePayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more CustomNodes.
+     * @param {CustomNodeDeleteManyArgs} args - Arguments to filter CustomNodes to delete.
+     * @example
+     * // Delete a few CustomNodes
+     * const { count } = await prisma.customNode.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends CustomNodeDeleteManyArgs>(args?: SelectSubset<T, CustomNodeDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more CustomNodes.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CustomNodeUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many CustomNodes
+     * const customNode = await prisma.customNode.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends CustomNodeUpdateManyArgs>(args: SelectSubset<T, CustomNodeUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more CustomNodes and returns the data updated in the database.
+     * @param {CustomNodeUpdateManyAndReturnArgs} args - Arguments to update many CustomNodes.
+     * @example
+     * // Update many CustomNodes
+     * const customNode = await prisma.customNode.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more CustomNodes and only return the `id`
+     * const customNodeWithIdOnly = await prisma.customNode.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends CustomNodeUpdateManyAndReturnArgs>(args: SelectSubset<T, CustomNodeUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CustomNodePayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one CustomNode.
+     * @param {CustomNodeUpsertArgs} args - Arguments to update or create a CustomNode.
+     * @example
+     * // Update or create a CustomNode
+     * const customNode = await prisma.customNode.upsert({
+     *   create: {
+     *     // ... data to create a CustomNode
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the CustomNode we want to update
+     *   }
+     * })
+     */
+    upsert<T extends CustomNodeUpsertArgs>(args: SelectSubset<T, CustomNodeUpsertArgs<ExtArgs>>): Prisma__CustomNodeClient<$Result.GetResult<Prisma.$CustomNodePayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of CustomNodes.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CustomNodeCountArgs} args - Arguments to filter CustomNodes to count.
+     * @example
+     * // Count the number of CustomNodes
+     * const count = await prisma.customNode.count({
+     *   where: {
+     *     // ... the filter for the CustomNodes we want to count
+     *   }
+     * })
+    **/
+    count<T extends CustomNodeCountArgs>(
+      args?: Subset<T, CustomNodeCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], CustomNodeCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a CustomNode.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CustomNodeAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends CustomNodeAggregateArgs>(args: Subset<T, CustomNodeAggregateArgs>): Prisma.PrismaPromise<GetCustomNodeAggregateType<T>>
+
+    /**
+     * Group by CustomNode.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CustomNodeGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends CustomNodeGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: CustomNodeGroupByArgs['orderBy'] }
+        : { orderBy?: CustomNodeGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, CustomNodeGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetCustomNodeGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the CustomNode model
+   */
+  readonly fields: CustomNodeFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for CustomNode.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__CustomNodeClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    createdBy<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    team<T extends CustomNode$teamArgs<ExtArgs> = {}>(args?: Subset<T, CustomNode$teamArgs<ExtArgs>>): Prisma__TeamClient<$Result.GetResult<Prisma.$TeamPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the CustomNode model
+   */
+  interface CustomNodeFieldRefs {
+    readonly id: FieldRef<"CustomNode", 'String'>
+    readonly name: FieldRef<"CustomNode", 'String'>
+    readonly description: FieldRef<"CustomNode", 'String'>
+    readonly code: FieldRef<"CustomNode", 'String'>
+    readonly inputPorts: FieldRef<"CustomNode", 'Json'>
+    readonly outputPorts: FieldRef<"CustomNode", 'Json'>
+    readonly icon: FieldRef<"CustomNode", 'String'>
+    readonly category: FieldRef<"CustomNode", 'String'>
+    readonly isActive: FieldRef<"CustomNode", 'Boolean'>
+    readonly createdAt: FieldRef<"CustomNode", 'DateTime'>
+    readonly updatedAt: FieldRef<"CustomNode", 'DateTime'>
+    readonly createdById: FieldRef<"CustomNode", 'String'>
+    readonly teamId: FieldRef<"CustomNode", 'String'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * CustomNode findUnique
+   */
+  export type CustomNodeFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomNode
+     */
+    select?: CustomNodeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomNode
+     */
+    omit?: CustomNodeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomNodeInclude<ExtArgs> | null
+    /**
+     * Filter, which CustomNode to fetch.
+     */
+    where: CustomNodeWhereUniqueInput
+  }
+
+  /**
+   * CustomNode findUniqueOrThrow
+   */
+  export type CustomNodeFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomNode
+     */
+    select?: CustomNodeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomNode
+     */
+    omit?: CustomNodeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomNodeInclude<ExtArgs> | null
+    /**
+     * Filter, which CustomNode to fetch.
+     */
+    where: CustomNodeWhereUniqueInput
+  }
+
+  /**
+   * CustomNode findFirst
+   */
+  export type CustomNodeFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomNode
+     */
+    select?: CustomNodeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomNode
+     */
+    omit?: CustomNodeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomNodeInclude<ExtArgs> | null
+    /**
+     * Filter, which CustomNode to fetch.
+     */
+    where?: CustomNodeWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CustomNodes to fetch.
+     */
+    orderBy?: CustomNodeOrderByWithRelationInput | CustomNodeOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for CustomNodes.
+     */
+    cursor?: CustomNodeWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CustomNodes from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CustomNodes.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CustomNodes.
+     */
+    distinct?: CustomNodeScalarFieldEnum | CustomNodeScalarFieldEnum[]
+  }
+
+  /**
+   * CustomNode findFirstOrThrow
+   */
+  export type CustomNodeFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomNode
+     */
+    select?: CustomNodeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomNode
+     */
+    omit?: CustomNodeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomNodeInclude<ExtArgs> | null
+    /**
+     * Filter, which CustomNode to fetch.
+     */
+    where?: CustomNodeWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CustomNodes to fetch.
+     */
+    orderBy?: CustomNodeOrderByWithRelationInput | CustomNodeOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for CustomNodes.
+     */
+    cursor?: CustomNodeWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CustomNodes from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CustomNodes.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CustomNodes.
+     */
+    distinct?: CustomNodeScalarFieldEnum | CustomNodeScalarFieldEnum[]
+  }
+
+  /**
+   * CustomNode findMany
+   */
+  export type CustomNodeFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomNode
+     */
+    select?: CustomNodeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomNode
+     */
+    omit?: CustomNodeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomNodeInclude<ExtArgs> | null
+    /**
+     * Filter, which CustomNodes to fetch.
+     */
+    where?: CustomNodeWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CustomNodes to fetch.
+     */
+    orderBy?: CustomNodeOrderByWithRelationInput | CustomNodeOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing CustomNodes.
+     */
+    cursor?: CustomNodeWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CustomNodes from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CustomNodes.
+     */
+    skip?: number
+    distinct?: CustomNodeScalarFieldEnum | CustomNodeScalarFieldEnum[]
+  }
+
+  /**
+   * CustomNode create
+   */
+  export type CustomNodeCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomNode
+     */
+    select?: CustomNodeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomNode
+     */
+    omit?: CustomNodeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomNodeInclude<ExtArgs> | null
+    /**
+     * The data needed to create a CustomNode.
+     */
+    data: XOR<CustomNodeCreateInput, CustomNodeUncheckedCreateInput>
+  }
+
+  /**
+   * CustomNode createMany
+   */
+  export type CustomNodeCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many CustomNodes.
+     */
+    data: CustomNodeCreateManyInput | CustomNodeCreateManyInput[]
+  }
+
+  /**
+   * CustomNode createManyAndReturn
+   */
+  export type CustomNodeCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomNode
+     */
+    select?: CustomNodeSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomNode
+     */
+    omit?: CustomNodeOmit<ExtArgs> | null
+    /**
+     * The data used to create many CustomNodes.
+     */
+    data: CustomNodeCreateManyInput | CustomNodeCreateManyInput[]
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomNodeIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * CustomNode update
+   */
+  export type CustomNodeUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomNode
+     */
+    select?: CustomNodeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomNode
+     */
+    omit?: CustomNodeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomNodeInclude<ExtArgs> | null
+    /**
+     * The data needed to update a CustomNode.
+     */
+    data: XOR<CustomNodeUpdateInput, CustomNodeUncheckedUpdateInput>
+    /**
+     * Choose, which CustomNode to update.
+     */
+    where: CustomNodeWhereUniqueInput
+  }
+
+  /**
+   * CustomNode updateMany
+   */
+  export type CustomNodeUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update CustomNodes.
+     */
+    data: XOR<CustomNodeUpdateManyMutationInput, CustomNodeUncheckedUpdateManyInput>
+    /**
+     * Filter which CustomNodes to update
+     */
+    where?: CustomNodeWhereInput
+    /**
+     * Limit how many CustomNodes to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * CustomNode updateManyAndReturn
+   */
+  export type CustomNodeUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomNode
+     */
+    select?: CustomNodeSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomNode
+     */
+    omit?: CustomNodeOmit<ExtArgs> | null
+    /**
+     * The data used to update CustomNodes.
+     */
+    data: XOR<CustomNodeUpdateManyMutationInput, CustomNodeUncheckedUpdateManyInput>
+    /**
+     * Filter which CustomNodes to update
+     */
+    where?: CustomNodeWhereInput
+    /**
+     * Limit how many CustomNodes to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomNodeIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * CustomNode upsert
+   */
+  export type CustomNodeUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomNode
+     */
+    select?: CustomNodeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomNode
+     */
+    omit?: CustomNodeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomNodeInclude<ExtArgs> | null
+    /**
+     * The filter to search for the CustomNode to update in case it exists.
+     */
+    where: CustomNodeWhereUniqueInput
+    /**
+     * In case the CustomNode found by the `where` argument doesn't exist, create a new CustomNode with this data.
+     */
+    create: XOR<CustomNodeCreateInput, CustomNodeUncheckedCreateInput>
+    /**
+     * In case the CustomNode was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<CustomNodeUpdateInput, CustomNodeUncheckedUpdateInput>
+  }
+
+  /**
+   * CustomNode delete
+   */
+  export type CustomNodeDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomNode
+     */
+    select?: CustomNodeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomNode
+     */
+    omit?: CustomNodeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomNodeInclude<ExtArgs> | null
+    /**
+     * Filter which CustomNode to delete.
+     */
+    where: CustomNodeWhereUniqueInput
+  }
+
+  /**
+   * CustomNode deleteMany
+   */
+  export type CustomNodeDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which CustomNodes to delete
+     */
+    where?: CustomNodeWhereInput
+    /**
+     * Limit how many CustomNodes to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * CustomNode.team
+   */
+  export type CustomNode$teamArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Team
+     */
+    select?: TeamSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Team
+     */
+    omit?: TeamOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TeamInclude<ExtArgs> | null
+    where?: TeamWhereInput
+  }
+
+  /**
+   * CustomNode without action
+   */
+  export type CustomNodeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomNode
+     */
+    select?: CustomNodeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomNode
+     */
+    omit?: CustomNodeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomNodeInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -17884,6 +19228,25 @@ export namespace Prisma {
   export type ConversationMessageScalarFieldEnum = (typeof ConversationMessageScalarFieldEnum)[keyof typeof ConversationMessageScalarFieldEnum]
 
 
+  export const CustomNodeScalarFieldEnum: {
+    id: 'id',
+    name: 'name',
+    description: 'description',
+    code: 'code',
+    inputPorts: 'inputPorts',
+    outputPorts: 'outputPorts',
+    icon: 'icon',
+    category: 'category',
+    isActive: 'isActive',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt',
+    createdById: 'createdById',
+    teamId: 'teamId'
+  };
+
+  export type CustomNodeScalarFieldEnum = (typeof CustomNodeScalarFieldEnum)[keyof typeof CustomNodeScalarFieldEnum]
+
+
   export const SortOrder: {
     asc: 'asc',
     desc: 'desc'
@@ -18006,6 +19369,7 @@ export namespace Prisma {
     ownedAgents?: AgentListRelationFilter
     ownedLLMProviders?: LLMProviderListRelationFilter
     conversations?: ConversationListRelationFilter
+    customNodes?: CustomNodeListRelationFilter
   }
 
   export type TeamOrderByWithRelationInput = {
@@ -18022,6 +19386,7 @@ export namespace Prisma {
     ownedAgents?: AgentOrderByRelationAggregateInput
     ownedLLMProviders?: LLMProviderOrderByRelationAggregateInput
     conversations?: ConversationOrderByRelationAggregateInput
+    customNodes?: CustomNodeOrderByRelationAggregateInput
   }
 
   export type TeamWhereUniqueInput = Prisma.AtLeast<{
@@ -18041,6 +19406,7 @@ export namespace Prisma {
     ownedAgents?: AgentListRelationFilter
     ownedLLMProviders?: LLMProviderListRelationFilter
     conversations?: ConversationListRelationFilter
+    customNodes?: CustomNodeListRelationFilter
   }, "id">
 
   export type TeamOrderByWithAggregationInput = {
@@ -18313,6 +19679,7 @@ export namespace Prisma {
     ownedLLMProviders?: LLMProviderListRelationFilter
     conversations?: ConversationListRelationFilter
     apiTokens?: ApiTokenListRelationFilter
+    customNodes?: CustomNodeListRelationFilter
   }
 
   export type UserOrderByWithRelationInput = {
@@ -18337,6 +19704,7 @@ export namespace Prisma {
     ownedLLMProviders?: LLMProviderOrderByRelationAggregateInput
     conversations?: ConversationOrderByRelationAggregateInput
     apiTokens?: ApiTokenOrderByRelationAggregateInput
+    customNodes?: CustomNodeOrderByRelationAggregateInput
   }
 
   export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -18364,6 +19732,7 @@ export namespace Prisma {
     ownedLLMProviders?: LLMProviderListRelationFilter
     conversations?: ConversationListRelationFilter
     apiTokens?: ApiTokenListRelationFilter
+    customNodes?: CustomNodeListRelationFilter
   }, "id">
 
   export type UserOrderByWithAggregationInput = {
@@ -19040,6 +20409,104 @@ export namespace Prisma {
     nodeType?: StringNullableWithAggregatesFilter<"ConversationMessage"> | string | null
   }
 
+  export type CustomNodeWhereInput = {
+    AND?: CustomNodeWhereInput | CustomNodeWhereInput[]
+    OR?: CustomNodeWhereInput[]
+    NOT?: CustomNodeWhereInput | CustomNodeWhereInput[]
+    id?: StringFilter<"CustomNode"> | string
+    name?: StringFilter<"CustomNode"> | string
+    description?: StringFilter<"CustomNode"> | string
+    code?: StringFilter<"CustomNode"> | string
+    inputPorts?: JsonFilter<"CustomNode">
+    outputPorts?: JsonFilter<"CustomNode">
+    icon?: StringNullableFilter<"CustomNode"> | string | null
+    category?: StringFilter<"CustomNode"> | string
+    isActive?: BoolFilter<"CustomNode"> | boolean
+    createdAt?: DateTimeFilter<"CustomNode"> | Date | string
+    updatedAt?: DateTimeFilter<"CustomNode"> | Date | string
+    createdById?: StringFilter<"CustomNode"> | string
+    teamId?: StringNullableFilter<"CustomNode"> | string | null
+    createdBy?: XOR<UserScalarRelationFilter, UserWhereInput>
+    team?: XOR<TeamNullableScalarRelationFilter, TeamWhereInput> | null
+  }
+
+  export type CustomNodeOrderByWithRelationInput = {
+    id?: SortOrder
+    name?: SortOrder
+    description?: SortOrder
+    code?: SortOrder
+    inputPorts?: SortOrder
+    outputPorts?: SortOrder
+    icon?: SortOrderInput | SortOrder
+    category?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    createdById?: SortOrder
+    teamId?: SortOrderInput | SortOrder
+    createdBy?: UserOrderByWithRelationInput
+    team?: TeamOrderByWithRelationInput
+  }
+
+  export type CustomNodeWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: CustomNodeWhereInput | CustomNodeWhereInput[]
+    OR?: CustomNodeWhereInput[]
+    NOT?: CustomNodeWhereInput | CustomNodeWhereInput[]
+    name?: StringFilter<"CustomNode"> | string
+    description?: StringFilter<"CustomNode"> | string
+    code?: StringFilter<"CustomNode"> | string
+    inputPorts?: JsonFilter<"CustomNode">
+    outputPorts?: JsonFilter<"CustomNode">
+    icon?: StringNullableFilter<"CustomNode"> | string | null
+    category?: StringFilter<"CustomNode"> | string
+    isActive?: BoolFilter<"CustomNode"> | boolean
+    createdAt?: DateTimeFilter<"CustomNode"> | Date | string
+    updatedAt?: DateTimeFilter<"CustomNode"> | Date | string
+    createdById?: StringFilter<"CustomNode"> | string
+    teamId?: StringNullableFilter<"CustomNode"> | string | null
+    createdBy?: XOR<UserScalarRelationFilter, UserWhereInput>
+    team?: XOR<TeamNullableScalarRelationFilter, TeamWhereInput> | null
+  }, "id">
+
+  export type CustomNodeOrderByWithAggregationInput = {
+    id?: SortOrder
+    name?: SortOrder
+    description?: SortOrder
+    code?: SortOrder
+    inputPorts?: SortOrder
+    outputPorts?: SortOrder
+    icon?: SortOrderInput | SortOrder
+    category?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    createdById?: SortOrder
+    teamId?: SortOrderInput | SortOrder
+    _count?: CustomNodeCountOrderByAggregateInput
+    _max?: CustomNodeMaxOrderByAggregateInput
+    _min?: CustomNodeMinOrderByAggregateInput
+  }
+
+  export type CustomNodeScalarWhereWithAggregatesInput = {
+    AND?: CustomNodeScalarWhereWithAggregatesInput | CustomNodeScalarWhereWithAggregatesInput[]
+    OR?: CustomNodeScalarWhereWithAggregatesInput[]
+    NOT?: CustomNodeScalarWhereWithAggregatesInput | CustomNodeScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"CustomNode"> | string
+    name?: StringWithAggregatesFilter<"CustomNode"> | string
+    description?: StringWithAggregatesFilter<"CustomNode"> | string
+    code?: StringWithAggregatesFilter<"CustomNode"> | string
+    inputPorts?: JsonWithAggregatesFilter<"CustomNode">
+    outputPorts?: JsonWithAggregatesFilter<"CustomNode">
+    icon?: StringNullableWithAggregatesFilter<"CustomNode"> | string | null
+    category?: StringWithAggregatesFilter<"CustomNode"> | string
+    isActive?: BoolWithAggregatesFilter<"CustomNode"> | boolean
+    createdAt?: DateTimeWithAggregatesFilter<"CustomNode"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"CustomNode"> | Date | string
+    createdById?: StringWithAggregatesFilter<"CustomNode"> | string
+    teamId?: StringNullableWithAggregatesFilter<"CustomNode"> | string | null
+  }
+
   export type TeamCreateInput = {
     id?: string
     name: string
@@ -19053,6 +20520,7 @@ export namespace Prisma {
     ownedAgents?: AgentCreateNestedManyWithoutTeamInput
     ownedLLMProviders?: LLMProviderCreateNestedManyWithoutTeamOwnerInput
     conversations?: ConversationCreateNestedManyWithoutTeamInput
+    customNodes?: CustomNodeCreateNestedManyWithoutTeamInput
   }
 
   export type TeamUncheckedCreateInput = {
@@ -19068,6 +20536,7 @@ export namespace Prisma {
     ownedAgents?: AgentUncheckedCreateNestedManyWithoutTeamInput
     ownedLLMProviders?: LLMProviderUncheckedCreateNestedManyWithoutTeamOwnerInput
     conversations?: ConversationUncheckedCreateNestedManyWithoutTeamInput
+    customNodes?: CustomNodeUncheckedCreateNestedManyWithoutTeamInput
   }
 
   export type TeamUpdateInput = {
@@ -19083,6 +20552,7 @@ export namespace Prisma {
     ownedAgents?: AgentUpdateManyWithoutTeamNestedInput
     ownedLLMProviders?: LLMProviderUpdateManyWithoutTeamOwnerNestedInput
     conversations?: ConversationUpdateManyWithoutTeamNestedInput
+    customNodes?: CustomNodeUpdateManyWithoutTeamNestedInput
   }
 
   export type TeamUncheckedUpdateInput = {
@@ -19098,6 +20568,7 @@ export namespace Prisma {
     ownedAgents?: AgentUncheckedUpdateManyWithoutTeamNestedInput
     ownedLLMProviders?: LLMProviderUncheckedUpdateManyWithoutTeamOwnerNestedInput
     conversations?: ConversationUncheckedUpdateManyWithoutTeamNestedInput
+    customNodes?: CustomNodeUncheckedUpdateManyWithoutTeamNestedInput
   }
 
   export type TeamCreateManyInput = {
@@ -19379,6 +20850,7 @@ export namespace Prisma {
     ownedLLMProviders?: LLMProviderCreateNestedManyWithoutUserOwnerInput
     conversations?: ConversationCreateNestedManyWithoutUserInput
     apiTokens?: ApiTokenCreateNestedManyWithoutUserInput
+    customNodes?: CustomNodeCreateNestedManyWithoutCreatedByInput
   }
 
   export type UserUncheckedCreateInput = {
@@ -19403,6 +20875,7 @@ export namespace Prisma {
     ownedLLMProviders?: LLMProviderUncheckedCreateNestedManyWithoutUserOwnerInput
     conversations?: ConversationUncheckedCreateNestedManyWithoutUserInput
     apiTokens?: ApiTokenUncheckedCreateNestedManyWithoutUserInput
+    customNodes?: CustomNodeUncheckedCreateNestedManyWithoutCreatedByInput
   }
 
   export type UserUpdateInput = {
@@ -19427,6 +20900,7 @@ export namespace Prisma {
     ownedLLMProviders?: LLMProviderUpdateManyWithoutUserOwnerNestedInput
     conversations?: ConversationUpdateManyWithoutUserNestedInput
     apiTokens?: ApiTokenUpdateManyWithoutUserNestedInput
+    customNodes?: CustomNodeUpdateManyWithoutCreatedByNestedInput
   }
 
   export type UserUncheckedUpdateInput = {
@@ -19451,6 +20925,7 @@ export namespace Prisma {
     ownedLLMProviders?: LLMProviderUncheckedUpdateManyWithoutUserOwnerNestedInput
     conversations?: ConversationUncheckedUpdateManyWithoutUserNestedInput
     apiTokens?: ApiTokenUncheckedUpdateManyWithoutUserNestedInput
+    customNodes?: CustomNodeUncheckedUpdateManyWithoutCreatedByNestedInput
   }
 
   export type UserCreateManyInput = {
@@ -20174,6 +21649,116 @@ export namespace Prisma {
     nodeType?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
+  export type CustomNodeCreateInput = {
+    id?: string
+    name: string
+    description: string
+    code: string
+    inputPorts: JsonNullValueInput | InputJsonValue
+    outputPorts: JsonNullValueInput | InputJsonValue
+    icon?: string | null
+    category?: string
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    createdBy: UserCreateNestedOneWithoutCustomNodesInput
+    team?: TeamCreateNestedOneWithoutCustomNodesInput
+  }
+
+  export type CustomNodeUncheckedCreateInput = {
+    id?: string
+    name: string
+    description: string
+    code: string
+    inputPorts: JsonNullValueInput | InputJsonValue
+    outputPorts: JsonNullValueInput | InputJsonValue
+    icon?: string | null
+    category?: string
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    createdById: string
+    teamId?: string | null
+  }
+
+  export type CustomNodeUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    inputPorts?: JsonNullValueInput | InputJsonValue
+    outputPorts?: JsonNullValueInput | InputJsonValue
+    icon?: NullableStringFieldUpdateOperationsInput | string | null
+    category?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: UserUpdateOneRequiredWithoutCustomNodesNestedInput
+    team?: TeamUpdateOneWithoutCustomNodesNestedInput
+  }
+
+  export type CustomNodeUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    inputPorts?: JsonNullValueInput | InputJsonValue
+    outputPorts?: JsonNullValueInput | InputJsonValue
+    icon?: NullableStringFieldUpdateOperationsInput | string | null
+    category?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdById?: StringFieldUpdateOperationsInput | string
+    teamId?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type CustomNodeCreateManyInput = {
+    id?: string
+    name: string
+    description: string
+    code: string
+    inputPorts: JsonNullValueInput | InputJsonValue
+    outputPorts: JsonNullValueInput | InputJsonValue
+    icon?: string | null
+    category?: string
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    createdById: string
+    teamId?: string | null
+  }
+
+  export type CustomNodeUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    inputPorts?: JsonNullValueInput | InputJsonValue
+    outputPorts?: JsonNullValueInput | InputJsonValue
+    icon?: NullableStringFieldUpdateOperationsInput | string | null
+    category?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CustomNodeUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    inputPorts?: JsonNullValueInput | InputJsonValue
+    outputPorts?: JsonNullValueInput | InputJsonValue
+    icon?: NullableStringFieldUpdateOperationsInput | string | null
+    category?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdById?: StringFieldUpdateOperationsInput | string
+    teamId?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[]
@@ -20240,6 +21825,12 @@ export namespace Prisma {
     none?: ConversationWhereInput
   }
 
+  export type CustomNodeListRelationFilter = {
+    every?: CustomNodeWhereInput
+    some?: CustomNodeWhereInput
+    none?: CustomNodeWhereInput
+  }
+
   export type MemberTeamOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
@@ -20261,6 +21852,10 @@ export namespace Prisma {
   }
 
   export type ConversationOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type CustomNodeOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -21081,6 +22676,50 @@ export namespace Prisma {
     nodeType?: SortOrder
   }
 
+  export type CustomNodeCountOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    description?: SortOrder
+    code?: SortOrder
+    inputPorts?: SortOrder
+    outputPorts?: SortOrder
+    icon?: SortOrder
+    category?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    createdById?: SortOrder
+    teamId?: SortOrder
+  }
+
+  export type CustomNodeMaxOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    description?: SortOrder
+    code?: SortOrder
+    icon?: SortOrder
+    category?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    createdById?: SortOrder
+    teamId?: SortOrder
+  }
+
+  export type CustomNodeMinOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    description?: SortOrder
+    code?: SortOrder
+    icon?: SortOrder
+    category?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    createdById?: SortOrder
+    teamId?: SortOrder
+  }
+
   export type UserCreateNestedOneWithoutCreatedTeamsInput = {
     create?: XOR<UserCreateWithoutCreatedTeamsInput, UserUncheckedCreateWithoutCreatedTeamsInput>
     connectOrCreate?: UserCreateOrConnectWithoutCreatedTeamsInput
@@ -21127,6 +22766,13 @@ export namespace Prisma {
     connect?: ConversationWhereUniqueInput | ConversationWhereUniqueInput[]
   }
 
+  export type CustomNodeCreateNestedManyWithoutTeamInput = {
+    create?: XOR<CustomNodeCreateWithoutTeamInput, CustomNodeUncheckedCreateWithoutTeamInput> | CustomNodeCreateWithoutTeamInput[] | CustomNodeUncheckedCreateWithoutTeamInput[]
+    connectOrCreate?: CustomNodeCreateOrConnectWithoutTeamInput | CustomNodeCreateOrConnectWithoutTeamInput[]
+    createMany?: CustomNodeCreateManyTeamInputEnvelope
+    connect?: CustomNodeWhereUniqueInput | CustomNodeWhereUniqueInput[]
+  }
+
   export type MemberTeamUncheckedCreateNestedManyWithoutTeamInput = {
     create?: XOR<MemberTeamCreateWithoutTeamInput, MemberTeamUncheckedCreateWithoutTeamInput> | MemberTeamCreateWithoutTeamInput[] | MemberTeamUncheckedCreateWithoutTeamInput[]
     connectOrCreate?: MemberTeamCreateOrConnectWithoutTeamInput | MemberTeamCreateOrConnectWithoutTeamInput[]
@@ -21165,6 +22811,13 @@ export namespace Prisma {
     connectOrCreate?: ConversationCreateOrConnectWithoutTeamInput | ConversationCreateOrConnectWithoutTeamInput[]
     createMany?: ConversationCreateManyTeamInputEnvelope
     connect?: ConversationWhereUniqueInput | ConversationWhereUniqueInput[]
+  }
+
+  export type CustomNodeUncheckedCreateNestedManyWithoutTeamInput = {
+    create?: XOR<CustomNodeCreateWithoutTeamInput, CustomNodeUncheckedCreateWithoutTeamInput> | CustomNodeCreateWithoutTeamInput[] | CustomNodeUncheckedCreateWithoutTeamInput[]
+    connectOrCreate?: CustomNodeCreateOrConnectWithoutTeamInput | CustomNodeCreateOrConnectWithoutTeamInput[]
+    createMany?: CustomNodeCreateManyTeamInputEnvelope
+    connect?: CustomNodeWhereUniqueInput | CustomNodeWhereUniqueInput[]
   }
 
   export type StringFieldUpdateOperationsInput = {
@@ -21265,6 +22918,20 @@ export namespace Prisma {
     deleteMany?: ConversationScalarWhereInput | ConversationScalarWhereInput[]
   }
 
+  export type CustomNodeUpdateManyWithoutTeamNestedInput = {
+    create?: XOR<CustomNodeCreateWithoutTeamInput, CustomNodeUncheckedCreateWithoutTeamInput> | CustomNodeCreateWithoutTeamInput[] | CustomNodeUncheckedCreateWithoutTeamInput[]
+    connectOrCreate?: CustomNodeCreateOrConnectWithoutTeamInput | CustomNodeCreateOrConnectWithoutTeamInput[]
+    upsert?: CustomNodeUpsertWithWhereUniqueWithoutTeamInput | CustomNodeUpsertWithWhereUniqueWithoutTeamInput[]
+    createMany?: CustomNodeCreateManyTeamInputEnvelope
+    set?: CustomNodeWhereUniqueInput | CustomNodeWhereUniqueInput[]
+    disconnect?: CustomNodeWhereUniqueInput | CustomNodeWhereUniqueInput[]
+    delete?: CustomNodeWhereUniqueInput | CustomNodeWhereUniqueInput[]
+    connect?: CustomNodeWhereUniqueInput | CustomNodeWhereUniqueInput[]
+    update?: CustomNodeUpdateWithWhereUniqueWithoutTeamInput | CustomNodeUpdateWithWhereUniqueWithoutTeamInput[]
+    updateMany?: CustomNodeUpdateManyWithWhereWithoutTeamInput | CustomNodeUpdateManyWithWhereWithoutTeamInput[]
+    deleteMany?: CustomNodeScalarWhereInput | CustomNodeScalarWhereInput[]
+  }
+
   export type MemberTeamUncheckedUpdateManyWithoutTeamNestedInput = {
     create?: XOR<MemberTeamCreateWithoutTeamInput, MemberTeamUncheckedCreateWithoutTeamInput> | MemberTeamCreateWithoutTeamInput[] | MemberTeamUncheckedCreateWithoutTeamInput[]
     connectOrCreate?: MemberTeamCreateOrConnectWithoutTeamInput | MemberTeamCreateOrConnectWithoutTeamInput[]
@@ -21345,6 +23012,20 @@ export namespace Prisma {
     update?: ConversationUpdateWithWhereUniqueWithoutTeamInput | ConversationUpdateWithWhereUniqueWithoutTeamInput[]
     updateMany?: ConversationUpdateManyWithWhereWithoutTeamInput | ConversationUpdateManyWithWhereWithoutTeamInput[]
     deleteMany?: ConversationScalarWhereInput | ConversationScalarWhereInput[]
+  }
+
+  export type CustomNodeUncheckedUpdateManyWithoutTeamNestedInput = {
+    create?: XOR<CustomNodeCreateWithoutTeamInput, CustomNodeUncheckedCreateWithoutTeamInput> | CustomNodeCreateWithoutTeamInput[] | CustomNodeUncheckedCreateWithoutTeamInput[]
+    connectOrCreate?: CustomNodeCreateOrConnectWithoutTeamInput | CustomNodeCreateOrConnectWithoutTeamInput[]
+    upsert?: CustomNodeUpsertWithWhereUniqueWithoutTeamInput | CustomNodeUpsertWithWhereUniqueWithoutTeamInput[]
+    createMany?: CustomNodeCreateManyTeamInputEnvelope
+    set?: CustomNodeWhereUniqueInput | CustomNodeWhereUniqueInput[]
+    disconnect?: CustomNodeWhereUniqueInput | CustomNodeWhereUniqueInput[]
+    delete?: CustomNodeWhereUniqueInput | CustomNodeWhereUniqueInput[]
+    connect?: CustomNodeWhereUniqueInput | CustomNodeWhereUniqueInput[]
+    update?: CustomNodeUpdateWithWhereUniqueWithoutTeamInput | CustomNodeUpdateWithWhereUniqueWithoutTeamInput[]
+    updateMany?: CustomNodeUpdateManyWithWhereWithoutTeamInput | CustomNodeUpdateManyWithWhereWithoutTeamInput[]
+    deleteMany?: CustomNodeScalarWhereInput | CustomNodeScalarWhereInput[]
   }
 
   export type TeamCreateNestedOneWithoutMembersInput = {
@@ -21620,6 +23301,13 @@ export namespace Prisma {
     connect?: ApiTokenWhereUniqueInput | ApiTokenWhereUniqueInput[]
   }
 
+  export type CustomNodeCreateNestedManyWithoutCreatedByInput = {
+    create?: XOR<CustomNodeCreateWithoutCreatedByInput, CustomNodeUncheckedCreateWithoutCreatedByInput> | CustomNodeCreateWithoutCreatedByInput[] | CustomNodeUncheckedCreateWithoutCreatedByInput[]
+    connectOrCreate?: CustomNodeCreateOrConnectWithoutCreatedByInput | CustomNodeCreateOrConnectWithoutCreatedByInput[]
+    createMany?: CustomNodeCreateManyCreatedByInputEnvelope
+    connect?: CustomNodeWhereUniqueInput | CustomNodeWhereUniqueInput[]
+  }
+
   export type TeamUncheckedCreateNestedManyWithoutCreatedByInput = {
     create?: XOR<TeamCreateWithoutCreatedByInput, TeamUncheckedCreateWithoutCreatedByInput> | TeamCreateWithoutCreatedByInput[] | TeamUncheckedCreateWithoutCreatedByInput[]
     connectOrCreate?: TeamCreateOrConnectWithoutCreatedByInput | TeamCreateOrConnectWithoutCreatedByInput[]
@@ -21693,6 +23381,13 @@ export namespace Prisma {
     connectOrCreate?: ApiTokenCreateOrConnectWithoutUserInput | ApiTokenCreateOrConnectWithoutUserInput[]
     createMany?: ApiTokenCreateManyUserInputEnvelope
     connect?: ApiTokenWhereUniqueInput | ApiTokenWhereUniqueInput[]
+  }
+
+  export type CustomNodeUncheckedCreateNestedManyWithoutCreatedByInput = {
+    create?: XOR<CustomNodeCreateWithoutCreatedByInput, CustomNodeUncheckedCreateWithoutCreatedByInput> | CustomNodeCreateWithoutCreatedByInput[] | CustomNodeUncheckedCreateWithoutCreatedByInput[]
+    connectOrCreate?: CustomNodeCreateOrConnectWithoutCreatedByInput | CustomNodeCreateOrConnectWithoutCreatedByInput[]
+    createMany?: CustomNodeCreateManyCreatedByInputEnvelope
+    connect?: CustomNodeWhereUniqueInput | CustomNodeWhereUniqueInput[]
   }
 
   export type TeamUpdateManyWithoutCreatedByNestedInput = {
@@ -21847,6 +23542,20 @@ export namespace Prisma {
     deleteMany?: ApiTokenScalarWhereInput | ApiTokenScalarWhereInput[]
   }
 
+  export type CustomNodeUpdateManyWithoutCreatedByNestedInput = {
+    create?: XOR<CustomNodeCreateWithoutCreatedByInput, CustomNodeUncheckedCreateWithoutCreatedByInput> | CustomNodeCreateWithoutCreatedByInput[] | CustomNodeUncheckedCreateWithoutCreatedByInput[]
+    connectOrCreate?: CustomNodeCreateOrConnectWithoutCreatedByInput | CustomNodeCreateOrConnectWithoutCreatedByInput[]
+    upsert?: CustomNodeUpsertWithWhereUniqueWithoutCreatedByInput | CustomNodeUpsertWithWhereUniqueWithoutCreatedByInput[]
+    createMany?: CustomNodeCreateManyCreatedByInputEnvelope
+    set?: CustomNodeWhereUniqueInput | CustomNodeWhereUniqueInput[]
+    disconnect?: CustomNodeWhereUniqueInput | CustomNodeWhereUniqueInput[]
+    delete?: CustomNodeWhereUniqueInput | CustomNodeWhereUniqueInput[]
+    connect?: CustomNodeWhereUniqueInput | CustomNodeWhereUniqueInput[]
+    update?: CustomNodeUpdateWithWhereUniqueWithoutCreatedByInput | CustomNodeUpdateWithWhereUniqueWithoutCreatedByInput[]
+    updateMany?: CustomNodeUpdateManyWithWhereWithoutCreatedByInput | CustomNodeUpdateManyWithWhereWithoutCreatedByInput[]
+    deleteMany?: CustomNodeScalarWhereInput | CustomNodeScalarWhereInput[]
+  }
+
   export type TeamUncheckedUpdateManyWithoutCreatedByNestedInput = {
     create?: XOR<TeamCreateWithoutCreatedByInput, TeamUncheckedCreateWithoutCreatedByInput> | TeamCreateWithoutCreatedByInput[] | TeamUncheckedCreateWithoutCreatedByInput[]
     connectOrCreate?: TeamCreateOrConnectWithoutCreatedByInput | TeamCreateOrConnectWithoutCreatedByInput[]
@@ -21997,6 +23706,20 @@ export namespace Prisma {
     update?: ApiTokenUpdateWithWhereUniqueWithoutUserInput | ApiTokenUpdateWithWhereUniqueWithoutUserInput[]
     updateMany?: ApiTokenUpdateManyWithWhereWithoutUserInput | ApiTokenUpdateManyWithWhereWithoutUserInput[]
     deleteMany?: ApiTokenScalarWhereInput | ApiTokenScalarWhereInput[]
+  }
+
+  export type CustomNodeUncheckedUpdateManyWithoutCreatedByNestedInput = {
+    create?: XOR<CustomNodeCreateWithoutCreatedByInput, CustomNodeUncheckedCreateWithoutCreatedByInput> | CustomNodeCreateWithoutCreatedByInput[] | CustomNodeUncheckedCreateWithoutCreatedByInput[]
+    connectOrCreate?: CustomNodeCreateOrConnectWithoutCreatedByInput | CustomNodeCreateOrConnectWithoutCreatedByInput[]
+    upsert?: CustomNodeUpsertWithWhereUniqueWithoutCreatedByInput | CustomNodeUpsertWithWhereUniqueWithoutCreatedByInput[]
+    createMany?: CustomNodeCreateManyCreatedByInputEnvelope
+    set?: CustomNodeWhereUniqueInput | CustomNodeWhereUniqueInput[]
+    disconnect?: CustomNodeWhereUniqueInput | CustomNodeWhereUniqueInput[]
+    delete?: CustomNodeWhereUniqueInput | CustomNodeWhereUniqueInput[]
+    connect?: CustomNodeWhereUniqueInput | CustomNodeWhereUniqueInput[]
+    update?: CustomNodeUpdateWithWhereUniqueWithoutCreatedByInput | CustomNodeUpdateWithWhereUniqueWithoutCreatedByInput[]
+    updateMany?: CustomNodeUpdateManyWithWhereWithoutCreatedByInput | CustomNodeUpdateManyWithWhereWithoutCreatedByInput[]
+    deleteMany?: CustomNodeScalarWhereInput | CustomNodeScalarWhereInput[]
   }
 
   export type KnowledgeCreateNestedOneWithoutFilesInput = {
@@ -22479,6 +24202,36 @@ export namespace Prisma {
     update?: XOR<XOR<ConversationUpdateToOneWithWhereWithoutMessagesInput, ConversationUpdateWithoutMessagesInput>, ConversationUncheckedUpdateWithoutMessagesInput>
   }
 
+  export type UserCreateNestedOneWithoutCustomNodesInput = {
+    create?: XOR<UserCreateWithoutCustomNodesInput, UserUncheckedCreateWithoutCustomNodesInput>
+    connectOrCreate?: UserCreateOrConnectWithoutCustomNodesInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type TeamCreateNestedOneWithoutCustomNodesInput = {
+    create?: XOR<TeamCreateWithoutCustomNodesInput, TeamUncheckedCreateWithoutCustomNodesInput>
+    connectOrCreate?: TeamCreateOrConnectWithoutCustomNodesInput
+    connect?: TeamWhereUniqueInput
+  }
+
+  export type UserUpdateOneRequiredWithoutCustomNodesNestedInput = {
+    create?: XOR<UserCreateWithoutCustomNodesInput, UserUncheckedCreateWithoutCustomNodesInput>
+    connectOrCreate?: UserCreateOrConnectWithoutCustomNodesInput
+    upsert?: UserUpsertWithoutCustomNodesInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutCustomNodesInput, UserUpdateWithoutCustomNodesInput>, UserUncheckedUpdateWithoutCustomNodesInput>
+  }
+
+  export type TeamUpdateOneWithoutCustomNodesNestedInput = {
+    create?: XOR<TeamCreateWithoutCustomNodesInput, TeamUncheckedCreateWithoutCustomNodesInput>
+    connectOrCreate?: TeamCreateOrConnectWithoutCustomNodesInput
+    upsert?: TeamUpsertWithoutCustomNodesInput
+    disconnect?: TeamWhereInput | boolean
+    delete?: TeamWhereInput | boolean
+    connect?: TeamWhereUniqueInput
+    update?: XOR<XOR<TeamUpdateToOneWithWhereWithoutCustomNodesInput, TeamUpdateWithoutCustomNodesInput>, TeamUncheckedUpdateWithoutCustomNodesInput>
+  }
+
   export type NestedStringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[]
@@ -22737,6 +24490,7 @@ export namespace Prisma {
     ownedLLMProviders?: LLMProviderCreateNestedManyWithoutUserOwnerInput
     conversations?: ConversationCreateNestedManyWithoutUserInput
     apiTokens?: ApiTokenCreateNestedManyWithoutUserInput
+    customNodes?: CustomNodeCreateNestedManyWithoutCreatedByInput
   }
 
   export type UserUncheckedCreateWithoutCreatedTeamsInput = {
@@ -22760,6 +24514,7 @@ export namespace Prisma {
     ownedLLMProviders?: LLMProviderUncheckedCreateNestedManyWithoutUserOwnerInput
     conversations?: ConversationUncheckedCreateNestedManyWithoutUserInput
     apiTokens?: ApiTokenUncheckedCreateNestedManyWithoutUserInput
+    customNodes?: CustomNodeUncheckedCreateNestedManyWithoutCreatedByInput
   }
 
   export type UserCreateOrConnectWithoutCreatedTeamsInput = {
@@ -22813,6 +24568,7 @@ export namespace Prisma {
     ownedLLMProviders?: LLMProviderCreateNestedManyWithoutUserOwnerInput
     conversations?: ConversationCreateNestedManyWithoutUserInput
     apiTokens?: ApiTokenCreateNestedManyWithoutUserInput
+    customNodes?: CustomNodeCreateNestedManyWithoutCreatedByInput
   }
 
   export type UserUncheckedCreateWithoutTeamsInput = {
@@ -22836,6 +24592,7 @@ export namespace Prisma {
     ownedLLMProviders?: LLMProviderUncheckedCreateNestedManyWithoutUserOwnerInput
     conversations?: ConversationUncheckedCreateNestedManyWithoutUserInput
     apiTokens?: ApiTokenUncheckedCreateNestedManyWithoutUserInput
+    customNodes?: CustomNodeUncheckedCreateNestedManyWithoutCreatedByInput
   }
 
   export type UserCreateOrConnectWithoutTeamsInput = {
@@ -22979,6 +24736,45 @@ export namespace Prisma {
     data: ConversationCreateManyTeamInput | ConversationCreateManyTeamInput[]
   }
 
+  export type CustomNodeCreateWithoutTeamInput = {
+    id?: string
+    name: string
+    description: string
+    code: string
+    inputPorts: JsonNullValueInput | InputJsonValue
+    outputPorts: JsonNullValueInput | InputJsonValue
+    icon?: string | null
+    category?: string
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    createdBy: UserCreateNestedOneWithoutCustomNodesInput
+  }
+
+  export type CustomNodeUncheckedCreateWithoutTeamInput = {
+    id?: string
+    name: string
+    description: string
+    code: string
+    inputPorts: JsonNullValueInput | InputJsonValue
+    outputPorts: JsonNullValueInput | InputJsonValue
+    icon?: string | null
+    category?: string
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    createdById: string
+  }
+
+  export type CustomNodeCreateOrConnectWithoutTeamInput = {
+    where: CustomNodeWhereUniqueInput
+    create: XOR<CustomNodeCreateWithoutTeamInput, CustomNodeUncheckedCreateWithoutTeamInput>
+  }
+
+  export type CustomNodeCreateManyTeamInputEnvelope = {
+    data: CustomNodeCreateManyTeamInput | CustomNodeCreateManyTeamInput[]
+  }
+
   export type UserUpsertWithoutCreatedTeamsInput = {
     update: XOR<UserUpdateWithoutCreatedTeamsInput, UserUncheckedUpdateWithoutCreatedTeamsInput>
     create: XOR<UserCreateWithoutCreatedTeamsInput, UserUncheckedCreateWithoutCreatedTeamsInput>
@@ -23011,6 +24807,7 @@ export namespace Prisma {
     ownedLLMProviders?: LLMProviderUpdateManyWithoutUserOwnerNestedInput
     conversations?: ConversationUpdateManyWithoutUserNestedInput
     apiTokens?: ApiTokenUpdateManyWithoutUserNestedInput
+    customNodes?: CustomNodeUpdateManyWithoutCreatedByNestedInput
   }
 
   export type UserUncheckedUpdateWithoutCreatedTeamsInput = {
@@ -23034,6 +24831,7 @@ export namespace Prisma {
     ownedLLMProviders?: LLMProviderUncheckedUpdateManyWithoutUserOwnerNestedInput
     conversations?: ConversationUncheckedUpdateManyWithoutUserNestedInput
     apiTokens?: ApiTokenUncheckedUpdateManyWithoutUserNestedInput
+    customNodes?: CustomNodeUncheckedUpdateManyWithoutCreatedByNestedInput
   }
 
   export type MemberTeamUpsertWithWhereUniqueWithoutTeamInput = {
@@ -23222,6 +25020,41 @@ export namespace Prisma {
     teamId?: StringNullableFilter<"Conversation"> | string | null
   }
 
+  export type CustomNodeUpsertWithWhereUniqueWithoutTeamInput = {
+    where: CustomNodeWhereUniqueInput
+    update: XOR<CustomNodeUpdateWithoutTeamInput, CustomNodeUncheckedUpdateWithoutTeamInput>
+    create: XOR<CustomNodeCreateWithoutTeamInput, CustomNodeUncheckedCreateWithoutTeamInput>
+  }
+
+  export type CustomNodeUpdateWithWhereUniqueWithoutTeamInput = {
+    where: CustomNodeWhereUniqueInput
+    data: XOR<CustomNodeUpdateWithoutTeamInput, CustomNodeUncheckedUpdateWithoutTeamInput>
+  }
+
+  export type CustomNodeUpdateManyWithWhereWithoutTeamInput = {
+    where: CustomNodeScalarWhereInput
+    data: XOR<CustomNodeUpdateManyMutationInput, CustomNodeUncheckedUpdateManyWithoutTeamInput>
+  }
+
+  export type CustomNodeScalarWhereInput = {
+    AND?: CustomNodeScalarWhereInput | CustomNodeScalarWhereInput[]
+    OR?: CustomNodeScalarWhereInput[]
+    NOT?: CustomNodeScalarWhereInput | CustomNodeScalarWhereInput[]
+    id?: StringFilter<"CustomNode"> | string
+    name?: StringFilter<"CustomNode"> | string
+    description?: StringFilter<"CustomNode"> | string
+    code?: StringFilter<"CustomNode"> | string
+    inputPorts?: JsonFilter<"CustomNode">
+    outputPorts?: JsonFilter<"CustomNode">
+    icon?: StringNullableFilter<"CustomNode"> | string | null
+    category?: StringFilter<"CustomNode"> | string
+    isActive?: BoolFilter<"CustomNode"> | boolean
+    createdAt?: DateTimeFilter<"CustomNode"> | Date | string
+    updatedAt?: DateTimeFilter<"CustomNode"> | Date | string
+    createdById?: StringFilter<"CustomNode"> | string
+    teamId?: StringNullableFilter<"CustomNode"> | string | null
+  }
+
   export type TeamCreateWithoutMembersInput = {
     id?: string
     name: string
@@ -23234,6 +25067,7 @@ export namespace Prisma {
     ownedAgents?: AgentCreateNestedManyWithoutTeamInput
     ownedLLMProviders?: LLMProviderCreateNestedManyWithoutTeamOwnerInput
     conversations?: ConversationCreateNestedManyWithoutTeamInput
+    customNodes?: CustomNodeCreateNestedManyWithoutTeamInput
   }
 
   export type TeamUncheckedCreateWithoutMembersInput = {
@@ -23248,6 +25082,7 @@ export namespace Prisma {
     ownedAgents?: AgentUncheckedCreateNestedManyWithoutTeamInput
     ownedLLMProviders?: LLMProviderUncheckedCreateNestedManyWithoutTeamOwnerInput
     conversations?: ConversationUncheckedCreateNestedManyWithoutTeamInput
+    customNodes?: CustomNodeUncheckedCreateNestedManyWithoutTeamInput
   }
 
   export type TeamCreateOrConnectWithoutMembersInput = {
@@ -23276,6 +25111,7 @@ export namespace Prisma {
     ownedLLMProviders?: LLMProviderCreateNestedManyWithoutUserOwnerInput
     conversations?: ConversationCreateNestedManyWithoutUserInput
     apiTokens?: ApiTokenCreateNestedManyWithoutUserInput
+    customNodes?: CustomNodeCreateNestedManyWithoutCreatedByInput
   }
 
   export type UserUncheckedCreateWithoutTeamMembershipsInput = {
@@ -23299,6 +25135,7 @@ export namespace Prisma {
     ownedLLMProviders?: LLMProviderUncheckedCreateNestedManyWithoutUserOwnerInput
     conversations?: ConversationUncheckedCreateNestedManyWithoutUserInput
     apiTokens?: ApiTokenUncheckedCreateNestedManyWithoutUserInput
+    customNodes?: CustomNodeUncheckedCreateNestedManyWithoutCreatedByInput
   }
 
   export type UserCreateOrConnectWithoutTeamMembershipsInput = {
@@ -23329,6 +25166,7 @@ export namespace Prisma {
     ownedAgents?: AgentUpdateManyWithoutTeamNestedInput
     ownedLLMProviders?: LLMProviderUpdateManyWithoutTeamOwnerNestedInput
     conversations?: ConversationUpdateManyWithoutTeamNestedInput
+    customNodes?: CustomNodeUpdateManyWithoutTeamNestedInput
   }
 
   export type TeamUncheckedUpdateWithoutMembersInput = {
@@ -23343,6 +25181,7 @@ export namespace Prisma {
     ownedAgents?: AgentUncheckedUpdateManyWithoutTeamNestedInput
     ownedLLMProviders?: LLMProviderUncheckedUpdateManyWithoutTeamOwnerNestedInput
     conversations?: ConversationUncheckedUpdateManyWithoutTeamNestedInput
+    customNodes?: CustomNodeUncheckedUpdateManyWithoutTeamNestedInput
   }
 
   export type UserUpsertWithoutTeamMembershipsInput = {
@@ -23377,6 +25216,7 @@ export namespace Prisma {
     ownedLLMProviders?: LLMProviderUpdateManyWithoutUserOwnerNestedInput
     conversations?: ConversationUpdateManyWithoutUserNestedInput
     apiTokens?: ApiTokenUpdateManyWithoutUserNestedInput
+    customNodes?: CustomNodeUpdateManyWithoutCreatedByNestedInput
   }
 
   export type UserUncheckedUpdateWithoutTeamMembershipsInput = {
@@ -23400,6 +25240,7 @@ export namespace Prisma {
     ownedLLMProviders?: LLMProviderUncheckedUpdateManyWithoutUserOwnerNestedInput
     conversations?: ConversationUncheckedUpdateManyWithoutUserNestedInput
     apiTokens?: ApiTokenUncheckedUpdateManyWithoutUserNestedInput
+    customNodes?: CustomNodeUncheckedUpdateManyWithoutCreatedByNestedInput
   }
 
   export type UserCreateWithoutCreatedKnowledgeInput = {
@@ -23423,6 +25264,7 @@ export namespace Prisma {
     ownedLLMProviders?: LLMProviderCreateNestedManyWithoutUserOwnerInput
     conversations?: ConversationCreateNestedManyWithoutUserInput
     apiTokens?: ApiTokenCreateNestedManyWithoutUserInput
+    customNodes?: CustomNodeCreateNestedManyWithoutCreatedByInput
   }
 
   export type UserUncheckedCreateWithoutCreatedKnowledgeInput = {
@@ -23446,6 +25288,7 @@ export namespace Prisma {
     ownedLLMProviders?: LLMProviderUncheckedCreateNestedManyWithoutUserOwnerInput
     conversations?: ConversationUncheckedCreateNestedManyWithoutUserInput
     apiTokens?: ApiTokenUncheckedCreateNestedManyWithoutUserInput
+    customNodes?: CustomNodeUncheckedCreateNestedManyWithoutCreatedByInput
   }
 
   export type UserCreateOrConnectWithoutCreatedKnowledgeInput = {
@@ -23499,6 +25342,7 @@ export namespace Prisma {
     ownedLLMProviders?: LLMProviderCreateNestedManyWithoutUserOwnerInput
     conversations?: ConversationCreateNestedManyWithoutUserInput
     apiTokens?: ApiTokenCreateNestedManyWithoutUserInput
+    customNodes?: CustomNodeCreateNestedManyWithoutCreatedByInput
   }
 
   export type UserUncheckedCreateWithoutKnowledgeInput = {
@@ -23522,6 +25366,7 @@ export namespace Prisma {
     ownedLLMProviders?: LLMProviderUncheckedCreateNestedManyWithoutUserOwnerInput
     conversations?: ConversationUncheckedCreateNestedManyWithoutUserInput
     apiTokens?: ApiTokenUncheckedCreateNestedManyWithoutUserInput
+    customNodes?: CustomNodeUncheckedCreateNestedManyWithoutCreatedByInput
   }
 
   export type UserCreateOrConnectWithoutKnowledgeInput = {
@@ -23541,6 +25386,7 @@ export namespace Prisma {
     ownedAgents?: AgentCreateNestedManyWithoutTeamInput
     ownedLLMProviders?: LLMProviderCreateNestedManyWithoutTeamOwnerInput
     conversations?: ConversationCreateNestedManyWithoutTeamInput
+    customNodes?: CustomNodeCreateNestedManyWithoutTeamInput
   }
 
   export type TeamUncheckedCreateWithoutKnowledgeInput = {
@@ -23555,6 +25401,7 @@ export namespace Prisma {
     ownedAgents?: AgentUncheckedCreateNestedManyWithoutTeamInput
     ownedLLMProviders?: LLMProviderUncheckedCreateNestedManyWithoutTeamOwnerInput
     conversations?: ConversationUncheckedCreateNestedManyWithoutTeamInput
+    customNodes?: CustomNodeUncheckedCreateNestedManyWithoutTeamInput
   }
 
   export type TeamCreateOrConnectWithoutKnowledgeInput = {
@@ -23633,6 +25480,7 @@ export namespace Prisma {
     ownedLLMProviders?: LLMProviderUpdateManyWithoutUserOwnerNestedInput
     conversations?: ConversationUpdateManyWithoutUserNestedInput
     apiTokens?: ApiTokenUpdateManyWithoutUserNestedInput
+    customNodes?: CustomNodeUpdateManyWithoutCreatedByNestedInput
   }
 
   export type UserUncheckedUpdateWithoutCreatedKnowledgeInput = {
@@ -23656,6 +25504,7 @@ export namespace Prisma {
     ownedLLMProviders?: LLMProviderUncheckedUpdateManyWithoutUserOwnerNestedInput
     conversations?: ConversationUncheckedUpdateManyWithoutUserNestedInput
     apiTokens?: ApiTokenUncheckedUpdateManyWithoutUserNestedInput
+    customNodes?: CustomNodeUncheckedUpdateManyWithoutCreatedByNestedInput
   }
 
   export type LLMModelUpsertWithoutKnowledgesInput = {
@@ -23787,6 +25636,7 @@ export namespace Prisma {
     FileParsingTask?: FileParsingTaskCreateNestedManyWithoutCreatedByInput
     ownedLLMProviders?: LLMProviderCreateNestedManyWithoutUserOwnerInput
     conversations?: ConversationCreateNestedManyWithoutUserInput
+    customNodes?: CustomNodeCreateNestedManyWithoutCreatedByInput
   }
 
   export type UserUncheckedCreateWithoutApiTokensInput = {
@@ -23810,6 +25660,7 @@ export namespace Prisma {
     FileParsingTask?: FileParsingTaskUncheckedCreateNestedManyWithoutCreatedByInput
     ownedLLMProviders?: LLMProviderUncheckedCreateNestedManyWithoutUserOwnerInput
     conversations?: ConversationUncheckedCreateNestedManyWithoutUserInput
+    customNodes?: CustomNodeUncheckedCreateNestedManyWithoutCreatedByInput
   }
 
   export type UserCreateOrConnectWithoutApiTokensInput = {
@@ -23849,6 +25700,7 @@ export namespace Prisma {
     FileParsingTask?: FileParsingTaskUpdateManyWithoutCreatedByNestedInput
     ownedLLMProviders?: LLMProviderUpdateManyWithoutUserOwnerNestedInput
     conversations?: ConversationUpdateManyWithoutUserNestedInput
+    customNodes?: CustomNodeUpdateManyWithoutCreatedByNestedInput
   }
 
   export type UserUncheckedUpdateWithoutApiTokensInput = {
@@ -23872,6 +25724,7 @@ export namespace Prisma {
     FileParsingTask?: FileParsingTaskUncheckedUpdateManyWithoutCreatedByNestedInput
     ownedLLMProviders?: LLMProviderUncheckedUpdateManyWithoutUserOwnerNestedInput
     conversations?: ConversationUncheckedUpdateManyWithoutUserNestedInput
+    customNodes?: CustomNodeUncheckedUpdateManyWithoutCreatedByNestedInput
   }
 
   export type TeamCreateWithoutCreatedByInput = {
@@ -23886,6 +25739,7 @@ export namespace Prisma {
     ownedAgents?: AgentCreateNestedManyWithoutTeamInput
     ownedLLMProviders?: LLMProviderCreateNestedManyWithoutTeamOwnerInput
     conversations?: ConversationCreateNestedManyWithoutTeamInput
+    customNodes?: CustomNodeCreateNestedManyWithoutTeamInput
   }
 
   export type TeamUncheckedCreateWithoutCreatedByInput = {
@@ -23900,6 +25754,7 @@ export namespace Prisma {
     ownedAgents?: AgentUncheckedCreateNestedManyWithoutTeamInput
     ownedLLMProviders?: LLMProviderUncheckedCreateNestedManyWithoutTeamOwnerInput
     conversations?: ConversationUncheckedCreateNestedManyWithoutTeamInput
+    customNodes?: CustomNodeUncheckedCreateNestedManyWithoutTeamInput
   }
 
   export type TeamCreateOrConnectWithoutCreatedByInput = {
@@ -23948,6 +25803,7 @@ export namespace Prisma {
     ownedAgents?: AgentCreateNestedManyWithoutTeamInput
     ownedLLMProviders?: LLMProviderCreateNestedManyWithoutTeamOwnerInput
     conversations?: ConversationCreateNestedManyWithoutTeamInput
+    customNodes?: CustomNodeCreateNestedManyWithoutTeamInput
   }
 
   export type TeamUncheckedCreateWithoutUsersInput = {
@@ -23962,6 +25818,7 @@ export namespace Prisma {
     ownedAgents?: AgentUncheckedCreateNestedManyWithoutTeamInput
     ownedLLMProviders?: LLMProviderUncheckedCreateNestedManyWithoutTeamOwnerInput
     conversations?: ConversationUncheckedCreateNestedManyWithoutTeamInput
+    customNodes?: CustomNodeUncheckedCreateNestedManyWithoutTeamInput
   }
 
   export type TeamCreateOrConnectWithoutUsersInput = {
@@ -24237,6 +26094,45 @@ export namespace Prisma {
     data: ApiTokenCreateManyUserInput | ApiTokenCreateManyUserInput[]
   }
 
+  export type CustomNodeCreateWithoutCreatedByInput = {
+    id?: string
+    name: string
+    description: string
+    code: string
+    inputPorts: JsonNullValueInput | InputJsonValue
+    outputPorts: JsonNullValueInput | InputJsonValue
+    icon?: string | null
+    category?: string
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    team?: TeamCreateNestedOneWithoutCustomNodesInput
+  }
+
+  export type CustomNodeUncheckedCreateWithoutCreatedByInput = {
+    id?: string
+    name: string
+    description: string
+    code: string
+    inputPorts: JsonNullValueInput | InputJsonValue
+    outputPorts: JsonNullValueInput | InputJsonValue
+    icon?: string | null
+    category?: string
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    teamId?: string | null
+  }
+
+  export type CustomNodeCreateOrConnectWithoutCreatedByInput = {
+    where: CustomNodeWhereUniqueInput
+    create: XOR<CustomNodeCreateWithoutCreatedByInput, CustomNodeUncheckedCreateWithoutCreatedByInput>
+  }
+
+  export type CustomNodeCreateManyCreatedByInputEnvelope = {
+    data: CustomNodeCreateManyCreatedByInput | CustomNodeCreateManyCreatedByInput[]
+  }
+
   export type TeamUpsertWithWhereUniqueWithoutCreatedByInput = {
     where: TeamWhereUniqueInput
     update: XOR<TeamUpdateWithoutCreatedByInput, TeamUncheckedUpdateWithoutCreatedByInput>
@@ -24440,6 +26336,22 @@ export namespace Prisma {
     lastUsedAt?: DateTimeNullableFilter<"ApiToken"> | Date | string | null
     status?: StringFilter<"ApiToken"> | string
     userId?: StringFilter<"ApiToken"> | string
+  }
+
+  export type CustomNodeUpsertWithWhereUniqueWithoutCreatedByInput = {
+    where: CustomNodeWhereUniqueInput
+    update: XOR<CustomNodeUpdateWithoutCreatedByInput, CustomNodeUncheckedUpdateWithoutCreatedByInput>
+    create: XOR<CustomNodeCreateWithoutCreatedByInput, CustomNodeUncheckedCreateWithoutCreatedByInput>
+  }
+
+  export type CustomNodeUpdateWithWhereUniqueWithoutCreatedByInput = {
+    where: CustomNodeWhereUniqueInput
+    data: XOR<CustomNodeUpdateWithoutCreatedByInput, CustomNodeUncheckedUpdateWithoutCreatedByInput>
+  }
+
+  export type CustomNodeUpdateManyWithWhereWithoutCreatedByInput = {
+    where: CustomNodeScalarWhereInput
+    data: XOR<CustomNodeUpdateManyMutationInput, CustomNodeUncheckedUpdateManyWithoutCreatedByInput>
   }
 
   export type KnowledgeCreateWithoutFilesInput = {
@@ -24670,6 +26582,7 @@ export namespace Prisma {
     ownedLLMProviders?: LLMProviderCreateNestedManyWithoutUserOwnerInput
     conversations?: ConversationCreateNestedManyWithoutUserInput
     apiTokens?: ApiTokenCreateNestedManyWithoutUserInput
+    customNodes?: CustomNodeCreateNestedManyWithoutCreatedByInput
   }
 
   export type UserUncheckedCreateWithoutFileParsingTaskInput = {
@@ -24693,6 +26606,7 @@ export namespace Prisma {
     ownedLLMProviders?: LLMProviderUncheckedCreateNestedManyWithoutUserOwnerInput
     conversations?: ConversationUncheckedCreateNestedManyWithoutUserInput
     apiTokens?: ApiTokenUncheckedCreateNestedManyWithoutUserInput
+    customNodes?: CustomNodeUncheckedCreateNestedManyWithoutCreatedByInput
   }
 
   export type UserCreateOrConnectWithoutFileParsingTaskInput = {
@@ -24773,6 +26687,7 @@ export namespace Prisma {
     ownedLLMProviders?: LLMProviderUpdateManyWithoutUserOwnerNestedInput
     conversations?: ConversationUpdateManyWithoutUserNestedInput
     apiTokens?: ApiTokenUpdateManyWithoutUserNestedInput
+    customNodes?: CustomNodeUpdateManyWithoutCreatedByNestedInput
   }
 
   export type UserUncheckedUpdateWithoutFileParsingTaskInput = {
@@ -24796,6 +26711,7 @@ export namespace Prisma {
     ownedLLMProviders?: LLMProviderUncheckedUpdateManyWithoutUserOwnerNestedInput
     conversations?: ConversationUncheckedUpdateManyWithoutUserNestedInput
     apiTokens?: ApiTokenUncheckedUpdateManyWithoutUserNestedInput
+    customNodes?: CustomNodeUncheckedUpdateManyWithoutCreatedByNestedInput
   }
 
   export type UserCreateWithoutCreatedAgentsInput = {
@@ -24819,6 +26735,7 @@ export namespace Prisma {
     ownedLLMProviders?: LLMProviderCreateNestedManyWithoutUserOwnerInput
     conversations?: ConversationCreateNestedManyWithoutUserInput
     apiTokens?: ApiTokenCreateNestedManyWithoutUserInput
+    customNodes?: CustomNodeCreateNestedManyWithoutCreatedByInput
   }
 
   export type UserUncheckedCreateWithoutCreatedAgentsInput = {
@@ -24842,6 +26759,7 @@ export namespace Prisma {
     ownedLLMProviders?: LLMProviderUncheckedCreateNestedManyWithoutUserOwnerInput
     conversations?: ConversationUncheckedCreateNestedManyWithoutUserInput
     apiTokens?: ApiTokenUncheckedCreateNestedManyWithoutUserInput
+    customNodes?: CustomNodeUncheckedCreateNestedManyWithoutCreatedByInput
   }
 
   export type UserCreateOrConnectWithoutCreatedAgentsInput = {
@@ -24870,6 +26788,7 @@ export namespace Prisma {
     ownedLLMProviders?: LLMProviderCreateNestedManyWithoutUserOwnerInput
     conversations?: ConversationCreateNestedManyWithoutUserInput
     apiTokens?: ApiTokenCreateNestedManyWithoutUserInput
+    customNodes?: CustomNodeCreateNestedManyWithoutCreatedByInput
   }
 
   export type UserUncheckedCreateWithoutOwnedAgentsInput = {
@@ -24893,6 +26812,7 @@ export namespace Prisma {
     ownedLLMProviders?: LLMProviderUncheckedCreateNestedManyWithoutUserOwnerInput
     conversations?: ConversationUncheckedCreateNestedManyWithoutUserInput
     apiTokens?: ApiTokenUncheckedCreateNestedManyWithoutUserInput
+    customNodes?: CustomNodeUncheckedCreateNestedManyWithoutCreatedByInput
   }
 
   export type UserCreateOrConnectWithoutOwnedAgentsInput = {
@@ -24912,6 +26832,7 @@ export namespace Prisma {
     knowledge?: KnowledgeCreateNestedManyWithoutTeamsInput
     ownedLLMProviders?: LLMProviderCreateNestedManyWithoutTeamOwnerInput
     conversations?: ConversationCreateNestedManyWithoutTeamInput
+    customNodes?: CustomNodeCreateNestedManyWithoutTeamInput
   }
 
   export type TeamUncheckedCreateWithoutOwnedAgentsInput = {
@@ -24926,6 +26847,7 @@ export namespace Prisma {
     knowledge?: KnowledgeUncheckedCreateNestedManyWithoutTeamsInput
     ownedLLMProviders?: LLMProviderUncheckedCreateNestedManyWithoutTeamOwnerInput
     conversations?: ConversationUncheckedCreateNestedManyWithoutTeamInput
+    customNodes?: CustomNodeUncheckedCreateNestedManyWithoutTeamInput
   }
 
   export type TeamCreateOrConnectWithoutOwnedAgentsInput = {
@@ -25000,6 +26922,7 @@ export namespace Prisma {
     ownedLLMProviders?: LLMProviderUpdateManyWithoutUserOwnerNestedInput
     conversations?: ConversationUpdateManyWithoutUserNestedInput
     apiTokens?: ApiTokenUpdateManyWithoutUserNestedInput
+    customNodes?: CustomNodeUpdateManyWithoutCreatedByNestedInput
   }
 
   export type UserUncheckedUpdateWithoutCreatedAgentsInput = {
@@ -25023,6 +26946,7 @@ export namespace Prisma {
     ownedLLMProviders?: LLMProviderUncheckedUpdateManyWithoutUserOwnerNestedInput
     conversations?: ConversationUncheckedUpdateManyWithoutUserNestedInput
     apiTokens?: ApiTokenUncheckedUpdateManyWithoutUserNestedInput
+    customNodes?: CustomNodeUncheckedUpdateManyWithoutCreatedByNestedInput
   }
 
   export type UserUpsertWithoutOwnedAgentsInput = {
@@ -25057,6 +26981,7 @@ export namespace Prisma {
     ownedLLMProviders?: LLMProviderUpdateManyWithoutUserOwnerNestedInput
     conversations?: ConversationUpdateManyWithoutUserNestedInput
     apiTokens?: ApiTokenUpdateManyWithoutUserNestedInput
+    customNodes?: CustomNodeUpdateManyWithoutCreatedByNestedInput
   }
 
   export type UserUncheckedUpdateWithoutOwnedAgentsInput = {
@@ -25080,6 +27005,7 @@ export namespace Prisma {
     ownedLLMProviders?: LLMProviderUncheckedUpdateManyWithoutUserOwnerNestedInput
     conversations?: ConversationUncheckedUpdateManyWithoutUserNestedInput
     apiTokens?: ApiTokenUncheckedUpdateManyWithoutUserNestedInput
+    customNodes?: CustomNodeUncheckedUpdateManyWithoutCreatedByNestedInput
   }
 
   export type TeamUpsertWithoutOwnedAgentsInput = {
@@ -25105,6 +27031,7 @@ export namespace Prisma {
     knowledge?: KnowledgeUpdateManyWithoutTeamsNestedInput
     ownedLLMProviders?: LLMProviderUpdateManyWithoutTeamOwnerNestedInput
     conversations?: ConversationUpdateManyWithoutTeamNestedInput
+    customNodes?: CustomNodeUpdateManyWithoutTeamNestedInput
   }
 
   export type TeamUncheckedUpdateWithoutOwnedAgentsInput = {
@@ -25119,6 +27046,7 @@ export namespace Prisma {
     knowledge?: KnowledgeUncheckedUpdateManyWithoutTeamsNestedInput
     ownedLLMProviders?: LLMProviderUncheckedUpdateManyWithoutTeamOwnerNestedInput
     conversations?: ConversationUncheckedUpdateManyWithoutTeamNestedInput
+    customNodes?: CustomNodeUncheckedUpdateManyWithoutTeamNestedInput
   }
 
   export type ConversationUpsertWithWhereUniqueWithoutAgentInput = {
@@ -25263,6 +27191,7 @@ export namespace Prisma {
     FileParsingTask?: FileParsingTaskCreateNestedManyWithoutCreatedByInput
     conversations?: ConversationCreateNestedManyWithoutUserInput
     apiTokens?: ApiTokenCreateNestedManyWithoutUserInput
+    customNodes?: CustomNodeCreateNestedManyWithoutCreatedByInput
   }
 
   export type UserUncheckedCreateWithoutOwnedLLMProvidersInput = {
@@ -25286,6 +27215,7 @@ export namespace Prisma {
     FileParsingTask?: FileParsingTaskUncheckedCreateNestedManyWithoutCreatedByInput
     conversations?: ConversationUncheckedCreateNestedManyWithoutUserInput
     apiTokens?: ApiTokenUncheckedCreateNestedManyWithoutUserInput
+    customNodes?: CustomNodeUncheckedCreateNestedManyWithoutCreatedByInput
   }
 
   export type UserCreateOrConnectWithoutOwnedLLMProvidersInput = {
@@ -25305,6 +27235,7 @@ export namespace Prisma {
     knowledge?: KnowledgeCreateNestedManyWithoutTeamsInput
     ownedAgents?: AgentCreateNestedManyWithoutTeamInput
     conversations?: ConversationCreateNestedManyWithoutTeamInput
+    customNodes?: CustomNodeCreateNestedManyWithoutTeamInput
   }
 
   export type TeamUncheckedCreateWithoutOwnedLLMProvidersInput = {
@@ -25319,6 +27250,7 @@ export namespace Prisma {
     knowledge?: KnowledgeUncheckedCreateNestedManyWithoutTeamsInput
     ownedAgents?: AgentUncheckedCreateNestedManyWithoutTeamInput
     conversations?: ConversationUncheckedCreateNestedManyWithoutTeamInput
+    customNodes?: CustomNodeUncheckedCreateNestedManyWithoutTeamInput
   }
 
   export type TeamCreateOrConnectWithoutOwnedLLMProvidersInput = {
@@ -25387,6 +27319,7 @@ export namespace Prisma {
     FileParsingTask?: FileParsingTaskUpdateManyWithoutCreatedByNestedInput
     conversations?: ConversationUpdateManyWithoutUserNestedInput
     apiTokens?: ApiTokenUpdateManyWithoutUserNestedInput
+    customNodes?: CustomNodeUpdateManyWithoutCreatedByNestedInput
   }
 
   export type UserUncheckedUpdateWithoutOwnedLLMProvidersInput = {
@@ -25410,6 +27343,7 @@ export namespace Prisma {
     FileParsingTask?: FileParsingTaskUncheckedUpdateManyWithoutCreatedByNestedInput
     conversations?: ConversationUncheckedUpdateManyWithoutUserNestedInput
     apiTokens?: ApiTokenUncheckedUpdateManyWithoutUserNestedInput
+    customNodes?: CustomNodeUncheckedUpdateManyWithoutCreatedByNestedInput
   }
 
   export type TeamUpsertWithoutOwnedLLMProvidersInput = {
@@ -25435,6 +27369,7 @@ export namespace Prisma {
     knowledge?: KnowledgeUpdateManyWithoutTeamsNestedInput
     ownedAgents?: AgentUpdateManyWithoutTeamNestedInput
     conversations?: ConversationUpdateManyWithoutTeamNestedInput
+    customNodes?: CustomNodeUpdateManyWithoutTeamNestedInput
   }
 
   export type TeamUncheckedUpdateWithoutOwnedLLMProvidersInput = {
@@ -25449,6 +27384,7 @@ export namespace Prisma {
     knowledge?: KnowledgeUncheckedUpdateManyWithoutTeamsNestedInput
     ownedAgents?: AgentUncheckedUpdateManyWithoutTeamNestedInput
     conversations?: ConversationUncheckedUpdateManyWithoutTeamNestedInput
+    customNodes?: CustomNodeUncheckedUpdateManyWithoutTeamNestedInput
   }
 
   export type LLMProviderCreateWithoutModelsInput = {
@@ -25587,6 +27523,7 @@ export namespace Prisma {
     FileParsingTask?: FileParsingTaskCreateNestedManyWithoutCreatedByInput
     ownedLLMProviders?: LLMProviderCreateNestedManyWithoutUserOwnerInput
     apiTokens?: ApiTokenCreateNestedManyWithoutUserInput
+    customNodes?: CustomNodeCreateNestedManyWithoutCreatedByInput
   }
 
   export type UserUncheckedCreateWithoutConversationsInput = {
@@ -25610,6 +27547,7 @@ export namespace Prisma {
     FileParsingTask?: FileParsingTaskUncheckedCreateNestedManyWithoutCreatedByInput
     ownedLLMProviders?: LLMProviderUncheckedCreateNestedManyWithoutUserOwnerInput
     apiTokens?: ApiTokenUncheckedCreateNestedManyWithoutUserInput
+    customNodes?: CustomNodeUncheckedCreateNestedManyWithoutCreatedByInput
   }
 
   export type UserCreateOrConnectWithoutConversationsInput = {
@@ -25629,6 +27567,7 @@ export namespace Prisma {
     knowledge?: KnowledgeCreateNestedManyWithoutTeamsInput
     ownedAgents?: AgentCreateNestedManyWithoutTeamInput
     ownedLLMProviders?: LLMProviderCreateNestedManyWithoutTeamOwnerInput
+    customNodes?: CustomNodeCreateNestedManyWithoutTeamInput
   }
 
   export type TeamUncheckedCreateWithoutConversationsInput = {
@@ -25643,6 +27582,7 @@ export namespace Prisma {
     knowledge?: KnowledgeUncheckedCreateNestedManyWithoutTeamsInput
     ownedAgents?: AgentUncheckedCreateNestedManyWithoutTeamInput
     ownedLLMProviders?: LLMProviderUncheckedCreateNestedManyWithoutTeamOwnerInput
+    customNodes?: CustomNodeUncheckedCreateNestedManyWithoutTeamInput
   }
 
   export type TeamCreateOrConnectWithoutConversationsInput = {
@@ -25744,6 +27684,7 @@ export namespace Prisma {
     FileParsingTask?: FileParsingTaskUpdateManyWithoutCreatedByNestedInput
     ownedLLMProviders?: LLMProviderUpdateManyWithoutUserOwnerNestedInput
     apiTokens?: ApiTokenUpdateManyWithoutUserNestedInput
+    customNodes?: CustomNodeUpdateManyWithoutCreatedByNestedInput
   }
 
   export type UserUncheckedUpdateWithoutConversationsInput = {
@@ -25767,6 +27708,7 @@ export namespace Prisma {
     FileParsingTask?: FileParsingTaskUncheckedUpdateManyWithoutCreatedByNestedInput
     ownedLLMProviders?: LLMProviderUncheckedUpdateManyWithoutUserOwnerNestedInput
     apiTokens?: ApiTokenUncheckedUpdateManyWithoutUserNestedInput
+    customNodes?: CustomNodeUncheckedUpdateManyWithoutCreatedByNestedInput
   }
 
   export type TeamUpsertWithoutConversationsInput = {
@@ -25792,6 +27734,7 @@ export namespace Prisma {
     knowledge?: KnowledgeUpdateManyWithoutTeamsNestedInput
     ownedAgents?: AgentUpdateManyWithoutTeamNestedInput
     ownedLLMProviders?: LLMProviderUpdateManyWithoutTeamOwnerNestedInput
+    customNodes?: CustomNodeUpdateManyWithoutTeamNestedInput
   }
 
   export type TeamUncheckedUpdateWithoutConversationsInput = {
@@ -25806,6 +27749,7 @@ export namespace Prisma {
     knowledge?: KnowledgeUncheckedUpdateManyWithoutTeamsNestedInput
     ownedAgents?: AgentUncheckedUpdateManyWithoutTeamNestedInput
     ownedLLMProviders?: LLMProviderUncheckedUpdateManyWithoutTeamOwnerNestedInput
+    customNodes?: CustomNodeUncheckedUpdateManyWithoutTeamNestedInput
   }
 
   export type AgentUpsertWithoutConversationsInput = {
@@ -25945,6 +27889,194 @@ export namespace Prisma {
     teamId?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
+  export type UserCreateWithoutCustomNodesInput = {
+    id?: string
+    name: string
+    code: string
+    password: string
+    email: string
+    description: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    permission?: string
+    lmmConfig?: NullableJsonNullValueInput | InputJsonValue
+    createdTeams?: TeamCreateNestedManyWithoutCreatedByInput
+    teamMemberships?: MemberTeamCreateNestedManyWithoutUserInput
+    teams?: TeamCreateNestedManyWithoutUsersInput
+    createdKnowledge?: KnowledgeCreateNestedManyWithoutCreatedByInput
+    knowledge?: KnowledgeCreateNestedManyWithoutUsersInput
+    ownedAgents?: AgentCreateNestedManyWithoutUserInput
+    createdAgents?: AgentCreateNestedManyWithoutCreatedByInput
+    FileParsingTask?: FileParsingTaskCreateNestedManyWithoutCreatedByInput
+    ownedLLMProviders?: LLMProviderCreateNestedManyWithoutUserOwnerInput
+    conversations?: ConversationCreateNestedManyWithoutUserInput
+    apiTokens?: ApiTokenCreateNestedManyWithoutUserInput
+  }
+
+  export type UserUncheckedCreateWithoutCustomNodesInput = {
+    id?: string
+    name: string
+    code: string
+    password: string
+    email: string
+    description: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    permission?: string
+    lmmConfig?: NullableJsonNullValueInput | InputJsonValue
+    createdTeams?: TeamUncheckedCreateNestedManyWithoutCreatedByInput
+    teamMemberships?: MemberTeamUncheckedCreateNestedManyWithoutUserInput
+    teams?: TeamUncheckedCreateNestedManyWithoutUsersInput
+    createdKnowledge?: KnowledgeUncheckedCreateNestedManyWithoutCreatedByInput
+    knowledge?: KnowledgeUncheckedCreateNestedManyWithoutUsersInput
+    ownedAgents?: AgentUncheckedCreateNestedManyWithoutUserInput
+    createdAgents?: AgentUncheckedCreateNestedManyWithoutCreatedByInput
+    FileParsingTask?: FileParsingTaskUncheckedCreateNestedManyWithoutCreatedByInput
+    ownedLLMProviders?: LLMProviderUncheckedCreateNestedManyWithoutUserOwnerInput
+    conversations?: ConversationUncheckedCreateNestedManyWithoutUserInput
+    apiTokens?: ApiTokenUncheckedCreateNestedManyWithoutUserInput
+  }
+
+  export type UserCreateOrConnectWithoutCustomNodesInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutCustomNodesInput, UserUncheckedCreateWithoutCustomNodesInput>
+  }
+
+  export type TeamCreateWithoutCustomNodesInput = {
+    id?: string
+    name: string
+    description: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    createdBy: UserCreateNestedOneWithoutCreatedTeamsInput
+    members?: MemberTeamCreateNestedManyWithoutTeamInput
+    users?: UserCreateNestedManyWithoutTeamsInput
+    knowledge?: KnowledgeCreateNestedManyWithoutTeamsInput
+    ownedAgents?: AgentCreateNestedManyWithoutTeamInput
+    ownedLLMProviders?: LLMProviderCreateNestedManyWithoutTeamOwnerInput
+    conversations?: ConversationCreateNestedManyWithoutTeamInput
+  }
+
+  export type TeamUncheckedCreateWithoutCustomNodesInput = {
+    id?: string
+    name: string
+    description: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    createdById: string
+    members?: MemberTeamUncheckedCreateNestedManyWithoutTeamInput
+    users?: UserUncheckedCreateNestedManyWithoutTeamsInput
+    knowledge?: KnowledgeUncheckedCreateNestedManyWithoutTeamsInput
+    ownedAgents?: AgentUncheckedCreateNestedManyWithoutTeamInput
+    ownedLLMProviders?: LLMProviderUncheckedCreateNestedManyWithoutTeamOwnerInput
+    conversations?: ConversationUncheckedCreateNestedManyWithoutTeamInput
+  }
+
+  export type TeamCreateOrConnectWithoutCustomNodesInput = {
+    where: TeamWhereUniqueInput
+    create: XOR<TeamCreateWithoutCustomNodesInput, TeamUncheckedCreateWithoutCustomNodesInput>
+  }
+
+  export type UserUpsertWithoutCustomNodesInput = {
+    update: XOR<UserUpdateWithoutCustomNodesInput, UserUncheckedUpdateWithoutCustomNodesInput>
+    create: XOR<UserCreateWithoutCustomNodesInput, UserUncheckedCreateWithoutCustomNodesInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutCustomNodesInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutCustomNodesInput, UserUncheckedUpdateWithoutCustomNodesInput>
+  }
+
+  export type UserUpdateWithoutCustomNodesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    permission?: StringFieldUpdateOperationsInput | string
+    lmmConfig?: NullableJsonNullValueInput | InputJsonValue
+    createdTeams?: TeamUpdateManyWithoutCreatedByNestedInput
+    teamMemberships?: MemberTeamUpdateManyWithoutUserNestedInput
+    teams?: TeamUpdateManyWithoutUsersNestedInput
+    createdKnowledge?: KnowledgeUpdateManyWithoutCreatedByNestedInput
+    knowledge?: KnowledgeUpdateManyWithoutUsersNestedInput
+    ownedAgents?: AgentUpdateManyWithoutUserNestedInput
+    createdAgents?: AgentUpdateManyWithoutCreatedByNestedInput
+    FileParsingTask?: FileParsingTaskUpdateManyWithoutCreatedByNestedInput
+    ownedLLMProviders?: LLMProviderUpdateManyWithoutUserOwnerNestedInput
+    conversations?: ConversationUpdateManyWithoutUserNestedInput
+    apiTokens?: ApiTokenUpdateManyWithoutUserNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutCustomNodesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    permission?: StringFieldUpdateOperationsInput | string
+    lmmConfig?: NullableJsonNullValueInput | InputJsonValue
+    createdTeams?: TeamUncheckedUpdateManyWithoutCreatedByNestedInput
+    teamMemberships?: MemberTeamUncheckedUpdateManyWithoutUserNestedInput
+    teams?: TeamUncheckedUpdateManyWithoutUsersNestedInput
+    createdKnowledge?: KnowledgeUncheckedUpdateManyWithoutCreatedByNestedInput
+    knowledge?: KnowledgeUncheckedUpdateManyWithoutUsersNestedInput
+    ownedAgents?: AgentUncheckedUpdateManyWithoutUserNestedInput
+    createdAgents?: AgentUncheckedUpdateManyWithoutCreatedByNestedInput
+    FileParsingTask?: FileParsingTaskUncheckedUpdateManyWithoutCreatedByNestedInput
+    ownedLLMProviders?: LLMProviderUncheckedUpdateManyWithoutUserOwnerNestedInput
+    conversations?: ConversationUncheckedUpdateManyWithoutUserNestedInput
+    apiTokens?: ApiTokenUncheckedUpdateManyWithoutUserNestedInput
+  }
+
+  export type TeamUpsertWithoutCustomNodesInput = {
+    update: XOR<TeamUpdateWithoutCustomNodesInput, TeamUncheckedUpdateWithoutCustomNodesInput>
+    create: XOR<TeamCreateWithoutCustomNodesInput, TeamUncheckedCreateWithoutCustomNodesInput>
+    where?: TeamWhereInput
+  }
+
+  export type TeamUpdateToOneWithWhereWithoutCustomNodesInput = {
+    where?: TeamWhereInput
+    data: XOR<TeamUpdateWithoutCustomNodesInput, TeamUncheckedUpdateWithoutCustomNodesInput>
+  }
+
+  export type TeamUpdateWithoutCustomNodesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: UserUpdateOneRequiredWithoutCreatedTeamsNestedInput
+    members?: MemberTeamUpdateManyWithoutTeamNestedInput
+    users?: UserUpdateManyWithoutTeamsNestedInput
+    knowledge?: KnowledgeUpdateManyWithoutTeamsNestedInput
+    ownedAgents?: AgentUpdateManyWithoutTeamNestedInput
+    ownedLLMProviders?: LLMProviderUpdateManyWithoutTeamOwnerNestedInput
+    conversations?: ConversationUpdateManyWithoutTeamNestedInput
+  }
+
+  export type TeamUncheckedUpdateWithoutCustomNodesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdById?: StringFieldUpdateOperationsInput | string
+    members?: MemberTeamUncheckedUpdateManyWithoutTeamNestedInput
+    users?: UserUncheckedUpdateManyWithoutTeamsNestedInput
+    knowledge?: KnowledgeUncheckedUpdateManyWithoutTeamsNestedInput
+    ownedAgents?: AgentUncheckedUpdateManyWithoutTeamNestedInput
+    ownedLLMProviders?: LLMProviderUncheckedUpdateManyWithoutTeamOwnerNestedInput
+    conversations?: ConversationUncheckedUpdateManyWithoutTeamNestedInput
+  }
+
   export type MemberTeamCreateManyTeamInput = {
     id?: string
     permission?: string
@@ -25987,6 +28119,21 @@ export namespace Prisma {
     updatedAt?: Date | string
     lastMessageAt?: Date | string
     userId?: string | null
+  }
+
+  export type CustomNodeCreateManyTeamInput = {
+    id?: string
+    name: string
+    description: string
+    code: string
+    inputPorts: JsonNullValueInput | InputJsonValue
+    outputPorts: JsonNullValueInput | InputJsonValue
+    icon?: string | null
+    category?: string
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    createdById: string
   }
 
   export type MemberTeamUpdateWithoutTeamInput = {
@@ -26034,6 +28181,7 @@ export namespace Prisma {
     ownedLLMProviders?: LLMProviderUpdateManyWithoutUserOwnerNestedInput
     conversations?: ConversationUpdateManyWithoutUserNestedInput
     apiTokens?: ApiTokenUpdateManyWithoutUserNestedInput
+    customNodes?: CustomNodeUpdateManyWithoutCreatedByNestedInput
   }
 
   export type UserUncheckedUpdateWithoutTeamsInput = {
@@ -26057,6 +28205,7 @@ export namespace Prisma {
     ownedLLMProviders?: LLMProviderUncheckedUpdateManyWithoutUserOwnerNestedInput
     conversations?: ConversationUncheckedUpdateManyWithoutUserNestedInput
     apiTokens?: ApiTokenUncheckedUpdateManyWithoutUserNestedInput
+    customNodes?: CustomNodeUncheckedUpdateManyWithoutCreatedByNestedInput
   }
 
   export type UserUncheckedUpdateManyWithoutTeamsInput = {
@@ -26223,6 +28372,51 @@ export namespace Prisma {
     userId?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
+  export type CustomNodeUpdateWithoutTeamInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    inputPorts?: JsonNullValueInput | InputJsonValue
+    outputPorts?: JsonNullValueInput | InputJsonValue
+    icon?: NullableStringFieldUpdateOperationsInput | string | null
+    category?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: UserUpdateOneRequiredWithoutCustomNodesNestedInput
+  }
+
+  export type CustomNodeUncheckedUpdateWithoutTeamInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    inputPorts?: JsonNullValueInput | InputJsonValue
+    outputPorts?: JsonNullValueInput | InputJsonValue
+    icon?: NullableStringFieldUpdateOperationsInput | string | null
+    category?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdById?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type CustomNodeUncheckedUpdateManyWithoutTeamInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    inputPorts?: JsonNullValueInput | InputJsonValue
+    outputPorts?: JsonNullValueInput | InputJsonValue
+    icon?: NullableStringFieldUpdateOperationsInput | string | null
+    category?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdById?: StringFieldUpdateOperationsInput | string
+  }
+
   export type FileCreateManyKnowledgeInput = {
     id?: string
     filename: string
@@ -26257,6 +28451,7 @@ export namespace Prisma {
     ownedLLMProviders?: LLMProviderUpdateManyWithoutUserOwnerNestedInput
     conversations?: ConversationUpdateManyWithoutUserNestedInput
     apiTokens?: ApiTokenUpdateManyWithoutUserNestedInput
+    customNodes?: CustomNodeUpdateManyWithoutCreatedByNestedInput
   }
 
   export type UserUncheckedUpdateWithoutKnowledgeInput = {
@@ -26280,6 +28475,7 @@ export namespace Prisma {
     ownedLLMProviders?: LLMProviderUncheckedUpdateManyWithoutUserOwnerNestedInput
     conversations?: ConversationUncheckedUpdateManyWithoutUserNestedInput
     apiTokens?: ApiTokenUncheckedUpdateManyWithoutUserNestedInput
+    customNodes?: CustomNodeUncheckedUpdateManyWithoutCreatedByNestedInput
   }
 
   export type UserUncheckedUpdateManyWithoutKnowledgeInput = {
@@ -26307,6 +28503,7 @@ export namespace Prisma {
     ownedAgents?: AgentUpdateManyWithoutTeamNestedInput
     ownedLLMProviders?: LLMProviderUpdateManyWithoutTeamOwnerNestedInput
     conversations?: ConversationUpdateManyWithoutTeamNestedInput
+    customNodes?: CustomNodeUpdateManyWithoutTeamNestedInput
   }
 
   export type TeamUncheckedUpdateWithoutKnowledgeInput = {
@@ -26321,6 +28518,7 @@ export namespace Prisma {
     ownedAgents?: AgentUncheckedUpdateManyWithoutTeamNestedInput
     ownedLLMProviders?: LLMProviderUncheckedUpdateManyWithoutTeamOwnerNestedInput
     conversations?: ConversationUncheckedUpdateManyWithoutTeamNestedInput
+    customNodes?: CustomNodeUncheckedUpdateManyWithoutTeamNestedInput
   }
 
   export type TeamUncheckedUpdateManyWithoutKnowledgeInput = {
@@ -26471,6 +28669,21 @@ export namespace Prisma {
     status?: string
   }
 
+  export type CustomNodeCreateManyCreatedByInput = {
+    id?: string
+    name: string
+    description: string
+    code: string
+    inputPorts: JsonNullValueInput | InputJsonValue
+    outputPorts: JsonNullValueInput | InputJsonValue
+    icon?: string | null
+    category?: string
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    teamId?: string | null
+  }
+
   export type TeamUpdateWithoutCreatedByInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
@@ -26483,6 +28696,7 @@ export namespace Prisma {
     ownedAgents?: AgentUpdateManyWithoutTeamNestedInput
     ownedLLMProviders?: LLMProviderUpdateManyWithoutTeamOwnerNestedInput
     conversations?: ConversationUpdateManyWithoutTeamNestedInput
+    customNodes?: CustomNodeUpdateManyWithoutTeamNestedInput
   }
 
   export type TeamUncheckedUpdateWithoutCreatedByInput = {
@@ -26497,6 +28711,7 @@ export namespace Prisma {
     ownedAgents?: AgentUncheckedUpdateManyWithoutTeamNestedInput
     ownedLLMProviders?: LLMProviderUncheckedUpdateManyWithoutTeamOwnerNestedInput
     conversations?: ConversationUncheckedUpdateManyWithoutTeamNestedInput
+    customNodes?: CustomNodeUncheckedUpdateManyWithoutTeamNestedInput
   }
 
   export type TeamUncheckedUpdateManyWithoutCreatedByInput = {
@@ -26543,6 +28758,7 @@ export namespace Prisma {
     ownedAgents?: AgentUpdateManyWithoutTeamNestedInput
     ownedLLMProviders?: LLMProviderUpdateManyWithoutTeamOwnerNestedInput
     conversations?: ConversationUpdateManyWithoutTeamNestedInput
+    customNodes?: CustomNodeUpdateManyWithoutTeamNestedInput
   }
 
   export type TeamUncheckedUpdateWithoutUsersInput = {
@@ -26557,6 +28773,7 @@ export namespace Prisma {
     ownedAgents?: AgentUncheckedUpdateManyWithoutTeamNestedInput
     ownedLLMProviders?: LLMProviderUncheckedUpdateManyWithoutTeamOwnerNestedInput
     conversations?: ConversationUncheckedUpdateManyWithoutTeamNestedInput
+    customNodes?: CustomNodeUncheckedUpdateManyWithoutTeamNestedInput
   }
 
   export type TeamUncheckedUpdateManyWithoutUsersInput = {
@@ -26857,6 +29074,51 @@ export namespace Prisma {
     expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     lastUsedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type CustomNodeUpdateWithoutCreatedByInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    inputPorts?: JsonNullValueInput | InputJsonValue
+    outputPorts?: JsonNullValueInput | InputJsonValue
+    icon?: NullableStringFieldUpdateOperationsInput | string | null
+    category?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    team?: TeamUpdateOneWithoutCustomNodesNestedInput
+  }
+
+  export type CustomNodeUncheckedUpdateWithoutCreatedByInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    inputPorts?: JsonNullValueInput | InputJsonValue
+    outputPorts?: JsonNullValueInput | InputJsonValue
+    icon?: NullableStringFieldUpdateOperationsInput | string | null
+    category?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    teamId?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type CustomNodeUncheckedUpdateManyWithoutCreatedByInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    inputPorts?: JsonNullValueInput | InputJsonValue
+    outputPorts?: JsonNullValueInput | InputJsonValue
+    icon?: NullableStringFieldUpdateOperationsInput | string | null
+    category?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    teamId?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type FileParsingTaskCreateManyFileInput = {

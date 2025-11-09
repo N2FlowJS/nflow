@@ -51,6 +51,7 @@ export enum NodeCategory {
   LOGIC = 'logic',
   TRANSFORM = 'transform',
   UTILITY = 'utility',
+  CODE = 'code',
 }
 
 /**

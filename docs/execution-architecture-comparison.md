@@ -209,19 +209,9 @@ export class {Package}Executor extends BaseNodeExecutor<{Package}Form> {
 }
 ```
 
-### Step 2: Create Backward-Compatible Wrapper
-```typescript
-// packages/{package}/execute-v2.ts
-export async function execute{Package}Node(
-  node: FlowNode,
-  context: FlowExecutionContext,
-  dispatcher?: FlowStateDispatcher
-): Promise<ExecutionResult> {
-  return {package}Executor.execute(node, context, dispatcher);
-}
-```
 
-### Step 3: Update Plugin Registration
+
+### Step 2: Update Plugin Registration
 ```typescript
 // packages/{package}/plugin.ts
 export const plugin: NodePlugin = {

@@ -1,4 +1,4 @@
-import { CommentOutlined, SaveOutlined } from '@ant-design/icons';
+import { CommentOutlined, SaveOutlined, CodeOutlined } from '@ant-design/icons';
 import {
   Background,
   BackgroundVariant,
@@ -19,6 +19,7 @@ import { Modal, Form, Layout, Button } from 'antd';
 import React, { memo, useCallback, useMemo, useState, useRef, useEffect } from 'react';
 
 import NodeForm from '../../../packages/@flow/share/DynamicNodeForm';
+import CustomNodeModal from '../CustomNodeModal';
 
 import { useFlowState } from '../../../context/FlowStateContext';
 import { useTheme } from '../../../theme';
@@ -131,6 +132,9 @@ const FlowEditor: React.FC<FlowEditorProps> = ({
   // Next step modal state
   const [isNextStepOpen, setIsNextStepOpen] = useState(false);
   const [nextStepCtx, setNextStepCtx] = useState<NextStepContext>(null);
+
+  // Custom node modal state
+  const [isCustomNodeModalOpen, setIsCustomNodeModalOpen] = useState(false);
 
   const noNodes = nodes.length === 0;
 
@@ -487,6 +491,9 @@ const FlowEditor: React.FC<FlowEditorProps> = ({
               <ControlButton onClick={onStartConversation}>
                 <CommentOutlined />
               </ControlButton>
+              <ControlButton onClick={() => setIsCustomNodeModalOpen(true)}>
+                <CodeOutlined />
+              </ControlButton>
             </Controls>
             <Background variant={BackgroundVariant.Dots} gap={24} size={1} />
           </ReactFlow>
@@ -539,6 +546,42 @@ const FlowEditor: React.FC<FlowEditorProps> = ({
             setNextStepCtx(null);
           }}
           onSelect={(type) => addNextNode(type)}
+        />
+
+        <CustomNodeModal
+          open={isCustomNodeModalOpen}
+          onCancel={() => setIsCustomNodeModalOpen(false)}
+          onCreate={async (data) => {
+            try {
+              const response = await fetch('/api/custom-nodes', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${localStorage.getItem('token') || ''}`,
+                },
+                body: JSON.stringify(data),
+              });
+
+              if (!response.ok) {
+                throw new Error('Failed to create custom node');
+              }
+
+              const result = await response.json();
+              console.log('Created custom node:', result);
+
+              // Close modal and show success
+              setIsCustomNodeModalOpen(false);
+
+              // Optionally refresh the page or update the registry
+              // For now, we'll just show a success message
+              // In a real app, you might want to refresh the NODE_REGISTRY
+
+            } catch (error) {
+              console.error('Error creating custom node:', error);
+              // You might want to show an error message to the user here
+            }
+          }}
+          loading={false}
         />
       </Layout>
     </FlowEditorContext.Provider>

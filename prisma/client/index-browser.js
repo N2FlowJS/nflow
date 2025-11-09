@@ -267,6 +267,22 @@ exports.Prisma.ConversationMessageScalarFieldEnum = {
   nodeType: 'nodeType'
 };
 
+exports.Prisma.CustomNodeScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  description: 'description',
+  code: 'code',
+  inputPorts: 'inputPorts',
+  outputPorts: 'outputPorts',
+  icon: 'icon',
+  category: 'category',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  createdById: 'createdById',
+  teamId: 'teamId'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -311,7 +327,8 @@ exports.Prisma.ModelName = {
   LLMProvider: 'LLMProvider',
   LLMModel: 'LLMModel',
   Conversation: 'Conversation',
-  ConversationMessage: 'ConversationMessage'
+  ConversationMessage: 'ConversationMessage',
+  CustomNode: 'CustomNode'
 };
 
 /**

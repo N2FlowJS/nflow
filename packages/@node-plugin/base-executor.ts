@@ -43,6 +43,13 @@ export abstract class BaseNodeExecutor<TForm = any> {
   constructor(protected config: ExecutorConfig) {}
 
   /**
+   * Get the node type for this executor
+   */
+  get nodeType(): string {
+    return this.config.nodeType;
+  }
+
+  /**
    * Main execution entry point - implements common flow
    */
   async execute(

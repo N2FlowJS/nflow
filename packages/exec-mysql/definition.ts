@@ -5,8 +5,9 @@ import {
   NodeExecutionResult,
 } from '../@node-plugin/type';
 import { PortType, InputPort, OutputPort } from '../@flow/ports/types';
-import { getInputFromTemplate, processTemplate } from '@n2flowjs/template/template';
-import { isNodeReady } from '@n2flowjs/flow/is-node-ready';
+import { getInputFromTemplate } from '@n2flowjs/template/template';
+import { ExecMysqlForm } from './types';
+import { execMysqlExecutor } from './executor';
 
 /**
  * MySQL Execute Node Definition
@@ -153,100 +154,49 @@ export const ExecMysqlNodeDefinition: NodeDefinition = {
   },
 
   async execute(context: NodeExecutionContext): Promise<NodeExecutionResult> {
-    const { config, inputs, dispatcher, node, flowState } = context;
-    const startTime = new Date().toISOString();
-
-    const templateVars = getInputFromTemplate((config.query as string) || '');
-
-    if (!isNodeReady(templateVars, flowState)) {
-      return {
-        outputs: { results: [], count: 0 },
-        status: 'in_progress',
-        metadata: { message: 'Waiting for input variables' }
-      };
-    }
-
+    const { node, flowState, dispatcher } = context;
+    
+    // Convert to FlowExecutionContext format expected by BaseNodeExecutor
+    const flowExecutionContext = { 
+      flow: { nodes: [], edges: [] }, 
+      flowState,
+      input: { role: 'user' as const, content: '' } // Empty input for now
+    };
+    
+    // Execute using the BaseNodeExecutor
+    const result = await execMysqlExecutor.execute(node, flowExecutionContext, dispatcher);
+    
+    // Convert ExecutionResult to NodeExecutionResult format
+    const statusMap: Record<string, 'success' | 'error' | 'in_progress'> = {
+      'ended': 'success',
+      'error': 'error',
+      'in_progress': 'in_progress',
+      'waiting': 'in_progress',
+      'token': 'in_progress',
+      'add_message': 'in_progress'
+    };
+    
+    // Parse the JSON result back to object for the outputs
+    let results: any[] = [];
+    let count = 0;
     try {
-      const vars: Record<string, string> = {};
-      templateVars.forEach((key) => {
-        if (inputs?.[key] !== undefined) {
-          vars[key] = String(inputs[key]);
-        } else if (flowState.components[key] !== undefined) {
-          vars[key] = flowState.components[key].output || '';
-        }
-      });
-
-      if (!config.server || !config.database || !config.user) {
-        throw new Error('Missing required connection parameters');
-      }
-
-      if (!config.query || String(config.query).trim() === '') {
-        throw new Error('No SQL query specified');
-      }
-
-      const processedQuery = processTemplate(config.query as string, vars);
-
-      // Import mysql2 dynamically
-      const mysql = await import('mysql2/promise');
-
-      const connection = await mysql.createConnection({
-        host: config.server as string,
-        port: (config.port as number) || 3306,
-        user: config.user as string,
-        password: (config.password as string) || '',
-        database: config.database as string,
-        connectTimeout: ((config.timeout as number) || 30) * 1000,
-      });
-
-      let results: any;
-
-      try {
-        const [rows] = await connection.execute(processedQuery);
-        results = rows;
-
-        if (config.maxRows && Array.isArray(results) && results.length > (config.maxRows as number)) {
-          results = results.slice(0, config.maxRows as number);
-        }
-      } finally {
-        await connection.end();
-      }
-
-      const formattedResults = JSON.stringify(results, null, 2);
-
-      if (dispatcher) {
-        dispatcher.setNodeOutput(node.id, formattedResults, 'execmysql');
-        dispatcher.setCurrentNode(node);
-      }
-
-      return {
-        outputs: {
-          results,
-          count: Array.isArray(results) ? results.length : 0
-        },
-        status: 'success',
-        metadata: {
-          startTime,
-          endTime: new Date().toISOString(),
-          rowCount: Array.isArray(results) ? results.length : 0,
-          query: processedQuery
-        }
-      };
-    } catch (error: unknown) {
-      console.error('MySQL execution error:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Unknown MySQL error';
-
-      return {
-        outputs: {
-          results: [],
-          count: 0
-        },
-        status: 'error',
-        metadata: {
-          startTime,
-          endTime: new Date().toISOString(),
-          error: errorMessage
-        }
-      };
+      results = JSON.parse(result.execution?.output || '[]');
+      count = Array.isArray(results) ? results.length : 0;
+    } catch {
+      // If parsing fails, keep as empty array
     }
+    
+    return {
+      outputs: {
+        results,
+        count
+      },
+      status: statusMap[result.status] || 'in_progress',
+      metadata: {
+        startTime: result.execution?.startTime,
+        endTime: result.execution?.endTime,
+        rowCount: count,
+      },
+    };
   }
 };

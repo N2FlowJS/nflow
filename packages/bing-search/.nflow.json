@@ -1,5 +1,28 @@
 {
+  "name": "bing-search",
+  "version": "1.0.0",
+  "description": "Search web, images, news, videos using Bing Search API",
   "enabled": true,
-  "order": 121,
-  "name": "bing-search"
+  "input": "query, apiKey, searchType, maxResults, safeSearch, language, country",
+  "output": "results, count",
+  "defaults": {
+    "form": {
+      "name": "Bing Search",
+      "description": "Search web, images, news, videos using Bing Search API",
+      "code": "const { query, apiKey, searchType = 'web', maxResults = 10, safeSearch = 'moderate', language = 'en', country = 'us' } = inputs;\n\nif (!query || query.trim() === '') {\n  throw new Error('Search query is empty');\n}\n\nconst processedQuery = query; // Assume query is already processed\n\nconst finalApiKey = apiKey || process.env.BING_SEARCH_API_KEY;\n\nif (!finalApiKey) {\n  throw new Error('Bing Search API key is required');\n}\n\nconst finalMaxResults = Math.min(maxResults, 50);\n\nlet endpoint = 'https://api.bing.microsoft.com/v7.0/search';\n\nswitch (searchType) {\n  case 'images':\n    endpoint = 'https://api.bing.microsoft.com/v7.0/images/search';\n    break;\n  case 'news':\n    endpoint = 'https://api.bing.microsoft.com/v7.0/news/search';\n    break;\n  case 'videos':\n    endpoint = 'https://api.bing.microsoft.com/v7.0/videos/search';\n    break;\n}\n\nconst params = new URLSearchParams({\n  q: processedQuery,\n  count: finalMaxResults.toString(),\n  safeSearch: safeSearch,\n  setLang: language,\n  cc: country,\n});\n\nconst response = await fetch(endpoint + '?' + params.toString(), {\n  method: 'GET',\n  headers: {\n    'Ocp-Apim-Subscription-Key': finalApiKey,\n    'Accept': 'application/json',\n  },\n});\n\nif (!response.ok) {\n  const errorData = await response.text();\n  throw new Error('Bing Search API error (' + response.status + '): ' + errorData);\n}\n\nconst data = await response.json();\n\nlet results = [];\n\nswitch (searchType) {\n  case 'web':\n    results = (data.webPages?.value || []).map((item) => ({\n      title: item.name,\n      description: item.snippet,\n      url: item.url,\n      displayUrl: item.displayUrl,\n    }));\n    break;\n  case 'images':\n    results = (data.value || []).map((item) => ({\n      title: item.name,\n      url: item.contentUrl,\n      thumbnailUrl: item.thumbnailUrl,\n      width: item.width,\n      height: item.height,\n    }));\n    break;\n  case 'news':\n    results = (data.value || []).map((item) => ({\n      title: item.name,\n      description: item.description,\n      url: item.url,\n      datePublished: item.datePublished,\n      provider: item.provider?.[0]?.name,\n    }));\n    break;\n  case 'videos':\n    results = (data.value || []).map((item) => ({\n      title: item.name,\n      description: item.description,\n      url: item.contentUrl,\n      thumbnailUrl: item.thumbnailUrl,\n      duration: item.duration,\n    }));\n    break;\n}\n\nconst searchResults = {\n  query: processedQuery,\n  searchType,\n  totalEstimatedMatches: data.webPages?.totalEstimatedMatches || data.totalEstimatedMatches || 0,\n  results,\n  timestamp: new Date().toISOString(),\n};\n\noutputs.results = searchResults;\noutputs.count = results.length;",
+      "inputPorts": [
+        { "name": "query", "type": "string", "required": true },
+        { "name": "apiKey", "type": "string", "required": false },
+        { "name": "searchType", "type": "string", "required": true },
+        { "name": "maxResults", "type": "number", "required": false },
+        { "name": "safeSearch", "type": "string", "required": false },
+        { "name": "language", "type": "string", "required": false },
+        { "name": "country", "type": "string", "required": false }
+      ],
+      "outputPorts": [
+        { "name": "results", "type": "json" },
+        { "name": "count", "type": "number" }
+      ]
+    }
+  }
 }

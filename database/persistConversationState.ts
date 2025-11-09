@@ -98,7 +98,7 @@ export async function getConversationMessages(conversationId: string): Promise<M
     },
   });
 
-  return messages.map(msg => ({
+  return messages.map((msg: { content: string; role: string }) => ({
     content: msg.content,
     role: msg.role as 'user' | 'assistant' | 'system',
   }));

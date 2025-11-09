@@ -170,7 +170,6 @@ packages/display/
 ├── types.ts             (DisplayForm, DisplayNodeData)
 ├── executor.ts          ✅ 27 lines - ONLY business logic
 │   └── executeLogic()   (Format content based on outputFormat)
-├── execute-v2.ts        ✅ 16 lines - Backward compatibility
 ├── plugin.ts            (Plugin registration - uses executor)
 └── index.ts             (Exports)
 ```
@@ -380,23 +379,7 @@ export class DisplayExecutor extends BaseNodeExecutor<DisplayForm> {
 export const displayExecutor = new DisplayExecutor();
 ```
 
-#### 3. Create Compatibility Wrapper → execute-v2.ts (16 lines)
-```typescript
-import { displayExecutor } from './executor';
-
-export async function executeDisplayNode(
-  node: FlowNode,
-  context: FlowExecutionContext,
-  dispatcher?: FlowStateDispatcher
-): Promise<ExecutionResult> {
-  return displayExecutor.execute(node, context, dispatcher);
-}
-
-export { executeDisplayNode as execute };
-export default executeDisplayNode;
-```
-
-#### 4. Update Plugin → plugin.ts
+#### 3. Update Plugin → plugin.ts
 ```typescript
 import { displayExecutor } from './executor';
 
