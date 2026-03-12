@@ -1,6 +1,0 @@
-{
-  "type": "validate",
-  "enabled": true,
-  "order": 150,
-  "name": "validate"
-}

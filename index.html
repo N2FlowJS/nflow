@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>N2Flow</title>
+    
+    <!-- React Flow CSS loaded via CDN -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@xyflow/react@12.0.0/dist/style.css" />
+    
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              cyber: {
+                dark: '#0a0a0a',
+                panel: '#111111',
+                border: '#333333',
+                primary: '#00f0ff', // Cyan
+                secondary: '#7000ff', // Purple
+                success: '#00ff9f', // Greenish
+                text: '#e0e0e0',
+                muted: '#6b7280'
+              }
+            },
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+              mono: ['Fira Code', 'monospace'],
+            },
+          },
+        },
+      }
+    </script>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap');
+      
+      body {
+        background-color: #050505;
+        color: #e0e0e0;
+      }
+
+      /* React Flow Customizations */
+      .react-flow__attribution {
+        background: rgba(0, 0, 0, 0.5) !important;
+        color: #666 !important;
+      }
+      
+      .react-flow__controls button {
+        background: #1a1a1a;
+        border-bottom: 1px solid #333;
+        fill: #888;
+      }
+      
+      .react-flow__controls button:hover {
+        background: #252525;
+        fill: #fff;
+      }
+
+      /* Custom Scrollbar */
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: rgba(10, 10, 10, 0.5);
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: rgba(0, 240, 255, 0.2);
+        border-radius: 4px;
+        border: 1px solid rgba(0, 240, 255, 0.1);
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: rgba(0, 240, 255, 0.4);
+      }
+      ::-webkit-scrollbar-corner {
+        background: transparent;
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@18.3.1",
+    "react/": "https://esm.sh/react@18.3.1/",
+    "react-dom": "https://esm.sh/react-dom@18.3.1",
+    "react-dom/": "https://esm.sh/react-dom@18.3.1/",
+    "lucide-react": "https://esm.sh/lucide-react@0.300.0",
+    "@xyflow/react": "https://esm.sh/@xyflow/react@12.0.0?deps=react@18.3.1,react-dom@18.3.1"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body>
+    <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+</html>

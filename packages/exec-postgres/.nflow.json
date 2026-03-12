@@ -1,7 +1,0 @@
-{
-  "type": "exec-postgres",
-  "enabled": true,
-  "order": 202,
-  "sort": 1,
-  "name": "exec-postgres"
-}

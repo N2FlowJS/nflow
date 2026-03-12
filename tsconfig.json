@@ -1,41 +1,29 @@
 {
   "compilerOptions": {
-    "target": "ES2017",
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "allowJs": true,
-    "skipLibCheck": true,
-    "strict": true,
-    "noEmit": true,
-    "esModuleInterop": true,
-    "module": "CommonJS",
-    "moduleResolution": "node",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "jsx": "preserve",
-    "incremental": true,
-    "baseUrl": ".",
-    "paths": {
-      "@n2flowjs/flow": ["packages/@flow"],
-      "@n2flowjs/flow/*": ["packages/@flow/*"],
-      "@n2flowjs/template/*": ["packages/@template/*"],
-      "@n2flowjs/template": ["packages/@template"],
-      "@n2flowjs/input": ["packages/@input"],
-      "@n2flowjs/input/*": ["packages/@input/*"],
-      "@n2flowjs/node-plugin": ["packages/@node-plugin"],
-      "@n2flowjs/node-plugin/*": ["packages/@node-plugin/*"]
-    },
-    "plugins": [
-      {
-        "name": "next"
-      }
+    "target": "ES2022",
+    "experimentalDecorators": true,
+    "useDefineForClassFields": false,
+    "module": "ESNext",
+    "lib": [
+      "ES2022",
+      "DOM",
+      "DOM.Iterable"
     ],
-
-    "noImplicitThis": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true
-  },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "nbase/index.js"],
-  "exclude": ["node_modules", "**/*.test.ts", "**/*.test.tsx"]
+    "skipLibCheck": true,
+    "types": [
+      "node"
+    ],
+    "moduleResolution": "bundler",
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "allowJs": true,
+    "jsx": "react-jsx",
+    "paths": {
+      "@/*": [
+        "./*"
+      ]
+    },
+    "allowImportingTsExtensions": true,
+    "noEmit": true
+  }
 }

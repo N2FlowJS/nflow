@@ -1,0 +1,5 @@
+{
+  "name": "N2Flow",
+  "description": "A cyberpunk-styled React Flow visualization of the N2Flow data processing pipeline.",
+  "requestFramePermissions": []
+}

@@ -1,105 +1,46 @@
-# NFlow Architecture and Document Processing Flow
+# N2FLOW
+
+## Run
+
+1. Start frontend:
 
 ```bash
-╔═══════════════════════════════════════════╗                                      
-║    _   _       _____ _                    ║
-║   | \ | |     |  ___| | _____      __     ║
-║   |  \| |_____| |_  | |/ _ \ \ /\ / /     ║
-║   | |\  |_____|  _| | | (_) \ V  V /      ║
-║   |_| \_|     |_|   |_|\___/ \_/\_/       ║ 
-║                                           ║
-╚═══════════════════════════════════════════╝
-```
-
-> **The Next-Generation Native Flow for Document Processing and RAG in Node.js**
-
-[![GitHub stars](https://img.shields.io/github/stars/N2FlowJS/nflow)](https://github.com/N2FlowJS/nflow/stargazers)
-[![GitHub forks](https://img.shields.io/github/forks/N2FlowJS/nflow)](https://github.com/N2FlowJS/nflow/network/members)
-[![GitHub issues](https://img.shields.io/github/issues/N2FlowJS/nflow)](https://github.com/N2FlowJS/nflow/issues)
-[![GitHub license](https://img.shields.io/github/license/N2FlowJS/nflow)](https://github.com/N2FlowJS/nflow/blob/main/LICENSE)
-
-📚 [Documentation](https://n2flowjs.github.io/nflow)  
-💻 [GitHub Repository](https://github.com/N2FlowJS/nflow)
-
----
-
-## ✨ Features
-
-- ⚡ **Ultra Fast:** 100% native JavaScript/TypeScript, zero dependencies.
-- 🧠 **Intelligent Pipelines:** Ingest, process, embed, store, and query seamlessly.
-- 🗂️ **Fully Modular:** Swap in your own loaders, splitters, embedders, and stores.
-- 🔍 **Optimized Search:** High-performance vector similarity search.
-- 🔄 **Scalable:** From prototypes to enterprise-grade deployments.
-- 🔥 **Designed for RAG:** Perfect foundation for Retrieval-Augmented Generation.
-
----
-
-## 🔥 Why N-Flow?
-- 🏎 Zero Overhead: Native Node.js, no unnecessary bloat.
-- 🛡 Reliable: Structured error handling for stability.
-- 🔧 Extensible: Customize each pipeline step easily.
-- 🧠 AI-Ready: Designed for semantic search and LLM-based systems.
----
-
-## 🧩 Core Concepts
-
-| Concept           | Description |
-|-------------------|-------------|
-| **Loader**         | Import documents from file systems, URLs, APIs, etc. |
-| **Splitter**       | Divide documents into smaller semantic chunks. |
-| **Embedder**       | Transform text into vector embeddings. |
-| **Vector Store**   | Store embeddings and enable fast retrieval. |
-| **Flow**           | Orchestrate full ingestion and retrieval processes. |
-
----
-
-## 📚 Architecture Overview
-
-![N-Flow Architecture Diagram](/docs/assets/nflow-architecture.png)
-
-> **Flow of Documents:** Load → Preprocess → Embed → Store  
-> **Flow of Queries:** Embed Query → Retrieve → Respond
-
----
-
-## 🚀 Why Choose N-Flow?
-
-- 🏎️ **Blazing Fast:** Built for speed, not bloat.
-- 🧩 **Composable:** Easily integrate your preferred libraries and models.
-- 📚 **AI-First:** Specifically optimized for LLMs and semantic applications.
-- 🛡️ **Production-Ready:** Robust error handling, test coverage, and extensibility.
-
----
-
-## 📈 Roadmap
-
-- [x] Built-in loaders for PDF, Word, Text files.
-- [ ] Real-time ingestion with WebSocket support.
-- [ ] Sharded vector storage for horizontal scaling.
-- [ ] Summarization modules for large docs.
-- [ ] Integration with LangChain, LlamaIndex, etc.
-
----
-
-## 🤝 Contributing
-
-We ❤️ contributions!
-
-```bash
-git clone https://github.com/N2FlowJS/nflow.git
-cd nflow
-npm install
 npm run dev
 ```
 
-Please check out [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
+2. Start MSSQL backend API (new terminal):
 
----
+```bash
+npm run dev:server
+```
 
-## 📜 License
+SQL API runs at `http://localhost:8787`.
 
-This project is licensed under the **MIT License**.
+## Flow Runtime (server-only)
 
----
+- Flow execution now runs on server runtime only.
+- Realtime event stream endpoint: `POST /api/flow/execute/stream` (NDJSON events).
+- Batch endpoint remains available: `POST /api/flow/execute`.
+- Server runtime centralizes provider calls for easier maintenance and API key handling.
+- Server runtime source is now TypeScript under `server/` and runs via `tsx`.
+- Installed provider SDKs:
+	- `@google/genai`
+	- `openai`
+	- `ollama`
 
-> Powered by passion, built for scale — N-Flow is the heartbeat of document-driven AI applications.
+### Runtime checklist (stability + UX/perf)
+
+- [x] NDJSON streaming endpoint for real-time execution events.
+- [x] Client-disconnect-aware cancellation in server executor.
+- [x] Stream heartbeat (`ping`) events to keep long-running connections alive.
+- [x] Frontend request cancellation for overlapping manual runs.
+- [x] Live-mode overlap guard (skip tick when previous silent run is still active).
+- [x] Configurable runtime base URL via `VITE_RUNTIME_URL` (fallback `http://localhost:8787`).
+
+## MSSQLPyODBCComponent (real execution)
+
+- Set node params in Flow Editor:
+	- `Server Host`, `Port`, `DB User`, `DB Password`, `Database`
+	- `Query Template` (supports placeholders like `{query}` when used as tool)
+	- `Max Rows` to limit response size (default `200`)
+- When connected to Agent `tools`, the node executes real SQL through backend API.

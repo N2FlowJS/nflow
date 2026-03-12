@@ -1,1 +1,0 @@
-export { getNodeTypes, reloadNodeTypes, nodeTypes } from '../share/dynamicNodeTypes';

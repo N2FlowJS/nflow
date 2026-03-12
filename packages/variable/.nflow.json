@@ -1,6 +1,0 @@
-{
-  "type": "weather",
-  "enabled": true,
-  "order": 151,
-  "name": "variable"
-}
