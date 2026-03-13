@@ -239,6 +239,97 @@ export const runGoogleChat = async (
   return agentResponse.text;
 };
 
+export const runAnthropicChat = async (
+  cfg: LlmRuntimeConfig,
+  systemPrompt: string,
+  userPrompt: string,
+  availableTools: AgentTool[],
+  executeToolByName: (name: string, callArgs: Record<string, string>) => Promise<string>,
+  log: (msg: string) => void,
+) => {
+  const apiKey = String(cfg.apiKey || '');
+  if (!apiKey) throw new Error('Missing Anthropic API Key.');
+
+  // Anthropic messages format: [{role, content}]
+  const messages: any[] = [{ role: 'user', content: userPrompt }];
+
+  for (let step = 0; step < 8; step += 1) {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: cfg.model || 'claude-3-5-sonnet-20240620',
+        system: systemPrompt,
+        messages,
+        max_tokens: 4096,
+        tools: availableTools.length > 0 ? availableTools.map(t => ({
+          name: t.name,
+          description: t.description,
+          input_schema: t.parameters,
+        })) : undefined,
+      }),
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      throw new Error(`Anthropic error ${response.status}: ${errText}`);
+    }
+
+    const data = await response.json();
+    const contentParts = data.content || [];
+    const textPart = contentParts.find((p: any) => p.type === 'text');
+    const toolUseParts = contentParts.filter((p: any) => p.type === 'tool_use');
+
+    if (toolUseParts.length === 0) {
+      return textPart?.text || '[Empty model response]';
+    }
+
+    // Prepare assistant message with tool_use for Anthropic's multi-turn
+    messages.push({ role: 'assistant', content: data.content });
+
+    for (const tu of toolUseParts) {
+      const fnName = tu.name;
+      const fnArgs = tu.input || tu.arguments || {};
+      log(`[Agent: Claude] Tool call: ${fnName} → ${JSON.stringify(fnArgs)}`);
+      const toolResult = await executeToolByName(fnName, fnArgs as Record<string, string>);
+      log(`[Agent: Claude] Tool result: ${String(toolResult).substring(0, 120)}`);
+      
+      messages.push({
+        role: 'user',
+        content: [
+          {
+            type: 'tool_result',
+            tool_use_id: tu.id,
+            content: clampToolResult(String(toolResult || '')),
+          },
+        ],
+      });
+    }
+  }
+
+  throw new Error('Anthropic tool loop exceeded max iterations.');
+};
+
+export const runDalleImageGeneration = async (
+  cfg: LlmRuntimeConfig,
+  prompt: string,
+  options: { size?: string; model?: string } = {}
+) => {
+  const client = getOpenAIClient(cfg);
+  const response = await client.images.generate({
+    model: options.model || "dall-e-3",
+    prompt: prompt,
+    n: 1,
+    size: (options.size as any) || "1024x1024",
+  });
+
+  return response.data[0]?.url || 'Error: No image generated.';
+};
+
 export const runEmbeddingByProvider = async (cfg: LlmRuntimeConfig, input: string): Promise<number[]> => {
   const provider = String(cfg.provider || 'Google').toLowerCase();
 

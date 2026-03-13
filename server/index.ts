@@ -164,6 +164,79 @@ app.post('/api/flow/execute/stream', async (req: Request, res: Response) => {
   }
 });
 
+import path from 'path';
+import fs from 'fs/promises';
+
+const FLOWS_DIR = path.join(process.cwd(), 'flows');
+
+// Ensure flows directory exists
+async function ensureFlowsDir() {
+  try {
+    await fs.access(FLOWS_DIR);
+  } catch {
+    await fs.mkdir(FLOWS_DIR, { recursive: true });
+  }
+}
+ensureFlowsDir();
+
+app.get('/api/flows', async (_req: Request, res: Response) => {
+  try {
+    const files = await fs.readdir(FLOWS_DIR);
+    const flows = await Promise.all(
+      files
+        .filter(f => f.endsWith('.json'))
+        .map(async f => {
+          const content = await fs.readFile(path.join(FLOWS_DIR, f), 'utf-8');
+          const data = JSON.parse(content);
+          return {
+            id: data.id,
+            name: data.name || f.replace('.json', ''),
+            updatedAt: data.updatedAt || Date.now()
+          };
+        })
+    );
+    res.json(flows.sort((a, b) => b.updatedAt - a.updatedAt));
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to list flows' });
+  }
+});
+
+app.get('/api/flows/:id', async (req: Request, res: Response) => {
+  try {
+    const filePath = path.join(FLOWS_DIR, `${req.params.id}.json`);
+    const content = await fs.readFile(filePath, 'utf-8');
+    res.json(JSON.parse(content));
+  } catch (err) {
+    res.status(404).json({ error: 'Flow not found' });
+  }
+});
+
+app.post('/api/flows', async (req: Request, res: Response) => {
+  try {
+    const flow = req.body;
+    if (!flow.id) {
+      res.status(400).json({ error: 'Flow ID is required' });
+      return;
+    }
+    const filePath = path.join(FLOWS_DIR, `${flow.id}.json`);
+    flow.updatedAt = Date.now();
+    await fs.writeFile(filePath, JSON.stringify(flow, null, 2), 'utf-8');
+    res.json({ ok: true, id: flow.id });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to save flow' });
+  }
+});
+
+app.delete('/api/flows/:id', async (req: Request, res: Response) => {
+  try {
+    const filePath = path.join(FLOWS_DIR, `${req.params.id}.json`);
+    await fs.unlink(filePath);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to delete flow' });
+  }
+});
+
 app.listen(port, () => {
   console.log(`[n2flow] SQL server is running at http://localhost:${port}`);
 });

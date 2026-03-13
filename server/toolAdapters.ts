@@ -1,7 +1,8 @@
 import sql from 'mssql';
 import { Client as ElasticClient } from '@elastic/elasticsearch';
 import { Script, createContext } from 'node:vm';
-import { runEmbeddingByProvider } from './llmAdapters';
+import fs from 'node:fs/promises';
+import { runDalleImageGeneration, runEmbeddingByProvider } from './llmAdapters';
 import type { FlowNode } from './flowTypes';
 
 const getNodeFieldValue = (
@@ -130,6 +131,38 @@ const executeJsTool = (code: string, input: string, args: Record<string, string>
     return serializeToolResult(finalResult);
   } catch (err) {
     return `Error executing JS code: ${String(err)}`;
+  }
+};
+
+const runSerperSearch = async (apiKey: string, query: string) => {
+  if (!apiKey) return 'Error: Serper API Key is missing.';
+  if (!query) return 'Error: Search query is empty.';
+
+  try {
+    const response = await fetch('https://google.serper.dev/search', {
+      method: 'POST',
+      headers: {
+        'X-API-KEY': apiKey,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ q: query }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => '');
+      return `Error Serper ${response.status}: ${errorText || response.statusText}`;
+    }
+
+    const data = await response.json();
+    const organic = (data.organic || []).slice(0, 5).map((item: any) => ({
+      title: item.title,
+      link: item.link,
+      snippet: item.snippet,
+    }));
+
+    return JSON.stringify(organic);
+  } catch (e) {
+    return `Error calling Serper API: ${String(e)}`;
   }
 };
 
@@ -426,6 +459,51 @@ export const executeToolNode = async (
         value: Math.round((20 + Math.random() * 80) * 100) / 100,
       }));
       return JSON.stringify(samples);
+    }
+
+    case 'SerperSearchComponent': {
+      const serperApiKey = String(getNodeFieldValue(node, 'apiKey') || '');
+      const query = String(args.query || getNodeFieldValue(node, 'query') || '').replace('{query}', args.query || '');
+      return await runSerperSearch(serperApiKey, query);
+    }
+
+    case 'ImageGenerationComponent': {
+      const prompt = String(args.query || args.prompt || '');
+      const model = String(getNodeFieldValue(node, 'model') || 'dall-e-3');
+      const size = String(getNodeFieldValue(node, 'size') || '1024x1024');
+      const runtimeCfg: any = {
+        apiKey: String(getNodeFieldValue(node, 'apiKey') || apiKey || ''),
+        baseUrl: String(getNodeFieldValue(node, 'baseUrl') || ''),
+      };
+      
+      try {
+        const imageUrl = await runDalleImageGeneration(runtimeCfg, prompt, { model, size });
+        return imageUrl;
+      } catch (e) {
+        return `Error generating image: ${String(e)}`;
+      }
+    }
+
+    case 'FileSystemComponent': {
+      const action = String(getNodeFieldValue(node, 'action') || 'Read').toLowerCase();
+      const path = String(getNodeFieldValue(node, 'path') || args.path || './output.txt');
+      const content = String(args.query || args.content || getNodeFieldValue(node, 'content') || '').replace('{query}', args.query || '');
+
+      try {
+        if (action === 'write') {
+          await fs.writeFile(path, content, 'utf-8');
+          return `Successfully wrote to ${path}`;
+        } else if (action === 'append') {
+          await fs.appendFile(path, content, 'utf-8');
+          return `Successfully appended to ${path}`;
+        } else {
+          // Default to Read
+          const data = await fs.readFile(path, 'utf-8');
+          return data;
+        }
+      } catch (e) {
+        return `File System Error: ${String(e)}`;
+      }
     }
 
     default:

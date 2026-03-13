@@ -2,6 +2,7 @@ import {
   runGoogleChat,
   runOllamaChat,
   runOpenAICompatibleChat,
+  runAnthropicChat,
 } from './llmAdapters';
 import { Script, createContext } from 'node:vm';
 import type { AgentTool, LlmRuntimeConfig } from './llmAdapters';
@@ -323,6 +324,7 @@ export async function executeFlowOnServer({
             ollama: () => runOllamaChat(runtimeCfg, systemPrompt, userPrompt, availableTools, executeToolByName, log),
             vllm: () => runOpenAICompatibleChat(runtimeCfg, systemPrompt, userPrompt, availableTools, executeToolByName, log),
             openai: () => runOpenAICompatibleChat(runtimeCfg, systemPrompt, userPrompt, availableTools, executeToolByName, log),
+            anthropic: () => runAnthropicChat(runtimeCfg, systemPrompt, userPrompt, availableTools, executeToolByName, log),
             google: () => runGoogleChat(runtimeCfg, systemPrompt, userPrompt, availableTools, executeToolByName),
           };
 
@@ -343,6 +345,43 @@ export async function executeFlowOnServer({
           }
           if (isStopped()) {
             throw new Error('Flow execution cancelled by client disconnect.');
+          }
+          break;
+        }
+        case 'VariableComponent':
+          result = getNodeFieldValue(node, 'value') || '';
+          break;
+        case 'ImageGenerationComponent': {
+          const prompt = String(inputs.prompt?.[0] || Object.values(inputs).flat()[0] || '');
+          result = await executeTool(node, { query: prompt }, undefined);
+          break;
+        }
+        case 'FileSystemComponent': {
+          const content = String(inputs.content?.[0] || Object.values(inputs).flat()[0] || '');
+          result = await executeTool(node, { query: content }, undefined);
+          break;
+        }
+        case 'WaitComponent': {
+          const delay = Number(getNodeFieldValue(node, 'delayMs') || 1000);
+          await new Promise(res => setTimeout(res, delay));
+          result = `Waited for ${delay}ms`;
+          break;
+        }
+        case 'CodeExecutionComponent':
+        case 'HTTPRequestComponent':
+        case 'elasticsearch_search':
+        case 'SerperSearchComponent':
+        case 'DataStreamComponent':
+        case 'JSONParserComponent': {
+          const flatInput = String(Object.values(inputs).flat()[0] || '');
+          result = await executeTool(node, { query: flatInput }, undefined);
+          if (typeof result === 'string') {
+            try {
+              const parsed = JSON.parse(result);
+              result = parsed;
+            } catch {
+              // keep as string
+            }
           }
           break;
         }

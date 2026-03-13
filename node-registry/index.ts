@@ -48,7 +48,8 @@ export type NodeValidationRuleKey =
   | "gitlab-required"
   | "http-url-required"
   | "code-required"
-  | "condition-required";
+  | "condition-required"
+  | "serper-api-key-required";
 
 export type NodeValidationRuleConfig = {
   key: NodeValidationRuleKey;
@@ -687,6 +688,145 @@ const nodeRegistry: Record<string, NodeRegistryEntry> = {
         ],
       },
     ],
+  },
+  SerperSearchComponent: {
+    configSchema: withDefaultValues([
+      {
+        label: "Serper API Key",
+        name: "apiKey",
+        type: "text",
+        sourceHandles: [
+          createAsToolSourceHandle(),
+        ],
+      },
+      {
+        label: "Search Query",
+        name: "query",
+        type: "text",
+        inputHandles: [
+          {
+            portType: "text",
+            position: "left",
+          },
+        ],
+        sourceHandles: [
+          createPrimarySourceHandle("any", "right"),
+        ],
+      },
+    ], {
+      apiKey: "",
+      query: "{query}",
+    }),
+    validationRules: ["serper-api-key-required"],
+  },
+  ImageGenerationComponent: {
+    configSchema: withDefaultValues([
+      {
+        label: "OpenAI API Key",
+        name: "apiKey",
+        type: "text",
+        sourceHandles: [
+          createAsToolSourceHandle(),
+        ],
+      },
+      {
+        label: "Prompt",
+        name: "prompt",
+        type: "textarea",
+        inputHandles: [
+          {
+            portType: "text",
+            position: "left",
+          },
+        ],
+        sourceHandles: [
+          createPrimarySourceHandle("any", "right"),
+        ],
+      },
+      {
+        label: "Model",
+        name: "model",
+        type: "select",
+        options: ["dall-e-3", "dall-e-2"],
+      },
+      {
+        label: "Size",
+        name: "size",
+        type: "select",
+        options: ["1024x1024", "1024x1792", "1792x1024"],
+      },
+    ], {
+      apiKey: "",
+      model: "dall-e-3",
+      size: "1024x1024",
+    }),
+  },
+  VariableComponent: {
+    configSchema: withDefaultValues([
+      {
+        label: "Variable Name",
+        name: "key",
+        type: "text",
+      },
+      {
+        label: "Constant Value",
+        name: "value",
+        type: "textarea",
+        sourceHandles: [
+          createPrimarySourceHandle("text", "right"),
+        ],
+      },
+    ], {
+      key: "VAR_1",
+      value: "",
+    }),
+  },
+  FileSystemComponent: {
+    configSchema: withDefaultValues([
+      {
+        label: "File Path",
+        name: "path",
+        type: "text",
+        sourceHandles: [
+          createAsToolSourceHandle(),
+        ],
+      },
+      {
+        label: "Action",
+        name: "action",
+        type: "select",
+        options: ["Read", "Write", "Append"],
+      },
+      {
+        label: "Content/Output",
+        name: "content",
+        type: "textarea",
+        inputHandles: [
+          {
+            portType: "text",
+            position: "left",
+          },
+        ],
+        sourceHandles: [
+          createPrimarySourceHandle("text", "right"),
+        ],
+      },
+    ], {
+      path: "./output.txt",
+      action: "Read",
+      content: "{query}",
+    }),
+  },
+  WaitComponent: {
+    configSchema: withDefaultValues([
+      {
+        label: "Delay (ms)",
+        name: "delayMs",
+        type: "number",
+      },
+    ], {
+      delayMs: 1000,
+    }),
   },
 };
 
