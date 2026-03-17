@@ -16,44 +16,105 @@ type SavedFlow = {
 export default function Home() {
   const navigate = useNavigate();
   const [flows, setFlows] = useState<SavedFlow[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    const saved = localStorage.getItem('cyber-flows');
-    if (saved) {
-      setFlows(JSON.parse(saved).sort((a: SavedFlow, b: SavedFlow) => b.updatedAt - a.updatedAt));
-    }
+    const loadFlows = async () => {
+      try {
+        const res = await fetch('http://localhost:8787/api/flows');
+        if (res.ok) {
+          const data = await res.json();
+          setFlows(data);
+
+          // One-time migration from localStorage
+          const saved = localStorage.getItem('cyber-flows');
+          if (saved) {
+            const localFlows: SavedFlow[] = JSON.parse(saved);
+            if (localFlows.length > 0 && confirm(`Found ${localFlows.length} flows in local storage. Migrating to server?`)) {
+              for (const flow of localFlows) {
+                await fetch('http://localhost:8787/api/flows', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(flow),
+                });
+              }
+              localStorage.removeItem('cyber-flows');
+              // Reload after migration
+              const freshRes = await fetch('http://localhost:8787/api/flows');
+              const freshData = await freshRes.json();
+              setFlows(freshData);
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load flows from server:', err);
+      }
+    };
+    loadFlows();
   }, []);
 
-  const saveFlows = (updated: SavedFlow[]) => {
-    localStorage.setItem('cyber-flows', JSON.stringify(updated));
-    setFlows(updated);
-  };
-
-  const handleDelete = (id: string, e: React.MouseEvent) => {
+  const handleDelete = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (confirm('Are you sure you want to delete this flow?')) {
-      saveFlows(flows.filter(f => f.id !== id));
+      try {
+        const res = await fetch(`http://localhost:8787/api/flows/${id}`, { method: 'DELETE' });
+        if (res.ok) {
+          setFlows(flows.filter(f => f.id !== id));
+        }
+      } catch (err) {
+        console.error('Failed to delete flow:', err);
+      }
     }
   };
 
-  const handleDuplicate = (flow: SavedFlow, e: React.MouseEvent) => {
+  const handleDuplicate = async (flow: SavedFlow, e: React.MouseEvent) => {
     e.stopPropagation();
-    const newFlow: SavedFlow = {
-      ...flow,
-      id: `flow-${Date.now()}`,
-      name: `${flow.name} (copy)`,
-      updatedAt: Date.now(),
-    };
-    const updated = [newFlow, ...flows];
-    saveFlows(updated);
+    try {
+      // Fetch full flow data if needed, but SavedFlow on home might already have it
+      // Actually /api/flows only returns metadata (id, name, updatedAt)
+      // We need the full flow data to duplicate properly
+      const fullRes = await fetch(`http://localhost:8787/api/flows/${flow.id}`);
+      if (!fullRes.ok) throw new Error('Failed to fetch full flow data');
+      const fullFlow = await fullRes.json();
+
+      const newFlow: SavedFlow = {
+        ...fullFlow,
+        id: `flow-${Date.now()}`,
+        name: `${fullFlow.name} (copy)`,
+        updatedAt: Date.now(),
+      };
+
+      const res = await fetch('http://localhost:8787/api/flows', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newFlow),
+      });
+
+      if (res.ok) {
+        setFlows([newFlow, ...flows]);
+      }
+    } catch (err) {
+      console.error('Failed to duplicate flow:', err);
+    }
   };
 
-  const handleCreateFromTemplate = (templateId: string) => {
+  const handleCreateFromTemplate = async (templateId: string) => {
     const newFlow = createSavedFlowFromTemplate(templateId);
     if (!newFlow) return;
-    const updated = [newFlow, ...flows];
-    saveFlows(updated);
-    navigate(`/flow/${newFlow.id}`);
+    
+    try {
+      const res = await fetch('http://localhost:8787/api/flows', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newFlow),
+      });
+
+      if (res.ok) {
+        navigate(`/flow/${newFlow.id}`);
+      }
+    } catch (err) {
+      console.error('Failed to create flow from template:', err);
+    }
   };
 
   const formatTime = (ts: number) => {
@@ -65,6 +126,11 @@ export default function Home() {
   };
 
   const totalNodes = flows.reduce((acc, f) => acc + (f.data.nodes?.length || 0), 0);
+
+  const filteredFlows = flows.filter(f => 
+    f.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    f.id.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="min-h-screen bg-cyber-dark text-white p-8">
@@ -81,13 +147,27 @@ export default function Home() {
             </div>
           </div>
 
-          <button
-            onClick={() => navigate('/flow/new')}
-            className="flex items-center gap-2 px-6 py-3 bg-cyber-primary text-black font-bold rounded-xl hover:bg-cyan-300 transition-all shadow-[0_0_20px_rgba(0,240,255,0.3)] hover:shadow-[0_0_30px_rgba(0,240,255,0.5)] uppercase tracking-wider"
-          >
-            <Plus size={20} />
-            New Flow
-          </button>
+          </div>
+
+          <div className="flex gap-4 items-center">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={16} />
+              <input
+                type="text"
+                placeholder="Search flows..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2 text-sm focus:border-cyber-primary outline-none transition-all w-64"
+              />
+            </div>
+            <button
+              onClick={() => navigate('/flow/new')}
+              className="flex items-center gap-2 px-6 py-3 bg-cyber-primary text-black font-bold rounded-xl hover:bg-cyan-300 transition-all shadow-[0_0_20px_rgba(0,240,255,0.3)] hover:shadow-[0_0_30px_rgba(0,240,255,0.5)] uppercase tracking-wider"
+            >
+              <Plus size={20} />
+              New Flow
+            </button>
+          </div>
         </div>
 
         {/* Stats bar */}
@@ -125,7 +205,7 @@ export default function Home() {
 
         {/* Flow grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {flows.map(flow => (
+          {filteredFlows.map(flow => (
             <div
               key={flow.id}
               onClick={() => navigate(`/flow/${flow.id}`)}
@@ -175,18 +255,22 @@ export default function Home() {
             </div>
           ))}
 
-          {flows.length === 0 && (
+          {filteredFlows.length === 0 && (
             <div className="col-span-full flex flex-col items-center justify-center py-20 text-cyber-muted border-2 border-dashed border-cyber-border rounded-2xl">
               <FolderOpen size={48} className="mb-4 opacity-50" />
-              <p className="text-lg font-medium">No flows yet</p>
-              <p className="text-sm mt-2 mb-6">Create your first agent flow to get started</p>
-              <button
-                onClick={() => navigate('/flow/new')}
-                className="flex items-center gap-2 px-5 py-2.5 bg-cyber-primary/10 border border-cyber-primary/30 text-cyber-primary font-bold rounded-xl hover:bg-cyber-primary hover:text-black transition-all uppercase tracking-wider text-sm"
-              >
-                <Plus size={16} />
-                Create Flow
-              </button>
+              <p className="text-lg font-medium">{searchTerm ? 'No matching flows found' : 'No flows yet'}</p>
+              <p className="text-sm mt-2 mb-6">
+                {searchTerm ? 'Try a different search term' : 'Create your first agent flow to get started'}
+              </p>
+              {!searchTerm && (
+                <button
+                  onClick={() => navigate('/flow/new')}
+                  className="flex items-center gap-2 px-5 py-2.5 bg-cyber-primary/10 border border-cyber-primary/30 text-cyber-primary font-bold rounded-xl hover:bg-cyber-primary hover:text-black transition-all uppercase tracking-wider text-sm"
+                >
+                  <Plus size={16} />
+                  Create Flow
+                </button>
+              )}
             </div>
           )}
         </div>

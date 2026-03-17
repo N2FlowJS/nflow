@@ -361,6 +361,11 @@ export async function executeFlowOnServer({
           result = await executeTool(node, { query: content }, undefined);
           break;
         }
+        case 'GitLabMergeRequestComponent': {
+          const flatInput = String(Object.values(inputs).flat()[0] || '');
+          result = await executeTool(node, { query: flatInput }, undefined);
+          break;
+        }
         case 'WaitComponent': {
           const delay = Number(getNodeFieldValue(node, 'delayMs') || 1000);
           await new Promise(res => setTimeout(res, delay));

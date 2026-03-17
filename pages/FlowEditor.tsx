@@ -299,7 +299,8 @@ const Flow = () => {
   const [savedFlows, setSavedFlows] = useState<SavedFlow[]>([]);
   const [isSaving, setIsSaving] = useState(false);
 
-  const API_BASE = "http://localhost:8787/api";
+  const API_BASE = (import.meta as { env?: Record<string, string | undefined> }).env?.VITE_RUNTIME_URL || 'http://localhost:8787';
+const API_FLOWS = `${API_BASE}/api/flows`;
 
   const fetchFlows = useCallback(async () => {
     try {
