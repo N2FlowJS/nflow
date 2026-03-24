@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, FolderOpen, Trash2, Clock, GitBranch, Copy, GitCommit } from 'lucide-react';
+import { Plus, FolderOpen, Trash2, Clock, GitBranch, Copy, GitCommit, Search } from 'lucide-react';
 import { FLOW_TEMPLATES, createSavedFlowFromTemplate } from '../flow-templates';
 
 type SavedFlow = {
   id: string;
   name: string;
-  data: {
+  data?: {
     nodes?: unknown[];
     edges?: unknown[];
   };
+  nodeCount?: number;
+  edgeCount?: number;
   updatedAt: number;
 };
 
@@ -125,7 +127,7 @@ export default function Home() {
     return new Date(ts).toLocaleDateString();
   };
 
-  const totalNodes = flows.reduce((acc, f) => acc + (f.data.nodes?.length || 0), 0);
+  const totalNodes = flows.reduce((acc, f) => acc + (f.nodeCount || f.data?.nodes?.length || 0), 0);
 
   const filteredFlows = flows.filter(f => 
     f.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -145,8 +147,6 @@ export default function Home() {
               <h1 className="text-3xl font-bold tracking-tight uppercase">n2flow</h1>
               <p className="text-cyber-muted font-mono text-sm tracking-widest mt-1">AGENT ORCHESTRATION PLATFORM</p>
             </div>
-          </div>
-
           </div>
 
           <div className="flex gap-4 items-center">
@@ -245,11 +245,11 @@ export default function Home() {
                 </div>
                 <div className="flex items-center gap-1">
                   <GitBranch size={12} />
-                  {flow.data.nodes?.length || 0} nodes
+                  {flow.nodeCount ?? flow.data?.nodes?.length ?? 0} nodes
                 </div>
                 <div className="flex items-center gap-1">
                   <GitCommit size={12} />
-                  {flow.data.edges?.length || 0} edges
+                  {flow.edgeCount ?? flow.data?.edges?.length ?? 0} edges
                 </div>
               </div>
             </div>
@@ -273,10 +273,11 @@ export default function Home() {
               )}
             </div>
           )}
-        </div>
       </div>
     </div>
-  );
+  </div>
+);
 }
+
 
 

@@ -70,3 +70,17 @@ export const validateConditionNode: NodeValidator = (node) => {
     },
   ];
 };
+
+export const validateSerperApiKeyNode: NodeValidator = (node) => {
+  const apiKey = readParamString(node, 'apiKey');
+  if (apiKey) return [];
+
+  return [
+    {
+      level: 'error',
+      nodeId: node.id,
+      fieldName: 'apiKey',
+      message: `Serper API Key node "${node.data.label}" is missing API key.`,
+    },
+  ];
+};

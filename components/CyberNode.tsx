@@ -19,9 +19,12 @@ import {
   getNodeSourceHandles,
   setNodeFieldValueInSchema,
 } from '../node-registry';
+import { 
+  PortDataType, 
+  readPortType, 
+  PORT_TYPE_OPTIONS as portTypeOptions 
+} from '../node-registry/utils';
 
-type PortDataType = 'text' | 'chat_model' | 'embedding_model' | 'tool' | 'boolean_route' | 'any';
-const portTypeOptions: PortDataType[] = ['any', 'text', 'chat_model', 'embedding_model', 'tool', 'boolean_route'];
 const outputPortTypeCycle: PortDataType[] = ['any', 'text', 'chat_model', 'embedding_model', 'tool', 'boolean_route'];
 
 const iconMap: Record<string, React.ElementType> = {
@@ -187,12 +190,6 @@ const CyberNode = ({ id, data, selected }: NodeProps<CustomNodeType>) => {
     return `${baseClass} ${isCompatibleTargetHandle(targetType) ? '!opacity-100 !border-cyber-primary !shadow-[0_0_12px_rgba(0,240,255,0.6)]' : 'opacity-30'}`;
   };
 
-  const readPortType = (key: string, fallback: PortDataType): PortDataType => {
-    const raw = getNodeFieldValue(data, key);
-    if (typeof raw !== 'string') return fallback;
-    return (portTypeOptions.includes(raw as PortDataType) ? (raw as PortDataType) : fallback);
-  };
-
   const colorByPortType: Record<PortDataType, string> = {
     any: '!border-cyber-muted',
     text: '!border-green-500',
@@ -216,7 +213,7 @@ const CyberNode = ({ id, data, selected }: NodeProps<CustomNodeType>) => {
   const cycleOutputHandleType = (paramKey: string, fallback: PortDataType, e: React.MouseEvent) => {
     e.stopPropagation();
     window.dispatchEvent(new CustomEvent('takeSnapshot'));
-    const current = readPortType(paramKey, fallback);
+    const current = readPortType(data, paramKey, fallback);
     const idx = outputPortTypeCycle.indexOf(current);
     const next = outputPortTypeCycle[(idx + 1) % outputPortTypeCycle.length];
     handleParamChange(paramKey, next);
@@ -227,7 +224,7 @@ const CyberNode = ({ id, data, selected }: NodeProps<CustomNodeType>) => {
     fallback: PortDataType,
     className: string
   ) => {
-    const currentType = readPortType(paramKey, fallback);
+    const currentType = readPortType(data, paramKey, fallback);
     return (
       <button
         type="button"
@@ -289,7 +286,7 @@ const CyberNode = ({ id, data, selected }: NodeProps<CustomNodeType>) => {
 
     const effectiveSourceType =
       kind === 'source' && badgeParamKey
-        ? readPortType(badgeParamKey, badgeFallback || portType)
+        ? readPortType(data, badgeParamKey, badgeFallback || portType)
         : portType;
 
     const baseClass = `!w-3 !h-3 !bg-cyber-panel !border-2 ${borderClass} ${hoverBorderClass} ${handleBaseClasses}`;
@@ -877,7 +874,7 @@ const CyberNode = ({ id, data, selected }: NodeProps<CustomNodeType>) => {
                   position={Position.Right}
                   onMouseEnter={() => setHoveredHandle('prompt-output')}
                   onMouseLeave={() => setHoveredHandle(null)}
-                  className={getSourceHandleClass(readPortType('output_type', 'text'), `!w-3 !h-3 !bg-cyber-panel !border-2 hover:!border-cyber-primary transition-colors ${handleBaseClasses}`)}
+                  className={getSourceHandleClass(readPortType(data, 'output_type', 'text'), `!w-3 !h-3 !bg-cyber-panel !border-2 hover:!border-cyber-primary transition-colors ${handleBaseClasses}`)}
                 />
                 {hoveredHandle === 'prompt-output' && (
                   <div className="absolute -right-44 top-1/2 -translate-y-1/2 px-2 py-1 rounded-md border border-cyber-primary/40 bg-cyber-panel/90 backdrop-blur-sm text-[10px] font-mono text-cyber-primary shadow-[0_0_12px_rgba(0,240,255,0.25)] pointer-events-none whitespace-nowrap">

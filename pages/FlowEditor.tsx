@@ -26,6 +26,27 @@ import {
   NodeChange,
   EdgeChange,
 } from "@xyflow/react";
+import { 
+  PortDataType, 
+  readPortType, 
+  inferSourcePortType, 
+  inferTargetPortType, 
+  normalizeModelNode 
+} from "../node-registry/utils";
+import FlowHeader from "../components/editor/FlowHeader";
+import LogViewer from "../components/editor/LogViewer";
+import CommandPalette from "../components/editor/CommandPalette";
+import ValidationPanel from "../components/editor/ValidationPanel";
+import ShortcutHelp from "../components/editor/ShortcutHelp";
+import FlowManager from "../components/editor/FlowManager";
+import {
+  RuntimeStatus,
+  PlaygroundMessage,
+  PlaygroundWorkerOutput,
+  CommandAction,
+  SavedFlow,
+  LogEntry,
+} from "../types/editor";
 import CyberNode from "../components/CyberNode";
 import CyberGroupNode from "../components/CyberGroupNode";
 import CyberEdge from "../components/CyberEdge";
@@ -88,173 +109,12 @@ const edgeTypes: EdgeTypes = {
   cyberEdge: CyberEdge,
 };
 
-type PortDataType =
-  | "text"
-  | "chat_model"
-  | "embedding_model"
-  | "tool"
-  | "boolean_route"
-  | "any";
-
-type PlaygroundWorkerOutput =
-  | string
-  | {
-      text?: string;
-    };
-
-type PlaygroundMessage = {
-  role: string;
-  text: string;
-};
-
-type RuntimeStatus = "idle" | "running" | "success" | "error" | "cancelled";
-
-type CommandAction = {
-  id: string;
-  label: string;
-  group: string;
-  shortcut: string;
-  keywords: string;
-  run: () => void;
-};
-
-type SavedFlow = {
-  id: string;
-  name: string;
-  data: ReturnType<ReactFlowInstance["toObject"]>;
-  updatedAt: number;
-};
-
 const INITIAL_PLAYGROUND_MESSAGES: PlaygroundMessage[] = [
   {
     role: "assistant",
     text: "Protocol initialized. Ready to test the workflow. How can I assist?",
   },
 ];
-
-const normalizeModelNode = (node: Node): Node =>
-  normalizeNodeWithRegistry(node);
-
-const readPortType = (
-  node: CustomNodeType,
-  key: string,
-  fallback: PortDataType,
-): PortDataType => {
-  const raw = getNodeFieldValue(node.data, key);
-  if (typeof raw !== "string") return fallback;
-  const allowed: PortDataType[] = [
-    "text",
-    "chat_model",
-    "embedding_model",
-    "tool",
-    "boolean_route",
-    "any",
-  ];
-  return allowed.includes(raw as PortDataType)
-    ? (raw as PortDataType)
-    : fallback;
-};
-
-const inferSourcePortType = (
-  node: CustomNodeType,
-  handleId?: string | null,
-): PortDataType => {
-  const nodeType = node.data.type;
-
-  const registrySourceHandles = getNodeSourceHandles(nodeType);
-  if (registrySourceHandles.length > 0) {
-    const matchedHandle = handleId
-      ? registrySourceHandles.find((handle) => handle.id === handleId)
-      : registrySourceHandles.find((handle) => !handle.id);
-    if (matchedHandle) {
-      if (matchedHandle.badgeParamKey) {
-        return readPortType(
-          node,
-          matchedHandle.badgeParamKey,
-          matchedHandle.badgeFallback || matchedHandle.portType,
-        );
-      }
-      return matchedHandle.portType;
-    }
-  }
-
-  if (handleId === "as_tool")
-    return readPortType(node, "as_tool_output_type", "tool");
-  if (handleId === "response")
-    return readPortType(node, "response_output_type", "text");
-  if (handleId === "true")
-    return readPortType(node, "true_output_type", "boolean_route");
-  if (handleId === "false")
-    return readPortType(node, "false_output_type", "boolean_route");
-
-  if (nodeType === "ChatModelComponent")
-    return readPortType(node, "output_type", "chat_model");
-  if (
-    nodeType === "OllamaChatModelComponent" ||
-    nodeType === "VLLMChatModelComponent"
-  )
-    return readPortType(node, "output_type", "chat_model");
-  if (nodeType === "EmbeddingModelComponent")
-    return readPortType(node, "output_type", "embedding_model");
-  if (
-    nodeType === "OllamaEmbeddingModelComponent" ||
-    nodeType === "VLLMEmbeddingModelComponent"
-  )
-    return readPortType(node, "output_type", "embedding_model");
-  if (nodeType === "LanguageModelComponent") {
-    return readPortType(
-      node,
-      "output_type",
-      getNodeFieldValue(node.data, "modelType") === "Embedding"
-        ? "embedding_model"
-        : "chat_model",
-    );
-  }
-
-  if (
-    [
-      "ChatInput",
-      "TextInput",
-      "Prompt Template",
-      "GitLabMRReviewTemplate",
-      "GitLabMRCommentTemplate",
-      "CurrentTime",
-      "ChatOutput",
-    ].includes(nodeType)
-  ) {
-    return readPortType(node, "output_type", "text");
-  }
-
-  return readPortType(node, "output_type", "any");
-};
-
-const inferTargetPortType = (
-  node: CustomNodeType,
-  handleId?: string | null,
-): PortDataType => {
-  const registryInputHandles = getNodeInputHandles(node.data.type);
-  if (registryInputHandles.length > 0) {
-    const matchedHandle = handleId
-      ? registryInputHandles.find((handle) => handle.id === handleId)
-      : registryInputHandles.find((handle) => !handle.id);
-    if (matchedHandle) {
-      return matchedHandle.portType;
-    }
-  }
-
-  if (handleId === "tools") return "tool";
-  if (handleId === "agent_llm") return "chat_model";
-  if (handleId === "embedding_model") return "embedding_model";
-  if (handleId === "system_prompt" || handleId === "input_value") return "text";
-
-  if (node.data.type === "ChatOutput") return "text";
-  if (node.data.type === "Prompt Template") return "text";
-  if (node.data.type === "GitLabMRReviewTemplate") return "text";
-  if (node.data.type === "GitLabMRCommentTemplate") return "text";
-  if (node.data.type === "elasticsearch_search") return "text";
-
-  return "any";
-};
 
 const Flow = () => {
   const { id } = useParams<{ id: string }>();
@@ -294,7 +154,7 @@ const Flow = () => {
   const [showCommandPalette, setShowCommandPalette] = useState(false);
   const [commandQuery, setCommandQuery] = useState("");
   const [commandIndex, setCommandIndex] = useState(0);
-  const [executionLogs, setExecutionLogs] = useState<{ id: string; time: string; type: string; message: string; nodeId?: string }[]>([]);
+  const [executionLogs, setExecutionLogs] = useState<LogEntry[]>([]);
   const [isLogsOpen, setIsLogsOpen] = useState(false);
   const [savedFlows, setSavedFlows] = useState<SavedFlow[]>([]);
   const [isSaving, setIsSaving] = useState(false);
@@ -304,7 +164,7 @@ const API_FLOWS = `${API_BASE}/api/flows`;
 
   const fetchFlows = useCallback(async () => {
     try {
-      const res = await fetch(`${API_BASE}/flows`);
+      const res = await fetch(`${API_BASE}/api/flows`);
       if (res.ok) {
         const data = await res.json();
         setSavedFlows(data);
@@ -332,7 +192,7 @@ const API_FLOWS = `${API_BASE}/api/flows`;
     const loadFlow = async () => {
       if (id && id !== "new") {
         try {
-          const res = await fetch(`${API_BASE}/flows/${id}`);
+          const res = await fetch(`${API_BASE}/api/flows/${id}`);
           if (res.ok) {
             const flow = await res.json();
             setNodes((flow.data.nodes || []).map(normalizeModelNode));
@@ -1241,7 +1101,7 @@ const API_FLOWS = `${API_BASE}/api/flows`;
         };
 
         try {
-          const res = await fetch(`${API_BASE}/flows`, {
+          const res = await fetch(`${API_BASE}/api/flows`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(newFlow),
@@ -1284,9 +1144,8 @@ const API_FLOWS = `${API_BASE}/api/flows`;
   );
 
   const onDeleteFlow = useCallback(async (flowId: string) => {
-    if (!window.confirm("Are you sure you want to delete this flow?")) return;
     try {
-      const res = await fetch(`${API_BASE}/flows/${flowId}`, { method: "DELETE" });
+      const res = await fetch(`${API_BASE}/api/flows/${flowId}`, { method: "DELETE" });
       if (res.ok) {
         fetchFlows();
         if (currentFlowId === flowId) {
@@ -2119,315 +1978,41 @@ const API_FLOWS = `${API_BASE}/api/flows`;
 
   return (
     <div className="w-full h-screen bg-cyber-dark text-white overflow-hidden flex flex-col">
-      {/* Header Bar */}
-      <div className="h-16 border-b border-cyber-border bg-cyber-panel/50 backdrop-blur-sm flex items-center justify-between px-6 z-10 relative">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => navigate("/")}
-            className="p-2 bg-cyber-primary/10 hover:bg-cyber-primary/20 rounded-lg border border-cyber-primary/20 transition-colors"
-            title="Back to Home"
-          >
-            <Home className="text-cyber-primary" size={20} />
-          </button>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="font-bold text-lg tracking-tight uppercase">
-                n2flow
-              </h1>
-              <input
-                type="text"
-                value={currentFlowName}
-                onChange={(e) => setCurrentFlowName(e.target.value)}
-                className="text-xs font-normal text-cyber-primary bg-cyber-primary/10 px-2 py-0.5 rounded border border-cyber-primary/20 outline-none focus:border-cyber-primary/50 w-48"
-                placeholder="Flow Name"
-              />
-            </div>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2 relative">
-          <button
-            onClick={() => setIsFlowManagerOpen(true)}
-            className="p-2 bg-white/5 hover:bg-white/10 rounded-lg transition-colors text-gray-400 hover:text-white flex items-center gap-2 border border-white/10"
-            title="Open Flows"
-          >
-            <FolderOpen size={16} />
-          </button>
-
-          <button
-            onClick={() => onSave(currentFlowName)}
-            disabled={isSaving}
-            className={`p-2 rounded-lg transition-colors border ${
-              isSaving 
-                ? "bg-cyber-primary/40 text-white border-cyber-primary/50 cursor-wait" 
-                : "bg-cyber-primary/20 hover:bg-cyber-primary/40 text-cyber-primary border-cyber-primary/30"
-            }`}
-            title="Save (Ctrl/Cmd+S)"
-          >
-            {isSaving ? (
-              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-            ) : (
-              <Save size={16} />
-            )}
-          </button>
-
-          <button
-            onClick={onRunAll}
-            className="flex items-center gap-2 px-3 py-2 bg-yellow-500/10 border border-yellow-500/30 rounded-lg hover:bg-yellow-500 hover:text-black transition-all"
-            title="Deploy (Ctrl/Cmd+Enter)"
-          >
-            <Play size={14} fill="currentColor" />
-            <span className="text-[11px] font-bold uppercase tracking-wider">
-              Deploy
-            </span>
-          </button>
-
-          <button
-            onClick={() => setIsPlaygroundOpen(true)}
-            className="flex items-center gap-2 px-3 py-2 bg-cyber-primary text-black rounded-lg hover:bg-cyan-300 transition-all"
-          >
-            <Terminal size={14} />
-            <span className="text-[11px] font-bold uppercase tracking-wider">
-              Playground
-            </span>
-          </button>
-
-          <select
-            value={validationLocale}
-            onChange={(e) =>
-              setValidationLocale(e.target.value as ValidationLocale)
-            }
-            className="px-2 py-2 bg-white/5 border border-white/10 rounded-lg text-[11px] font-bold uppercase tracking-wider text-gray-300 focus:outline-none focus:border-cyber-primary/50"
-            title="Validation language"
-          >
-            <option value="vi" className="bg-cyber-panel text-white">
-              VI
-            </option>
-            <option value="en" className="bg-cyber-panel text-white">
-              EN
-            </option>
-          </select>
-
-          <button
-            onClick={onValidateFlow}
-            className="flex items-center gap-2 px-3 py-2 bg-orange-500/10 border border-orange-500/30 rounded-lg hover:bg-orange-500 hover:text-black transition-all"
-            title="Validate (Ctrl/Cmd+Shift+K)"
-          >
-            <AlertTriangle size={14} />
-            <span className="text-[11px] font-bold uppercase tracking-wider">
-              Validate
-            </span>
-          </button>
-
-          <button
-            onClick={() => setIsToolsMenuOpen((prev) => !prev)}
-            className={`p-2 rounded-lg border transition-colors ${isToolsMenuOpen ? "bg-cyber-primary/20 border-cyber-primary/30 text-cyber-primary" : "bg-white/5 border-white/10 text-gray-300 hover:bg-white/10"}`}
-            title="Advanced Tools"
-          >
-            <Settings2 size={16} />
-          </button>
-
-          <button
-            onClick={() => setShowShortcutHelp((prev) => !prev)}
-            className={`p-2 rounded-lg border transition-colors ${showShortcutHelp ? "bg-cyber-primary/20 border-cyber-primary/30 text-cyber-primary" : "bg-white/5 border-white/10 text-gray-300 hover:bg-white/10"}`}
-            title="Keyboard Shortcuts (Ctrl/Cmd+Shift+/)"
-          >
-            <Keyboard size={16} />
-          </button>
-
-          <button
-            onClick={() => setShowCommandPalette(true)}
-            className={`px-3 py-2 rounded-lg border transition-colors text-[11px] font-bold uppercase tracking-wider ${showCommandPalette ? "bg-cyber-primary/20 border-cyber-primary/30 text-cyber-primary" : "bg-white/5 border-white/10 text-gray-300 hover:bg-white/10"}`}
-            title="Command Palette (Ctrl/Cmd+K)"
-          >
-            Cmd
-          </button>
-
-          <input
-            ref={importInputRef}
-            type="file"
-            accept=".json"
-            className="hidden"
-            onChange={onImport}
-          />
-
-          {isToolsMenuOpen && (
-            <div className="absolute right-0 top-12 w-[300px] bg-cyber-panel/95 backdrop-blur-md border border-cyber-border rounded-xl shadow-2xl p-3 z-30 space-y-3">
-              <div className="text-[10px] uppercase tracking-wider text-cyber-muted">
-                Edit
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  onClick={() => {
-                    onCopy();
-                    setIsToolsMenuOpen(false);
-                  }}
-                  className="px-2 py-1.5 rounded-md bg-white/5 hover:bg-white/10 text-xs flex items-center gap-1"
-                >
-                  <Copy size={12} />
-                  Copy
-                </button>
-                <button
-                  onClick={() => {
-                    onPaste();
-                    setIsToolsMenuOpen(false);
-                  }}
-                  className="px-2 py-1.5 rounded-md bg-white/5 hover:bg-white/10 text-xs flex items-center gap-1"
-                >
-                  <ClipboardPaste size={12} />
-                  Paste
-                </button>
-                <button
-                  onClick={() => {
-                    undo();
-                    setIsToolsMenuOpen(false);
-                  }}
-                  className="px-2 py-1.5 rounded-md bg-white/5 hover:bg-white/10 text-xs flex items-center gap-1"
-                >
-                  <Undo2 size={12} />
-                  Undo
-                </button>
-                <button
-                  onClick={() => {
-                    redo();
-                    setIsToolsMenuOpen(false);
-                  }}
-                  className="px-2 py-1.5 rounded-md bg-white/5 hover:bg-white/10 text-xs flex items-center gap-1"
-                >
-                  <Redo2 size={12} />
-                  Redo
-                </button>
-              </div>
-
-              <div className="text-[10px] uppercase tracking-wider text-cyber-muted">
-                Layout / View
-              </div>
-              <div className="grid grid-cols-3 gap-2">
-                <button
-                  onClick={() => {
-                    onLayout("SMART");
-                    setIsToolsMenuOpen(false);
-                  }}
-                  className="px-2 py-1.5 rounded-md bg-white/5 hover:bg-white/10 text-xs flex items-center justify-center"
-                >
-                  <Wand2 size={12} />
-                </button>
-                <button
-                  onClick={() => {
-                    onLayout("LR");
-                    setIsToolsMenuOpen(false);
-                  }}
-                  className="px-2 py-1.5 rounded-md bg-white/5 hover:bg-white/10 text-xs flex items-center justify-center"
-                >
-                  <ArrowRight size={12} />
-                </button>
-                <button
-                  onClick={() => {
-                    onLayout("TB");
-                    setIsToolsMenuOpen(false);
-                  }}
-                  className="px-2 py-1.5 rounded-md bg-white/5 hover:bg-white/10 text-xs flex items-center justify-center"
-                >
-                  <ArrowDown size={12} />
-                </button>
-                <button
-                  onClick={() => {
-                    setShowMinimap((prev) => !prev);
-                    setIsToolsMenuOpen(false);
-                  }}
-                  className="px-2 py-1.5 rounded-md bg-white/5 hover:bg-white/10 text-xs flex items-center justify-center"
-                >
-                  <MapIcon size={12} />
-                </button>
-                <button
-                  onClick={() => {
-                    reactFlowInstance?.fitView({ duration: 800 });
-                    setIsToolsMenuOpen(false);
-                  }}
-                  className="px-2 py-1.5 rounded-md bg-white/5 hover:bg-white/10 text-xs flex items-center justify-center"
-                >
-                  <Maximize size={12} />
-                </button>
-                <button
-                  onClick={() => {
-                    setIsLiveMode((prev) => !prev);
-                    setIsToolsMenuOpen(false);
-                  }}
-                  className="px-2 py-1.5 rounded-md bg-white/5 hover:bg-white/10 text-xs flex items-center justify-center"
-                >
-                  <Activity size={12} />
-                </button>
-              </div>
-
-              <div className="text-[10px] uppercase tracking-wider text-cyber-muted">
-                Canvas / IO
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  onClick={() => {
-                    onGroupNodes();
-                    setIsToolsMenuOpen(false);
-                  }}
-                  className="px-2 py-1.5 rounded-md bg-white/5 hover:bg-white/10 text-xs flex items-center gap-1"
-                >
-                  <Layers size={12} />
-                  Group
-                </button>
-                <button
-                  onClick={() => {
-                    onUngroupNodes();
-                    setIsToolsMenuOpen(false);
-                  }}
-                  className="px-2 py-1.5 rounded-md bg-white/5 hover:bg-white/10 text-xs flex items-center gap-1"
-                >
-                  <Ungroup size={12} />
-                  Ungroup
-                </button>
-                <button
-                  onClick={() => {
-                    onExport();
-                    setIsToolsMenuOpen(false);
-                  }}
-                  className="px-2 py-1.5 rounded-md bg-white/5 hover:bg-white/10 text-xs flex items-center gap-1"
-                >
-                  <FileDown size={12} />
-                  Export
-                </button>
-                <button
-                  onClick={() => {
-                    importInputRef.current?.click();
-                    setIsToolsMenuOpen(false);
-                  }}
-                  className="px-2 py-1.5 rounded-md bg-white/5 hover:bg-white/10 text-xs flex items-center gap-1"
-                >
-                  <Upload size={12} />
-                  Import
-                </button>
-                <button
-                  onClick={() => {
-                    onDownloadImage();
-                    setIsToolsMenuOpen(false);
-                  }}
-                  className="px-2 py-1.5 rounded-md bg-white/5 hover:bg-white/10 text-xs flex items-center gap-1"
-                >
-                  <ImageIcon size={12} />
-                  Image
-                </button>
-                <button
-                  onClick={() => {
-                    onClear();
-                    setIsToolsMenuOpen(false);
-                  }}
-                  className="px-2 py-1.5 rounded-md bg-red-500/10 hover:bg-red-500/20 text-red-300 text-xs flex items-center gap-1"
-                >
-                  <Trash2 size={12} />
-                  Clear
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
+      <FlowHeader
+        currentFlowName={currentFlowName}
+        setCurrentFlowName={setCurrentFlowName}
+        isSaving={isSaving}
+        onSave={onSave}
+        onRunAll={onRunAll}
+        onValidateFlow={onValidateFlow}
+        setIsPlaygroundOpen={setIsPlaygroundOpen}
+        setIsFlowManagerOpen={setIsFlowManagerOpen}
+        setIsToolsMenuOpen={setIsToolsMenuOpen}
+        isToolsMenuOpen={isToolsMenuOpen}
+        validationLocale={validationLocale}
+        setValidationLocale={setValidationLocale}
+        showShortcutHelp={showShortcutHelp}
+        setShowShortcutHelp={setShowShortcutHelp}
+        showCommandPalette={showCommandPalette}
+        setShowCommandPalette={setShowCommandPalette}
+        importInputRef={importInputRef}
+        onImport={onImport}
+        onExport={onExport}
+        onCopy={onCopy}
+        onPaste={onPaste}
+        undo={undo}
+        redo={redo}
+        onLayout={onLayout}
+        onGroupNodes={onGroupNodes}
+        onUngroupNodes={onUngroupNodes}
+        onDownloadImage={onDownloadImage}
+        onClear={onClear}
+        setShowMinimap={setShowMinimap}
+        setIsLiveMode={setIsLiveMode}
+        isLiveMode={isLiveMode}
+        reactFlowInstance={reactFlowInstance}
+        navigate={navigate}
+      />
 
       <div className="flex-1 flex overflow-hidden">
         <Sidebar onAddNode={onAddNode} />
@@ -2488,158 +2073,23 @@ const API_FLOWS = `${API_BASE}/api/flows`;
               />
             )}
 
-            <Panel position="top-right" className="m-4">
-              <div
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-full border backdrop-blur-md ${
-                  flowIssues.some((issue) => issue.level === "error")
-                    ? "bg-red-500/10 border-red-500/20"
-                    : "bg-green-500/10 border-green-500/20"
-                }`}
-              >
-                <div
-                  className={`w-2 h-2 rounded-full animate-pulse ${
-                    flowIssues.some((issue) => issue.level === "error")
-                      ? "bg-red-500"
-                      : "bg-green-500"
-                  }`}
-                ></div>
-                <span
-                  className={`text-[10px] font-mono font-bold tracking-widest ${
-                    flowIssues.some((issue) => issue.level === "error")
-                      ? "text-red-400"
-                      : "text-green-400"
-                  }`}
-                >
-                  {flowIssues.some((issue) => issue.level === "error")
-                    ? `FLOW_INVALID (${flowIssues.filter((issue) => issue.level === "error").length})`
-                    : "FLOW_READY"}
-                </span>
-              </div>
-            </Panel>
+            <ValidationPanel
+              flowIssues={flowIssues}
+              focusIssueNode={focusIssueNode}
+            />
 
-            {flowIssues.length > 0 && (
-              <Panel position="top-left" className="m-4 max-w-[420px]">
-                <div className="bg-cyber-panel/90 border border-cyber-border rounded-xl shadow-2xl overflow-hidden">
-                  <div className="px-3 py-2 border-b border-white/10 flex items-center justify-between bg-black/30">
-                    <span className="text-[10px] font-mono uppercase tracking-widest text-cyber-primary">
-                      Flow Validation
-                    </span>
-                    <span className="text-[10px] font-mono text-gray-400">
-                      {flowIssues.filter((i) => i.level === "error").length} ERR
-                      · {flowIssues.filter((i) => i.level === "warning").length}{" "}
-                      WARN
-                    </span>
-                  </div>
-
-                  <div className="max-h-[220px] overflow-y-auto p-2 space-y-1">
-                    {flowIssues.slice(0, 12).map((issue, idx) => (
-                      <button
-                        key={`${issue.level}-${issue.nodeId || "global"}-${idx}`}
-                        type="button"
-                        onClick={() =>
-                          focusIssueNode(issue.nodeId, issue.fieldName)
-                        }
-                        className={`w-full text-left px-2 py-1.5 rounded-md border transition-colors ${
-                          issue.level === "error"
-                            ? "border-red-500/30 bg-red-500/10 text-red-200 hover:bg-red-500/20"
-                            : "border-yellow-500/30 bg-yellow-500/10 text-yellow-100 hover:bg-yellow-500/20"
-                        } ${issue.nodeId ? "cursor-pointer" : "cursor-default"}`}
-                      >
-                        <div className="text-[9px] font-mono uppercase opacity-80">
-                          {issue.level}
-                          {issue.nodeId ? ` · ${issue.nodeId}` : ""}
-                        </div>
-                        <div className="text-[11px] leading-tight">
-                          {issue.message}
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </Panel>
-            )}
-
-            {showShortcutHelp && (
-              <Panel position="bottom-left" className="m-4 max-w-[360px]">
-                <div className="bg-cyber-panel/95 border border-cyber-border rounded-xl shadow-2xl overflow-hidden">
-                  <div className="px-3 py-2 border-b border-white/10 flex items-center justify-between bg-black/30">
-                    <span className="text-[10px] font-mono uppercase tracking-widest text-cyber-primary">
-                      Keyboard Shortcuts
-                    </span>
-                    <button
-                      onClick={() => setShowShortcutHelp(false)}
-                      className="text-[10px] text-gray-400 hover:text-white"
-                    >
-                      ESC
-                    </button>
-                  </div>
-                  <div className="p-3 grid grid-cols-2 gap-x-4 gap-y-1 text-[11px]">
-                    <span className="text-gray-300">Save</span>
-                    <span className="text-cyber-primary">Ctrl/Cmd+S</span>
-                    <span className="text-gray-300">Validate</span>
-                    <span className="text-cyber-primary">Ctrl/Cmd+Shift+K</span>
-                    <span className="text-gray-300">Deploy</span>
-                    <span className="text-cyber-primary">Ctrl/Cmd+Enter</span>
-                    <span className="text-gray-300">Smart Layout</span>
-                    <span className="text-cyber-primary">Ctrl/Cmd+Shift+L</span>
-                    <span className="text-gray-300">Group/Ungroup</span>
-                    <span className="text-cyber-primary">
-                      Ctrl/Cmd+Shift+G/U
-                    </span>
-                    <span className="text-gray-300">Minimap/Fit</span>
-                    <span className="text-cyber-primary">
-                      Ctrl/Cmd+Shift+M/F
-                    </span>
-                    <span className="text-gray-300">Export/Import</span>
-                    <span className="text-cyber-primary">
-                      Ctrl/Cmd+Shift+E/I
-                    </span>
-                    <span className="text-gray-300">Undo/Redo</span>
-                    <span className="text-cyber-primary">Ctrl/Cmd+Z/Y</span>
-                    <span className="text-gray-300">Copy/Paste</span>
-                    <span className="text-cyber-primary">Ctrl/Cmd+C/V</span>
-                    <span className="text-gray-300">Toggle Help</span>
-                    <span className="text-cyber-primary">Ctrl/Cmd+Shift+/</span>
-                    <span className="text-gray-300">Command Palette</span>
-                    <span className="text-cyber-primary">Ctrl/Cmd+K</span>
-                  </div>
-                </div>
-              </Panel>
-            )}
+            <ShortcutHelp
+              showShortcutHelp={showShortcutHelp}
+              setShowShortcutHelp={setShowShortcutHelp}
+            />
           </ReactFlow>
         </div>
 
-        {/* Execution Logs Panel */}
-        <div className={`fixed bottom-0 left-0 z-50 transition-all duration-300 ${isLogsOpen ? 'w-[45vw] h-[25vh]' : 'w-40 h-8'} bg-cyber-panel/90 backdrop-blur-xl border-t border-r border-cyber-border rounded-tr-xl shadow-2xl flex flex-col overflow-hidden m-0`}>
-          <div className="px-3 py-1.5 border-b border-white/10 flex items-center justify-between bg-black/40">
-            <div className="flex items-center gap-2 text-cyber-primary">
-              <Terminal size={12} />
-              <span className="text-[10px] font-bold uppercase tracking-widest">System Logs</span>
-            </div>
-            <button 
-              onClick={() => setIsLogsOpen(!isLogsOpen)}
-              className="p-1 hover:bg-white/10 rounded text-gray-400 transition-colors"
-            >
-              {isLogsOpen ? <ArrowDown size={14} /> : <ArrowRight size={14} />}
-            </button>
-          </div>
-          {isLogsOpen && (
-            <div className="flex-1 overflow-y-auto p-2 font-mono text-[10px] space-y-1 custom-scrollbar">
-              {executionLogs.length === 0 ? (
-                <div className="text-gray-600 italic p-2">Ready for execution...</div>
-              ) : (
-                executionLogs.map(log => (
-                  <div key={log.id} className="flex gap-2 leading-relaxed border-b border-white/5 pb-1 last:border-0">
-                    <span className="text-gray-600 shrink-0">[{log.time}]</span>
-                    <span className={`${log.type === 'error' ? 'text-red-400' : log.type === 'nodeUpdate' ? 'text-cyber-primary' : 'text-gray-300'} break-all`}>
-                      {log.message}
-                    </span>
-                  </div>
-                ))
-              )}
-            </div>
-          )}
-        </div>
+        <LogViewer
+          isLogsOpen={isLogsOpen}
+          setIsLogsOpen={setIsLogsOpen}
+          executionLogs={executionLogs}
+        />
       </div>
 
       <Playground
@@ -2654,139 +2104,23 @@ const API_FLOWS = `${API_BASE}/api/flows`;
         onClearMessages={onClearPlaygroundMessages}
       />
 
-      {showCommandPalette && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-[1px] flex items-start justify-center pt-[12vh] px-4">
-          <div className="w-full max-w-[680px] bg-cyber-panel/95 border border-cyber-border rounded-2xl shadow-2xl overflow-hidden">
-            <div className="px-4 py-3 border-b border-white/10 flex items-center gap-3">
-              <span className="text-xs font-mono uppercase tracking-widest text-cyber-primary">
-                Command Palette
-              </span>
-              <span className="text-[10px] text-gray-400">
-                Enter to run · Esc to close
-              </span>
-            </div>
-            <div className="p-3 border-b border-white/10">
-              <input
-                ref={commandInputRef}
-                value={commandQuery}
-                onChange={(e) => {
-                  setCommandQuery(e.target.value);
-                  setCommandIndex(0);
-                }}
-                placeholder="Type a command: save, validate, layout, export..."
-                className="w-full bg-black/30 border border-white/10 rounded-lg px-3 py-2 text-sm outline-none focus:border-cyber-primary/50"
-              />
-            </div>
-            <div className="max-h-[420px] overflow-y-auto p-2 space-y-1">
-              {filteredCommands.length === 0 ? (
-                <div className="px-3 py-6 text-center text-sm text-gray-400">
-                  No command found.
-                </div>
-              ) : (
-                filteredCommands.map((command, idx) => (
-                  <button
-                    key={command.id}
-                    onClick={() => {
-                      command.run();
-                      setShowCommandPalette(false);
-                    }}
-                    className={`w-full text-left px-3 py-2 rounded-lg border transition-colors ${
-                      idx === commandIndex
-                        ? "bg-cyber-primary/20 border-cyber-primary/40"
-                        : "bg-white/5 border-white/10 hover:bg-white/10"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <div>
-                        <div className="text-sm text-white">
-                          {command.label}
-                        </div>
-                        <div className="text-[10px] uppercase tracking-wider text-cyber-muted">
-                          {command.group}
-                        </div>
-                      </div>
-                      <div className="text-[10px] font-mono text-cyber-primary/90">
-                        {command.shortcut}
-                      </div>
-                    </div>
-                  </button>
-                ))
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-      {isFlowManagerOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-2xl bg-cyber-panel border border-cyber-border rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[80vh]">
-            <div className="px-6 py-4 border-b border-white/10 flex items-center justify-between bg-black/40">
-              <div className="flex items-center gap-2 text-cyber-primary">
-                <FolderOpen size={20} />
-                <h2 className="text-lg font-bold uppercase tracking-tight">Flow Manager</h2>
-              </div>
-              <button 
-                onClick={() => setIsFlowManagerOpen(false)}
-                className="p-2 hover:bg-white/10 rounded-lg text-gray-400 transition-colors underline decoration-cyber-primary/30 underline-offset-4"
-              >
-                ESC (Close)
-              </button>
-            </div>
-            
-            <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
-              {savedFlows.length === 0 ? (
-                <div className="text-center py-12 text-gray-500 italic">
-                  No flows found on server. Create your first protocol.
-                </div>
-              ) : (
-                savedFlows.map(flow => (
-                  <div 
-                    key={flow.id}
-                    className={`group flex items-center justify-between p-4 rounded-xl border transition-all ${
-                      currentFlowId === flow.id 
-                        ? 'bg-cyber-primary/10 border-cyber-primary/40' 
-                        : 'bg-white/5 border-white/10 hover:bg-white/10'
-                    }`}
-                  >
-                    <div className="flex-1 cursor-pointer" onClick={() => {
-                        navigate(`/flow/${flow.id}`);
-                        setIsFlowManagerOpen(false);
-                    }}>
-                      <div className="text-sm font-bold text-white group-hover:text-cyber-primary transition-colors">
-                        {flow.name}
-                      </div>
-                      <div className="text-[10px] text-gray-500 mt-1 uppercase tracking-widest font-mono">
-                        ID: {flow.id} • Updated: {new Date(flow.updatedAt).toLocaleString()}
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button 
-                        onClick={() => onDeleteFlow(flow.id)}
-                        className="p-2 bg-red-500/10 hover:bg-red-500/30 text-red-400 rounded-lg border border-red-500/20 transition-all font-bold text-[10px]"
-                        title="Delete Flow"
-                      >
-                        DELETE
-                      </button>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-            
-            <div className="p-4 border-t border-white/10 bg-black/20 flex justify-end">
-              <button 
-                onClick={() => {
-                  navigate('/flow/new');
-                  setIsFlowManagerOpen(false);
-                }}
-                className="px-4 py-2 bg-cyber-primary text-black rounded-lg font-bold text-[11px] uppercase tracking-wider hover:bg-cyan-300 transition-all shadow-[0_0_15px_rgba(0,240,255,0.3)]"
-              >
-                + New Protocol
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <CommandPalette
+        showCommandPalette={showCommandPalette}
+        setShowCommandPalette={setShowCommandPalette}
+        commandQuery={commandQuery}
+        setCommandQuery={setCommandQuery}
+        commandIndex={commandIndex}
+        setCommandIndex={setCommandIndex}
+        filteredCommands={filteredCommands}
+        commandInputRef={commandInputRef}
+      />
+      <FlowManager
+        isFlowManagerOpen={isFlowManagerOpen}
+        setIsFlowManagerOpen={setIsFlowManagerOpen}
+        savedFlows={savedFlows}
+        onDeleteFlow={onDeleteFlow}
+        navigate={navigate}
+      />
     </div>
   );
 };

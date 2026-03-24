@@ -9,6 +9,7 @@ import {
   validateGitLabNode,
   validateHttpRequestNode,
   validateMssqlNode,
+  validateSerperApiKeyNode
 } from './rules/tools';
 
 export const validatorsByRuleKey: Record<NodeValidationRuleKey, NodeValidator> = {
@@ -20,4 +21,5 @@ export const validatorsByRuleKey: Record<NodeValidationRuleKey, NodeValidator> =
   'http-url-required': validateHttpRequestNode,
   'code-required': validateCodeExecutionNode,
   'condition-required': validateConditionNode,
+  'serper-api-key-required': validateSerperApiKeyNode,
 };

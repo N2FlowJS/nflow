@@ -191,7 +191,9 @@ app.get('/api/flows', async (_req: Request, res: Response) => {
           return {
             id: data.id,
             name: data.name || f.replace('.json', ''),
-            updatedAt: data.updatedAt || Date.now()
+            updatedAt: data.updatedAt || Date.now(),
+            nodeCount: data.data?.nodes?.length || 0,
+            edgeCount: data.data?.edges?.length || 0
           };
         })
     );
