@@ -6,33 +6,34 @@ import {
 } from 'lucide-react';
 
 const nodeTemplates = [
-  { label: 'Agent Core', type: 'Agent', icon: Bot, color: 'text-cyber-secondary', category: 'Core' },
-  { label: 'LLM Chat Model', type: 'ChatModelComponent', icon: BrainCircuit, color: 'text-purple-400', category: 'Core' },
-  { label: 'LLM Embedding Model', type: 'EmbeddingModelComponent', icon: Cpu, color: 'text-blue-400', category: 'Core' },
-  { label: 'Ollama Chat', type: 'OllamaChatModelComponent', icon: BrainCircuit, color: 'text-emerald-400', category: 'Core' },
-  { label: 'Ollama Embedding', type: 'OllamaEmbeddingModelComponent', icon: Cpu, color: 'text-emerald-300', category: 'Core' },
-  { label: 'vLLM Chat', type: 'VLLMChatModelComponent', icon: BrainCircuit, color: 'text-indigo-400', category: 'Core' },
-  { label: 'vLLM Embedding', type: 'VLLMEmbeddingModelComponent', icon: Cpu, color: 'text-indigo-300', category: 'Core' },
-  { label: 'Chat Input', type: 'ChatInput', icon: MessageSquare, color: 'text-green-400', category: 'Core' },
-  { label: 'Chat Output', type: 'ChatOutput', icon: MessageSquare, color: 'text-cyan-400', category: 'Core' },
-  { label: 'Prompt', type: 'Prompt Template', icon: Terminal, color: 'text-slate-400', category: 'Core' },
-  { label: 'Current Time', type: 'CurrentTime', icon: Clock, color: 'text-yellow-400', category: 'Core' },
-  { label: 'Text Value', type: 'TextInput', icon: Type, color: 'text-teal-400', category: 'Core' },
-  { label: 'MSSQL', type: 'MSSQLPyODBCComponent', icon: Database, color: 'text-amber-500', category: 'Tools' },
-  { label: 'Elasticsearch', type: 'elasticsearch_search', icon: Search, color: 'text-amber-500', category: 'Tools' },
-  { label: 'Serper Search', type: 'SerperSearchComponent', icon: Search, color: 'text-amber-500', category: 'Tools' },
-  { label: 'HTTP Request', type: 'HTTPRequestComponent', icon: Globe, color: 'text-blue-400', category: 'Tools' },
-  { label: 'Image Gen', type: 'ImageGenerationComponent', icon: BrainCircuit, color: 'text-pink-500', category: 'Tools' },
-  { label: 'GitLab MR', type: 'GitLabMergeRequestComponent', icon: GitMerge, color: 'text-orange-400', category: 'Tools' },
-  { label: 'Variable', type: 'VariableComponent', icon: Plus, color: 'text-cyan-400', category: 'Core' },
-  { label: 'File System', type: 'FileSystemComponent', icon: FileJson, color: 'text-amber-600', category: 'Tools' },
-  { label: 'Wait', type: 'WaitComponent', icon: Clock, color: 'text-gray-400', category: 'Logic' },
-  { label: 'Data Stream (Mock)', type: 'DataStreamComponent', icon: Cpu, color: 'text-amber-400', category: 'Tools' },
-  { label: 'JSON Parser', type: 'JSONParserComponent', icon: FileJson, color: 'text-yellow-400', category: 'Logic' },
-  { label: 'JS Code', type: 'CodeExecutionComponent', icon: Terminal, color: 'text-orange-400', category: 'Logic' },
-  { label: 'Router', type: 'ConditionComponent', icon: GitMerge, color: 'text-pink-400', category: 'Logic' },
-  { label: 'MR Review Prompt', type: 'GitLabMRReviewTemplate', icon: Terminal, color: 'text-cyan-400', category: 'Logic' },
-  { label: 'MR Comment Prompt', type: 'GitLabMRCommentTemplate', icon: Terminal, color: 'text-cyan-300', category: 'Logic' },
+  { label: 'Agent Core', type: 'Agent', icon: Bot, color: 'text-cyber-secondary', category: 'Core', bundle: 'Agent' },
+  { label: 'LLM Chat Model', type: 'ChatModelComponent', icon: BrainCircuit, color: 'text-purple-400', category: 'Core', bundle: 'Models' },
+  { label: 'LLM Embedding Model', type: 'EmbeddingModelComponent', icon: Cpu, color: 'text-blue-400', category: 'Core', bundle: 'Models' },
+  { label: 'Ollama Chat', type: 'OllamaChatModelComponent', icon: BrainCircuit, color: 'text-emerald-400', category: 'Core', bundle: 'Ollama' },
+  { label: 'Ollama Embedding', type: 'OllamaEmbeddingModelComponent', icon: Cpu, color: 'text-emerald-300', category: 'Core', bundle: 'Ollama' },
+  { label: 'vLLM Chat', type: 'VLLMChatModelComponent', icon: BrainCircuit, color: 'text-indigo-400', category: 'Core', bundle: 'vLLM' },
+  { label: 'vLLM Embedding', type: 'VLLMEmbeddingModelComponent', icon: Cpu, color: 'text-indigo-300', category: 'Core', bundle: 'vLLM' },
+  { label: 'Chat Input', type: 'ChatInput', icon: MessageSquare, color: 'text-green-400', category: 'Core', bundle: 'Chat IO' },
+  { label: 'Chat Output', type: 'ChatOutput', icon: MessageSquare, color: 'text-cyan-400', category: 'Core', bundle: 'Chat IO' },
+  { label: 'Prompt', type: 'Prompt Template', icon: Terminal, color: 'text-slate-400', category: 'Core', bundle: 'Templates' },
+  { label: 'Current Time', type: 'CurrentTime', icon: Clock, color: 'text-yellow-400', category: 'Core', bundle: 'Utils' },
+  { label: 'Text Value', type: 'TextInput', icon: Type, color: 'text-teal-400', category: 'Core', bundle: 'Utils' },
+  { label: 'Variable', type: 'VariableComponent', icon: Plus, color: 'text-cyan-400', category: 'Core', bundle: 'Utils' },
+  { label: 'MSSQL', type: 'MSSQLPyODBCComponent', icon: Database, color: 'text-amber-500', category: 'Tools', bundle: 'Database' },
+  { label: 'Elasticsearch', type: 'elasticsearch_search', icon: Search, color: 'text-amber-500', category: 'Tools', bundle: 'Database' },
+  { label: 'Serper Search', type: 'SerperSearchComponent', icon: Search, color: 'text-amber-500', category: 'Tools', bundle: 'Search' },
+  { label: 'HTTP Request', type: 'HTTPRequestComponent', icon: Globe, color: 'text-blue-400', category: 'Tools', bundle: 'Network' },
+  { label: 'Image Gen', type: 'ImageGenerationComponent', icon: BrainCircuit, color: 'text-pink-500', category: 'Tools', bundle: 'AI Tools' },
+  { label: 'GitLab MR', type: 'GitLabMergeRequestComponent', icon: GitMerge, color: 'text-orange-400', category: 'Tools', bundle: 'Git' },
+  { label: 'GitHub MR', type: 'GitHubMergeRequestComponent', icon: GitMerge, color: 'text-neutral-400', category: 'Tools', bundle: 'Git' },
+  { label: 'File System', type: 'FileSystemComponent', icon: FileJson, color: 'text-amber-600', category: 'Tools', bundle: 'File System' },
+  { label: 'Data Stream (Mock)', type: 'DataStreamComponent', icon: Cpu, color: 'text-amber-400', category: 'Tools', bundle: 'Mock' },
+  { label: 'Wait', type: 'WaitComponent', icon: Clock, color: 'text-gray-400', category: 'Logic', bundle: 'Flow Control' },
+  { label: 'JSON Parser', type: 'JSONParserComponent', icon: FileJson, color: 'text-yellow-400', category: 'Logic', bundle: 'Data Processing' },
+  { label: 'JS Code', type: 'CodeExecutionComponent', icon: Terminal, color: 'text-orange-400', category: 'Logic', bundle: 'Code' },
+  { label: 'Router', type: 'ConditionComponent', icon: GitMerge, color: 'text-pink-400', category: 'Logic', bundle: 'Flow Control' },
+  { label: 'MR Review Prompt', type: 'GitLabMRReviewTemplate', icon: Terminal, color: 'text-cyan-400', category: 'Logic', bundle: 'Templates' },
+  { label: 'MR Comment Prompt', type: 'GitLabMRCommentTemplate', icon: Terminal, color: 'text-cyan-300', category: 'Logic', bundle: 'Templates' },
 ];
 
 export default function Sidebar({ onAddNode }: { onAddNode: (type: string, label: string) => void }) {
@@ -51,6 +52,15 @@ export default function Sidebar({ onAddNode }: { onAddNode: (type: string, label
     const matchesCategory = !activeCategory || n.category === activeCategory;
     return matchesSearch && matchesCategory;
   });
+
+  const groupedNodes = Object.entries(
+    filteredNodes.reduce((acc, node) => {
+      const bundle = node.bundle || "Others";
+      if (!acc[bundle]) acc[bundle] = [];
+      acc[bundle].push(node);
+      return acc;
+    }, {} as Record<string, typeof nodeTemplates>)
+  ).sort(([bundleA], [bundleB]) => bundleA.localeCompare(bundleB));
 
   return (
     <div className="w-64 border-r border-cyber-border bg-cyber-panel/50 backdrop-blur-md p-4 flex flex-col gap-4 z-10 overflow-y-auto">
@@ -90,23 +100,32 @@ export default function Sidebar({ onAddNode }: { onAddNode: (type: string, label
           </div>
         )}
 
-        <div className="grid grid-cols-1 gap-2">
-          {filteredNodes.map((node) => (
-            <div
-              key={node.type}
-              draggable
-              onDragStart={(e) => onDragStart(e, node.type, node.label)}
-              onClick={() => onAddNode(node.type, node.label)}
-              className="group flex items-center gap-3 p-3 bg-white/5 border border-white/5 rounded-xl hover:bg-white/10 hover:border-white/20 transition-all text-left cursor-grab active:cursor-grabbing"
-            >
-              <div className={`p-2 rounded-lg bg-black/40 ${node.color} group-hover:scale-110 transition-transform`}>
-                <node.icon size={18} />
+        <div className="flex flex-col gap-6">
+          {groupedNodes.map(([bundle, nodes]) => (
+            <div key={bundle}>
+              <div className="text-[9px] font-bold text-cyber-primary/80 uppercase tracking-[0.15em] mb-2 px-1 border-b border-cyber-primary/20 pb-1">
+                {bundle}
               </div>
-              <div className="flex flex-col">
-                <span className="text-xs font-bold text-gray-200">{node.label}</span>
-                <span className="text-[9px] text-gray-500 font-mono uppercase">{node.category}</span>
+              <div className="grid grid-cols-1 gap-2">
+                {nodes.map((node) => (
+                  <div
+                    key={node.type}
+                    draggable
+                    onDragStart={(e) => onDragStart(e, node.type, node.label)}
+                    onClick={() => onAddNode(node.type, node.label)}
+                    className="group flex items-center gap-3 p-3 bg-white/5 border border-white/5 rounded-xl hover:bg-white/10 hover:border-white/20 transition-all text-left cursor-grab active:cursor-grabbing"
+                  >
+                    <div className={`p-2 rounded-lg bg-black/40 ${node.color} group-hover:scale-110 transition-transform`}>
+                      <node.icon size={18} />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-xs font-bold text-gray-200">{node.label}</span>
+                      <span className="text-[9px] text-gray-500 font-mono uppercase">{node.bundle || node.category}</span>
+                    </div>
+                    <Plus size={14} className="ml-auto text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </div>
+                ))}
               </div>
-              <Plus size={14} className="ml-auto text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity" />
             </div>
           ))}
           {filteredNodes.length === 0 && (

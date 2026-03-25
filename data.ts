@@ -116,7 +116,6 @@ export const initialEdges: Edge[] = [
     targetHandle: "agent_llm",
     type: "cyberEdge",
     animated: true,
-    label: "LLM_CONFIG",
     style: { stroke: '#a855f7', strokeWidth: 2 }
   },
   {
@@ -125,7 +124,6 @@ export const initialEdges: Edge[] = [
     target: "Agent-zYJXW",
     targetHandle: "tools",
     type: "cyberEdge",
-    label: "SQL_TOOL",
     style: { stroke: '#f59e0b', strokeDasharray: '5,5' }
   },
   {
@@ -134,7 +132,6 @@ export const initialEdges: Edge[] = [
     target: "Agent-zYJXW",
     targetHandle: "system_prompt",
     type: "cyberEdge",
-    label: "SYSTEM_INSTR",
     style: { stroke: '#64748b', strokeWidth: 1.5 }
   },
   {
@@ -142,7 +139,6 @@ export const initialEdges: Edge[] = [
     source: "CurrentTime-Node",
     target: "PromptTemplate-System",
     type: "cyberEdge",
-    label: "{time}",
     style: { stroke: '#64748b' }
   },
   {
@@ -152,7 +148,6 @@ export const initialEdges: Edge[] = [
     targetHandle: "input_value",
     type: "cyberEdge",
     animated: true,
-    label: "USER_QUERY",
     style: { stroke: '#00ff9f', strokeWidth: 2 }
   },
   {
@@ -162,7 +157,6 @@ export const initialEdges: Edge[] = [
     sourceHandle: "response",
     type: "cyberEdge",
     animated: true,
-    label: "REPLY_MSG",
     style: { stroke: '#00f0ff', strokeWidth: 2 }
   }
 ];

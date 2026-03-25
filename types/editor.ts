@@ -22,10 +22,18 @@ export type CommandAction = {
   run: () => void;
 };
 
+export type GlobalVariable = {
+  id: string;
+  name: string;
+  value: string;
+};
+
 export type SavedFlow = {
   id: string;
   name: string;
-  data?: ReturnType<ReactFlowInstance["toObject"]>;
+  data?: ReturnType<ReactFlowInstance["toObject"]> & {
+    globalVariables?: GlobalVariable[];
+  };
   updatedAt: number;
 };
 

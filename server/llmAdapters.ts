@@ -22,6 +22,12 @@ export type LlmRuntimeConfig = {
   model: string;
   apiKey: string;
   baseUrl: string;
+  temperature?: number;
+  max_tokens?: number;
+  top_p?: number;
+  top_k?: number;
+  presence_penalty?: number;
+  frequency_penalty?: number;
 };
 
 const trimTrailingSlash = (url: unknown) => String(url || '').replace(/\/+$/, '');
@@ -116,6 +122,11 @@ export const runOpenAICompatibleChat = async (
       model: String(cfg.model),
       messages,
       tools: tools as any,
+      temperature: cfg.temperature,
+      max_tokens: cfg.max_tokens,
+      top_p: cfg.top_p,
+      presence_penalty: cfg.presence_penalty,
+      frequency_penalty: cfg.frequency_penalty,
     });
 
     const first = completion.choices?.[0] as any;
@@ -174,6 +185,12 @@ export const runOllamaChat = async (
       stream: false,
       messages,
       tools: tools as any,
+      options: {
+        temperature: cfg.temperature,
+        num_predict: cfg.max_tokens,
+        top_p: cfg.top_p,
+        top_k: cfg.top_k,
+      }
     });
     const content = typeof payload?.message?.content === 'string' ? payload.message.content : '';
     const toolCalls = extractOllamaToolCalls(payload as any);
@@ -224,7 +241,14 @@ export const runGoogleChat = async (
 
   const chat = ai.chats.create({
     model: cfg.model,
-    config: { systemInstruction: systemPrompt, tools: toolsConfig },
+    config: { 
+      systemInstruction: systemPrompt, 
+      tools: toolsConfig,
+      temperature: cfg.temperature,
+      maxOutputTokens: cfg.max_tokens,
+      topP: cfg.top_p,
+      topK: cfg.top_k,
+    },
   });
 
   let agentResponse = await chat.sendMessage({ message: String(userPrompt) });
@@ -265,7 +289,10 @@ export const runAnthropicChat = async (
         model: cfg.model || 'claude-3-5-sonnet-20240620',
         system: systemPrompt,
         messages,
-        max_tokens: 4096,
+        max_tokens: cfg.max_tokens || 4096,
+        temperature: cfg.temperature,
+        top_p: cfg.top_p,
+        top_k: cfg.top_k,
         tools: availableTools.length > 0 ? availableTools.map(t => ({
           name: t.name,
           description: t.description,

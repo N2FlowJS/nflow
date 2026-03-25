@@ -29,6 +29,13 @@ export const validateGitLabNode: NodeValidator = (node) =>
     (fieldName) => `GitLab node "${node.data.label}" missing ${fieldName}.`,
   );
 
+export const validateGitHubNode: NodeValidator = (node) =>
+  validateRequiredParams(
+    node,
+    ['baseUrl', 'repoFullName', 'pullRequestNumber'],
+    (fieldName) => `GitHub node "${node.data.label}" missing ${fieldName}.`,
+  );
+
 export const validateHttpRequestNode: NodeValidator = (node) => {
   const url = readParamString(node, 'url');
   if (url) return [];

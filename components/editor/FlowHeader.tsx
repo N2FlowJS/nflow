@@ -24,6 +24,7 @@ import {
   Upload,
   Image as ImageIcon,
   Trash2,
+  DollarSign,
 } from "lucide-react";
 import { ValidationLocale } from "../../flow-validation";
 import { RuntimeStatus } from "../../types/editor";
@@ -39,6 +40,8 @@ interface FlowHeaderProps {
   setIsFlowManagerOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setIsToolsMenuOpen: React.Dispatch<React.SetStateAction<boolean>>;
   isToolsMenuOpen: boolean;
+  setIsVariablesPanelOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  isVariablesPanelOpen: boolean;
   validationLocale: ValidationLocale;
   setValidationLocale: React.Dispatch<React.SetStateAction<ValidationLocale>>;
   showShortcutHelp: boolean;
@@ -75,6 +78,8 @@ const FlowHeader: React.FC<FlowHeaderProps> = ({
   setIsFlowManagerOpen,
   setIsToolsMenuOpen,
   isToolsMenuOpen,
+  setIsVariablesPanelOpen,
+  isVariablesPanelOpen,
   validationLocale,
   setValidationLocale,
   showShortcutHelp,
@@ -132,6 +137,18 @@ const FlowHeader: React.FC<FlowHeaderProps> = ({
           title="Open Flows"
         >
           <FolderOpen size={16} />
+        </button>
+
+        <button
+          onClick={() => setIsVariablesPanelOpen((prev) => !prev)}
+          className={`p-2 rounded-lg transition-colors border ${
+            isVariablesPanelOpen
+              ? "bg-cyber-primary text-black border-cyber-primary"
+              : "bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white border-white/10"
+          }`}
+          title="Global Variables"
+        >
+          <DollarSign size={16} />
         </button>
 
         <button

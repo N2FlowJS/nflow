@@ -26,12 +26,12 @@ import {
   NodeChange,
   EdgeChange,
 } from "@xyflow/react";
-import { 
-  PortDataType, 
-  readPortType, 
-  inferSourcePortType, 
-  inferTargetPortType, 
-  normalizeModelNode 
+import {
+  PortDataType,
+  readPortType,
+  inferSourcePortType,
+  inferTargetPortType,
+  normalizeModelNode
 } from "../node-registry/utils";
 import FlowHeader from "../components/editor/FlowHeader";
 import LogViewer from "../components/editor/LogViewer";
@@ -39,11 +39,13 @@ import CommandPalette from "../components/editor/CommandPalette";
 import ValidationPanel from "../components/editor/ValidationPanel";
 import ShortcutHelp from "../components/editor/ShortcutHelp";
 import FlowManager from "../components/editor/FlowManager";
+import CanvasSearch from "../components/editor/CanvasSearch";
 import {
   RuntimeStatus,
   PlaygroundMessage,
   PlaygroundWorkerOutput,
   CommandAction,
+  GlobalVariable,
   SavedFlow,
   LogEntry,
 } from "../types/editor";
@@ -83,6 +85,7 @@ import {
   AlertTriangle,
   Settings2,
   Keyboard,
+  DollarSign,
 } from "lucide-react";
 import dagre from "dagre";
 import { toPng } from "html-to-image";
@@ -116,6 +119,75 @@ const INITIAL_PLAYGROUND_MESSAGES: PlaygroundMessage[] = [
   },
 ];
 
+const VariablesPanel: React.FC<{
+  isOpen: boolean;
+  onClose: () => void;
+  variables: GlobalVariable[];
+  onVariablesChange: (variables: GlobalVariable[]) => void;
+}> = ({ isOpen, onClose, variables, onVariablesChange }) => {
+  if (!isOpen) return null;
+
+  const handleAdd = () => {
+    onVariablesChange([
+      ...variables,
+      { id: `var-${Date.now()}`, name: "newVariable", value: "" },
+    ]);
+  };
+
+  const handleUpdate = (id: string, field: "name" | "value", value: string) => {
+    onVariablesChange(
+      variables.map((v) => (v.id === id ? { ...v, [field]: value } : v))
+    );
+  };
+
+  const handleDelete = (id: string) => {
+    onVariablesChange(variables.filter((v) => v.id !== id));
+  };
+
+  return (
+    <div className="absolute top-20 right-4 bg-cyber-panel border border-cyber-border rounded-lg shadow-lg z-10 w-96 p-4">
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-lg font-bold">Global Variables</h3>
+        <button onClick={onClose} className="text-gray-400 hover:text-white">
+          &times;
+        </button>
+      </div>
+      <div className="space-y-2">
+        {variables.map((variable) => (
+          <div key={variable.id} className="flex items-center gap-2">
+            <input
+              type="text"
+              value={variable.name}
+              onChange={(e) => handleUpdate(variable.id, "name", e.target.value)}
+              className="bg-white/10 rounded px-2 py-1 text-sm w-1/3"
+              placeholder="Name"
+            />
+            <input
+              type="text"
+              value={variable.value}
+              onChange={(e) => handleUpdate(variable.id, "value", e.target.value)}
+              className="bg-white/10 rounded px-2 py-1 text-sm w-2/3"
+              placeholder="Value"
+            />
+            <button
+              onClick={() => handleDelete(variable.id)}
+              className="text-red-500 hover:text-red-400"
+            >
+              <Trash2 size={16} />
+            </button>
+          </div>
+        ))}
+      </div>
+      <button
+        onClick={handleAdd}
+        className="mt-4 w-full bg-cyber-primary/20 text-cyber-primary py-2 rounded hover:bg-cyber-primary/30"
+      >
+        Add Variable
+      </button>
+    </div>
+  );
+};
+
 const Flow = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -138,10 +210,13 @@ const Flow = () => {
     useState<string>("Untitled Flow");
   const [isLiveMode, setIsLiveMode] = useState(false);
   const [isFlowManagerOpen, setIsFlowManagerOpen] = useState(false);
+  const [isVariablesPanelOpen, setIsVariablesPanelOpen] = useState(false);
+  const [isCanvasSearchOpen, setIsCanvasSearchOpen] = useState(false);
+  const [globalVariables, setGlobalVariables] = useState<GlobalVariable[]>([]);
   const [validationLocale, setValidationLocale] = useState<ValidationLocale>(
     () =>
       typeof navigator !== "undefined" &&
-      navigator.language.toLowerCase().startsWith("vi")
+        navigator.language.toLowerCase().startsWith("vi")
         ? "vi"
         : "en",
   );
@@ -160,7 +235,7 @@ const Flow = () => {
   const [isSaving, setIsSaving] = useState(false);
 
   const API_BASE = (import.meta as { env?: Record<string, string | undefined> }).env?.VITE_RUNTIME_URL || 'http://localhost:8787';
-const API_FLOWS = `${API_BASE}/api/flows`;
+  const API_FLOWS = `${API_BASE}/api/flows`;
 
   const fetchFlows = useCallback(async () => {
     try {
@@ -197,6 +272,7 @@ const API_FLOWS = `${API_BASE}/api/flows`;
             const flow = await res.json();
             setNodes((flow.data.nodes || []).map(normalizeModelNode));
             setEdges(flow.data.edges || []);
+            setGlobalVariables(flow.data.globalVariables || []);
             setCurrentFlowId(flow.id);
             setCurrentFlowName(flow.name);
             shouldFitAfterLoadRef.current = true;
@@ -223,6 +299,7 @@ const API_FLOWS = `${API_BASE}/api/flows`;
         setEdges([]);
         setCurrentFlowId(null);
         setCurrentFlowName("Untitled Flow");
+        setGlobalVariables([]);
         shouldFitAfterLoadRef.current = false;
       }
     };
@@ -448,7 +525,6 @@ const API_FLOWS = `${API_BASE}/api/flows`;
 
       takeSnapshot();
       setEdges((eds) => {
-        let label = "";
         let stroke = "#4b5563";
 
         const portColor = (portType: PortDataType) => {
@@ -460,44 +536,27 @@ const API_FLOWS = `${API_BASE}/api/flows`;
           return "#4b5563";
         };
 
-        const portLabel = (portType: PortDataType) => {
-          if (portType === "chat_model") return "CHAT_LLM";
-          if (portType === "embedding_model") return "EMBEDDING";
-          if (portType === "boolean_route") return "BOOL";
-          return portType.toUpperCase();
-        };
-
         if (params.targetHandle === "tools") {
-          label = "TOOL";
           stroke = "#f59e0b"; // amber-500
         } else if (params.targetHandle === "agent_llm") {
-          label = "CHAT_LLM";
           stroke = "#a855f7"; // purple-500
         } else if (params.targetHandle === "embedding_model") {
-          label = "EMBEDDING";
           stroke = "#3b82f6"; // blue-500
         } else if (params.sourceHandle === "true") {
-          label = "TRUE";
           stroke = "#22c55e"; // green-500
         } else if (params.sourceHandle === "false") {
-          label = "FALSE";
           stroke = "#ef4444"; // red-500
         } else if (params.sourceHandle === "as_tool") {
-          label = "AS TOOL";
           stroke = "#f59e0b"; // amber-500
         } else if (params.targetHandle === "system_prompt") {
-          label = "SYSTEM";
           stroke = "#64748b"; // slate-500
         } else if (params.targetHandle === "input_value") {
-          label = "INPUT";
           stroke = "#22c55e"; // green-500
         } else if (params.sourceHandle === "response") {
-          label = "OUTPUT";
           stroke = "#22d3ee"; // cyan-400
         } else {
           const effectiveType =
             targetPortType !== "any" ? targetPortType : sourcePortType;
-          label = portLabel(effectiveType);
           stroke = portColor(effectiveType);
         }
 
@@ -506,7 +565,6 @@ const API_FLOWS = `${API_BASE}/api/flows`;
             ...params,
             type: "cyberEdge",
             animated: true,
-            label,
             style: { stroke, strokeWidth: 1.5 },
             labelStyle: { fill: stroke },
           },
@@ -742,13 +800,13 @@ const API_FLOWS = `${API_BASE}/api/flows`;
                   nds.map((n) =>
                     n.id === nodeId
                       ? {
-                          ...n,
-                          data: {
-                            ...n.data,
-                            status: "error",
-                            errorMessage: String(message || "Execution error"),
-                          },
-                        }
+                        ...n,
+                        data: {
+                          ...n.data,
+                          status: "error",
+                          errorMessage: String(message || "Execution error"),
+                        },
+                      }
                       : n,
                   ),
                 );
@@ -796,7 +854,7 @@ const API_FLOWS = `${API_BASE}/api/flows`;
           const payload = await serverResponse.json().catch(() => ({}));
           throw new Error(
             payload?.error ||
-              `Server execution failed: ${serverResponse.status}`,
+            `Server execution failed: ${serverResponse.status}`,
           );
         }
 
@@ -854,7 +912,7 @@ const API_FLOWS = `${API_BASE}/api/flows`;
             } else {
               applyEvent(trailingEvent);
             }
-          } catch {}
+          } catch { }
         }
 
         if (!isSilent) {
@@ -953,7 +1011,7 @@ const API_FLOWS = `${API_BASE}/api/flows`;
         const nodeErrors = errorsByNode.get(node.id) || [];
         const currentError =
           typeof (node.data as { errorMessage?: unknown }).errorMessage ===
-          "string"
+            "string"
             ? ((node.data as { errorMessage?: string }).errorMessage as string)
             : "";
         const isValidationError = currentError.startsWith("[Validation]");
@@ -1011,11 +1069,11 @@ const API_FLOWS = `${API_BASE}/api/flows`;
           data:
             n.id === nodeId
               ? {
-                  ...n.data,
-                  __openConfigToken: openConfigToken,
-                  __focusFieldName: fieldName,
-                  __focusFieldToken: focusFieldToken,
-                }
+                ...n.data,
+                __openConfigToken: openConfigToken,
+                __focusFieldName: fieldName,
+                __focusFieldToken: focusFieldToken,
+              }
               : n.data,
         })),
       );
@@ -1096,7 +1154,10 @@ const API_FLOWS = `${API_BASE}/api/flows`;
         const newFlow: SavedFlow = {
           id: flowId,
           name: name || currentFlowName,
-          data: flow,
+          data: {
+            ...flow,
+            globalVariables,
+          } as SavedFlow["data"],
           updatedAt: Date.now(),
         };
 
@@ -1106,7 +1167,7 @@ const API_FLOWS = `${API_BASE}/api/flows`;
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(newFlow),
           });
-          
+
           if (res.ok) {
             setCurrentFlowId(newFlow.id);
             setCurrentFlowName(newFlow.name);
@@ -1663,6 +1724,14 @@ const API_FLOWS = `${API_BASE}/api/flows`;
         run: () => setIsPlaygroundOpen(true),
       },
       {
+        id: "canvas-search",
+        label: "Find in Canvas",
+        group: "Flow",
+        shortcut: "Ctrl/Cmd+F",
+        keywords: "find search canvas node",
+        run: () => setIsCanvasSearchOpen(true),
+      },
+      {
         id: "smart-layout",
         label: "Smart Layout",
         group: "Layout",
@@ -1891,6 +1960,12 @@ const API_FLOWS = `${API_BASE}/api/flows`;
         return;
       }
 
+      if (isMod && !e.shiftKey && key === "f") {
+        e.preventDefault();
+        setIsCanvasSearchOpen((prev) => !prev);
+        return;
+      }
+
       if (
         e.target instanceof HTMLInputElement ||
         e.target instanceof HTMLTextAreaElement
@@ -1989,6 +2064,8 @@ const API_FLOWS = `${API_BASE}/api/flows`;
         setIsFlowManagerOpen={setIsFlowManagerOpen}
         setIsToolsMenuOpen={setIsToolsMenuOpen}
         isToolsMenuOpen={isToolsMenuOpen}
+        setIsVariablesPanelOpen={setIsVariablesPanelOpen}
+        isVariablesPanelOpen={isVariablesPanelOpen}
         validationLocale={validationLocale}
         setValidationLocale={setValidationLocale}
         showShortcutHelp={showShortcutHelp}
@@ -2083,6 +2160,12 @@ const API_FLOWS = `${API_BASE}/api/flows`;
               setShowShortcutHelp={setShowShortcutHelp}
             />
           </ReactFlow>
+          <CanvasSearch
+            isOpen={isCanvasSearchOpen}
+            onClose={() => setIsCanvasSearchOpen(false)}
+            nodes={nodes}
+            setNodes={setNodes}
+          />
         </div>
 
         <LogViewer
@@ -2120,6 +2203,12 @@ const API_FLOWS = `${API_BASE}/api/flows`;
         savedFlows={savedFlows}
         onDeleteFlow={onDeleteFlow}
         navigate={navigate}
+      />
+      <VariablesPanel
+        isOpen={isVariablesPanelOpen}
+        onClose={() => setIsVariablesPanelOpen(false)}
+        variables={globalVariables}
+        onVariablesChange={setGlobalVariables}
       />
     </div>
   );

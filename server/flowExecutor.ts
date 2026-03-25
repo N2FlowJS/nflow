@@ -236,6 +236,7 @@ export async function executeFlowOnServer({
           }
           break;
         }
+        case 'LanguageModelComponent':
         case 'ChatModelComponent':
         case 'OllamaChatModelComponent':
         case 'VLLMChatModelComponent':
@@ -245,6 +246,12 @@ export async function executeFlowOnServer({
             model: getNodeFieldValue(node, 'model') || 'gemini-2.0-flash',
             apiKey: getNodeFieldValue(node, 'apiKey') || '',
             baseUrl: getNodeFieldValue(node, 'baseUrl') || '',
+            temperature: Number(getNodeFieldValue(node, 'temperature') ?? getNodeFieldValue(node, 'temp') ?? 0.7),
+            max_tokens: Number(getNodeFieldValue(node, 'max_tokens') || 2048),
+            top_p: Number(getNodeFieldValue(node, 'top_p') || 0.95),
+            top_k: Number(getNodeFieldValue(node, 'top_k') || 40),
+            presence_penalty: Number(getNodeFieldValue(node, 'presence_penalty') || 0),
+            frequency_penalty: Number(getNodeFieldValue(node, 'frequency_penalty') || 0),
           };
           break;
         case 'EmbeddingModelComponent':
@@ -280,6 +287,12 @@ export async function executeFlowOnServer({
             model: String(llmCfg?.model || 'gemini-2.0-flash'),
             apiKey: String(llmCfg?.apiKey || apiKey || ''),
             baseUrl: String(llmCfg?.baseUrl || ''),
+            temperature: llmCfg?.temperature as number | undefined,
+            max_tokens: llmCfg?.max_tokens as number | undefined,
+            top_p: llmCfg?.top_p as number | undefined,
+            top_k: llmCfg?.top_k as number | undefined,
+            presence_penalty: llmCfg?.presence_penalty as number | undefined,
+            frequency_penalty: llmCfg?.frequency_penalty as number | undefined,
           };
 
           const availableTools = ((inputs.tools || []) as AgentTool[]).filter((t) => t?.type === 'tool');
@@ -361,7 +374,8 @@ export async function executeFlowOnServer({
           result = await executeTool(node, { query: content }, undefined);
           break;
         }
-        case 'GitLabMergeRequestComponent': {
+        case 'GitLabMergeRequestComponent':
+        case 'GitHubMergeRequestComponent': {
           const flatInput = String(Object.values(inputs).flat()[0] || '');
           result = await executeTool(node, { query: flatInput }, undefined);
           break;

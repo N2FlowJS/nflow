@@ -9,7 +9,8 @@ import {
   validateGitLabNode,
   validateHttpRequestNode,
   validateMssqlNode,
-  validateSerperApiKeyNode
+  validateSerperApiKeyNode,
+  validateGitHubNode
 } from './rules/tools';
 
 export const validatorsByRuleKey: Record<NodeValidationRuleKey, NodeValidator> = {
@@ -18,6 +19,7 @@ export const validatorsByRuleKey: Record<NodeValidationRuleKey, NodeValidator> =
   'mssql-required': validateMssqlNode,
   'elasticsearch-endpoint-required': validateElasticsearchNode,
   'gitlab-required': validateGitLabNode,
+  'github-required': validateGitHubNode,
   'http-url-required': validateHttpRequestNode,
   'code-required': validateCodeExecutionNode,
   'condition-required': validateConditionNode,

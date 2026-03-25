@@ -49,7 +49,8 @@ export type NodeValidationRuleKey =
   | "http-url-required"
   | "code-required"
   | "condition-required"
-  | "serper-api-key-required";
+  | "serper-api-key-required"
+  | "github-required";
 
 export type NodeValidationRuleConfig = {
   key: NodeValidationRuleKey;
@@ -59,25 +60,29 @@ export type NodeValidationRuleConfig = {
   messageVi?: string;
 };
 
+export type NodeCategory = "llm" | "tool" | "agent" | "input" | "output" | "template" | "logic" | "other";
+
 type NodeRegistryEntry = {
   configSchema?: RegistryConfigSchema;
   validationRules?: Array<NodeValidationRuleKey | NodeValidationRuleConfig>;
+  icon?: string;
+  category?: NodeCategory;
 };
 
 type NodeFieldValues = Record<string, string | number | boolean>;
 
 const PRIMARY_SOURCE_BADGE_RIGHT_CLASS =
-  "-right-10 top-1/2 -translate-y-1/2 text-cyber-primary border-cyber-primary/60 bg-black/70";
+  "-right-1.5 top-1/2 -translate-y-1/2 text-cyber-primary border-cyber-primary/60 bg-black/70";
 const PRIMARY_SOURCE_BADGE_BOTTOM_CLASS =
-  "left-1/2 -translate-x-1/2 -bottom-11 text-cyber-primary border-cyber-primary/60 bg-black/70";
+  "left-1/2 -translate-x-1/2 -bottom-6 text-cyber-primary border-cyber-primary/60 bg-black/70";
 const AS_TOOL_LABEL_CENTER_CLASS =
   "absolute -top-6 left-1/2 -translate-x-1/2 flex flex-col items-center text-amber-500 opacity-0 group-hover:opacity-100 transition-opacity";
 const AS_TOOL_LABEL_75_CLASS =
   "absolute -top-6 left-3/4 -translate-x-1/2 flex flex-col items-center text-amber-500 opacity-0 group-hover:opacity-100 transition-opacity";
 const AS_TOOL_BADGE_CENTER_CLASS =
-  "left-1/2 -translate-x-1/2 -top-11 text-amber-300 border-amber-500/60 bg-black/70";
+  "left-1/2 -translate-x-1/2 -top-6 text-amber-300 border-amber-500/60 bg-black/70";
 const AS_TOOL_BADGE_75_CLASS =
-  "left-[75%] -translate-x-1/2 -top-11 text-amber-300 border-amber-500/60 bg-black/70";
+  "left-[75%] -translate-x-1/2 -top-6 text-amber-300 border-amber-500/60 bg-black/70";
 
 const createPrimarySourceHandle = (
   portType: NodeSourceHandleConfig["portType"],
@@ -128,6 +133,9 @@ const languageModelSchema: RegistryConfigSchema = [
     ],
   },
   { label: "Temperature", name: "temp", type: "number" },
+  { label: "Max Tokens", name: "max_tokens", type: "number" },
+  { label: "Top P", name: "top_p", type: "number" },
+  { label: "Top K", name: "top_k", type: "number" },
   { label: "API Key (Optional)", name: "apiKey", type: "text" },
   { label: "Base URL (Optional)", name: "baseUrl", type: "text" },
 ];
@@ -209,8 +217,32 @@ const gitLabMergeRequestSchema: RegistryConfigSchema = [
   { label: "Note Body Template", name: "noteBody", type: "textarea" },
 ];
 
+const gitHubMergeRequestSchema: RegistryConfigSchema = [
+  {
+    label: "GitHub API Base URL",
+    name: "baseUrl",
+    type: "text",
+    sourceHandles: [
+      createPrimarySourceHandle("any", "right"),
+      createAsToolSourceHandle(),
+    ],
+  },
+  { label: "Repository (owner/repo)", name: "repoFullName", type: "text" },
+  { label: "Pull Request #", name: "pullRequestNumber", type: "text" },
+  { label: "Access Token", name: "githubToken", type: "text" },
+  {
+    label: "Action",
+    name: "action",
+    type: "select",
+    options: ["get_files", "get_comments", "post_comment"],
+  },
+  { label: "Comment Body Template", name: "noteBody", type: "textarea" },
+];
+
 const nodeRegistry: Record<string, NodeRegistryEntry> = {
   LanguageModelComponent: {
+    category: "llm",
+    icon: "BrainCircuit",
     configSchema: withDefaultValues(languageModelSchema, {
       modelType: "Chat",
       model: "gemini-3-flash-preview",
@@ -220,6 +252,8 @@ const nodeRegistry: Record<string, NodeRegistryEntry> = {
     }),
   },
   ChatModelComponent: {
+    category: "llm",
+    icon: "BrainCircuit",
     configSchema: withDefaultValues([
       {
         label: "Provider",
@@ -242,17 +276,27 @@ const nodeRegistry: Record<string, NodeRegistryEntry> = {
         ],
       },
       { label: "Temperature", name: "temperature", type: "number" },
+      { label: "Max Tokens", name: "max_tokens", type: "number" },
+      { label: "Top P", name: "top_p", type: "number" },
+      { label: "Presence Penalty", name: "presence_penalty", type: "number" },
+      { label: "Frequency Penalty", name: "frequency_penalty", type: "number" },
       { label: "API Key (Optional)", name: "apiKey", type: "text" },
       { label: "Base URL (Optional)", name: "baseUrl", type: "text" },
     ], {
       provider: "Google",
       model: "gemini-2.0-flash",
       temperature: 0.7,
+      max_tokens: 2048,
+      top_p: 0.95,
+      presence_penalty: 0,
+      frequency_penalty: 0,
       apiKey: "",
       baseUrl: "",
     }),
   },
   OllamaChatModelComponent: {
+    category: "llm",
+    icon: "BrainCircuit",
     configSchema: withDefaultValues([
       {
         label: "Model Name",
@@ -263,17 +307,25 @@ const nodeRegistry: Record<string, NodeRegistryEntry> = {
         ],
       },
       { label: "Temperature", name: "temperature", type: "number" },
+      { label: "Max Tokens", name: "max_tokens", type: "number" },
+      { label: "Top P", name: "top_p", type: "number" },
+      { label: "Top K", name: "top_k", type: "number" },
       { label: "API Key (Optional)", name: "apiKey", type: "text" },
       { label: "Base URL (Optional)", name: "baseUrl", type: "text" },
     ], {
       provider: "Ollama",
       model: "llama3.1:8b",
       temperature: 0.7,
+      max_tokens: 2048,
+      top_p: 0.9,
+      top_k: 40,
       apiKey: "",
       baseUrl: "http://localhost:11434",
     }),
   },
   VLLMChatModelComponent: {
+    category: "llm",
+    icon: "BrainCircuit",
     configSchema: withDefaultValues([
       {
         label: "Model Name",
@@ -284,17 +336,27 @@ const nodeRegistry: Record<string, NodeRegistryEntry> = {
         ],
       },
       { label: "Temperature", name: "temperature", type: "number" },
+      { label: "Max Tokens", name: "max_tokens", type: "number" },
+      { label: "Top P", name: "top_p", type: "number" },
+      { label: "Presence Penalty", name: "presence_penalty", type: "number" },
+      { label: "Frequency Penalty", name: "frequency_penalty", type: "number" },
       { label: "API Key (Optional)", name: "apiKey", type: "text" },
       { label: "Base URL (Optional)", name: "baseUrl", type: "text" },
     ], {
       provider: "vLLM",
       model: "meta-llama/Meta-Llama-3-8B-Instruct",
       temperature: 0.7,
+      max_tokens: 2048,
+      top_p: 0.95,
+      presence_penalty: 0,
+      frequency_penalty: 0,
       apiKey: "",
       baseUrl: "http://localhost:8000/v1",
     }),
   },
   MSSQLPyODBCComponent: {
+    category: "tool",
+    icon: "Database",
     configSchema: withDefaultValues([
       {
         label: "Server Host",
@@ -339,6 +401,8 @@ const nodeRegistry: Record<string, NodeRegistryEntry> = {
     validationRules: ["mssql-required"],
   },
   GitLabMergeRequestComponent: {
+    category: "tool",
+    icon: "GitMerge",
     configSchema: withDefaultValues(gitLabMergeRequestSchema, {
       baseUrl: "https://gitlab.com/api/v4",
       projectId: "",
@@ -349,7 +413,22 @@ const nodeRegistry: Record<string, NodeRegistryEntry> = {
     }),
     validationRules: ["gitlab-required"],
   },
+  GitHubMergeRequestComponent: {
+    category: "tool",
+    icon: "GitMerge",
+    configSchema: withDefaultValues(gitHubMergeRequestSchema, {
+      baseUrl: "https://api.github.com",
+      repoFullName: "",
+      pullRequestNumber: "",
+      githubToken: "",
+      action: "get_files",
+      noteBody: "Review from n2flow agent: {query}",
+    }),
+    validationRules: ["github-required"],
+  },
   EmbeddingModelComponent: {
+    category: "llm",
+    icon: "Cpu",
     configSchema: withDefaultValues(embeddingModelSchema, {
       provider: "Google",
       model: "text-embedding-004",
@@ -358,6 +437,8 @@ const nodeRegistry: Record<string, NodeRegistryEntry> = {
     }),
   },
   OllamaEmbeddingModelComponent: {
+    category: "llm",
+    icon: "Cpu",
     configSchema: withDefaultValues([
       {
         label: "Embedding Model",
@@ -377,6 +458,8 @@ const nodeRegistry: Record<string, NodeRegistryEntry> = {
     }),
   },
   VLLMEmbeddingModelComponent: {
+    category: "llm",
+    icon: "Cpu",
     configSchema: withDefaultValues([
       {
         label: "Embedding Model",
@@ -396,9 +479,13 @@ const nodeRegistry: Record<string, NodeRegistryEntry> = {
     }),
   },
   PromptTemplate: {
+    category: "template",
+    icon: "Terminal",
     configSchema: withDefaultValues(promptTemplateSchema, { template: "Hello {name}" }),
   },
   "Prompt Template": {
+    category: "template",
+    icon: "Terminal",
     configSchema: withDefaultValues(promptTemplateSchema, { template: "Hello {name}" }),
     validationRules: [
       {
@@ -410,6 +497,8 @@ const nodeRegistry: Record<string, NodeRegistryEntry> = {
     ],
   },
   GitLabMRReviewTemplate: {
+    category: "template",
+    icon: "Terminal",
     configSchema: withDefaultValues(gitLabReviewTemplateSchema, {
       template:
         "You are a senior reviewer. Review this GitLab merge request change-set and return: 1) Critical issues, 2) Security risks, 3) Performance concerns, 4) Suggested fixes with concrete code-level guidance. Context: {changes}",
@@ -424,6 +513,8 @@ const nodeRegistry: Record<string, NodeRegistryEntry> = {
     ],
   },
   GitLabMRCommentTemplate: {
+    category: "template",
+    icon: "Terminal",
     configSchema: withDefaultValues(gitLabReviewTemplateSchema, {
       template:
         "Write a concise GitLab MR comment in Vietnamese. Include: summary, blocking issues, and actionable next steps. Source: {review}",
@@ -438,6 +529,8 @@ const nodeRegistry: Record<string, NodeRegistryEntry> = {
     ],
   },
   Agent: {
+    category: "agent",
+    icon: "Bot",
     configSchema: withDefaultValues([
       {
         label: "Agent Template",
@@ -452,9 +545,6 @@ const nodeRegistry: Record<string, NodeRegistryEntry> = {
             offsetPercent: 25,
             borderClass: "!border-purple-500",
             hoverBorderClass: "",
-            labelText: "CHAT",
-            labelClassName:
-              "absolute -top-6 left-1/4 -translate-x-1/2 flex flex-col items-center text-purple-400 opacity-0 group-hover:opacity-100 transition-opacity",
           },
           {
             id: "tools",
@@ -462,9 +552,6 @@ const nodeRegistry: Record<string, NodeRegistryEntry> = {
             position: "bottom",
             borderClass: "!border-amber-500",
             hoverBorderClass: "",
-            labelText: "TOOL_BUS",
-            labelClassName:
-              "absolute -bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center text-amber-500 opacity-0 group-hover:opacity-100 transition-opacity",
           },
         ],
         sourceHandles: [
@@ -502,7 +589,7 @@ const nodeRegistry: Record<string, NodeRegistryEntry> = {
             badgeParamKey: "response_output_type",
             badgeFallback: "text",
             badgeClassName:
-              "-right-10 top-1/2 -translate-y-1/2 text-cyan-300 border-cyan-500/60 bg-black/70",
+              "-right-1.5 top-1/2 -translate-y-1/2 text-cyan-300 border-cyan-500/60 bg-black/70",
           },
         ],
       },
@@ -514,6 +601,8 @@ const nodeRegistry: Record<string, NodeRegistryEntry> = {
     validationRules: ["agent-llm-link"],
   },
   elasticsearch_search: {
+    category: "tool",
+    icon: "Search",
     configSchema: [
       {
         label: "Endpoint URL",
@@ -527,9 +616,6 @@ const nodeRegistry: Record<string, NodeRegistryEntry> = {
             offsetPercent: 25,
             borderClass: "!border-blue-500",
             hoverBorderClass: "hover:!border-blue-400 transition-colors",
-            labelText: "EMBEDDING",
-            labelClassName:
-              "absolute -top-6 left-1/4 -translate-x-1/2 flex flex-col items-center text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity",
           },
         ],
         sourceHandles: [
@@ -556,6 +642,8 @@ const nodeRegistry: Record<string, NodeRegistryEntry> = {
     validationRules: ["elasticsearch-endpoint-required"],
   },
   HTTPRequestComponent: {
+    category: "tool",
+    icon: "Globe",
     configSchema: [
       {
         label: "Method",
@@ -580,6 +668,8 @@ const nodeRegistry: Record<string, NodeRegistryEntry> = {
     ],
   },
   ConditionComponent: {
+    category: "logic",
+    icon: "GitMerge",
     configSchema: [
       {
         label: "Condition (JS expression)",
@@ -599,13 +689,10 @@ const nodeRegistry: Record<string, NodeRegistryEntry> = {
             offsetPercent: 25,
             borderClass: "!border-green-500",
             hoverBorderClass: "hover:!border-green-400 transition-colors",
-            labelText: "TRUE",
-            labelClassName:
-              "absolute -right-8 top-1/4 -translate-y-1/2 flex flex-col items-center text-green-400 opacity-0 group-hover:opacity-100 transition-opacity",
             badgeParamKey: "true_output_type",
             badgeFallback: "boolean_route",
             badgeClassName:
-              "-right-12 top-[25%] -translate-y-1/2 text-green-300 border-green-500/60 bg-black/70",
+              "-right-1.5 top-[25%] -translate-y-1/2 text-green-300 border-green-500/60 bg-black/70",
           },
           {
             id: "false",
@@ -614,13 +701,10 @@ const nodeRegistry: Record<string, NodeRegistryEntry> = {
             offsetPercent: 75,
             borderClass: "!border-red-500",
             hoverBorderClass: "hover:!border-red-400 transition-colors",
-            labelText: "FALSE",
-            labelClassName:
-              "absolute -right-8 top-3/4 -translate-y-1/2 flex flex-col items-center text-red-400 opacity-0 group-hover:opacity-100 transition-opacity",
             badgeParamKey: "false_output_type",
             badgeFallback: "boolean_route",
             badgeClassName:
-              "-right-12 top-[75%] -translate-y-1/2 text-red-300 border-red-500/60 bg-black/70",
+              "-right-1.5 top-[75%] -translate-y-1/2 text-red-300 border-red-500/60 bg-black/70",
           },
           createAsToolSourceHandle(),
         ],
@@ -636,6 +720,8 @@ const nodeRegistry: Record<string, NodeRegistryEntry> = {
     ],
   },
   CodeExecutionComponent: {
+    category: "logic",
+    icon: "Terminal",
     configSchema: [
       {
         label: "JavaScript Code",
@@ -657,6 +743,8 @@ const nodeRegistry: Record<string, NodeRegistryEntry> = {
     ],
   },
   DataStreamComponent: {
+    category: "logic",
+    icon: "Cpu",
     configSchema: [
       {
         label: "Stream Type",
@@ -671,6 +759,8 @@ const nodeRegistry: Record<string, NodeRegistryEntry> = {
     ],
   },
   TextInput: {
+    category: "input",
+    icon: "Type",
     configSchema: [
       {
         label: "Value",
@@ -690,6 +780,8 @@ const nodeRegistry: Record<string, NodeRegistryEntry> = {
     ],
   },
   SerperSearchComponent: {
+    category: "tool",
+    icon: "Search",
     configSchema: withDefaultValues([
       {
         label: "Serper API Key",
@@ -720,6 +812,8 @@ const nodeRegistry: Record<string, NodeRegistryEntry> = {
     validationRules: ["serper-api-key-required"],
   },
   ImageGenerationComponent: {
+    category: "tool",
+    icon: "BrainCircuit",
     configSchema: withDefaultValues([
       {
         label: "OpenAI API Key",
@@ -762,6 +856,8 @@ const nodeRegistry: Record<string, NodeRegistryEntry> = {
     }),
   },
   VariableComponent: {
+    category: "other",
+    icon: "Plus",
     configSchema: withDefaultValues([
       {
         label: "Variable Name",
@@ -782,6 +878,8 @@ const nodeRegistry: Record<string, NodeRegistryEntry> = {
     }),
   },
   FileSystemComponent: {
+    category: "tool",
+    icon: "FileJson",
     configSchema: withDefaultValues([
       {
         label: "File Path",
@@ -818,6 +916,8 @@ const nodeRegistry: Record<string, NodeRegistryEntry> = {
     }),
   },
   WaitComponent: {
+    category: "logic",
+    icon: "Clock",
     configSchema: withDefaultValues([
       {
         label: "Delay (ms)",
@@ -827,6 +927,18 @@ const nodeRegistry: Record<string, NodeRegistryEntry> = {
     ], {
       delayMs: 1000,
     }),
+  },
+  ChatInput: {
+    category: "input",
+    icon: "MessageSquare",
+  },
+  ChatOutput: {
+    category: "output",
+    icon: "ArrowRightFromLine",
+  },
+  CurrentTime: {
+    category: "other",
+    icon: "Clock",
   },
 };
 
