@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { 
   Bot, BrainCircuit, Database, Search, 
   MessageSquare, Terminal, Clock, Cpu, Plus, Globe, GitMerge, FileJson,
-  Type
+  Type, Star
 } from 'lucide-react';
 
 const nodeTemplates = [
@@ -39,6 +39,19 @@ const nodeTemplates = [
 export default function Sidebar({ onAddNode }: { onAddNode: (type: string, label: string) => void }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [favorites, setFavorites] = useState<string[]>(() => {
+    const saved = localStorage.getItem('cyber-node-favorites');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  const toggleFavorite = (e: React.MouseEvent, type: string) => {
+    e.stopPropagation();
+    const newFavorites = favorites.includes(type)
+      ? favorites.filter(f => f !== type)
+      : [...favorites, type];
+    setFavorites(newFavorites);
+    localStorage.setItem('cyber-node-favorites', JSON.stringify(newFavorites));
+  };
 
   const onDragStart = (event: React.DragEvent, nodeType: string, nodeLabel: string) => {
     event.dataTransfer.setData('application/reactflow', JSON.stringify({ type: nodeType, label: nodeLabel }));
@@ -62,8 +75,10 @@ export default function Sidebar({ onAddNode }: { onAddNode: (type: string, label
     }, {} as Record<string, typeof nodeTemplates>)
   ).sort(([bundleA], [bundleB]) => bundleA.localeCompare(bundleB));
 
+  const favoriteNodes = nodeTemplates.filter(n => favorites.includes(n.type));
+
   return (
-    <div className="w-64 border-r border-cyber-border bg-cyber-panel/50 backdrop-blur-md p-4 flex flex-col gap-4 z-10 overflow-y-auto">
+    <div className="w-64 border-r border-cyber-border bg-cyber-panel/50 backdrop-blur-md p-4 flex flex-col gap-4 z-10 overflow-y-auto custom-scrollbar">
       <div>
         <h3 className="text-[10px] font-bold text-cyber-primary uppercase tracking-[0.2em] mb-3">Node Library</h3>
         
@@ -79,6 +94,39 @@ export default function Sidebar({ onAddNode }: { onAddNode: (type: string, label
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
+
+        {favoriteNodes.length > 0 && !searchTerm && (
+          <div className="mb-6">
+            <div className="text-[9px] font-bold text-yellow-500 uppercase tracking-[0.15em] mb-2 px-1 border-b border-yellow-500/20 pb-1 flex items-center gap-2">
+              <Star size={10} fill="currentColor" /> Favorites
+            </div>
+            <div className="grid grid-cols-1 gap-2">
+              {favoriteNodes.map((node) => (
+                <div
+                  key={`fav-${node.type}`}
+                  draggable
+                  onDragStart={(e) => onDragStart(e, node.type, node.label)}
+                  onClick={() => onAddNode(node.type, node.label)}
+                  className="group flex items-center gap-3 p-3 bg-yellow-500/5 border border-yellow-500/10 rounded-xl hover:bg-yellow-500/10 hover:border-yellow-500/20 transition-all text-left cursor-grab active:cursor-grabbing"
+                >
+                  <div className={`p-2 rounded-lg bg-black/40 ${node.color}`}>
+                    <node.icon size={18} />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-xs font-bold text-gray-200">{node.label}</span>
+                    <span className="text-[9px] text-gray-500 font-mono uppercase">{node.bundle}</span>
+                  </div>
+                  <button 
+                    onClick={(e) => toggleFavorite(e, node.type)}
+                    className="ml-auto text-yellow-500 hover:scale-110 transition-transform"
+                  >
+                    <Star size={14} fill="currentColor" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {!searchTerm && (
           <div className="flex gap-1 mb-3 flex-wrap">
@@ -122,7 +170,16 @@ export default function Sidebar({ onAddNode }: { onAddNode: (type: string, label
                       <span className="text-xs font-bold text-gray-200">{node.label}</span>
                       <span className="text-[9px] text-gray-500 font-mono uppercase">{node.bundle || node.category}</span>
                     </div>
-                    <Plus size={14} className="ml-auto text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <button 
+                      onClick={(e) => toggleFavorite(e, node.type)}
+                      className={`ml-auto transition-all ${
+                        favorites.includes(node.type) 
+                          ? 'text-yellow-500 hover:scale-110' 
+                          : 'text-gray-500 hover:text-yellow-500 opacity-0 group-hover:opacity-100 hover:scale-110'
+                      }`}
+                    >
+                      <Star size={14} fill={favorites.includes(node.type) ? "currentColor" : "none"} />
+                    </button>
                   </div>
                 ))}
               </div>

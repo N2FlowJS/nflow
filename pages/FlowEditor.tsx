@@ -396,6 +396,7 @@ const Flow = () => {
   const [future, setFuture] = useState<{ nodes: Node[]; edges: Edge[] }[]>([]);
   const stateRef = useRef({ nodes, edges });
   const shouldFitAfterLoadRef = useRef(false);
+  const scrollStateRef = useRef({ dx: 0, dy: 0, isScrolling: false });
   const executionAbortRef = useRef<AbortController | null>(null);
   const isSilentExecutionRunningRef = useRef(false);
   const wasPlaygroundOpenRef = useRef(false);
@@ -760,11 +761,49 @@ const Flow = () => {
   const onDragOver = useCallback((event: React.DragEvent) => {
     event.preventDefault();
     event.dataTransfer.dropEffect = "move";
-  }, []);
+
+    if (reactFlowInstance) {
+      const scrollThreshold = 50;
+      const scrollSpeed = 15;
+      
+      const { innerWidth, innerHeight } = window;
+      const { clientX, clientY } = event;
+
+      let dx = 0;
+      let dy = 0;
+
+      // Make space for the 256px sidebar
+      if (clientX < scrollThreshold + 256) dx = scrollSpeed;
+      else if (clientX > innerWidth - scrollThreshold) dx = -scrollSpeed;
+
+      // Adjust for top header and bottom logs
+      if (clientY < scrollThreshold + 60) dy = scrollSpeed;
+      else if (clientY > innerHeight - scrollThreshold) dy = -scrollSpeed;
+
+      scrollStateRef.current.dx = dx;
+      scrollStateRef.current.dy = dy;
+
+      if ((dx !== 0 || dy !== 0) && !scrollStateRef.current.isScrolling) {
+        scrollStateRef.current.isScrolling = true;
+        const scrollLoop = () => {
+          const { dx, dy, isScrolling } = scrollStateRef.current;
+          if (!isScrolling || (dx === 0 && dy === 0)) {
+            scrollStateRef.current.isScrolling = false;
+            return;
+          }
+          const { x, y, zoom } = reactFlowInstance.getViewport();
+          reactFlowInstance.setViewport({ x: x + dx, y: y + dy, zoom });
+          requestAnimationFrame(scrollLoop);
+        };
+        requestAnimationFrame(scrollLoop);
+      }
+    }
+  }, [reactFlowInstance]);
 
   const onDrop = useCallback(
     (event: React.DragEvent) => {
       event.preventDefault();
+      scrollStateRef.current = { dx: 0, dy: 0, isScrolling: false };
 
       if (!reactFlowInstance) return;
 
@@ -2364,6 +2403,8 @@ const Flow = () => {
             nodeTypes={nodeTypes}
             edgeTypes={edgeTypes}
             fitView
+            autoPanOnNodeDrag={true}
+            autoPanOnConnect={true}
             className="bg-cyber-dark"
             minZoom={0.2}
             maxZoom={2}

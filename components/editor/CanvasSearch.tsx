@@ -15,27 +15,29 @@ export default function CanvasSearch({ isOpen, onClose, nodes, setNodes }: Canva
   const inputRef = useRef<HTMLInputElement>(null);
   const { setCenter, getZoom } = useReactFlow();
 
-  const matchingNodes = nodes.filter((n) => {
-    if (!searchTerm) return false;
-    const term = searchTerm.toLowerCase();
-    const label = String(n.data?.label || "").toLowerCase();
-    const type = String(n.data?.type || "").toLowerCase();
-    const description = String(n.data?.description || "").toLowerCase();
+  const matchingNodes = React.useMemo(() => {
+    return nodes.filter((n) => {
+      if (!searchTerm) return false;
+      const term = searchTerm.toLowerCase();
+      const label = String(n.data?.label || "").toLowerCase();
+      const type = String(n.data?.type || "").toLowerCase();
+      const description = String(n.data?.description || "").toLowerCase();
 
-    // Search in common fields
-    if (label.includes(term) || type.includes(term) || description.includes(term))
-      return true;
+      // Search in common fields
+      if (label.includes(term) || type.includes(term) || description.includes(term))
+        return true;
 
-    // Search in configSchema values if available
-    if (n.data?.configSchema && Array.isArray(n.data.configSchema)) {
-      return n.data.configSchema.some((field: any) => {
-        const val = String(field.value || "").toLowerCase();
-        return val.includes(term);
-      });
-    }
+      // Search in configSchema values if available
+      if (n.data?.configSchema && Array.isArray(n.data.configSchema)) {
+        return n.data.configSchema.some((field: any) => {
+          const val = String(field.value || "").toLowerCase();
+          return val.includes(term);
+        });
+      }
 
-    return false;
-  });
+      return false;
+    });
+  }, [nodes, searchTerm]);
 
   useEffect(() => {
     if (isOpen) {
@@ -79,7 +81,7 @@ export default function CanvasSearch({ isOpen, onClose, nodes, setNodes }: Canva
       // Pan to the target node
       const x = targetNode.position.x + (targetNode.measured?.width || 200) / 2;
       const y = targetNode.position.y + (targetNode.measured?.height || 100) / 2;
-      setCenter(x, y, { zoom: Math.max(1, getZoom()), duration: 500 });
+      setCenter(x, y, { zoom: Math.max(1.2, getZoom()), duration: 200 });
     }
   }, [currentIndex, searchTerm, isOpen]);
 
