@@ -15,9 +15,27 @@ export default function CanvasSearch({ isOpen, onClose, nodes, setNodes }: Canva
   const inputRef = useRef<HTMLInputElement>(null);
   const { setCenter, getZoom } = useReactFlow();
 
-  const matchingNodes = nodes.filter(
-    (n) => n.data?.label && String(n.data.label).toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const matchingNodes = nodes.filter((n) => {
+    if (!searchTerm) return false;
+    const term = searchTerm.toLowerCase();
+    const label = String(n.data?.label || "").toLowerCase();
+    const type = String(n.data?.type || "").toLowerCase();
+    const description = String(n.data?.description || "").toLowerCase();
+
+    // Search in common fields
+    if (label.includes(term) || type.includes(term) || description.includes(term))
+      return true;
+
+    // Search in configSchema values if available
+    if (n.data?.configSchema && Array.isArray(n.data.configSchema)) {
+      return n.data.configSchema.some((field: any) => {
+        const val = String(field.value || "").toLowerCase();
+        return val.includes(term);
+      });
+    }
+
+    return false;
+  });
 
   useEffect(() => {
     if (isOpen) {

@@ -46,6 +46,7 @@ import {
   PlaygroundWorkerOutput,
   CommandAction,
   GlobalVariable,
+  FlowVersion,
   SavedFlow,
   LogEntry,
 } from "../types/editor";
@@ -86,6 +87,9 @@ import {
   Settings2,
   Keyboard,
   DollarSign,
+  X,
+  Plus,
+  History,
 } from "lucide-react";
 import dagre from "dagre";
 import { toPng } from "html-to-image";
@@ -147,43 +151,108 @@ const VariablesPanel: React.FC<{
   return (
     <div className="absolute top-20 right-4 bg-cyber-panel border border-cyber-border rounded-lg shadow-lg z-10 w-96 p-4">
       <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-bold">Global Variables</h3>
+        <div className="flex items-center gap-2">
+          <DollarSign size={18} className="text-cyber-primary" />
+          <h3 className="text-lg font-bold">Global Variables</h3>
+        </div>
         <button onClick={onClose} className="text-gray-400 hover:text-white">
-          &times;
+          <X size={18} />
         </button>
       </div>
-      <div className="space-y-2">
+      <div className="space-y-2 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
         {variables.map((variable) => (
           <div key={variable.id} className="flex items-center gap-2">
             <input
               type="text"
               value={variable.name}
               onChange={(e) => handleUpdate(variable.id, "name", e.target.value)}
-              className="bg-white/10 rounded px-2 py-1 text-sm w-1/3"
+              className="bg-white/5 border border-white/10 rounded px-2 py-1 text-sm w-1/3 focus:border-cyber-primary outline-none"
               placeholder="Name"
             />
             <input
               type="text"
               value={variable.value}
               onChange={(e) => handleUpdate(variable.id, "value", e.target.value)}
-              className="bg-white/10 rounded px-2 py-1 text-sm w-2/3"
+              className="bg-white/5 border border-white/10 rounded px-2 py-1 text-sm w-2/3 focus:border-cyber-primary outline-none"
               placeholder="Value"
             />
             <button
               onClick={() => handleDelete(variable.id)}
-              className="text-red-500 hover:text-red-400"
+              className="p-1 text-red-500 hover:text-red-400 hover:bg-red-500/10 rounded"
             >
               <Trash2 size={16} />
             </button>
           </div>
         ))}
+        {variables.length === 0 && (
+          <div className="text-center py-8 text-gray-500 italic text-sm border border-dashed border-white/10 rounded-lg">
+            No variables defined yet.
+          </div>
+        )}
       </div>
       <button
         onClick={handleAdd}
-        className="mt-4 w-full bg-cyber-primary/20 text-cyber-primary py-2 rounded hover:bg-cyber-primary/30"
+        className="mt-4 w-full bg-cyber-primary/10 text-cyber-primary border border-cyber-primary/30 py-2 rounded hover:bg-cyber-primary/20 transition-colors flex items-center justify-center gap-2 font-bold text-sm"
       >
+        <Plus size={16} />
         Add Variable
       </button>
+    </div>
+  );
+};
+
+const VersionHistoryPanel: React.FC<{
+  isOpen: boolean;
+  onClose: () => void;
+  versions: FlowVersion[];
+  onLoadVersion: (version: FlowVersion) => void;
+}> = ({ isOpen, onClose, versions, onLoadVersion }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="absolute top-20 right-4 bg-cyber-panel border border-cyber-border rounded-lg shadow-lg z-10 w-96 p-4">
+      <div className="flex justify-between items-center mb-4">
+        <div className="flex items-center gap-2">
+          <History size={18} className="text-cyber-primary" />
+          <h3 className="text-lg font-bold">Version History</h3>
+        </div>
+        <button onClick={onClose} className="text-gray-400 hover:text-white">
+          <X size={18} />
+        </button>
+      </div>
+      <div className="space-y-2 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+        {versions.map((version) => (
+          <div
+            key={version.id}
+            className="p-3 bg-white/5 border border-white/10 rounded-lg hover:border-cyber-primary/50 cursor-pointer transition-all group"
+            onClick={() => {
+              if (confirm(`Are you sure you want to load version "${version.label || version.id}"? This will overwrite your current unsaved changes.`)) {
+                onLoadVersion(version);
+              }
+            }}
+          >
+            <div className="flex justify-between items-start mb-1">
+              <span className="font-bold text-sm text-gray-200 group-hover:text-cyber-primary">
+                {version.label || "Untitled Version"}
+              </span>
+              <span className="text-[10px] text-gray-500 font-mono">
+                {new Date(version.timestamp).toLocaleTimeString()}
+              </span>
+            </div>
+            <div className="text-[10px] text-gray-500">
+              {new Date(version.timestamp).toLocaleDateString()} • {version.data.nodes?.length || 0} nodes
+            </div>
+          </div>
+        ))}
+        {versions.length === 0 && (
+          <div className="text-center py-8 text-gray-500 italic text-sm border border-dashed border-white/10 rounded-lg">
+            No versions recorded yet.
+          </div>
+        )}
+      </div>
+      <div className="mt-4 text-[10px] text-gray-500 italic text-center">
+        Versions are automatically created every time you save.
+      </div>
     </div>
   );
 };
@@ -211,8 +280,12 @@ const Flow = () => {
   const [isLiveMode, setIsLiveMode] = useState(false);
   const [isFlowManagerOpen, setIsFlowManagerOpen] = useState(false);
   const [isVariablesPanelOpen, setIsVariablesPanelOpen] = useState(false);
+  const [isVersionHistoryOpen, setIsVersionHistoryOpen] = useState(false);
   const [isCanvasSearchOpen, setIsCanvasSearchOpen] = useState(false);
   const [globalVariables, setGlobalVariables] = useState<GlobalVariable[]>([]);
+  const [flowVersions, setFlowVersions] = useState<FlowVersion[]>([]);
+  const [isAutoSaving, setIsAutoSaving] = useState(false);
+  const [lastAutoSave, setLastAutoSave] = useState<number | null>(null);
   const [validationLocale, setValidationLocale] = useState<ValidationLocale>(
     () =>
       typeof navigator !== "undefined" &&
@@ -221,8 +294,9 @@ const Flow = () => {
         : "en",
   );
   const [activeConnectionHint, setActiveConnectionHint] = useState<{
-    sourceNodeId: string;
-    sourcePortType: PortDataType;
+    nodeId: string;
+    portType: PortDataType;
+    handleType: "source" | "target";
   } | null>(null);
   const [isToolsMenuOpen, setIsToolsMenuOpen] = useState(false);
   const [showShortcutHelp, setShowShortcutHelp] = useState(false);
@@ -257,8 +331,9 @@ const Flow = () => {
       ...node,
       data: {
         ...node.data,
-        __activeSourceNodeId: activeConnectionHint.sourceNodeId,
-        __activeSourcePortType: activeConnectionHint.sourcePortType,
+        __activeNodeId: activeConnectionHint.nodeId,
+        __activePortType: activeConnectionHint.portType,
+        __activeHandleType: activeConnectionHint.handleType,
       },
     }));
   }, [nodes, activeConnectionHint]);
@@ -273,6 +348,7 @@ const Flow = () => {
             setNodes((flow.data.nodes || []).map(normalizeModelNode));
             setEdges(flow.data.edges || []);
             setGlobalVariables(flow.data.globalVariables || []);
+            setFlowVersions(flow.versions || []);
             setCurrentFlowId(flow.id);
             setCurrentFlowName(flow.name);
             shouldFitAfterLoadRef.current = true;
@@ -577,22 +653,28 @@ const Flow = () => {
 
   const onConnectStart = useCallback(
     (_: unknown, params: any) => {
-      if (!params?.nodeId || params?.handleType !== "source") {
+      if (!params?.nodeId || !params?.handleType) {
         setActiveConnectionHint(null);
         return;
       }
 
-      const sourceNode = nodes.find((n) => n.id === params.nodeId) as
+      const node = nodes.find((n) => n.id === params.nodeId) as
         | CustomNodeType
         | undefined;
-      if (!sourceNode) {
+      if (!node) {
         setActiveConnectionHint(null);
         return;
       }
 
+      const portType =
+        params.handleType === "source"
+          ? inferSourcePortType(node, params.handleId)
+          : inferTargetPortType(node, params.handleId);
+
       setActiveConnectionHint({
-        sourceNodeId: sourceNode.id,
-        sourcePortType: inferSourcePortType(sourceNode, params.handleId),
+        nodeId: node.id,
+        portType,
+        handleType: params.handleType,
       });
     },
     [nodes],
@@ -601,6 +683,29 @@ const Flow = () => {
   const onConnectEnd = useCallback(() => {
     setActiveConnectionHint(null);
   }, []);
+
+  useEffect(() => {
+    if (!reactFlowInstance || !currentFlowId || currentFlowId === "new") return;
+
+    const timeout = setTimeout(() => {
+      setIsAutoSaving(true);
+      const flow = reactFlowInstance.toObject();
+      const autoSaveData = {
+        ...flow,
+        globalVariables,
+        updatedAt: Date.now(),
+      };
+      
+      localStorage.setItem(`autosave-${currentFlowId}`, JSON.stringify(autoSaveData));
+      
+      setTimeout(() => {
+        setIsAutoSaving(false);
+        setLastAutoSave(Date.now());
+      }, 1000);
+    }, 5000); // Auto-save after 5s of inactivity
+
+    return () => clearTimeout(timeout);
+  }, [nodes, edges, globalVariables, reactFlowInstance, currentFlowId]);
 
   const onAddNode = useCallback(
     (type: string, label: string, position?: { x: number; y: number }) => {
@@ -1146,12 +1251,12 @@ const Flow = () => {
   }, [isLiveMode, executeFlow]);
 
   const onSave = useCallback(
-    async (name: string) => {
+    async (name: string, versionLabel?: string) => {
       if (reactFlowInstance) {
         setIsSaving(true);
         const flow = reactFlowInstance.toObject();
         const flowId = currentFlowId || `flow-${Date.now()}`;
-        const newFlow: SavedFlow = {
+        const newFlow: SavedFlow & { versionLabel?: string } = {
           id: flowId,
           name: name || currentFlowName,
           data: {
@@ -1159,6 +1264,7 @@ const Flow = () => {
             globalVariables,
           } as SavedFlow["data"],
           updatedAt: Date.now(),
+          versionLabel,
         };
 
         try {
@@ -1172,6 +1278,14 @@ const Flow = () => {
             setCurrentFlowId(newFlow.id);
             setCurrentFlowName(newFlow.name);
             fetchFlows();
+
+            // Reload flow to get updated versions
+            const updatedRes = await fetch(`${API_BASE}/api/flows/${newFlow.id}`);
+            if (updatedRes.ok) {
+              const updatedFlow = await updatedRes.json();
+              setFlowVersions(updatedFlow.versions || []);
+            }
+
             if (!currentFlowId) {
               navigate(`/flow/${newFlow.id}`);
             }
@@ -1201,8 +1315,25 @@ const Flow = () => {
       }
       return "";
     },
-    [reactFlowInstance, currentFlowId, currentFlowName, navigate, fetchFlows],
+    [
+      reactFlowInstance,
+      currentFlowId,
+      currentFlowName,
+      globalVariables,
+      API_BASE,
+      fetchFlows,
+      navigate,
+    ],
   );
+
+  const onLoadVersion = useCallback((version: FlowVersion) => {
+    if (version.data) {
+      setNodes((version.data.nodes || []).map(normalizeModelNode));
+      setEdges(version.data.edges || []);
+      setGlobalVariables(version.data.globalVariables || []);
+      setIsVersionHistoryOpen(false);
+    }
+  }, [setNodes, setEdges, setGlobalVariables]);
 
   const onDeleteFlow = useCallback(async (flowId: string) => {
     try {
@@ -2066,6 +2197,8 @@ const Flow = () => {
         isToolsMenuOpen={isToolsMenuOpen}
         setIsVariablesPanelOpen={setIsVariablesPanelOpen}
         isVariablesPanelOpen={isVariablesPanelOpen}
+        setIsVersionHistoryOpen={setIsVersionHistoryOpen}
+        isVersionHistoryOpen={isVersionHistoryOpen}
         validationLocale={validationLocale}
         setValidationLocale={setValidationLocale}
         showShortcutHelp={showShortcutHelp}
@@ -2160,6 +2293,26 @@ const Flow = () => {
               setShowShortcutHelp={setShowShortcutHelp}
             />
           </ReactFlow>
+          
+          {/* Auto-save Indicator */}
+          {(isAutoSaving || lastAutoSave) && (
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-50 px-3 py-1.5 bg-black/60 backdrop-blur-md border border-white/10 rounded-full flex items-center gap-2 pointer-events-none">
+              {isAutoSaving ? (
+                <>
+                  <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse" />
+                  <span className="text-[10px] font-mono text-yellow-500/80 uppercase tracking-widest">Auto-saving...</span>
+                </>
+              ) : (
+                <>
+                  <div className="w-2 h-2 bg-green-500 rounded-full" />
+                  <span className="text-[10px] font-mono text-green-500/80 uppercase tracking-widest">
+                    Saved to local {new Date(lastAutoSave!).toLocaleTimeString()}
+                  </span>
+                </>
+              )}
+            </div>
+          )}
+
           <CanvasSearch
             isOpen={isCanvasSearchOpen}
             onClose={() => setIsCanvasSearchOpen(false)}
@@ -2203,6 +2356,12 @@ const Flow = () => {
         savedFlows={savedFlows}
         onDeleteFlow={onDeleteFlow}
         navigate={navigate}
+      />
+      <VersionHistoryPanel
+        isOpen={isVersionHistoryOpen}
+        onClose={() => setIsVersionHistoryOpen(false)}
+        versions={flowVersions}
+        onLoadVersion={onLoadVersion}
       />
       <VariablesPanel
         isOpen={isVariablesPanelOpen}

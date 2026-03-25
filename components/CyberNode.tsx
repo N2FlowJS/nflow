@@ -7,9 +7,9 @@ import {
   getNodeRegistryEntry,
   getNodeSourceHandles,
 } from '../node-registry';
-import { 
-  PortDataType, 
-  readPortType, 
+import {
+  PortDataType,
+  readPortType,
 } from '../node-registry/utils';
 
 // Sub-components
@@ -58,9 +58,10 @@ const CyberNode = ({ id, data, selected }: NodeProps<CustomNodeType>) => {
     : [];
   const promptVariablesKey = promptVariables.join('|');
 
-  const activeSourcePortType = (data as any).__activeSourcePortType as PortDataType | undefined;
-  const activeSourceNodeId = (data as any).__activeSourceNodeId as string | undefined;
-  const hasActiveConnection = !!activeSourcePortType && !!activeSourceNodeId;
+  const activeNodeId = (data as any).__activeNodeId as string | undefined;
+  const activePortType = (data as any).__activePortType as PortDataType | undefined;
+  const activeHandleType = (data as any).__activeHandleType as 'source' | 'target' | undefined;
+  const hasActiveConnection = !!activePortType && !!activeNodeId && !!activeHandleType;
 
   const registryInputHandles = getNodeInputHandles(data.type);
   const registrySourceHandles = getNodeSourceHandles(data.type);
@@ -69,15 +70,29 @@ const CyberNode = ({ id, data, selected }: NodeProps<CustomNodeType>) => {
     if (isPromptTemplate) updateNodeInternals(id);
   }, [isPromptTemplate, id, promptVariablesKey, updateNodeInternals]);
 
-  const isCompatibleTargetHandle = (targetType: PortDataType) => {
+  const isCompatibleHandle = (kind: 'source' | 'target', portType: PortDataType) => {
     if (!hasActiveConnection) return false;
-    if (activeSourceNodeId === id) return false;
-    return targetType === 'any' || activeSourcePortType === 'any' || activeSourcePortType === targetType;
+    if (activeNodeId === id) return false;
+
+    // If dragging from source, highlight compatible targets
+    if (activeHandleType === 'source' && kind === 'target') {
+      return portType === 'any' || activePortType === 'any' || activePortType === portType;
+    }
+
+    // If dragging from target, highlight compatible sources
+    if (activeHandleType === 'target' && kind === 'source') {
+      return portType === 'any' || activePortType === 'any' || activePortType === portType;
+    }
+
+    return false;
   };
 
-  const getTargetHandleClass = (targetType: PortDataType, baseClass: string) => {
-    if (!hasActiveConnection) return baseClass;
-    return `${baseClass} ${isCompatibleTargetHandle(targetType) ? '!opacity-100 !border-cyber-primary !shadow-[0_0_12px_rgba(0,240,255,0.6)]' : 'opacity-30'}`;
+  const getHandleClass = (kind: 'source' | 'target', portType: PortDataType, baseClass: string) => {
+    const bClass = kind === 'source' ? getSourceHandleClass(portType, baseClass) : baseClass;
+    if (!hasActiveConnection) return bClass;
+
+    const isCompatible = isCompatibleHandle(kind, portType);
+    return `${bClass} ${isCompatible ? '!opacity-100 !border-cyber-primary !shadow-[0_0_15px_rgba(0,240,255,0.8)] animate-pulse scale-125' : 'opacity-20'}`;
   };
 
   const colorByPortType: Record<PortDataType, string> = {
@@ -119,20 +134,20 @@ const CyberNode = ({ id, data, selected }: NodeProps<CustomNodeType>) => {
     const { kind, position, portType, id: hId, style, borderClass = '!border-cyber-muted', hoverBorderClass = 'hover:!border-cyber-primary transition-colors', badgeParamKey, badgeFallback, badgeClassName } = options;
     const effectiveType = kind === 'source' && badgeParamKey ? readPortType(data, badgeParamKey, badgeFallback || portType) : portType;
     const bClass = `!w-3 !h-3 !bg-cyber-panel !border-2 ${borderClass} ${hoverBorderClass} ${handleBaseClasses}`;
-    const computedClass = kind === 'target' ? getTargetHandleClass(portType, bClass) : getSourceHandleClass(effectiveType, bClass);
+    const computedClass = getHandleClass(kind, effectiveType, bClass);
     const isHovered = hoveredHandle === hId;
 
     return (
       <React.Fragment key={`${kind}-${String(hId || 'default')}-${position}`}>
         {kind === 'source' && badgeParamKey && badgeFallback && badgeClassName && renderOutputTypeBadge(badgeParamKey, badgeFallback, badgeClassName, isHovered)}
-        <Handle 
-          type={kind} 
-          position={position} 
-          id={hId} 
-          style={style} 
-          onMouseEnter={() => hId && setHoveredHandle(hId)} 
-          onMouseLeave={() => setHoveredHandle(null)} 
-          className={computedClass} 
+        <Handle
+          type={kind}
+          position={position}
+          id={hId}
+          style={style}
+          onMouseEnter={() => hId && setHoveredHandle(hId)}
+          onMouseLeave={() => setHoveredHandle(null)}
+          className={computedClass}
         />
       </React.Fragment>
     );
@@ -148,7 +163,7 @@ const CyberNode = ({ id, data, selected }: NodeProps<CustomNodeType>) => {
         const payload = JSON.parse(compact.slice(jsonStart));
         const msg = payload?.error?.message;
         if (typeof msg === 'string' && msg.trim()) return msg.trim();
-      } catch {}
+      } catch { }
     }
     return compact;
   })();
@@ -158,10 +173,10 @@ const CyberNode = ({ id, data, selected }: NodeProps<CustomNodeType>) => {
 
   return (
     <div className={`group relative min-w-[220px] max-w-[300px] bg-cyber-panel/90 backdrop-blur-xl border-2 ${selected ? 'border-cyber-primary ring-1 ring-cyber-primary/50' : (data.status === 'running' ? 'border-yellow-400 animate-pulse' : data.status === 'success' ? 'border-green-500' : 'border-cyber-border')} rounded-xl transition-all duration-300 ${isAgent ? 'min-h-[160px]' : ''}`}>
-      
+
       <NodeActions onRun={onRun} onOpenConfig={() => setIsConfigOpen(true)} onOpenData={() => setIsDataOpen(true)} onDelete={onDelete} isConfigOpen={isConfigOpen} isDataOpen={isDataOpen} />
-      
-      <NodeHeader data={{...data, registryEntry}} selected={selected} isAgent={isAgent} isLLM={isLLM} />
+
+      <NodeHeader data={{ ...data, registryEntry }} selected={selected} isAgent={isAgent} isLLM={isLLM} />
 
       <div className="relative p-3">
         {data.status === 'error' && errorText && (
@@ -170,23 +185,31 @@ const CyberNode = ({ id, data, selected }: NodeProps<CustomNodeType>) => {
             {isLongError && <button type="button" onClick={() => setShowFullError(!showFullError)} className="mt-1 text-[9px] uppercase tracking-wider text-red-300 hover:text-red-100">{showFullError ? 'Show less' : 'Show more'}</button>}
           </div>
         )}
-        
-        {isAgent && !(data.status === 'error' && errorText) && (
-          <div className="absolute inset-0 flex flex-col justify-center pointer-events-none px-3 py-4">
-            <div className="flex justify-between items-center mb-8">
-              <span className="text-[9px] font-mono text-slate-500 font-bold uppercase tracking-tighter">Prompt</span>
-              <span className="text-[9px] font-mono text-cyan-500 font-bold uppercase tracking-tighter">Reply</span>
-            </div>
-            <div className="flex justify-start"><span className="text-[9px] font-mono text-green-500 font-bold uppercase tracking-tighter">User</span></div>
-          </div>
-        )}
+
+
 
         {data.description && <div className={`text-[11px] text-gray-400 leading-relaxed italic ${isAgent ? 'opacity-30' : ''}`}>{data.description}</div>}
 
         {data.status === 'success' && <ResultPreview output={data.lastOutput} />}
       </div>
 
-      <NodeHandles data={data} id={id} registryInputHandles={registryInputHandles} registrySourceHandles={registrySourceHandles} isLLM={isLLM} isInput={isInput} isOutput={isOutput} isPromptTemplate={isPromptTemplate} promptVariables={promptVariables} renderNamedHandle={renderNamedHandle} getTargetHandleClass={getTargetHandleClass} getSourceHandleClass={getSourceHandleClass} handleBaseClasses={handleBaseClasses} setHoveredHandle={setHoveredHandle} hoveredHandle={hoveredHandle} renderOutputTypeBadge={renderOutputTypeBadge} />
+      <NodeHandles
+        data={data}
+        id={id}
+        registryInputHandles={registryInputHandles}
+        registrySourceHandles={registrySourceHandles}
+        isLLM={isLLM}
+        isInput={isInput}
+        isOutput={isOutput}
+        isPromptTemplate={isPromptTemplate}
+        promptVariables={promptVariables}
+        renderNamedHandle={renderNamedHandle}
+        getHandleClass={getHandleClass}
+        handleBaseClasses={handleBaseClasses}
+        setHoveredHandle={setHoveredHandle}
+        hoveredHandle={hoveredHandle}
+        renderOutputTypeBadge={renderOutputTypeBadge}
+      />
 
       <div className="px-3 py-2 bg-black/20 rounded-b-xl flex justify-between items-center text-[9px] font-mono text-gray-600">
         <span className="flex items-center gap-1"><div className={`w-1 h-1 rounded-full ${data.status === 'success' ? 'bg-green-500' : 'bg-gray-700'}`} />{data.status?.toUpperCase() || 'IDLE'}</span>

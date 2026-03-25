@@ -221,10 +221,40 @@ app.post('/api/flows', async (req: Request, res: Response) => {
       return;
     }
     const filePath = path.join(FLOWS_DIR, `${flow.id}.json`);
-    flow.updatedAt = Date.now();
+    
+    let existingFlow: any = null;
+    try {
+      const content = await fs.readFile(filePath, 'utf-8');
+      existingFlow = JSON.parse(content);
+    } catch {
+      // Flow doesn't exist yet
+    }
+
+    const timestamp = Date.now();
+    const newVersion = {
+      id: `v-${timestamp}`,
+      timestamp,
+      data: flow.data,
+      label: flow.versionLabel || `Version ${new Date(timestamp).toLocaleString()}`
+    };
+
+    if (existingFlow) {
+      const versions = existingFlow.versions || [];
+      // Keep only last 50 versions
+      const updatedVersions = [newVersion, ...versions].slice(0, 50);
+      flow.versions = updatedVersions;
+    } else {
+      flow.versions = [newVersion];
+    }
+
+    flow.updatedAt = timestamp;
+    // Remove versionLabel from the stored file
+    delete flow.versionLabel;
+
     await fs.writeFile(filePath, JSON.stringify(flow, null, 2), 'utf-8');
     res.json({ ok: true, id: flow.id });
   } catch (err) {
+    console.error('Save flow error:', err);
     res.status(500).json({ error: 'Failed to save flow' });
   }
 });

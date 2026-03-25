@@ -28,12 +28,22 @@ export type GlobalVariable = {
   value: string;
 };
 
+export type FlowData = ReturnType<ReactFlowInstance["toObject"]> & {
+  globalVariables?: GlobalVariable[];
+};
+
+export type FlowVersion = {
+  id: string;
+  timestamp: number;
+  data: FlowData;
+  label?: string;
+};
+
 export type SavedFlow = {
   id: string;
   name: string;
-  data?: ReturnType<ReactFlowInstance["toObject"]> & {
-    globalVariables?: GlobalVariable[];
-  };
+  data?: FlowData;
+  versions?: FlowVersion[];
   updatedAt: number;
 };
 

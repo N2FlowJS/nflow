@@ -13,8 +13,7 @@ interface NodeHandlesProps {
   isPromptTemplate: boolean;
   promptVariables: string[];
   renderNamedHandle: (options: any) => React.ReactNode;
-  getTargetHandleClass: (targetType: PortDataType, baseClass: string) => string;
-  getSourceHandleClass: (sourceType: PortDataType, baseClass: string) => string;
+  getHandleClass: (kind: 'source' | 'target', portType: PortDataType, baseClass: string) => string;
   handleBaseClasses: string;
   setHoveredHandle: (handle: string | null) => void;
   hoveredHandle: string | null;
@@ -31,8 +30,7 @@ export const NodeHandles = ({
   isPromptTemplate,
   promptVariables,
   renderNamedHandle,
-  getTargetHandleClass,
-  getSourceHandleClass,
+  getHandleClass,
   handleBaseClasses,
   setHoveredHandle,
   hoveredHandle,
@@ -45,7 +43,7 @@ export const NodeHandles = ({
           <Handle
             type="target"
             position={Position.Left}
-            className={getTargetHandleClass('text', `!w-3 !h-3 !bg-cyber-panel !border-2 !border-cyber-muted hover:!border-cyber-primary transition-colors ${handleBaseClasses}`)}
+            className={getHandleClass('target', 'text', `!w-3 !h-3 !bg-cyber-panel !border-2 !border-cyber-muted hover:!border-cyber-primary transition-colors ${handleBaseClasses}`)}
           />
         ) : (
           promptVariables.map((varName, index) => {
@@ -66,7 +64,7 @@ export const NodeHandles = ({
                   style={{ top: `${top}%` }}
                   onMouseEnter={() => setHoveredHandle(varName)}
                   onMouseLeave={() => setHoveredHandle(null)}
-                  className={getTargetHandleClass('text', `!w-3 !h-3 !bg-cyber-panel !border-2 !border-green-500 hover:!border-green-400 transition-colors ${handleBaseClasses}`)}
+                  className={getHandleClass('target', 'text', `!w-3 !h-3 !bg-cyber-panel !border-2 !border-green-500 hover:!border-green-400 transition-colors ${handleBaseClasses}`)}
                 />
                 {isHovered && (
                   <div
@@ -103,7 +101,7 @@ export const NodeHandles = ({
               id="prompt-output"
               onMouseEnter={() => setHoveredHandle('prompt-output')}
               onMouseLeave={() => setHoveredHandle(null)}
-              className={getSourceHandleClass(readPortType(data, 'output_type', 'text'), `!w-3 !h-3 !bg-cyber-panel !border-2 hover:!border-cyber-primary transition-colors ${handleBaseClasses}`)}
+              className={getHandleClass('source', readPortType(data, 'output_type', 'text'), `!w-3 !h-3 !bg-cyber-panel !border-2 hover:!border-cyber-primary transition-colors ${handleBaseClasses}`)}
             />
             {hoveredHandle === 'prompt-output' && (
               <div className="absolute -right-44 top-1/2 -translate-y-1/2 px-2 py-1 rounded-md border border-cyber-primary/40 bg-cyber-panel/90 backdrop-blur-sm text-[10px] font-mono text-cyber-primary shadow-[0_0_12px_rgba(0,240,255,0.25)] pointer-events-none whitespace-nowrap">

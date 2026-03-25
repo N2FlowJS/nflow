@@ -25,6 +25,7 @@ import {
   Image as ImageIcon,
   Trash2,
   DollarSign,
+  History,
 } from "lucide-react";
 import { ValidationLocale } from "../../flow-validation";
 import { RuntimeStatus } from "../../types/editor";
@@ -33,7 +34,7 @@ interface FlowHeaderProps {
   currentFlowName: string;
   setCurrentFlowName: (name: string) => void;
   isSaving: boolean;
-  onSave: (name: string) => void;
+  onSave: (name: string, versionLabel?: string) => void;
   onRunAll: () => void;
   onValidateFlow: () => void;
   setIsPlaygroundOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -42,6 +43,8 @@ interface FlowHeaderProps {
   isToolsMenuOpen: boolean;
   setIsVariablesPanelOpen: React.Dispatch<React.SetStateAction<boolean>>;
   isVariablesPanelOpen: boolean;
+  setIsVersionHistoryOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  isVersionHistoryOpen: boolean;
   validationLocale: ValidationLocale;
   setValidationLocale: React.Dispatch<React.SetStateAction<ValidationLocale>>;
   showShortcutHelp: boolean;
@@ -80,6 +83,8 @@ const FlowHeader: React.FC<FlowHeaderProps> = ({
   isToolsMenuOpen,
   setIsVariablesPanelOpen,
   isVariablesPanelOpen,
+  setIsVersionHistoryOpen,
+  isVersionHistoryOpen,
   validationLocale,
   setValidationLocale,
   showShortcutHelp,
@@ -152,14 +157,33 @@ const FlowHeader: React.FC<FlowHeaderProps> = ({
         </button>
 
         <button
-          onClick={() => onSave(currentFlowName)}
+          onClick={() => setIsVersionHistoryOpen((prev) => !prev)}
+          className={`p-2 rounded-lg transition-colors border ${
+            isVersionHistoryOpen
+              ? "bg-cyber-primary text-black border-cyber-primary"
+              : "bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white border-white/10"
+          }`}
+          title="Version History"
+        >
+          <History size={16} />
+        </button>
+
+        <button
+          onClick={(e) => {
+            if (e.shiftKey) {
+              const label = prompt("Enter version label:", "");
+              if (label !== null) onSave(currentFlowName, label);
+            } else {
+              onSave(currentFlowName);
+            }
+          }}
           disabled={isSaving}
           className={`p-2 rounded-lg transition-colors border ${
             isSaving
               ? "bg-cyber-primary/40 text-white border-cyber-primary/50 cursor-wait"
               : "bg-cyber-primary/20 hover:bg-cyber-primary/40 text-cyber-primary border-cyber-primary/30"
           }`}
-          title="Save (Ctrl/Cmd+S)"
+          title="Save (Ctrl/Cmd+S) - Shift+Click to add label"
         >
           {isSaving ? (
             <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
