@@ -56,6 +56,7 @@ interface FlowHeaderProps {
   onExport: () => void;
   onCopy: () => void;
   onPaste: () => void;
+  onDuplicate: () => void;
   undo: () => void;
   redo: () => void;
   onLayout: (type: string) => void;
@@ -96,6 +97,7 @@ const FlowHeader: React.FC<FlowHeaderProps> = ({
   onExport,
   onCopy,
   onPaste,
+  onDuplicate,
   undo,
   redo,
   onLayout,
@@ -312,6 +314,16 @@ const FlowHeader: React.FC<FlowHeaderProps> = ({
               </button>
               <button
                 onClick={() => {
+                  onDuplicate();
+                  setIsToolsMenuOpen(false);
+                }}
+                className="px-2 py-1.5 rounded-md bg-white/5 hover:bg-white/10 text-xs flex items-center gap-1"
+              >
+                <Copy size={12} className="text-yellow-500" />
+                Duplicate
+              </button>
+              <button
+                onClick={() => {
                   undo();
                   setIsToolsMenuOpen(false);
                 }}
@@ -455,6 +467,16 @@ const FlowHeader: React.FC<FlowHeaderProps> = ({
               >
                 <Trash2 size={12} />
                 Clear
+              </button>
+              <button
+                onClick={() => {
+                  onClear();
+                  setIsToolsMenuOpen(false);
+                }}
+                className="px-2 py-1.5 rounded-md bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs flex items-center justify-center gap-1 col-span-3 border border-red-500/20"
+              >
+                <Trash2 size={12} />
+                Clear Canvas
               </button>
             </div>
           </div>

@@ -172,7 +172,7 @@ const CyberNode = ({ id, data, selected }: NodeProps<CustomNodeType>) => {
   const displayedErrorText = showFullError || !isLongError ? errorText : `${errorText.slice(0, 240)}...`;
 
   return (
-    <div className={`group relative min-w-[220px] max-w-[300px] bg-cyber-panel/90 backdrop-blur-xl border-2 ${selected ? 'border-cyber-primary ring-1 ring-cyber-primary/50' : (data.status === 'running' ? 'border-yellow-400 animate-pulse' : data.status === 'success' ? 'border-green-500' : 'border-cyber-border')} rounded-xl transition-all duration-300 ${isAgent ? 'min-h-[160px]' : ''}`}>
+    <div className={`group relative min-w-[220px] max-w-[300px] bg-cyber-panel/90 backdrop-blur-xl border-2 ${selected ? 'border-cyber-primary ring-1 ring-cyber-primary/50' : (data.status === 'running' ? 'border-yellow-400 animate-pulse' : data.status === 'success' ? 'border-green-500' : 'border-cyber-border')} rounded-xl transition-all duration-300`}>
 
       <NodeActions onRun={onRun} onOpenConfig={() => setIsConfigOpen(true)} onOpenData={() => setIsDataOpen(true)} onDelete={onDelete} isConfigOpen={isConfigOpen} isDataOpen={isDataOpen} />
 
@@ -186,9 +186,7 @@ const CyberNode = ({ id, data, selected }: NodeProps<CustomNodeType>) => {
           </div>
         )}
 
-
-
-        {data.description && <div className={`text-[11px] text-gray-400 leading-relaxed italic ${isAgent ? 'opacity-30' : ''}`}>{data.description}</div>}
+        {data.description && <div className="text-[11px] text-gray-400 leading-relaxed italic">{data.description}</div>}
 
         {data.status === 'success' && <ResultPreview output={data.lastOutput} />}
       </div>

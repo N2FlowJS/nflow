@@ -27,6 +27,7 @@ export const useCyberNode = (id: string, data: CustomNodeType['data']) => {
   const configFieldRefs = useRef<Record<string, HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement | null>>({});
 
   const openConfigToken = (data as any).__openConfigToken as number | undefined;
+  const openDataToken = (data as any).__openDataToken as number | undefined;
   const focusFieldName = (data as any).__focusFieldName as string | undefined;
   const focusFieldToken = (data as any).__focusFieldToken as number | undefined;
 
@@ -35,6 +36,12 @@ export const useCyberNode = (id: string, data: CustomNodeType['data']) => {
     setIsDataOpen(false);
     setIsConfigOpen(true);
   }, [openConfigToken]);
+
+  useEffect(() => {
+    if (openDataToken === undefined) return;
+    setIsConfigOpen(false);
+    setIsDataOpen(true);
+  }, [openDataToken]);
 
   useEffect(() => {
     if (!isConfigOpen || !focusFieldName || focusFieldToken === undefined) return;

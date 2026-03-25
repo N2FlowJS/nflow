@@ -12,7 +12,7 @@ interface NodeHeaderProps {
 
 export const NodeHeader = ({ data, selected, isAgent, isLLM }: NodeHeaderProps) => {
   return (
-    <div className={`flex items-center gap-3 p-3 border-b border-white/5 ${isAgent ? 'bg-cyber-secondary/10' : ''}`}>
+    <div className="flex items-center gap-3 p-3 border-b border-white/5">
       <div className={`p-2 rounded-lg bg-white/5 ${selected ? 'text-cyber-primary' : 'text-gray-400'}`}>
         <NodeIcon name={data.registryEntry?.icon} size={20} />
       </div>

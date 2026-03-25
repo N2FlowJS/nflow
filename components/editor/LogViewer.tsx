@@ -15,8 +15,8 @@ const LogViewer: React.FC<LogViewerProps> = ({
 }) => {
   return (
     <div
-      className={`fixed bottom-0 left-0 z-50 transition-all duration-300 ${
-        isLogsOpen ? "w-[45vw] h-[25vh]" : "w-40 h-8"
+      className={`fixed bottom-0 left-64 z-[20] transition-all duration-300 ${
+        isLogsOpen ? "w-[calc(100vw-256px-320px)] h-[25vh]" : "w-40 h-8"
       } bg-cyber-panel/90 backdrop-blur-xl border-t border-r border-cyber-border rounded-tr-xl shadow-2xl flex flex-col overflow-hidden m-0`}
     >
       <div className="px-3 py-1.5 border-b border-white/10 flex items-center justify-between bg-black/40">

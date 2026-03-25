@@ -40,6 +40,7 @@ import ValidationPanel from "../components/editor/ValidationPanel";
 import ShortcutHelp from "../components/editor/ShortcutHelp";
 import FlowManager from "../components/editor/FlowManager";
 import CanvasSearch from "../components/editor/CanvasSearch";
+import ContextMenu from "../components/editor/ContextMenu";
 import {
   RuntimeStatus,
   PlaygroundMessage,
@@ -52,6 +53,7 @@ import {
 } from "../types/editor";
 import CyberNode from "../components/CyberNode";
 import CyberGroupNode from "../components/CyberGroupNode";
+import CyberNoteNode from "../components/CyberNoteNode";
 import CyberEdge from "../components/CyberEdge";
 import Sidebar from "../components/Sidebar";
 import Playground from "../components/Playground";
@@ -110,6 +112,7 @@ import {
 const nodeTypes: NodeTypes = {
   cyberNode: CyberNode,
   cyberGroup: CyberGroupNode,
+  cyberNote: CyberNoteNode,
 };
 
 const edgeTypes: EdgeTypes = {
@@ -260,6 +263,7 @@ const VersionHistoryPanel: React.FC<{
 const Flow = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { deleteElements } = useReactFlow();
 
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
@@ -286,6 +290,11 @@ const Flow = () => {
   const [flowVersions, setFlowVersions] = useState<FlowVersion[]>([]);
   const [isAutoSaving, setIsAutoSaving] = useState(false);
   const [lastAutoSave, setLastAutoSave] = useState<number | null>(null);
+  const [contextMenu, setContextMenu] = useState<{
+    x: number;
+    y: number;
+    node?: any;
+  } | null>(null);
   const [validationLocale, setValidationLocale] = useState<ValidationLocale>(
     () =>
       typeof navigator !== "undefined" &&
@@ -684,6 +693,29 @@ const Flow = () => {
     setActiveConnectionHint(null);
   }, []);
 
+  const onNodeContextMenu = useCallback(
+    (event: React.MouseEvent, node: any) => {
+      event.preventDefault();
+      setContextMenu({
+        x: event.clientX,
+        y: event.clientY,
+        node,
+      });
+    },
+    [setContextMenu],
+  );
+
+  const onPaneContextMenu = useCallback(
+    (event: React.MouseEvent) => {
+      event.preventDefault();
+      setContextMenu({
+        x: event.clientX,
+        y: event.clientY,
+      });
+    },
+    [setContextMenu],
+  );
+
   useEffect(() => {
     if (!reactFlowInstance || !currentFlowId || currentFlowId === "new") return;
 
@@ -813,35 +845,40 @@ const Flow = () => {
 
 
 
-  const onUngroupNodes = useCallback(() => {
-    const selectedGroups = nodes.filter(
-      (n) => n.selected && n.type === "cyberGroup",
-    );
-    if (selectedGroups.length === 0) return;
+  const onUngroupNodes = useCallback(
+    (targetGroupId?: string) => {
+      const selectedGroups = targetGroupId 
+        ? nodes.filter(n => n.id === targetGroupId)
+        : nodes.filter((n) => n.selected && n.type === "cyberGroup");
+        
+      if (selectedGroups.length === 0) return;
 
-    takeSnapshot();
+      takeSnapshot();
 
-    const groupIds = selectedGroups.map((g) => g.id);
+      const groupIds = selectedGroups.map((g) => g.id);
 
-    setNodes((nds) => {
-      return nds
-        .filter((n) => !groupIds.includes(n.id))
-        .map((n) => {
-          if (n.parentId && groupIds.includes(n.parentId)) {
-            const parent = nds.find((g) => g.id === n.parentId);
-            return {
-              ...n,
-              parentId: undefined,
-              position: {
-                x: n.position.x + (parent?.position.x || 0),
-                y: n.position.y + (parent?.position.y || 0),
-              },
-            };
-          }
-          return n;
-        });
-    });
-  }, [nodes, setNodes, takeSnapshot]);
+      setNodes((nds) => {
+        const result = nds
+          .filter((n) => !groupIds.includes(n.id))
+          .map((n) => {
+            if (n.parentId && groupIds.includes(n.parentId)) {
+              const parent = nds.find((g) => g.id === n.parentId);
+              return {
+                ...n,
+                parentId: undefined,
+                position: {
+                  x: n.position.x + (parent?.position.x || 0),
+                  y: n.position.y + (parent?.position.y || 0),
+                },
+              };
+            }
+            return n;
+          });
+        return result;
+      });
+    },
+    [nodes, setNodes, takeSnapshot],
+  );
 
   const executeFlow = useCallback(
     async (inputMessage?: string, isSilent: boolean = false) => {
@@ -1369,11 +1406,20 @@ const Flow = () => {
     }
   }, [nodes, edges]);
 
-  const onPaste = useCallback(() => {
+  const onPaste = useCallback((targetPos?: { x: number, y: number }) => {
     if (copiedNodes.length > 0) {
       takeSnapshot();
 
       const idMap = new Map<string, string>();
+      
+      // Calculate offset if targetPos is provided
+      let offset = { x: 50, y: 50 };
+      if (targetPos) {
+        // Find the bounding box center of copied nodes to offset correctly
+        const minX = Math.min(...copiedNodes.map(n => n.position.x));
+        const minY = Math.min(...copiedNodes.map(n => n.position.y));
+        offset = { x: targetPos.x - minX, y: targetPos.y - minY };
+      }
 
       const newNodes = copiedNodes.map((node) => {
         const newId = `${node.type}-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
@@ -1381,7 +1427,9 @@ const Flow = () => {
         return {
           ...node,
           id: newId,
-          position: { x: node.position.x + 50, y: node.position.y + 50 },
+          position: targetPos 
+            ? { x: node.position.x + offset.x, y: node.position.y + offset.y }
+            : { x: node.position.x + 50, y: node.position.y + 50 },
           selected: true,
         };
       });
@@ -1400,6 +1448,43 @@ const Flow = () => {
       setEdges((eds) => eds.concat(newEdges));
     }
   }, [copiedNodes, copiedEdges, setNodes, setEdges, takeSnapshot]);
+
+  const onDuplicate = useCallback(() => {
+    const selectedNodes = nodes.filter((n) => n.selected);
+    if (selectedNodes.length > 0) {
+      takeSnapshot();
+      const selectedNodeIds = new Set(selectedNodes.map((n) => n.id));
+      const selectedEdges = edges.filter(
+        (edge) =>
+          selectedNodeIds.has(edge.source) && selectedNodeIds.has(edge.target),
+      );
+
+      const idMap = new Map<string, string>();
+      const newNodes = selectedNodes.map((node) => {
+        const newId = `${node.type}-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
+        idMap.set(node.id, newId);
+        return {
+          ...node,
+          id: newId,
+          position: { x: node.position.x + 30, y: node.position.y + 30 },
+          selected: true,
+        };
+      });
+
+      const newEdges = selectedEdges.map((edge) => ({
+        ...edge,
+        id: `e-${idMap.get(edge.source)}-${idMap.get(edge.target)}-${Date.now()}`,
+        source: idMap.get(edge.source)!,
+        target: idMap.get(edge.target)!,
+        selected: false,
+      }));
+
+      setNodes((nds) =>
+        nds.map((n) => ({ ...n, selected: false })).concat(newNodes),
+      );
+      setEdges((eds) => eds.concat(newEdges));
+    }
+  }, [nodes, edges, setNodes, setEdges, takeSnapshot]);
 
   const onExport = useCallback(() => {
     if (reactFlowInstance) {
@@ -1919,6 +2004,14 @@ const Flow = () => {
         run: () => onPaste(),
       },
       {
+        id: "duplicate",
+        label: "Duplicate Selection",
+        group: "Edit",
+        shortcut: "Ctrl/Cmd+D",
+        keywords: "duplicate copy clone",
+        run: () => onDuplicate(),
+      },
+      {
         id: "toggle-minimap",
         label: "Toggle Minimap",
         group: "View",
@@ -2125,6 +2218,16 @@ const Flow = () => {
         onCopy();
       } else if (isMod && key === "v") {
         onPaste();
+      } else if (isMod && key === "d") {
+        e.preventDefault();
+        onDuplicate();
+      } else if (key === "delete" || key === "backspace") {
+        const selectedNodes = nodes.filter((n) => n.selected);
+        const selectedEdges = edges.filter((e) => e.selected);
+        if (selectedNodes.length > 0 || selectedEdges.length > 0) {
+          takeSnapshot();
+          deleteElements({ nodes: selectedNodes, edges: selectedEdges });
+        }
       } else if (isMod && key === "s") {
         e.preventDefault();
         onSave(currentFlowName);
@@ -2182,6 +2285,17 @@ const Flow = () => {
     onExport,
   ]);
 
+  const renderedEdges = useMemo(() => {
+    return edges.map((edge) => {
+      const sourceNode = nodes.find((n) => n.id === edge.source);
+      const isAnimated = sourceNode?.data?.status === "running" || edge.animated;
+      return {
+        ...edge,
+        animated: isAnimated,
+      };
+    });
+  }, [edges, nodes]);
+
   return (
     <div className="w-full h-screen bg-cyber-dark text-white overflow-hidden flex flex-col">
       <FlowHeader
@@ -2210,6 +2324,7 @@ const Flow = () => {
         onExport={onExport}
         onCopy={onCopy}
         onPaste={onPaste}
+        onDuplicate={onDuplicate}
         undo={undo}
         redo={redo}
         onLayout={onLayout}
@@ -2235,7 +2350,7 @@ const Flow = () => {
         >
           <ReactFlow
             nodes={renderedNodes}
-            edges={edges}
+            edges={renderedEdges}
             onNodesChange={onNodesChangeWrapper}
             onEdgesChange={onEdgesChangeWrapper}
             onNodeDragStart={takeSnapshot}
@@ -2243,6 +2358,8 @@ const Flow = () => {
             onConnect={onConnect}
             onConnectStart={onConnectStart}
             onConnectEnd={onConnectEnd}
+            onNodeContextMenu={onNodeContextMenu}
+            onPaneContextMenu={onPaneContextMenu}
             onInit={setReactFlowInstance}
             nodeTypes={nodeTypes}
             edgeTypes={edgeTypes}
@@ -2264,7 +2381,7 @@ const Flow = () => {
               className="bg-cyber-dark"
             />
 
-            <Controls className="!bg-cyber-panel !border-cyber-border !rounded-lg overflow-hidden !m-6 shadow-2xl" />
+            <Controls position="top-left" className="!bg-cyber-panel !border-cyber-border !rounded-lg overflow-hidden !m-6 shadow-2xl" />
 
             {showMinimap && (
               <MiniMap
@@ -2369,6 +2486,126 @@ const Flow = () => {
         variables={globalVariables}
         onVariablesChange={setGlobalVariables}
       />
+
+      {contextMenu && (
+        <ContextMenu
+          x={contextMenu.x}
+          y={contextMenu.y}
+          node={contextMenu.node}
+          onClose={() => setContextMenu(null)}
+          actions={{
+            onRun: () => {
+              if (contextMenu.node) {
+                setNodes((nds) =>
+                  nds.map((n) =>
+                    n.id === contextMenu.node.id
+                      ? { ...n, data: { ...n.data, status: "running" } }
+                      : n,
+                  ),
+                );
+                // Simulate execution
+                setTimeout(() => {
+                  setNodes((nds) =>
+                    nds.map((n) =>
+                      n.id === contextMenu.node.id
+                        ? { ...n, data: { ...n.data, status: "success" } }
+                        : n,
+                    ),
+                  );
+                  setTimeout(() => {
+                    setNodes((nds) =>
+                      nds.map((n) =>
+                        n.id === contextMenu.node.id
+                          ? { ...n, data: { ...n.data, status: "idle" } }
+                          : n,
+                      ),
+                    );
+                  }, 3000);
+                }, 1000);
+              }
+            },
+            onOpenConfig: () => {
+              if (contextMenu.node) {
+                setNodes((nds) =>
+                  nds.map((n) =>
+                    n.id === contextMenu.node.id
+                      ? {
+                          ...n,
+                          data: {
+                            ...n.data,
+                            __openConfigToken: Date.now(),
+                          },
+                        }
+                      : n,
+                  ),
+                );
+              }
+            },
+            onOpenData: () => {
+              if (contextMenu.node) {
+                // Similar to config but for data
+                // In CyberNode we use local state for isDataOpen, but we can trigger it via data prop
+                setNodes((nds) =>
+                  nds.map((n) =>
+                    n.id === contextMenu.node.id
+                      ? {
+                          ...n,
+                          data: {
+                            ...n.data,
+                            __openDataToken: Date.now(),
+                          },
+                        }
+                      : n,
+                  ),
+                );
+              }
+            },
+            onCopy: () => onCopy(),
+            onPaste: (pos) => {
+              if (reactFlowInstance) {
+                const project = reactFlowInstance.screenToFlowPosition(pos);
+                onPaste(project);
+              } else {
+                onPaste();
+              }
+            },
+            onDuplicate: () => onDuplicate(),
+            onDelete: () => {
+              if (contextMenu.node) {
+                takeSnapshot();
+                deleteElements({ nodes: [contextMenu.node] });
+              }
+            },
+            onUngroup: () => {
+              if (contextMenu.node && contextMenu.node.type === "cyberGroup") {
+                onUngroupNodes(contextMenu.node.id);
+              }
+            },
+            onLayout: () => onLayout("LR"),
+            onAddNode: (pos) => {
+              // Trigger command palette or sidebar node adding at this position
+              // For now let's just log or implement a simple node add
+              if (reactFlowInstance) {
+                const project = reactFlowInstance.screenToFlowPosition(pos);
+                onAddNode("ChatModelComponent", "Chat Model", project);
+              }
+            },
+            onAddNote: (pos) => {
+              if (reactFlowInstance) {
+                const project = reactFlowInstance.screenToFlowPosition(pos);
+                const newNode: Node = {
+                  id: `note-${Date.now()}`,
+                  type: "cyberNote",
+                  position: project,
+                  data: { label: "", type: "cyberNote", status: "idle" },
+                };
+                takeSnapshot();
+                setNodes((nds) => nds.concat(newNode));
+              }
+            },
+          }}
+        />
+      )}
     </div>
   );
 };
