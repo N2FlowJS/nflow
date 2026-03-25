@@ -96,6 +96,12 @@ export default function CanvasSearch({ isOpen, onClose, nodes, setNodes }: Canva
       } else {
         setCurrentIndex((prev) => (prev < matchingNodes.length - 1 ? prev + 1 : 0));
       }
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setCurrentIndex((prev) => (prev > 0 ? prev - 1 : Math.max(0, matchingNodes.length - 1)));
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setCurrentIndex((prev) => (prev < matchingNodes.length - 1 ? prev + 1 : 0));
     }
   };
 

@@ -763,8 +763,7 @@ const Flow = () => {
     event.dataTransfer.dropEffect = "move";
 
     if (reactFlowInstance) {
-      const scrollThreshold = 50;
-      const scrollSpeed = 15;
+      const scrollThreshold = 100;
       
       const { innerWidth, innerHeight } = window;
       const { clientX, clientY } = event;
@@ -772,13 +771,19 @@ const Flow = () => {
       let dx = 0;
       let dy = 0;
 
-      // Make space for the 256px sidebar
-      if (clientX < scrollThreshold + 256) dx = scrollSpeed;
-      else if (clientX > innerWidth - scrollThreshold) dx = -scrollSpeed;
+      // Sidebar is 256px wide
+      if (clientX < scrollThreshold + 256) {
+        dx = Math.max(5, (scrollThreshold + 256 - clientX) * 0.25);
+      } else if (clientX > innerWidth - scrollThreshold) {
+        dx = -Math.max(5, (clientX - (innerWidth - scrollThreshold)) * 0.25);
+      }
 
-      // Adjust for top header and bottom logs
-      if (clientY < scrollThreshold + 60) dy = scrollSpeed;
-      else if (clientY > innerHeight - scrollThreshold) dy = -scrollSpeed;
+      // Top header is ~60px
+      if (clientY < scrollThreshold + 60) {
+        dy = Math.max(5, (scrollThreshold + 60 - clientY) * 0.25);
+      } else if (clientY > innerHeight - scrollThreshold) {
+        dy = -Math.max(5, (clientY - (innerHeight - scrollThreshold)) * 0.25);
+      }
 
       scrollStateRef.current.dx = dx;
       scrollStateRef.current.dy = dy;
