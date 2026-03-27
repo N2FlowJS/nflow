@@ -31,7 +31,7 @@ import {
   readPortType,
   inferSourcePortType,
   inferTargetPortType,
-  normalizeModelNode
+  normalizeModelNode,
 } from "../node-registry/utils";
 import FlowHeader from "../components/editor/FlowHeader";
 import LogViewer from "../components/editor/LogViewer";
@@ -57,6 +57,7 @@ import CyberNoteNode from "../components/CyberNoteNode";
 import CyberEdge from "../components/CyberEdge";
 import Sidebar from "../components/Sidebar";
 import Playground from "../components/Playground";
+import GlobalPreview from "../components/GlobalPreview";
 import { initialNodes, initialEdges } from "../data";
 import { CustomNodeType } from "../types";
 import {
@@ -93,9 +94,8 @@ import {
   Plus,
   History,
 } from "lucide-react";
-import dagre from "dagre";
+import { useGraphLayout, type LayoutMode } from "../hooks/useGraphLayout";
 import { toPng } from "html-to-image";
-import { useNavigate, useParams } from "react-router-dom";
 import {
   createNodeDataByType,
   getNodeFieldValue,
@@ -108,6 +108,7 @@ import {
   type FlowValidationIssue,
   validateFlowGraph,
 } from "../flow-validation";
+import { useNavigate, useParams } from "react-router-dom";
 
 const nodeTypes: NodeTypes = {
   cyberNode: CyberNode,
@@ -143,7 +144,7 @@ const VariablesPanel: React.FC<{
 
   const handleUpdate = (id: string, field: "name" | "value", value: string) => {
     onVariablesChange(
-      variables.map((v) => (v.id === id ? { ...v, [field]: value } : v))
+      variables.map((v) => (v.id === id ? { ...v, [field]: value } : v)),
     );
   };
 
@@ -168,14 +169,18 @@ const VariablesPanel: React.FC<{
             <input
               type="text"
               value={variable.name}
-              onChange={(e) => handleUpdate(variable.id, "name", e.target.value)}
+              onChange={(e) =>
+                handleUpdate(variable.id, "name", e.target.value)
+              }
               className="bg-white/5 border border-white/10 rounded px-2 py-1 text-sm w-1/3 focus:border-cyber-primary outline-none"
               placeholder="Name"
             />
             <input
               type="text"
               value={variable.value}
-              onChange={(e) => handleUpdate(variable.id, "value", e.target.value)}
+              onChange={(e) =>
+                handleUpdate(variable.id, "value", e.target.value)
+              }
               className="bg-white/5 border border-white/10 rounded px-2 py-1 text-sm w-2/3 focus:border-cyber-primary outline-none"
               placeholder="Value"
             />
@@ -229,7 +234,11 @@ const VersionHistoryPanel: React.FC<{
             key={version.id}
             className="p-3 bg-white/5 border border-white/10 rounded-lg hover:border-cyber-primary/50 cursor-pointer transition-all group"
             onClick={() => {
-              if (confirm(`Are you sure you want to load version "${version.label || version.id}"? This will overwrite your current unsaved changes.`)) {
+              if (
+                confirm(
+                  `Are you sure you want to load version "${version.label || version.id}"? This will overwrite your current unsaved changes.`,
+                )
+              ) {
                 onLoadVersion(version);
               }
             }}
@@ -243,7 +252,8 @@ const VersionHistoryPanel: React.FC<{
               </span>
             </div>
             <div className="text-[10px] text-gray-500">
-              {new Date(version.timestamp).toLocaleDateString()} • {version.data.nodes?.length || 0} nodes
+              {new Date(version.timestamp).toLocaleDateString()} •{" "}
+              {version.data.nodes?.length || 0} nodes
             </div>
           </div>
         ))}
@@ -298,7 +308,7 @@ const Flow = () => {
   const [validationLocale, setValidationLocale] = useState<ValidationLocale>(
     () =>
       typeof navigator !== "undefined" &&
-        navigator.language.toLowerCase().startsWith("vi")
+      navigator.language.toLowerCase().startsWith("vi")
         ? "vi"
         : "en",
   );
@@ -317,7 +327,30 @@ const Flow = () => {
   const [savedFlows, setSavedFlows] = useState<SavedFlow[]>([]);
   const [isSaving, setIsSaving] = useState(false);
 
-  const API_BASE = (import.meta as { env?: Record<string, string | undefined> }).env?.VITE_RUNTIME_URL || 'http://localhost:8787';
+  // Exclusive setters: ensure only one of Keyboard Shortcuts or System Logs is visible at a time
+  const setShowShortcutHelpExclusive: React.Dispatch<React.SetStateAction<boolean>> = (
+    v,
+  ) => {
+    setShowShortcutHelp((prev) => {
+      const next = typeof v === 'function' ? (v as (p: boolean) => boolean)(prev) : v;
+      if (next) setIsLogsOpen(false);
+      return next;
+    });
+  };
+
+  const setIsLogsOpenExclusive: React.Dispatch<React.SetStateAction<boolean>> = (
+    v,
+  ) => {
+    setIsLogsOpen((prev) => {
+      const next = typeof v === 'function' ? (v as (p: boolean) => boolean)(prev) : v;
+      if (next) setShowShortcutHelp(false);
+      return next;
+    });
+  };
+
+  const API_BASE =
+    (import.meta as { env?: Record<string, string | undefined> }).env
+      ?.VITE_RUNTIME_URL || "http://localhost:8787";
   const API_FLOWS = `${API_BASE}/api/flows`;
 
   const fetchFlows = useCallback(async () => {
@@ -728,9 +761,12 @@ const Flow = () => {
         globalVariables,
         updatedAt: Date.now(),
       };
-      
-      localStorage.setItem(`autosave-${currentFlowId}`, JSON.stringify(autoSaveData));
-      
+
+      localStorage.setItem(
+        `autosave-${currentFlowId}`,
+        JSON.stringify(autoSaveData),
+      );
+
       setTimeout(() => {
         setIsAutoSaving(false);
         setLastAutoSave(Date.now());
@@ -758,52 +794,55 @@ const Flow = () => {
     [setNodes, takeSnapshot],
   );
 
-  const onDragOver = useCallback((event: React.DragEvent) => {
-    event.preventDefault();
-    event.dataTransfer.dropEffect = "move";
+  const onDragOver = useCallback(
+    (event: React.DragEvent) => {
+      event.preventDefault();
+      event.dataTransfer.dropEffect = "move";
 
-    if (reactFlowInstance) {
-      const scrollThreshold = 100;
-      
-      const { innerWidth, innerHeight } = window;
-      const { clientX, clientY } = event;
+      if (reactFlowInstance) {
+        const scrollThreshold = 100;
 
-      let dx = 0;
-      let dy = 0;
+        const { innerWidth, innerHeight } = window;
+        const { clientX, clientY } = event;
 
-      // Sidebar is 256px wide
-      if (clientX < scrollThreshold + 256) {
-        dx = Math.max(5, (scrollThreshold + 256 - clientX) * 0.25);
-      } else if (clientX > innerWidth - scrollThreshold) {
-        dx = -Math.max(5, (clientX - (innerWidth - scrollThreshold)) * 0.25);
-      }
+        let dx = 0;
+        let dy = 0;
 
-      // Top header is ~60px
-      if (clientY < scrollThreshold + 60) {
-        dy = Math.max(5, (scrollThreshold + 60 - clientY) * 0.25);
-      } else if (clientY > innerHeight - scrollThreshold) {
-        dy = -Math.max(5, (clientY - (innerHeight - scrollThreshold)) * 0.25);
-      }
+        // Sidebar is 256px wide
+        if (clientX < scrollThreshold + 256) {
+          dx = Math.max(5, (scrollThreshold + 256 - clientX) * 0.25);
+        } else if (clientX > innerWidth - scrollThreshold) {
+          dx = -Math.max(5, (clientX - (innerWidth - scrollThreshold)) * 0.25);
+        }
 
-      scrollStateRef.current.dx = dx;
-      scrollStateRef.current.dy = dy;
+        // Top header is ~60px
+        if (clientY < scrollThreshold + 60) {
+          dy = Math.max(5, (scrollThreshold + 60 - clientY) * 0.25);
+        } else if (clientY > innerHeight - scrollThreshold) {
+          dy = -Math.max(5, (clientY - (innerHeight - scrollThreshold)) * 0.25);
+        }
 
-      if ((dx !== 0 || dy !== 0) && !scrollStateRef.current.isScrolling) {
-        scrollStateRef.current.isScrolling = true;
-        const scrollLoop = () => {
-          const { dx, dy, isScrolling } = scrollStateRef.current;
-          if (!isScrolling || (dx === 0 && dy === 0)) {
-            scrollStateRef.current.isScrolling = false;
-            return;
-          }
-          const { x, y, zoom } = reactFlowInstance.getViewport();
-          reactFlowInstance.setViewport({ x: x + dx, y: y + dy, zoom });
+        scrollStateRef.current.dx = dx;
+        scrollStateRef.current.dy = dy;
+
+        if ((dx !== 0 || dy !== 0) && !scrollStateRef.current.isScrolling) {
+          scrollStateRef.current.isScrolling = true;
+          const scrollLoop = () => {
+            const { dx, dy, isScrolling } = scrollStateRef.current;
+            if (!isScrolling || (dx === 0 && dy === 0)) {
+              scrollStateRef.current.isScrolling = false;
+              return;
+            }
+            const { x, y, zoom } = reactFlowInstance.getViewport();
+            reactFlowInstance.setViewport({ x: x + dx, y: y + dy, zoom });
+            requestAnimationFrame(scrollLoop);
+          };
           requestAnimationFrame(scrollLoop);
-        };
-        requestAnimationFrame(scrollLoop);
+        }
       }
-    }
-  }, [reactFlowInstance]);
+    },
+    [reactFlowInstance],
+  );
 
   const onDrop = useCallback(
     (event: React.DragEvent) => {
@@ -887,14 +926,12 @@ const Flow = () => {
     });
   }, [nodes, setNodes, takeSnapshot]);
 
-
-
   const onUngroupNodes = useCallback(
     (targetGroupId?: string) => {
-      const selectedGroups = targetGroupId 
-        ? nodes.filter(n => n.id === targetGroupId)
+      const selectedGroups = targetGroupId
+        ? nodes.filter((n) => n.id === targetGroupId)
         : nodes.filter((n) => n.selected && n.type === "cyberGroup");
-        
+
       if (selectedGroups.length === 0) return;
 
       takeSnapshot();
@@ -940,7 +977,8 @@ const Flow = () => {
 
       const controller = new AbortController();
       executionAbortRef.current = controller;
-      const isCurrentController = () => executionAbortRef.current === controller;
+      const isCurrentController = () =>
+        executionAbortRef.current === controller;
       if (isSilent) {
         isSilentExecutionRunningRef.current = true;
       } else {
@@ -958,10 +996,20 @@ const Flow = () => {
 
       const applyEvent = (event: any) => {
         const { type, message, nodeId, data } = event;
-        if (type === 'log' || type === 'error' || type === 'nodeUpdate') {
-          setExecutionLogs(prev => [
-            { id: Math.random().toString(36).substr(2, 9), time: new Date().toLocaleTimeString(), type, message: message || (type === 'nodeUpdate' ? `Node ${nodeId} status: ${data?.status}` : ''), nodeId },
-            ...prev.slice(0, 99)
+        if (type === "log" || type === "error" || type === "nodeUpdate") {
+          setExecutionLogs((prev) => [
+            {
+              id: Math.random().toString(36).substr(2, 9),
+              time: new Date().toLocaleTimeString(),
+              type,
+              message:
+                message ||
+                (type === "nodeUpdate"
+                  ? `Node ${nodeId} status: ${data?.status}`
+                  : ""),
+              nodeId,
+            },
+            ...prev.slice(0, 99),
           ]);
         }
         switch (type) {
@@ -986,13 +1034,13 @@ const Flow = () => {
                   nds.map((n) =>
                     n.id === nodeId
                       ? {
-                        ...n,
-                        data: {
-                          ...n.data,
-                          status: "error",
-                          errorMessage: String(message || "Execution error"),
-                        },
-                      }
+                          ...n,
+                          data: {
+                            ...n.data,
+                            status: "error",
+                            errorMessage: String(message || "Execution error"),
+                          },
+                        }
                       : n,
                   ),
                 );
@@ -1007,7 +1055,7 @@ const Flow = () => {
       if (!isSilent) {
         setPlaygroundError(null);
         setExecutionLogs([]);
-        setIsLogsOpen(true);
+        setIsLogsOpenExclusive(true);
         setNodes((nds) =>
           nds.map((n) => ({
             ...n,
@@ -1040,7 +1088,7 @@ const Flow = () => {
           const payload = await serverResponse.json().catch(() => ({}));
           throw new Error(
             payload?.error ||
-            `Server execution failed: ${serverResponse.status}`,
+              `Server execution failed: ${serverResponse.status}`,
           );
         }
 
@@ -1098,7 +1146,7 @@ const Flow = () => {
             } else {
               applyEvent(trailingEvent);
             }
-          } catch { }
+          } catch {}
         }
 
         if (!isSilent) {
@@ -1120,7 +1168,8 @@ const Flow = () => {
             : "Server runtime unavailable.";
 
         const isAbortError =
-          (serverErr instanceof DOMException && serverErr.name === "AbortError") ||
+          (serverErr instanceof DOMException &&
+            serverErr.name === "AbortError") ||
           (serverErr instanceof Error && serverErr.name === "AbortError");
 
         if (!isSilent) {
@@ -1197,7 +1246,7 @@ const Flow = () => {
         const nodeErrors = errorsByNode.get(node.id) || [];
         const currentError =
           typeof (node.data as { errorMessage?: unknown }).errorMessage ===
-            "string"
+          "string"
             ? ((node.data as { errorMessage?: string }).errorMessage as string)
             : "";
         const isValidationError = currentError.startsWith("[Validation]");
@@ -1255,11 +1304,11 @@ const Flow = () => {
           data:
             n.id === nodeId
               ? {
-                ...n.data,
-                __openConfigToken: openConfigToken,
-                __focusFieldName: fieldName,
-                __focusFieldToken: focusFieldToken,
-              }
+                  ...n.data,
+                  __openConfigToken: openConfigToken,
+                  __focusFieldName: fieldName,
+                  __focusFieldToken: focusFieldToken,
+                }
               : n.data,
         })),
       );
@@ -1361,7 +1410,9 @@ const Flow = () => {
             fetchFlows();
 
             // Reload flow to get updated versions
-            const updatedRes = await fetch(`${API_BASE}/api/flows/${newFlow.id}`);
+            const updatedRes = await fetch(
+              `${API_BASE}/api/flows/${newFlow.id}`,
+            );
             if (updatedRes.ok) {
               const updatedFlow = await updatedRes.json();
               setFlowVersions(updatedFlow.versions || []);
@@ -1407,28 +1458,36 @@ const Flow = () => {
     ],
   );
 
-  const onLoadVersion = useCallback((version: FlowVersion) => {
-    if (version.data) {
-      setNodes((version.data.nodes || []).map(normalizeModelNode));
-      setEdges(version.data.edges || []);
-      setGlobalVariables(version.data.globalVariables || []);
-      setIsVersionHistoryOpen(false);
-    }
-  }, [setNodes, setEdges, setGlobalVariables]);
-
-  const onDeleteFlow = useCallback(async (flowId: string) => {
-    try {
-      const res = await fetch(`${API_BASE}/api/flows/${flowId}`, { method: "DELETE" });
-      if (res.ok) {
-        fetchFlows();
-        if (currentFlowId === flowId) {
-          navigate("/flow/new");
-        }
+  const onLoadVersion = useCallback(
+    (version: FlowVersion) => {
+      if (version.data) {
+        setNodes((version.data.nodes || []).map(normalizeModelNode));
+        setEdges(version.data.edges || []);
+        setGlobalVariables(version.data.globalVariables || []);
+        setIsVersionHistoryOpen(false);
       }
-    } catch (err) {
-      console.error("Failed to delete flow", err);
-    }
-  }, [currentFlowId, navigate, fetchFlows]);
+    },
+    [setNodes, setEdges, setGlobalVariables],
+  );
+
+  const onDeleteFlow = useCallback(
+    async (flowId: string) => {
+      try {
+        const res = await fetch(`${API_BASE}/api/flows/${flowId}`, {
+          method: "DELETE",
+        });
+        if (res.ok) {
+          fetchFlows();
+          if (currentFlowId === flowId) {
+            navigate("/flow/new");
+          }
+        }
+      } catch (err) {
+        console.error("Failed to delete flow", err);
+      }
+    },
+    [currentFlowId, navigate, fetchFlows],
+  );
 
   useEffect(() => {
     if (!wasPlaygroundOpenRef.current && isPlaygroundOpen) {
@@ -1450,48 +1509,51 @@ const Flow = () => {
     }
   }, [nodes, edges]);
 
-  const onPaste = useCallback((targetPos?: { x: number, y: number }) => {
-    if (copiedNodes.length > 0) {
-      takeSnapshot();
+  const onPaste = useCallback(
+    (targetPos?: { x: number; y: number }) => {
+      if (copiedNodes.length > 0) {
+        takeSnapshot();
 
-      const idMap = new Map<string, string>();
-      
-      // Calculate offset if targetPos is provided
-      let offset = { x: 50, y: 50 };
-      if (targetPos) {
-        // Find the bounding box center of copied nodes to offset correctly
-        const minX = Math.min(...copiedNodes.map(n => n.position.x));
-        const minY = Math.min(...copiedNodes.map(n => n.position.y));
-        offset = { x: targetPos.x - minX, y: targetPos.y - minY };
+        const idMap = new Map<string, string>();
+
+        // Calculate offset if targetPos is provided
+        let offset = { x: 50, y: 50 };
+        if (targetPos) {
+          // Find the bounding box center of copied nodes to offset correctly
+          const minX = Math.min(...copiedNodes.map((n) => n.position.x));
+          const minY = Math.min(...copiedNodes.map((n) => n.position.y));
+          offset = { x: targetPos.x - minX, y: targetPos.y - minY };
+        }
+
+        const newNodes = copiedNodes.map((node) => {
+          const newId = `${node.type}-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
+          idMap.set(node.id, newId);
+          return {
+            ...node,
+            id: newId,
+            position: targetPos
+              ? { x: node.position.x + offset.x, y: node.position.y + offset.y }
+              : { x: node.position.x + 50, y: node.position.y + 50 },
+            selected: true,
+          };
+        });
+
+        const newEdges = copiedEdges.map((edge) => ({
+          ...edge,
+          id: `e-${idMap.get(edge.source)}-${idMap.get(edge.target)}-${Date.now()}`,
+          source: idMap.get(edge.source)!,
+          target: idMap.get(edge.target)!,
+          selected: false,
+        }));
+
+        setNodes((nds) =>
+          nds.map((n) => ({ ...n, selected: false })).concat(newNodes),
+        );
+        setEdges((eds) => eds.concat(newEdges));
       }
-
-      const newNodes = copiedNodes.map((node) => {
-        const newId = `${node.type}-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
-        idMap.set(node.id, newId);
-        return {
-          ...node,
-          id: newId,
-          position: targetPos 
-            ? { x: node.position.x + offset.x, y: node.position.y + offset.y }
-            : { x: node.position.x + 50, y: node.position.y + 50 },
-          selected: true,
-        };
-      });
-
-      const newEdges = copiedEdges.map((edge) => ({
-        ...edge,
-        id: `e-${idMap.get(edge.source)}-${idMap.get(edge.target)}-${Date.now()}`,
-        source: idMap.get(edge.source)!,
-        target: idMap.get(edge.target)!,
-        selected: false,
-      }));
-
-      setNodes((nds) =>
-        nds.map((n) => ({ ...n, selected: false })).concat(newNodes),
-      );
-      setEdges((eds) => eds.concat(newEdges));
-    }
-  }, [copiedNodes, copiedEdges, setNodes, setEdges, takeSnapshot]);
+    },
+    [copiedNodes, copiedEdges, setNodes, setEdges, takeSnapshot],
+  );
 
   const onDuplicate = useCallback(() => {
     const selectedNodes = nodes.filter((n) => n.selected);
@@ -1586,335 +1648,22 @@ const Flow = () => {
     }
   }, [setNodes, setEdges, takeSnapshot]);
 
+  const { runLayout, isLayouting } = useGraphLayout({
+    nodes,
+    edges,
+    setNodes,
+    setEdges,
+    reactFlowInstance,
+  });
+
   const onLayout = useCallback(
-    (direction: "LR" | "TB" | "SMART" = "LR") => {
+    (mode: LayoutMode = "LR") => {
       takeSnapshot();
-
-      if (direction === "SMART") {
-        const runSmartLayoutWithElk = async () => {
-          type LayoutHandlePlacement = {
-            position: "top" | "right" | "bottom" | "left";
-            index: number;
-            count: number;
-            offsetRatio: number;
-          };
-
-          const getNodeType = (node: Node): string => {
-            const dataType =
-              typeof (node.data as { type?: unknown })?.type === "string"
-                ? ((node.data as { type?: string }).type as string)
-                : undefined;
-            if (dataType) return dataType;
-            return typeof node.type === "string" ? node.type : "cyberNode";
-          };
-
-          const getNodeSize = (node: Node) => ({
-            width:
-              typeof node.measured?.width === "number"
-                ? node.measured.width
-                : getNodeType(node) === "Agent"
-                  ? 350
-                  : 300,
-            height:
-              typeof node.measured?.height === "number"
-                ? node.measured.height
-                : getNodeType(node) === "Agent"
-                  ? 250
-                  : 150,
-          });
-
-          const extractPromptVariables = (node: Node): string[] => {
-            const nodeType = getNodeType(node);
-            if (nodeType !== "Prompt Template" && nodeType !== "PromptTemplate") {
-              return [];
-            }
-            const template = String(
-              getNodeFieldValue(
-                node.data as CustomNodeType["data"],
-                "template",
-              ) || "",
-            );
-            return Array.from(
-              new Set(
-                Array.from(template.matchAll(/\{\s*([a-zA-Z0-9_]+)\s*\}/g)).map(
-                  (match) => match[1],
-                ),
-              ),
-            ).slice(0, 8);
-          };
-
-          const normalizeOffsetRatio = (
-            index: number,
-            count: number,
-            explicitOffsetPercent?: number,
-          ) => {
-            if (typeof explicitOffsetPercent === "number") {
-              return Math.max(0, Math.min(1, explicitOffsetPercent / 100));
-            }
-            if (count <= 1) return 0.5;
-            return (index + 1) / (count + 1);
-          };
-
-          const resolveSourcePlacement = (
-            node: Node,
-            handleId?: string | null,
-          ): LayoutHandlePlacement => {
-            const nodeType = getNodeType(node);
-            const registryHandles = getNodeSourceHandles(nodeType);
-            if (registryHandles.length > 0) {
-              const index = handleId
-                ? registryHandles.findIndex((handle) => handle.id === handleId)
-                : registryHandles.findIndex((handle) => !handle.id);
-              const safeIndex = index >= 0 ? index : 0;
-              const handle = registryHandles[safeIndex];
-              return {
-                position: handle.position,
-                index: safeIndex,
-                count: registryHandles.length,
-                offsetRatio: normalizeOffsetRatio(
-                  safeIndex,
-                  registryHandles.length,
-                  handle.offsetPercent,
-                ),
-              };
-            }
-
-            return {
-              position: handleId === "as_tool" ? "top" : "right",
-              index: 0,
-              count: 1,
-              offsetRatio: 0.5,
-            };
-          };
-
-          const resolveTargetPlacement = (
-            node: Node,
-            handleId?: string | null,
-          ): LayoutHandlePlacement => {
-            const nodeType = getNodeType(node);
-            if (nodeType === "Prompt Template" || nodeType === "PromptTemplate") {
-              const promptVariables = extractPromptVariables(node);
-              if (promptVariables.length > 0 && handleId) {
-                const variableIndex = promptVariables.indexOf(handleId);
-                if (variableIndex >= 0) {
-                  return {
-                    position: "left",
-                    index: variableIndex,
-                    count: promptVariables.length,
-                    offsetRatio: normalizeOffsetRatio(
-                      variableIndex,
-                      promptVariables.length,
-                    ),
-                  };
-                }
-              }
-            }
-
-            const registryHandles = getNodeInputHandles(nodeType);
-            if (registryHandles.length > 0) {
-              const index = handleId
-                ? registryHandles.findIndex((handle) => handle.id === handleId)
-                : registryHandles.findIndex((handle) => !handle.id);
-              const safeIndex = index >= 0 ? index : 0;
-              const handle = registryHandles[safeIndex];
-              return {
-                position: handle.position,
-                index: safeIndex,
-                count: registryHandles.length,
-                offsetRatio: normalizeOffsetRatio(
-                  safeIndex,
-                  registryHandles.length,
-                  handle.offsetPercent,
-                ),
-              };
-            }
-
-            return {
-              position: "left",
-              index: 0,
-              count: 1,
-              offsetRatio: 0.5,
-            };
-          };
-
-          const sideByPosition = (
-            position: LayoutHandlePlacement["position"],
-          ): "NORTH" | "EAST" | "SOUTH" | "WEST" => {
-            if (position === "top") return "NORTH";
-            if (position === "right") return "EAST";
-            if (position === "bottom") return "SOUTH";
-            return "WEST";
-          };
-
-          const nodeById = new Map(nodes.map((node) => [node.id, node]));
-          const portsByNode = new Map<string, any[]>();
-          const portIdByKey = new Map<string, string>();
-
-          const ensurePort = (
-            nodeId: string,
-            kind: "source" | "target",
-            handleId: string | null | undefined,
-            placement: LayoutHandlePlacement,
-          ) => {
-            const normalizedHandle = handleId || "__default__";
-            const key = `${nodeId}|${kind}|${normalizedHandle}`;
-            const existing = portIdByKey.get(key);
-            if (existing) return existing;
-
-            const portId = `${nodeId}::${kind}::${normalizedHandle}`;
-            const ports = portsByNode.get(nodeId) || [];
-            ports.push({
-              id: portId,
-              width: 10,
-              height: 10,
-              layoutOptions: {
-                "org.eclipse.elk.port.side": sideByPosition(placement.position),
-                "org.eclipse.elk.port.index": String(placement.index),
-              },
-            });
-            portsByNode.set(nodeId, ports);
-            portIdByKey.set(key, portId);
-            return portId;
-          };
-
-          const elkEdges = edges
-            .map((edge) => {
-              const sourceNode = nodeById.get(edge.source);
-              const targetNode = nodeById.get(edge.target);
-              if (!sourceNode || !targetNode) return null;
-
-              const sourcePlacement = resolveSourcePlacement(
-                sourceNode,
-                edge.sourceHandle,
-              );
-              const targetPlacement = resolveTargetPlacement(
-                targetNode,
-                edge.targetHandle,
-              );
-
-              const sourcePort = ensurePort(
-                edge.source,
-                "source",
-                edge.sourceHandle,
-                sourcePlacement,
-              );
-              const targetPort = ensurePort(
-                edge.target,
-                "target",
-                edge.targetHandle,
-                targetPlacement,
-              );
-
-              return {
-                id: edge.id,
-                sources: [sourcePort],
-                targets: [targetPort],
-              };
-            })
-            .filter((edge): edge is { id: string; sources: string[]; targets: string[] } => !!edge);
-
-          const elkNodes = nodes.map((node) => {
-            const size = getNodeSize(node);
-            return {
-              id: node.id,
-              width: size.width,
-              height: size.height,
-              ports: portsByNode.get(node.id) || [],
-              layoutOptions: {
-                "org.eclipse.elk.portConstraints": "FIXED_ORDER",
-              },
-            };
-          });
-
-          const { default: ELK } = await import("elkjs/lib/elk.bundled.js");
-          const elk = new ELK();
-          const result = await elk.layout({
-            id: "root",
-            layoutOptions: {
-              "elk.algorithm": "layered",
-              "elk.direction": "RIGHT",
-              "elk.edgeRouting": "ORTHOGONAL",
-              "elk.layered.crossingMinimization.strategy": "LAYER_SWEEP",
-              "elk.layered.nodePlacement.strategy": "NETWORK_SIMPLEX",
-              "elk.layered.considerModelOrder.strategy": "NODES_AND_EDGES",
-              "elk.layered.spacing.nodeNodeBetweenLayers": "160",
-              "elk.spacing.nodeNode": "95",
-              "elk.spacing.edgeNode": "40",
-            },
-            children: elkNodes,
-            edges: elkEdges,
-          } as any);
-
-          const positionById = new Map(
-            ((result.children || []) as Array<{ id: string; x: number; y: number }>).map(
-              (child) => [child.id, { x: child.x, y: child.y }],
-            ),
-          );
-
-          setNodes((nds) =>
-            nds.map((node) => {
-              const next = positionById.get(node.id);
-              if (!next) return node;
-              return {
-                ...node,
-                position: {
-                  x: Math.round(next.x),
-                  y: Math.round(next.y),
-                },
-              };
-            }),
-          );
-
-          setTimeout(() => {
-            reactFlowInstance?.fitView({ duration: 700, padding: 0.2 });
-          }, 50);
-        };
-
-        void runSmartLayoutWithElk().catch((error) => {
-          console.error("SMART layout (ELK) failed", error);
-        });
-
-        return;
-      }
-
-      const dagreGraph = new dagre.graphlib.Graph();
-      dagreGraph.setDefaultEdgeLabel(() => ({}));
-
-      dagreGraph.setGraph({ rankdir: direction, ranksep: 150, nodesep: 100 });
-
-      nodes.forEach((node) => {
-        const width = node.type === "Agent" ? 350 : 300;
-        const height = node.type === "Agent" ? 250 : 150;
-        dagreGraph.setNode(node.id, { width, height });
+      void runLayout(mode).catch((error) => {
+        console.error("Layout failed", error);
       });
-
-      edges.forEach((edge) => {
-        dagreGraph.setEdge(edge.source, edge.target);
-      });
-
-      dagre.layout(dagreGraph);
-
-      setNodes((nds) =>
-        nds.map((node) => {
-          const nodeWithPosition = dagreGraph.node(node.id);
-          const width = node.type === "Agent" ? 350 : 300;
-          const height = node.type === "Agent" ? 250 : 150;
-
-          return {
-            ...node,
-            position: {
-              x: nodeWithPosition.x - width / 2,
-              y: nodeWithPosition.y - height / 2,
-            },
-          };
-        }),
-      );
-
-      setTimeout(() => {
-        reactFlowInstance?.fitView({ duration: 800, padding: 0.2 });
-      }, 50);
     },
-    [nodes, edges, setNodes, reactFlowInstance, takeSnapshot],
+    [runLayout, takeSnapshot],
   );
 
   const onDownloadImage = useCallback(() => {
@@ -1998,6 +1747,79 @@ const Flow = () => {
         shortcut: "Ctrl/Cmd+Shift+L",
         keywords: "layout smart auto",
         run: () => onLayout("SMART"),
+      },
+
+      {
+        id: "layout-layered",
+        label: "Layered Layout",
+        group: "Layout",
+        shortcut: "-",
+        keywords: "layout layered dagre elk",
+        run: () => onLayout("LAYERED"),
+      },
+      {
+        id: "layout-force",
+        label: "Force-directed Layout",
+        group: "Layout",
+        shortcut: "-",
+        keywords: "layout force elk spring",
+        run: () => onLayout("FORCE"),
+      },
+      {
+        id: "layout-radial",
+        label: "Radial Layout",
+        group: "Layout",
+        shortcut: "-",
+        keywords: "layout radial elk",
+        run: () => onLayout("RADIAL"),
+      },
+      {
+        id: "layout-orthogonal",
+        label: "Orthogonal / Box Layout",
+        group: "Layout",
+        shortcut: "-",
+        keywords: "layout orthogonal box elk",
+        run: () => onLayout("ORTHOGONAL"),
+      },
+      {
+        id: "layout-tree",
+        label: "Tree Layout",
+        group: "Layout",
+        shortcut: "-",
+        keywords: "layout tree hierarchical elk",
+        run: () => onLayout("TREE"),
+      },
+      {
+        id: "layout-dagre-lr",
+        label: "Dagre: Left → Right",
+        group: "Layout",
+        shortcut: "-",
+        keywords: "layout dagre lr",
+        run: () => onLayout("DAGRE_LR"),
+      },
+      {
+        id: "layout-dagre-tb",
+        label: "Dagre: Top → Bottom",
+        group: "Layout",
+        shortcut: "-",
+        keywords: "layout dagre tb",
+        run: () => onLayout("DAGRE_TB"),
+      },
+      {
+        id: "layout-dagre-rl",
+        label: "Dagre: Right → Left",
+        group: "Layout",
+        shortcut: "-",
+        keywords: "layout dagre rl",
+        run: () => onLayout("DAGRE_RL"),
+      },
+      {
+        id: "layout-dagre-bt",
+        label: "Dagre: Bottom → Top",
+        group: "Layout",
+        shortcut: "-",
+        keywords: "layout dagre bt",
+        run: () => onLayout("DAGRE_BT"),
       },
       {
         id: "layout-lr",
@@ -2133,7 +1955,7 @@ const Flow = () => {
         group: "Help",
         shortcut: "Ctrl/Cmd+Shift+/",
         keywords: "shortcuts help",
-        run: () => setShowShortcutHelp((prev) => !prev),
+        run: () => setShowShortcutHelpExclusive((prev) => !prev),
       },
     ],
     [
@@ -2243,7 +2065,7 @@ const Flow = () => {
 
       if (key === "escape") {
         setIsToolsMenuOpen(false);
-        setShowShortcutHelp(false);
+        setShowShortcutHelpExclusive(false);
         setShowCommandPalette(false);
         return;
       }
@@ -2304,7 +2126,7 @@ const Flow = () => {
         importInputRef.current?.click();
       } else if (isMod && e.shiftKey && key === "/") {
         e.preventDefault();
-        setShowShortcutHelp((prev) => !prev);
+        setShowShortcutHelpExclusive((prev) => !prev);
       }
     };
 
@@ -2332,7 +2154,8 @@ const Flow = () => {
   const renderedEdges = useMemo(() => {
     return edges.map((edge) => {
       const sourceNode = nodes.find((n) => n.id === edge.source);
-      const isAnimated = sourceNode?.data?.status === "running" || edge.animated;
+      const isAnimated =
+        sourceNode?.data?.status === "running" || edge.animated;
       return {
         ...edge,
         animated: isAnimated,
@@ -2360,7 +2183,7 @@ const Flow = () => {
         validationLocale={validationLocale}
         setValidationLocale={setValidationLocale}
         showShortcutHelp={showShortcutHelp}
-        setShowShortcutHelp={setShowShortcutHelp}
+        setShowShortcutHelp={setShowShortcutHelpExclusive}
         showCommandPalette={showCommandPalette}
         setShowCommandPalette={setShowCommandPalette}
         importInputRef={importInputRef}
@@ -2427,7 +2250,10 @@ const Flow = () => {
               className="bg-cyber-dark"
             />
 
-            <Controls position="top-left" className="!bg-cyber-panel !border-cyber-border !rounded-lg overflow-hidden !m-6 shadow-2xl" />
+            <Controls
+              position="top-left"
+              className="!bg-cyber-panel !border-cyber-border !rounded-lg overflow-hidden !m-6 shadow-2xl"
+            />
 
             {showMinimap && (
               <MiniMap
@@ -2453,23 +2279,26 @@ const Flow = () => {
 
             <ShortcutHelp
               showShortcutHelp={showShortcutHelp}
-              setShowShortcutHelp={setShowShortcutHelp}
+              setShowShortcutHelp={setShowShortcutHelpExclusive}
             />
           </ReactFlow>
-          
+
           {/* Auto-save Indicator */}
           {(isAutoSaving || lastAutoSave) && (
             <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-50 px-3 py-1.5 bg-black/60 backdrop-blur-md border border-white/10 rounded-full flex items-center gap-2 pointer-events-none">
               {isAutoSaving ? (
                 <>
                   <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse" />
-                  <span className="text-[10px] font-mono text-yellow-500/80 uppercase tracking-widest">Auto-saving...</span>
+                  <span className="text-[10px] font-mono text-yellow-500/80 uppercase tracking-widest">
+                    Auto-saving...
+                  </span>
                 </>
               ) : (
                 <>
                   <div className="w-2 h-2 bg-green-500 rounded-full" />
                   <span className="text-[10px] font-mono text-green-500/80 uppercase tracking-widest">
-                    Saved to local {new Date(lastAutoSave!).toLocaleTimeString()}
+                    Saved to local{" "}
+                    {new Date(lastAutoSave!).toLocaleTimeString()}
                   </span>
                 </>
               )}
@@ -2486,10 +2315,12 @@ const Flow = () => {
 
         <LogViewer
           isLogsOpen={isLogsOpen}
-          setIsLogsOpen={setIsLogsOpen}
+          setIsLogsOpen={setIsLogsOpenExclusive}
           executionLogs={executionLogs}
         />
       </div>
+
+      <GlobalPreview />
 
       <Playground
         isOpen={isPlaygroundOpen}
@@ -2627,7 +2458,13 @@ const Flow = () => {
                 onUngroupNodes(contextMenu.node.id);
               }
             },
-            onLayout: () => onLayout("LR"),
+            onLayout: (type?: string) => {
+              if (type) {
+                onLayout(type as any);
+              } else {
+                onLayout("LR");
+              }
+            },
             onAddNode: (pos) => {
               // Trigger command palette or sidebar node adding at this position
               // For now let's just log or implement a simple node add

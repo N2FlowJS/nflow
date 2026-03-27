@@ -1,20 +1,21 @@
 import React from "react";
+import LayoutDropdown from "./LayoutDropdown";
+import HeaderMoreMenu from './HeaderMoreMenu';
 import {
   Home,
-  FolderOpen,
   Save,
   Play,
   Terminal,
   AlertTriangle,
   Settings2,
-  Keyboard,
   Copy,
   ClipboardPaste,
   Undo2,
   Redo2,
-  Wand2,
+  Zap,
   ArrowRight,
   ArrowDown,
+  LayoutGrid,
   Map as MapIcon,
   Maximize,
   Activity,
@@ -24,8 +25,6 @@ import {
   Upload,
   Image as ImageIcon,
   Trash2,
-  DollarSign,
-  History,
 } from "lucide-react";
 import { ValidationLocale } from "../../flow-validation";
 import { RuntimeStatus } from "../../types/editor";
@@ -123,9 +122,7 @@ const FlowHeader: React.FC<FlowHeaderProps> = ({
         </button>
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="font-bold text-lg tracking-tight uppercase">
-              n2flow
-            </h1>
+            <h1 className="font-bold text-lg tracking-tight uppercase">n2flow</h1>
             <input
               type="text"
               value={currentFlowName}
@@ -138,37 +135,32 @@ const FlowHeader: React.FC<FlowHeaderProps> = ({
       </div>
 
       <div className="flex items-center gap-2 relative">
-        <button
-          onClick={() => setIsFlowManagerOpen(true)}
-          className="p-2 bg-white/5 hover:bg-white/10 rounded-lg transition-colors text-gray-400 hover:text-white flex items-center gap-2 border border-white/10"
-          title="Open Flows"
-        >
-          <FolderOpen size={16} />
-        </button>
-
-        <button
-          onClick={() => setIsVariablesPanelOpen((prev) => !prev)}
-          className={`p-2 rounded-lg transition-colors border ${
-            isVariablesPanelOpen
-              ? "bg-cyber-primary text-black border-cyber-primary"
-              : "bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white border-white/10"
-          }`}
-          title="Global Variables"
-        >
-          <DollarSign size={16} />
-        </button>
-
-        <button
-          onClick={() => setIsVersionHistoryOpen((prev) => !prev)}
-          className={`p-2 rounded-lg transition-colors border ${
-            isVersionHistoryOpen
-              ? "bg-cyber-primary text-black border-cyber-primary"
-              : "bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white border-white/10"
-          }`}
-          title="Version History"
-        >
-          <History size={16} />
-        </button>
+        <HeaderMoreMenu
+          setIsFlowManagerOpen={setIsFlowManagerOpen}
+          setIsVariablesPanelOpen={setIsVariablesPanelOpen}
+          setIsVersionHistoryOpen={setIsVersionHistoryOpen}
+          setIsPlaygroundOpen={setIsPlaygroundOpen}
+          onValidateFlow={onValidateFlow}
+          setShowShortcutHelp={setShowShortcutHelp}
+          setShowCommandPalette={setShowCommandPalette}
+          onCopy={onCopy}
+          onPaste={onPaste}
+          onDuplicate={onDuplicate}
+          undo={undo}
+          redo={redo}
+          onLayout={onLayout}
+          setShowMinimap={setShowMinimap}
+          reactFlowInstance={reactFlowInstance}
+          setIsLiveMode={setIsLiveMode}
+          isLiveMode={isLiveMode}
+          onGroupNodes={onGroupNodes}
+          onUngroupNodes={onUngroupNodes}
+          onExport={onExport}
+          importInputRef={importInputRef}
+          onDownloadImage={onDownloadImage}
+          onClear={onClear}
+          setIsToolsMenuOpen={setIsToolsMenuOpen}
+        />
 
         <button
           onClick={(e) => {
@@ -200,26 +192,19 @@ const FlowHeader: React.FC<FlowHeaderProps> = ({
           title="Deploy (Ctrl/Cmd+Enter)"
         >
           <Play size={14} fill="currentColor" />
-          <span className="text-[11px] font-bold uppercase tracking-wider">
-            Deploy
-          </span>
         </button>
 
         <button
           onClick={() => setIsPlaygroundOpen(true)}
-          className="flex items-center gap-2 px-3 py-2 bg-cyber-primary text-black rounded-lg hover:bg-cyan-300 transition-all"
+          className="p-2 rounded-lg bg-cyber-primary text-black hover:bg-cyan-300 transition-colors flex items-center justify-center"
+          title="Open Playground"
         >
-          <Terminal size={14} />
-          <span className="text-[11px] font-bold uppercase tracking-wider">
-            Playground
-          </span>
+          <Terminal size={16} />
         </button>
 
         <select
           value={validationLocale}
-          onChange={(e) =>
-            setValidationLocale(e.target.value as ValidationLocale)
-          }
+          onChange={(e) => setValidationLocale(e.target.value as ValidationLocale)}
           className="px-2 py-2 bg-white/5 border border-white/10 rounded-lg text-[11px] font-bold uppercase tracking-wider text-gray-300 focus:outline-none focus:border-cyber-primary/50"
           title="Validation language"
         >
@@ -233,13 +218,10 @@ const FlowHeader: React.FC<FlowHeaderProps> = ({
 
         <button
           onClick={onValidateFlow}
-          className="flex items-center gap-2 px-3 py-2 bg-orange-500/10 border border-orange-500/30 rounded-lg hover:bg-orange-500 hover:text-black transition-all"
+          className="p-2 rounded-lg transition-colors bg-orange-500/10 border border-orange-500/30 text-gray-300 hover:bg-orange-500 hover:text-black flex items-center justify-center"
           title="Validate (Ctrl/Cmd+Shift+K)"
         >
-          <AlertTriangle size={14} />
-          <span className="text-[11px] font-bold uppercase tracking-wider">
-            Validate
-          </span>
+          <AlertTriangle size={16} />
         </button>
 
         <button
@@ -254,230 +236,38 @@ const FlowHeader: React.FC<FlowHeaderProps> = ({
           <Settings2 size={16} />
         </button>
 
-        <button
-          onClick={() => setShowShortcutHelp((prev) => !prev)}
-          className={`p-2 rounded-lg border transition-colors ${
-            showShortcutHelp
-              ? "bg-cyber-primary/20 border-cyber-primary/30 text-cyber-primary"
-              : "bg-white/5 border-white/10 text-gray-300 hover:bg-white/10"
-          }`}
-          title="Keyboard Shortcuts (Ctrl/Cmd+Shift+/)"
-        >
-          <Keyboard size={16} />
-        </button>
-
-        <button
-          onClick={() => setShowCommandPalette(true)}
-          className={`px-3 py-2 rounded-lg border transition-colors text-[11px] font-bold uppercase tracking-wider ${
-            showCommandPalette
-              ? "bg-cyber-primary/20 border-cyber-primary/30 text-cyber-primary"
-              : "bg-white/5 border-white/10 text-gray-300 hover:bg-white/10"
-          }`}
-          title="Command Palette (Ctrl/Cmd+K)"
-        >
-          Cmd
-        </button>
-
-        <input
-          ref={importInputRef}
-          type="file"
-          accept=".json"
-          className="hidden"
-          onChange={onImport}
-        />
+        <input ref={importInputRef} type="file" accept=".json" className="hidden" onChange={onImport} />
 
         {isToolsMenuOpen && (
-          <div className="absolute right-0 top-12 w-[300px] bg-cyber-panel/95 backdrop-blur-md border border-cyber-border rounded-xl shadow-2xl p-3 z-30 space-y-3">
-            <div className="text-[10px] uppercase tracking-wider text-cyber-muted">
-              Edit
-            </div>
+          <div className="absolute right-0 top-14 w-[300px] bg-cyber-panel/95 backdrop-blur-md border border-cyber-border rounded-xl shadow-2xl p-3 z-30 space-y-3">
+            <div className="text-[10px] uppercase tracking-wider text-cyber-muted">Edit</div>
             <div className="grid grid-cols-2 gap-2">
-              <button
-                onClick={() => {
-                  onCopy();
-                  setIsToolsMenuOpen(false);
-                }}
-                className="px-2 py-1.5 rounded-md bg-white/5 hover:bg-white/10 text-xs flex items-center gap-1"
-              >
-                <Copy size={12} />
-                Copy
-              </button>
-              <button
-                onClick={() => {
-                  onPaste();
-                  setIsToolsMenuOpen(false);
-                }}
-                className="px-2 py-1.5 rounded-md bg-white/5 hover:bg-white/10 text-xs flex items-center gap-1"
-              >
-                <ClipboardPaste size={12} />
-                Paste
-              </button>
-              <button
-                onClick={() => {
-                  onDuplicate();
-                  setIsToolsMenuOpen(false);
-                }}
-                className="px-2 py-1.5 rounded-md bg-white/5 hover:bg-white/10 text-xs flex items-center gap-1"
-              >
-                <Copy size={12} className="text-yellow-500" />
-                Duplicate
-              </button>
-              <button
-                onClick={() => {
-                  undo();
-                  setIsToolsMenuOpen(false);
-                }}
-                className="px-2 py-1.5 rounded-md bg-white/5 hover:bg-white/10 text-xs flex items-center gap-1"
-              >
-                <Undo2 size={12} />
-                Undo
-              </button>
-              <button
-                onClick={() => {
-                  redo();
-                  setIsToolsMenuOpen(false);
-                }}
-                className="px-2 py-1.5 rounded-md bg-white/5 hover:bg-white/10 text-xs flex items-center gap-1"
-              >
-                <Redo2 size={12} />
-                Redo
-              </button>
+              <button onClick={() => { onCopy(); setIsToolsMenuOpen(false); }} className="px-2 py-1.5 rounded-md bg-white/5 hover:bg-white/10 text-xs flex items-center gap-1"><Copy size={12} />Copy</button>
+              <button onClick={() => { onPaste(); setIsToolsMenuOpen(false); }} className="px-2 py-1.5 rounded-md bg-white/5 hover:bg-white/10 text-xs flex items-center gap-1"><ClipboardPaste size={12} />Paste</button>
+              <button onClick={() => { onDuplicate(); setIsToolsMenuOpen(false); }} className="px-2 py-1.5 rounded-md bg-white/5 hover:bg-white/10 text-xs flex items-center gap-1"><Copy size={12} className="text-yellow-500" />Duplicate</button>
+              <button onClick={() => { undo(); setIsToolsMenuOpen(false); }} className="px-2 py-1.5 rounded-md bg-white/5 hover:bg-white/10 text-xs flex items-center gap-1"><Undo2 size={12} />Undo</button>
+              <button onClick={() => { redo(); setIsToolsMenuOpen(false); }} className="px-2 py-1.5 rounded-md bg-white/5 hover:bg-white/10 text-xs flex items-center gap-1"><Redo2 size={12} />Redo</button>
             </div>
 
-            <div className="text-[10px] uppercase tracking-wider text-cyber-muted">
-              Layout / View
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              <button
-                onClick={() => {
-                  onLayout("SMART");
-                  setIsToolsMenuOpen(false);
-                }}
-                className="px-2 py-1.5 rounded-md bg-white/5 hover:bg-white/10 text-xs flex items-center justify-center"
-              >
-                <Wand2 size={12} />
-              </button>
-              <button
-                onClick={() => {
-                  onLayout("LR");
-                  setIsToolsMenuOpen(false);
-                }}
-                className="px-2 py-1.5 rounded-md bg-white/5 hover:bg-white/10 text-xs flex items-center justify-center"
-              >
-                <ArrowRight size={12} />
-              </button>
-              <button
-                onClick={() => {
-                  onLayout("TB");
-                  setIsToolsMenuOpen(false);
-                }}
-                className="px-2 py-1.5 rounded-md bg-white/5 hover:bg-white/10 text-xs flex items-center justify-center"
-              >
-                <ArrowDown size={12} />
-              </button>
-              <button
-                onClick={() => {
-                  setShowMinimap((prev) => !prev);
-                  setIsToolsMenuOpen(false);
-                }}
-                className="px-2 py-1.5 rounded-md bg-white/5 hover:bg-white/10 text-xs flex items-center justify-center"
-              >
-                <MapIcon size={12} />
-              </button>
-              <button
-                onClick={() => {
-                  reactFlowInstance?.fitView({ duration: 800 });
-                  setIsToolsMenuOpen(false);
-                }}
-                className="px-2 py-1.5 rounded-md bg-white/5 hover:bg-white/10 text-xs flex items-center justify-center"
-              >
-                <Maximize size={12} />
-              </button>
-              <button
-                onClick={() => {
-                  setIsLiveMode((prev) => !prev);
-                  setIsToolsMenuOpen(false);
-                }}
-                className="px-2 py-1.5 rounded-md bg-white/5 hover:bg-white/10 text-xs flex items-center justify-center"
-              >
-                <Activity size={12} />
-              </button>
+            <div className="text-[10px] uppercase tracking-wider text-cyber-muted">Layout / View</div>
+            <div className="relative">
+              <LayoutDropdown onLayout={onLayout} setIsToolsMenuOpen={setIsToolsMenuOpen} />
+              <div className="inline-flex items-center gap-2 ml-2">
+                <button onClick={() => { setShowMinimap((prev) => !prev); setIsToolsMenuOpen(false); }} className="px-2 py-1.5 rounded-md bg-white/5 hover:bg-white/10 text-xs flex items-center justify-center"><MapIcon size={12} /></button>
+                <button onClick={() => { reactFlowInstance?.fitView({ duration: 800 }); setIsToolsMenuOpen(false); }} className="px-2 py-1.5 rounded-md bg-white/5 hover:bg-white/10 text-xs flex items-center justify-center"><Maximize size={12} /></button>
+                <button onClick={() => { setIsLiveMode((prev) => !prev); setIsToolsMenuOpen(false); }} className="px-2 py-1.5 rounded-md bg-white/5 hover:bg-white/10 text-xs flex items-center justify-center"><Activity size={12} /></button>
+              </div>
             </div>
 
-            <div className="text-[10px] uppercase tracking-wider text-cyber-muted">
-              Canvas / IO
-            </div>
+            <div className="text-[10px] uppercase tracking-wider text-cyber-muted">Canvas / IO</div>
             <div className="grid grid-cols-2 gap-2">
-              <button
-                onClick={() => {
-                  onGroupNodes();
-                  setIsToolsMenuOpen(false);
-                }}
-                className="px-2 py-1.5 rounded-md bg-white/5 hover:bg-white/10 text-xs flex items-center gap-1"
-              >
-                <Layers size={12} />
-                Group
-              </button>
-              <button
-                onClick={() => {
-                  onUngroupNodes();
-                  setIsToolsMenuOpen(false);
-                }}
-                className="px-2 py-1.5 rounded-md bg-white/5 hover:bg-white/10 text-xs flex items-center gap-1"
-              >
-                <Ungroup size={12} />
-                Ungroup
-              </button>
-              <button
-                onClick={() => {
-                  onExport();
-                  setIsToolsMenuOpen(false);
-                }}
-                className="px-2 py-1.5 rounded-md bg-white/5 hover:bg-white/10 text-xs flex items-center gap-1"
-              >
-                <FileDown size={12} />
-                Export
-              </button>
-              <button
-                onClick={() => {
-                  importInputRef.current?.click();
-                  setIsToolsMenuOpen(false);
-                }}
-                className="px-2 py-1.5 rounded-md bg-white/5 hover:bg-white/10 text-xs flex items-center gap-1"
-              >
-                <Upload size={12} />
-                Import
-              </button>
-              <button
-                onClick={() => {
-                  onDownloadImage();
-                  setIsToolsMenuOpen(false);
-                }}
-                className="px-2 py-1.5 rounded-md bg-white/5 hover:bg-white/10 text-xs flex items-center gap-1"
-              >
-                <ImageIcon size={12} />
-                Image
-              </button>
-              <button
-                onClick={() => {
-                  onClear();
-                  setIsToolsMenuOpen(false);
-                }}
-                className="px-2 py-1.5 rounded-md bg-red-500/10 hover:bg-red-500/20 text-red-300 text-xs flex items-center gap-1"
-              >
-                <Trash2 size={12} />
-                Clear
-              </button>
-              <button
-                onClick={() => {
-                  onClear();
-                  setIsToolsMenuOpen(false);
-                }}
-                className="px-2 py-1.5 rounded-md bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs flex items-center justify-center gap-1 col-span-3 border border-red-500/20"
-              >
-                <Trash2 size={12} />
-                Clear Canvas
-              </button>
+              <button onClick={() => { onGroupNodes(); setIsToolsMenuOpen(false); }} className="px-2 py-1.5 rounded-md bg-white/5 hover:bg-white/10 text-xs flex items-center gap-1"><Layers size={12} />Group</button>
+              <button onClick={() => { onUngroupNodes(); setIsToolsMenuOpen(false); }} className="px-2 py-1.5 rounded-md bg-white/5 hover:bg-white/10 text-xs flex items-center gap-1"><Ungroup size={12} />Ungroup</button>
+              <button onClick={() => { onExport(); setIsToolsMenuOpen(false); }} className="px-2 py-1.5 rounded-md bg-white/5 hover:bg-white/10 text-xs flex items-center gap-1"><FileDown size={12} />Export</button>
+              <button onClick={() => { importInputRef.current?.click(); setIsToolsMenuOpen(false); }} className="px-2 py-1.5 rounded-md bg-white/5 hover:bg-white/10 text-xs flex items-center gap-1"><Upload size={12} />Import</button>
+              <button onClick={() => { onDownloadImage(); setIsToolsMenuOpen(false); }} className="px-2 py-1.5 rounded-md bg-white/5 hover:bg-white/10 text-xs flex items-center gap-1"><ImageIcon size={12} />Image</button>
+              <button onClick={() => { onClear(); setIsToolsMenuOpen(false); }} className="px-2 py-1.5 rounded-md bg-red-500/10 hover:bg-red-500/20 text-red-300 text-xs flex items-center gap-1"><Trash2 size={12} />Clear</button>
+              <button onClick={() => { onClear(); setIsToolsMenuOpen(false); }} className="px-2 py-1.5 rounded-md bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs flex items-center justify-center gap-1 col-span-2 border border-red-500/20"><Trash2 size={12} />Clear Canvas</button>
             </div>
           </div>
         )}

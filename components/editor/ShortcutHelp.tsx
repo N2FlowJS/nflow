@@ -13,7 +13,7 @@ const ShortcutHelp: React.FC<ShortcutHelpProps> = ({
   if (!showShortcutHelp) return null;
 
   return (
-    <Panel position="bottom-left" className="m-4 max-w-[360px]">
+    <Panel position="bottom-left" className="m-4 max-w-[360px] m-b-16 z-50">
       <div className="bg-cyber-panel/95 border border-cyber-border rounded-xl shadow-2xl overflow-hidden">
         <div className="px-3 py-2 border-b border-white/10 flex items-center justify-between bg-black/30">
           <span className="text-[10px] font-mono uppercase tracking-widest text-cyber-primary">

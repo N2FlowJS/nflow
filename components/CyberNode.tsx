@@ -23,6 +23,31 @@ import { NodeHandles } from './node-parts/NodeHandles';
 // Hook
 import { useCyberNode } from '../hooks/useCyberNode';
 
+const PreviewButton: React.FC<{ output: unknown }> = ({ output }) => {
+  const onOpen = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      window.dispatchEvent(
+        new CustomEvent('openResultPreview', {
+          detail: { output, title: 'Result Preview' },
+        }),
+      );
+    } catch {
+      // ignore
+    }
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      className="px-2 py-1 text-[11px] rounded bg-white/5 hover:bg-white/10"
+    >
+      Preview
+    </button>
+  );
+};
+
 const outputPortTypeCycle: PortDataType[] = ['any', 'text', 'chat_model', 'embedding_model', 'tool', 'boolean_route'];
 
 const CyberNode = ({ id, data, selected }: NodeProps<CustomNodeType>) => {
@@ -188,7 +213,18 @@ const CyberNode = ({ id, data, selected }: NodeProps<CustomNodeType>) => {
 
         {data.description && <div className="text-[11px] text-gray-400 leading-relaxed italic">{data.description}</div>}
 
-        {data.status === 'success' && <ResultPreview output={data.lastOutput} />}
+        {data.status === 'success' && (
+          <>
+            <div className="mt-2 flex items-center justify-between gap-2">
+              <div className="text-[10px] text-gray-400 truncate max-w-[180px]">
+                {typeof data.lastOutput === 'string'
+                  ? `${(data.lastOutput as string).slice(0, 80)}${(data.lastOutput as string).length > 80 ? '...' : ''}`
+                  : 'Result available'}
+              </div>
+              <PreviewButton output={data.lastOutput} />
+            </div>
+          </>
+        )}
       </div>
 
       <NodeHandles

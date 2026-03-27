@@ -259,7 +259,7 @@ const nodeRegistry: Record<string, NodeRegistryEntry> = {
         label: "Provider",
         name: "provider",
         type: "select",
-        options: ["Google", "OpenAI", "Anthropic"],
+        options: ["Google", "OpenAI", "Anthropic", "NVIDIA"],
         sourceHandles: [
           createPrimarySourceHandle("chat_model", "bottom"),
         ],
@@ -352,6 +352,40 @@ const nodeRegistry: Record<string, NodeRegistryEntry> = {
       frequency_penalty: 0,
       apiKey: "",
       baseUrl: "http://localhost:8000/v1",
+    }),
+  },
+  NvidiaNimChatModelComponent: {
+    category: "llm",
+    icon: "BrainCircuit",
+    configSchema: withDefaultValues([
+      {
+        label: "Provider",
+        name: "provider",
+        type: "select",
+        options: ["NVIDIA"],
+        sourceHandles: [createPrimarySourceHandle("chat_model", "bottom")],
+      },
+      {
+        label: "Model Name",
+        name: "model",
+        type: "text",
+        sourceHandles: [createPrimarySourceHandle("chat_model", "bottom")],
+      },
+      { label: "Temperature", name: "temperature", type: "number" },
+      { label: "Max Tokens", name: "max_tokens", type: "number" },
+      { label: "Top P", name: "top_p", type: "number" },
+      { label: "Top K", name: "top_k", type: "number" },
+      { label: "API Key (Optional)", name: "apiKey", type: "text" },
+      { label: "Base URL (Optional)", name: "baseUrl", type: "text" },
+    ], {
+      provider: "NVIDIA",
+      model: "stepfun-ai/step-3.5-flash",
+      temperature: 1,
+      max_tokens: 16384,
+      top_p: 0.9,
+      top_k: 0,
+      apiKey: "",
+      baseUrl: "https://integrate.api.nvidia.com/v1",
     }),
   },
   MSSQLPyODBCComponent: {
@@ -1139,3 +1173,5 @@ export const createNodeDataByType = (
     configSchema: ensureDynamicPortTypeFields(defaultSchema),
   };
 };
+
+export default nodeRegistry;
