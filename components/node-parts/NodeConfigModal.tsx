@@ -1,7 +1,8 @@
-import React from 'react';
-import { createPortal } from 'react-dom';
+import React, { useEffect, useRef, useState } from 'react';
+import { Panel } from '@xyflow/react';
 import { Settings, X } from 'lucide-react';
 import { getNodeFieldValue } from '../../node-registry';
+import NumberInput from '../ui/NumberInput';
 
 interface NodeConfigModalProps {
   isOpen: boolean;
@@ -22,18 +23,100 @@ export const NodeConfigModal = ({
   highlightedField,
   configFieldRefs
 }: NodeConfigModalProps) => {
+  const panelRef = useRef<HTMLDivElement | null>(null);
+  const [models, setModels] = useState<string[]>([]);
+  const [modelsLoading, setModelsLoading] = useState(false);
+  const [modelsError, setModelsError] = useState<string | null>(null);
+  const lastFetchKeyRef = useRef<string | null>(null);
+
+  const baseValueGlobal = String(getNodeFieldValue(data, 'baseUrl') ?? '');
+  const apiKeyValueGlobal = String(getNodeFieldValue(data, 'apiKey') ?? '');
+
+  useEffect(() => {
+    // clear loaded models when base/api change
+    setModels([]);
+    setModelsError(null);
+    setModelsLoading(false);
+    lastFetchKeyRef.current = null;
+  }, [baseValueGlobal, apiKeyValueGlobal]);
+
+  const tryFetchModels = async (baseUrl: string, apiKey?: string) => {
+    if (!baseUrl) {
+      setModelsError('No base URL provided');
+      return;
+    }
+    const fetchKey = `${baseUrl}::${apiKey || ''}`;
+    if (lastFetchKeyRef.current === fetchKey && models.length > 0) return;
+    setModelsLoading(true);
+    setModelsError(null);
+    setModels([]);
+    const candidates = ['', '/models', '/v1/models', '/v1/engines', '/engines', '/v1/models/list'];
+    const tried: string[] = [];
+    let found: string[] = [];
+    for (const ep of candidates) {
+      const url = `${baseUrl.replace(/\/$/, '')}${ep}`;
+      try {
+        const headers: Record<string, string> = {};
+        if (apiKey) {
+          headers['Authorization'] = /^Bearer\s+/i.test(apiKey) ? apiKey : `Bearer ${apiKey}`;
+          headers['x-api-key'] = apiKey;
+        }
+        const resp = await fetch(url, { method: 'GET', headers });
+        if (!resp.ok) {
+          tried.push(`${url} -> ${resp.status}`);
+          continue;
+        }
+        const body = await resp.json();
+        // flexible parsing
+        if (Array.isArray(body)) {
+          found = body.map((i: any) => i.id || i.name || i.model || i.engine || String(i)).filter(Boolean);
+        } else if (Array.isArray(body.data)) {
+          found = body.data.map((i: any) => i.id || i.name || i.model || i.engine).filter(Boolean);
+        } else if (Array.isArray(body.models)) {
+          found = body.models.map((i: any) => i.id || i.name || i.model).filter(Boolean);
+        } else if (body.models && typeof body.models === 'object') {
+          found = Object.keys(body.models);
+        } else if (body.model && typeof body.model === 'string') {
+          found = [body.model];
+        }
+        if (found.length > 0) {
+          setModels(found);
+          lastFetchKeyRef.current = fetchKey;
+          setModelsLoading(false);
+          return;
+        }
+        tried.push(`${url} -> parsed-none`);
+      } catch (err: any) {
+        tried.push(`${url} -> ${err?.message ?? 'error'}`);
+      }
+    }
+    setModelsLoading(false);
+    setModelsError(`No models found. Tried: ${tried.join('; ')}`);
+  };
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKey = (ev: KeyboardEvent) => {
+      if (ev.key === 'Escape') onClose();
+    };
+    const onMouse = (ev: MouseEvent) => {
+      if (!panelRef.current) return;
+      if (!panelRef.current.contains(ev.target as Node)) onClose();
+    };
+    window.addEventListener('keydown', onKey);
+    window.addEventListener('mousedown', onMouse);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      window.removeEventListener('mousedown', onMouse);
+    };
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
-  return createPortal(
-    <div
-      className="fixed inset-0 z-[1200] bg-black/60 backdrop-blur-[1px] flex items-center justify-center p-4"
-      onMouseDown={onClose}
-    >
-      <div
-        className="w-full max-w-[640px] max-h-[86vh] overflow-y-auto bg-cyber-panel border border-cyber-border rounded-2xl shadow-2xl"
-        onMouseDown={(e) => e.stopPropagation()}
-      >
-        <div className="sticky top-0 z-10 flex items-center justify-between px-4 py-3 border-b border-white/10 bg-cyber-panel/95 backdrop-blur">
+  return (
+    <Panel position="top-right" className="m-4 w-[min(640px,95%)] z-50">
+      <div ref={panelRef} className="bg-cyber-panel/95 border border-cyber-border rounded-xl shadow-2xl overflow-hidden">
+        <div className="px-3 py-2 border-b border-white/10 flex items-center justify-between bg-black/30">
           <div className="flex items-center gap-2">
             <Settings size={15} className="text-cyber-primary" />
             <h4 className="text-[11px] font-bold text-cyber-primary uppercase tracking-widest">Node Settings</h4>
@@ -48,7 +131,7 @@ export const NodeConfigModal = ({
           </button>
         </div>
 
-        <div className="p-4 space-y-3">
+        <div className="p-4 space-y-3 max-h-[70vh] overflow-y-auto">
           <div className="space-y-1">
             <label className="text-[10px] text-gray-500 uppercase">Description</label>
             <textarea
@@ -60,46 +143,103 @@ export const NodeConfigModal = ({
             />
           </div>
 
-          {data.configSchema?.filter((field: any) => !field.hidden).map((field: any) => (
-            <div key={field.name} className="space-y-1.5">
-              <label className="text-[10px] text-gray-500 uppercase">{field.label}</label>
-              {field.type === 'select' ? (
-                <select
-                  ref={(el) => { configFieldRefs.current[field.name] = el; }}
-                  className={`nodrag w-full bg-black/50 border rounded px-2.5 py-2 text-[12px] text-white outline-none transition-[border-color,box-shadow] duration-700 ease-out ${highlightedField === field.name ? 'border-yellow-400 ring-1 ring-yellow-400/60' : 'border-white/10 focus:border-cyber-primary'}`}
-                  onFocus={() => window.dispatchEvent(new CustomEvent('takeSnapshot'))}
-                  value={String(getNodeFieldValue(data, field.name) ?? '')}
-                  onChange={(e) => handleParamChange(field.name, e.target.value)}
-                >
-                  {field.options?.map((opt: string) => <option key={opt} value={opt}>{opt}</option>)}
-                </select>
-              ) : field.type === 'textarea' ? (
-                <textarea
-                  ref={(el) => { configFieldRefs.current[field.name] = el; }}
-                  className={`nodrag nowheel w-full bg-black/50 border rounded px-2.5 py-2 text-[12px] text-white outline-none min-h-[96px] transition-[border-color,box-shadow] duration-700 ease-out ${highlightedField === field.name ? 'border-yellow-400 ring-1 ring-yellow-400/60' : 'border-white/10 focus:border-cyber-primary'}`}
-                  onFocus={() => window.dispatchEvent(new CustomEvent('takeSnapshot'))}
-                  value={(getNodeFieldValue(data, field.name) as string) ?? ''}
-                  onChange={(e) => handleParamChange(field.name, e.target.value)}
-                />
-              ) : (
-                <input
-                  ref={(el) => { configFieldRefs.current[field.name] = el; }}
-                  type={field.type}
-                  className={`nodrag w-full bg-black/50 border rounded px-2.5 py-2 text-[12px] text-white outline-none transition-[border-color,box-shadow] duration-700 ease-out ${highlightedField === field.name ? 'border-yellow-400 ring-1 ring-yellow-400/60' : 'border-white/10 focus:border-cyber-primary'}`}
-                  onFocus={() => window.dispatchEvent(new CustomEvent('takeSnapshot'))}
-                  value={String(getNodeFieldValue(data, field.name) ?? '')}
-                  onChange={(e) => handleParamChange(field.name, e.target.value)}
-                />
-              )}
-            </div>
-          ))}
+          {data.configSchema?.filter((field: any) => !field.hidden).map((field: any) => {
+            const baseVal = String(getNodeFieldValue(data, 'baseUrl') ?? '');
+            const apiKeyVal = String(getNodeFieldValue(data, 'apiKey') ?? '');
+            const canFetchModels = !!baseVal && !!apiKeyVal;
+
+            return (
+              <div key={field.name} className="space-y-1.5">
+                <label className="text-[10px] text-gray-500 uppercase flex items-center justify-between">
+                  <span>{field.label}</span>
+                  {field.name === 'model' && canFetchModels && (
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => tryFetchModels(baseVal, apiKeyVal)}
+                        className="text-[11px] px-2 py-0.5 bg-black/20 border border-white/6 rounded text-cyber-primary hover:bg-white/5"
+                      >
+                        Load models
+                      </button>
+                      {modelsLoading && <span className="text-[11px] text-gray-400">Loading...</span>}
+                    </div>
+                  )}
+                </label>
+
+                {field.name === 'model' && canFetchModels ? (
+                  // when baseUrl+apiKey present allow loading selectable models
+                  <div>
+                    {models.length > 0 ? (
+                      <select
+                        ref={(el) => { configFieldRefs.current[field.name] = el; }}
+                        className={`nodrag w-full bg-black/50 border rounded px-2.5 py-2 text-[12px] text-white outline-none transition-[border-color,box-shadow] duration-700 ease-out ${highlightedField === field.name ? 'border-yellow-400 ring-1 ring-yellow-400/60' : 'border-white/10 focus:border-cyber-primary'}`}
+                        onFocus={() => window.dispatchEvent(new CustomEvent('takeSnapshot'))}
+                        value={String(getNodeFieldValue(data, field.name) ?? '')}
+                        onChange={(e) => handleParamChange(field.name, e.target.value)}
+                      >
+                        <option value="">-- choose model --</option>
+                        {models.map((m) => <option key={m} value={m}>{m}</option>)}
+                      </select>
+                    ) : (
+                      <div>
+                        <input
+                          ref={(el) => { configFieldRefs.current[field.name] = el; }}
+                          type={field.type}
+                          className={`nodrag w-full bg-black/50 border rounded px-2.5 py-2 text-[12px] text-white outline-none transition-[border-color,box-shadow] duration-700 ease-out ${highlightedField === field.name ? 'border-yellow-400 ring-1 ring-yellow-400/60' : 'border-white/10 focus:border-cyber-primary'}`}
+                          onFocus={() => window.dispatchEvent(new CustomEvent('takeSnapshot'))}
+                          value={String(getNodeFieldValue(data, field.name) ?? '')}
+                          onChange={(e) => handleParamChange(field.name, e.target.value)}
+                        />
+                        {modelsError && <div className="text-xs text-amber-400 mt-1">{modelsError}</div>}
+                      </div>
+                    )}
+                  </div>
+                ) : field.type === 'select' ? (
+                  <select
+                    ref={(el) => { configFieldRefs.current[field.name] = el; }}
+                    className={`nodrag w-full bg-black/50 border rounded px-2.5 py-2 text-[12px] text-white outline-none transition-[border-color,box-shadow] duration-700 ease-out ${highlightedField === field.name ? 'border-yellow-400 ring-1 ring-yellow-400/60' : 'border-white/10 focus:border-cyber-primary'}`}
+                    onFocus={() => window.dispatchEvent(new CustomEvent('takeSnapshot'))}
+                    value={String(getNodeFieldValue(data, field.name) ?? '')}
+                    onChange={(e) => handleParamChange(field.name, e.target.value)}
+                  >
+                    {field.options?.map((opt: string) => <option key={opt} value={opt}>{opt}</option>)}
+                  </select>
+                ) : field.type === 'textarea' ? (
+                  <textarea
+                    ref={(el) => { configFieldRefs.current[field.name] = el; }}
+                    className={`nodrag nowheel w-full bg-black/50 border rounded px-2.5 py-2 text-[12px] text-white outline-none min-h-[96px] transition-[border-color,box-shadow] duration-700 ease-out ${highlightedField === field.name ? 'border-yellow-400 ring-1 ring-yellow-400/60' : 'border-white/10 focus:border-cyber-primary'}`}
+                    onFocus={() => window.dispatchEvent(new CustomEvent('takeSnapshot'))}
+                    value={(getNodeFieldValue(data, field.name) as string) ?? ''}
+                    onChange={(e) => handleParamChange(field.name, e.target.value)}
+                  />
+                ) : field.type === 'number' ? (
+                  <NumberInput
+                    inputRef={(el) => { configFieldRefs.current[field.name] = el; }}
+                    value={String(getNodeFieldValue(data, field.name) ?? '')}
+                    onChange={(val) => handleParamChange(field.name, val)}
+                    step={field.name?.toLowerCase().includes('temp') || field.name?.toLowerCase().includes('temperature') || field.name?.toLowerCase().includes('top_p') ? 0.1 : 1}
+                    onFocus={() => window.dispatchEvent(new CustomEvent('takeSnapshot'))}
+                    className={`nodrag w-full bg-black/50 border rounded px-2.5 py-2 text-[12px] text-white outline-none transition-[border-color,box-shadow] duration-700 ease-out ${highlightedField === field.name ? 'border-yellow-400 ring-1 ring-yellow-400/60' : 'border-white/10 focus:border-cyber-primary'}`}
+                  />
+                ) : (
+                  <input
+                    ref={(el) => { configFieldRefs.current[field.name] = el; }}
+                    type={field.type}
+                    className={`nodrag w-full bg-black/50 border rounded px-2.5 py-2 text-[12px] text-white outline-none transition-[border-color,box-shadow] duration-700 ease-out ${highlightedField === field.name ? 'border-yellow-400 ring-1 ring-yellow-400/60' : 'border-white/10 focus:border-cyber-primary'}`}
+                    onFocus={() => window.dispatchEvent(new CustomEvent('takeSnapshot'))}
+                    value={String(getNodeFieldValue(data, field.name) ?? '')}
+                    onChange={(e) => handleParamChange(field.name, e.target.value)}
+                  />
+                )}
+              </div>
+            );
+          })}
 
           {!data.configSchema && (
             <div className="text-[11px] text-gray-600 italic">No parameters available for this node.</div>
           )}
         </div>
       </div>
-    </div>,
-    document.body
+    </Panel>
   );
 };

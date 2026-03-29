@@ -7,9 +7,11 @@ import {
   Info,
   Layout,
   PlusCircle,
-  Zap,ClipboardPaste,
+  Zap,
+  ClipboardPaste,
   StickyNote,
-  Ungroup
+  Ungroup,
+  Maximize2
 } from 'lucide-react';
 
 export type ContextMenuProps = {
@@ -19,6 +21,7 @@ export type ContextMenuProps = {
   onClose: () => void;
   actions: {
     onRun?: () => void;
+    onFocus?: () => void;
     onOpenConfig?: () => void;
     onOpenData?: () => void;
     onCopy?: () => void;
@@ -29,6 +32,7 @@ export type ContextMenuProps = {
     onAddNode?: (pos: { x: number, y: number }) => void;
     onAddNote?: (pos: { x: number, y: number }) => void;
     onUngroup?: () => void;
+    onSelectAll?: () => void;
   };
 };
 
@@ -184,6 +188,7 @@ const ContextMenu = ({ x, y, node, onClose, actions }: ContextMenuProps) => {
             <div className="text-[10px] text-gray-500 uppercase font-bold truncate">{node.data?.label || 'Node'}</div>
           </div>
           {!isGroup && <MenuItem icon={Play} label="Run Node" onClick={actions.onRun} />}
+          <MenuItem icon={Maximize2} label="Focus Node" onClick={actions.onFocus} />
           <MenuItem icon={Settings} label="Settings" onClick={actions.onOpenConfig} />
           {!isGroup && <MenuItem icon={Info} label="Execution Data" onClick={actions.onOpenData} />}
           
@@ -203,6 +208,8 @@ const ContextMenu = ({ x, y, node, onClose, actions }: ContextMenuProps) => {
         <>
           <MenuItem icon={PlusCircle} label="Add Node" onClick={() => actions.onAddNode?.({ x, y })} />
           <MenuItem icon={StickyNote} label="Add Sticky Note" onClick={() => actions.onAddNote?.({ x, y })} />
+          <div className="h-px bg-white/5 my-1" />
+          <MenuItem icon={Maximize2} label="Select All" onClick={actions.onSelectAll} />
           <div className="h-px bg-white/5 my-1" />
           <MenuItem icon={ClipboardPaste} label="Paste" onClick={() => actions.onPaste?.({ x, y })} />
           <div className="h-px bg-white/5 my-1" />

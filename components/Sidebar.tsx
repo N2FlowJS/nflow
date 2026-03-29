@@ -1,6 +1,6 @@
-import React, { useMemo, useState } from 'react';
-import * as Icons from 'lucide-react';
-import nodeRegistry from '../node-registry';
+import React, { useMemo, useState } from "react";
+import * as Icons from "lucide-react";
+import nodeRegistry from "../node-registry";
 
 type NodeTemplate = {
   label: string;
@@ -12,75 +12,109 @@ type NodeTemplate = {
 };
 
 const prettifyLabel = (typeName: string) => {
-  const withoutComp = typeName.replace(/Component$/, '').replace(/_/g, ' ');
-  const spaced = withoutComp.replace(/([a-z0-9])([A-Z])/g, '$1 $2');
+  const withoutComp = typeName.replace(/Component$/, "").replace(/_/g, " ");
+  const spaced = withoutComp.replace(/([a-z0-9])([A-Z])/g, "$1 $2");
   return spaced.replace(/\b([a-z])/g, (s) => s.toUpperCase());
 };
 
 const CATEGORY_COLOR: Record<string, string> = {
-  llm: 'text-purple-400',
-  tool: 'text-amber-500',
-  input: 'text-green-400',
-  output: 'text-cyan-400',
-  template: 'text-slate-400',
-  logic: 'text-pink-400',
-  other: 'text-yellow-400',
-  agent: 'text-cyber-secondary',
+  llm: "text-purple-400",
+  tool: "text-amber-500",
+  input: "text-green-400",
+  output: "text-cyan-400",
+  template: "text-slate-400",
+  logic: "text-pink-400",
+  other: "text-yellow-400",
+  agent: "text-cyber-secondary",
 };
 
-export default function Sidebar({ onAddNode }: { onAddNode: (type: string, label: string) => void }) {
-  const [searchTerm, setSearchTerm] = useState('');
+export function Sidebar({
+  onAddNode,
+}: {
+  onAddNode: (type: string, label: string) => void;
+}) {
+  const [searchTerm, setSearchTerm] = useState("");
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [favorites, setFavorites] = useState<string[]>(() => {
-    const saved = localStorage.getItem('cyber-node-favorites');
+    const saved = localStorage.getItem("cyber-node-favorites");
     return saved ? JSON.parse(saved) : [];
   });
 
   const nodeTemplates: NodeTemplate[] = useMemo(() => {
     return Object.entries(nodeRegistry).map(([type, entry]) => {
-      const iconName = (entry as any)?.icon || 'Star';
+      const iconName = (entry as any)?.icon || "Star";
       const IconComponent = (Icons as any)[iconName] || Icons.Star;
       const label = prettifyLabel((entry as any)?.label || type);
-      const color = CATEGORY_COLOR[(entry as any)?.category as string] || 'text-gray-400';
-      const bundle = (entry as any)?.bundle || (entry as any)?.category || '';
-      return { label, type, icon: IconComponent, color, category: (entry as any)?.category || '', bundle };
+      const color =
+        CATEGORY_COLOR[(entry as any)?.category as string] || "text-gray-400";
+      const bundle = (entry as any)?.bundle || (entry as any)?.category || "";
+      return {
+        label,
+        type,
+        icon: IconComponent,
+        color,
+        category: (entry as any)?.category || "",
+        bundle,
+      };
     });
   }, []);
 
   const toggleFavorite = (e: React.MouseEvent, type: string) => {
     e.stopPropagation();
-    const newFavorites = favorites.includes(type) ? favorites.filter(f => f !== type) : [...favorites, type];
+    const newFavorites = favorites.includes(type)
+      ? favorites.filter((f) => f !== type)
+      : [...favorites, type];
     setFavorites(newFavorites);
-    localStorage.setItem('cyber-node-favorites', JSON.stringify(newFavorites));
+    localStorage.setItem("cyber-node-favorites", JSON.stringify(newFavorites));
   };
 
-  const onDragStart = (event: React.DragEvent, nodeType: string, nodeLabel: string) => {
-    event.dataTransfer.setData('application/reactflow', JSON.stringify({ type: nodeType, label: nodeLabel }));
-    event.dataTransfer.effectAllowed = 'move';
+  const onDragStart = (
+    event: React.DragEvent,
+    nodeType: string,
+    nodeLabel: string,
+  ) => {
+    event.dataTransfer.setData(
+      "application/reactflow",
+      JSON.stringify({ type: nodeType, label: nodeLabel }),
+    );
+    event.dataTransfer.effectAllowed = "move";
   };
 
-  const categories = ['Core', 'Tools', 'Logic'];
-  const filteredNodes = nodeTemplates.filter(n => {
-    const matchesSearch = n.label.toLowerCase().includes(searchTerm.toLowerCase()) || n.type.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = !activeCategory || n.category === activeCategory;
-    return matchesSearch && matchesCategory;
-  });
+  const categories = ["Core", "Tools", "Logic"];
+  const filteredNodes = useMemo(() => {
+    return nodeTemplates.filter((n) => {
+      const matchesSearch =
+        n.label.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        n.type.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesCategory = !activeCategory || n.category === activeCategory;
+      return matchesSearch && matchesCategory;
+    });
+  }, [nodeTemplates, searchTerm, activeCategory]);
 
-  const groupedNodes = Object.entries(
-    filteredNodes.reduce((acc, node) => {
-      const bundle = node.bundle || 'Others';
-      if (!acc[bundle]) acc[bundle] = [] as NodeTemplate[];
-      acc[bundle].push(node);
-      return acc;
-    }, {} as Record<string, NodeTemplate[]>)
-  ).sort(([bundleA], [bundleB]) => bundleA.localeCompare(bundleB));
+  const groupedNodes = useMemo(() => {
+    return Object.entries(
+      filteredNodes.reduce(
+        (acc, node) => {
+          const bundle = node.bundle || "Others";
+          if (!acc[bundle]) acc[bundle] = [] as NodeTemplate[];
+          acc[bundle].push(node);
+          return acc;
+        },
+        {} as Record<string, NodeTemplate[]>,
+      ),
+    ).sort(([bundleA], [bundleB]) => bundleA.localeCompare(bundleB));
+  }, [filteredNodes]);
 
-  const favoriteNodes = nodeTemplates.filter(n => favorites.includes(n.type));
+  const favoriteNodes = useMemo(() => {
+    return nodeTemplates.filter((n) => favorites.includes(n.type));
+  }, [nodeTemplates, favorites]);
 
   return (
     <div className="w-64 border-r border-cyber-border bg-cyber-panel/50 backdrop-blur-md p-4 flex flex-col gap-4 z-10 overflow-y-auto custom-scrollbar">
       <div>
-        <h3 className="text-[10px] font-bold text-cyber-primary uppercase tracking-[0.2em] mb-3">Node Library</h3>
+        <h3 className="text-[10px] font-bold text-cyber-primary uppercase tracking-[0.2em] mb-3">
+          Node Library
+        </h3>
 
         <div className="relative mb-3">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -113,8 +147,12 @@ export default function Sidebar({ onAddNode }: { onAddNode: (type: string, label
                     <node.icon size={18} />
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-xs font-bold text-gray-200">{node.label}</span>
-                    <span className="text-[9px] text-gray-500 font-mono uppercase">{node.bundle}</span>
+                    <span className="text-xs font-bold text-gray-200">
+                      {node.label}
+                    </span>
+                    <span className="text-[9px] text-gray-500 font-mono uppercase">
+                      {node.bundle}
+                    </span>
                   </div>
                   <button
                     onClick={(e) => toggleFavorite(e, node.type)}
@@ -133,17 +171,27 @@ export default function Sidebar({ onAddNode }: { onAddNode: (type: string, label
             <button
               onClick={() => setActiveCategory(null)}
               className={`px-2 py-1 text-[9px] font-bold uppercase rounded-md transition-colors ${
-                activeCategory === null ? 'bg-cyber-primary text-black' : 'bg-white/5 text-gray-400 hover:bg-white/10'
+                activeCategory === null
+                  ? "bg-cyber-primary text-black"
+                  : "bg-white/5 text-gray-400 hover:bg-white/10"
               }`}
-            >All</button>
-            {categories.map(cat => (
+            >
+              All
+            </button>
+            {categories.map((cat) => (
               <button
                 key={cat}
-                onClick={() => setActiveCategory(cat === activeCategory ? null : cat)}
+                onClick={() =>
+                  setActiveCategory(cat === activeCategory ? null : cat)
+                }
                 className={`px-2 py-1 text-[9px] font-bold uppercase rounded-md transition-colors ${
-                  activeCategory === cat ? 'bg-cyber-primary text-black' : 'bg-white/5 text-gray-400 hover:bg-white/10'
+                  activeCategory === cat
+                    ? "bg-cyber-primary text-black"
+                    : "bg-white/5 text-gray-400 hover:bg-white/10"
                 }`}
-              >{cat}</button>
+              >
+                {cat}
+              </button>
             ))}
           </div>
         )}
@@ -163,22 +211,35 @@ export default function Sidebar({ onAddNode }: { onAddNode: (type: string, label
                     onClick={() => onAddNode(node.type, node.label)}
                     className="group flex items-center gap-3 p-3 bg-white/5 border border-white/5 rounded-xl hover:bg-white/10 hover:border-white/20 transition-all text-left cursor-grab active:cursor-grabbing"
                   >
-                    <div className={`p-2 rounded-lg bg-black/40 ${node.color} group-hover:scale-110 transition-transform`}>
+                    <div
+                      className={`p-2 rounded-lg bg-black/40 ${node.color} group-hover:scale-110 transition-transform`}
+                    >
                       <node.icon size={18} />
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-xs font-bold text-gray-200">{node.label}</span>
-                      <span className="text-[9px] text-gray-500 font-mono uppercase">{node.bundle || node.category}</span>
+                      <span className="text-xs font-bold text-gray-200">
+                        {node.label}
+                      </span>
+                      <span className="text-[9px] text-gray-500 font-mono uppercase">
+                        {node.bundle || node.category}
+                      </span>
                     </div>
                     <button
                       onClick={(e) => toggleFavorite(e, node.type)}
                       className={`ml-auto transition-all ${
                         favorites.includes(node.type)
-                          ? 'text-yellow-500 hover:scale-110'
-                          : 'text-gray-500 hover:text-yellow-500 opacity-0 group-hover:opacity-100 hover:scale-110'
+                          ? "text-yellow-500 hover:scale-110"
+                          : "text-gray-500 hover:text-yellow-500 opacity-0 group-hover:opacity-100 hover:scale-110"
                       }`}
                     >
-                      <Icons.Star size={14} fill={favorites.includes(node.type) ? 'currentColor' : 'none'} />
+                      <Icons.Star
+                        size={14}
+                        fill={
+                          favorites.includes(node.type)
+                            ? "currentColor"
+                            : "none"
+                        }
+                      />
                     </button>
                   </div>
                 ))}
@@ -201,3 +262,5 @@ export default function Sidebar({ onAddNode }: { onAddNode: (type: string, label
     </div>
   );
 }
+
+export default Sidebar;

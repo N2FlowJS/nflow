@@ -78,6 +78,29 @@
       ::-webkit-scrollbar-corner {
         background: transparent;
       }
+
+      /* Scoped: hide native number input spinners for elements with .no-native-spinner */
+      .no-native-spinner::-webkit-outer-spin-button,
+      .no-native-spinner::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+      }
+      /* Firefox */
+      .no-native-spinner {
+        -moz-appearance: textfield;
+      }
+
+      /* Themed number input baseline (use class 'themed-number' on inputs) */
+      .themed-number,
+      .themed-number:focus {
+        background-color: rgba(0, 0, 0, 0.5);
+        color: #e0e0e0;
+        border-color: rgba(255, 255, 255, 0.08);
+      }
+      .themed-number:focus {
+        box-shadow: 0 0 0 3px rgba(0, 240, 255, 0.06);
+        outline: none;
+      }
     </style>
   <script type="importmap">
 {

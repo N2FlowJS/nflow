@@ -18,6 +18,12 @@ export interface NodeData {
   [key: string]: unknown;
 }
 
+export interface GlobalVariable {
+  id: string;
+  name: string;
+  value: string;
+}
+
 export interface FlowNode {
   id: string;
   type?: string;
@@ -38,6 +44,7 @@ export interface FlowEdge {
 export interface ExecuteFlowInput {
   nodes: FlowNode[];
   edges: FlowEdge[];
+  globalVariables?: GlobalVariable[];
   inputMessage?: string;
   isSilent?: boolean;
   apiKey?: string;

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, FolderOpen, Trash2, Clock, GitBranch, Copy, GitCommit, Search } from 'lucide-react';
 import { FLOW_TEMPLATES, createSavedFlowFromTemplate } from '../flow-templates';
+import { API_BASE } from '../lib/api';
 
 type SavedFlow = {
   id: string;
@@ -23,30 +24,10 @@ export default function Home() {
   useEffect(() => {
     const loadFlows = async () => {
       try {
-        const res = await fetch('http://localhost:8787/api/flows');
+        const res = await fetch(`${API_BASE}/api/flows`);
         if (res.ok) {
           const data = await res.json();
           setFlows(data);
-
-          // One-time migration from localStorage
-          const saved = localStorage.getItem('cyber-flows');
-          if (saved) {
-            const localFlows: SavedFlow[] = JSON.parse(saved);
-            if (localFlows.length > 0 && confirm(`Found ${localFlows.length} flows in local storage. Migrating to server?`)) {
-              for (const flow of localFlows) {
-                await fetch('http://localhost:8787/api/flows', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify(flow),
-                });
-              }
-              localStorage.removeItem('cyber-flows');
-              // Reload after migration
-              const freshRes = await fetch('http://localhost:8787/api/flows');
-              const freshData = await freshRes.json();
-              setFlows(freshData);
-            }
-          }
         }
       } catch (err) {
         console.error('Failed to load flows from server:', err);
@@ -59,7 +40,8 @@ export default function Home() {
     e.stopPropagation();
     if (confirm('Are you sure you want to delete this flow?')) {
       try {
-        const res = await fetch(`http://localhost:8787/api/flows/${id}`, { method: 'DELETE' });
+        const res = await fetch(`${API_BASE}/api/flows/${id}`, { method: 'DELETE' });
+
         if (res.ok) {
           setFlows(flows.filter(f => f.id !== id));
         }
@@ -72,10 +54,8 @@ export default function Home() {
   const handleDuplicate = async (flow: SavedFlow, e: React.MouseEvent) => {
     e.stopPropagation();
     try {
-      // Fetch full flow data if needed, but SavedFlow on home might already have it
-      // Actually /api/flows only returns metadata (id, name, updatedAt)
-      // We need the full flow data to duplicate properly
-      const fullRes = await fetch(`http://localhost:8787/api/flows/${flow.id}`);
+      // Fetch full flow data if needed
+      const fullRes = await fetch(`${API_BASE}/api/flows/${flow.id}`);
       if (!fullRes.ok) throw new Error('Failed to fetch full flow data');
       const fullFlow = await fullRes.json();
 
@@ -86,7 +66,7 @@ export default function Home() {
         updatedAt: Date.now(),
       };
 
-      const res = await fetch('http://localhost:8787/api/flows', {
+      const res = await fetch(`${API_BASE}/api/flows`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newFlow),
@@ -105,7 +85,7 @@ export default function Home() {
     if (!newFlow) return;
     
     try {
-      const res = await fetch('http://localhost:8787/api/flows', {
+      const res = await fetch(`${API_BASE}/api/flows`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newFlow),

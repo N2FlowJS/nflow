@@ -44,7 +44,7 @@ export const inferSourcePortType = (
   handleId?: string | null,
 ): PortDataType => {
   const nodeType = node.data.type;
-  const registrySourceHandles = getNodeSourceHandles(nodeType);
+  const registrySourceHandles = getNodeSourceHandles(nodeType, node.data);
 
   if (registrySourceHandles.length > 0) {
     const matchedHandle = handleId
@@ -62,22 +62,6 @@ export const inferSourcePortType = (
     }
   }
 
-  // Fallbacks for hardcoded handles in some nodes
-  if (handleId === "as_tool")
-    return readPortType(node, "as_tool_output_type", "tool");
-  if (handleId === "response")
-    return readPortType(node, "response_output_type", "text");
-  if (handleId === "true")
-    return readPortType(node, "true_output_type", "boolean_route");
-  if (handleId === "false")
-    return readPortType(node, "false_output_type", "boolean_route");
-
-  // Legacy component fallbacks
-  if (nodeType === "ChatModelComponent" || nodeType === "OllamaChatModelComponent" || nodeType === "VLLMChatModelComponent")
-    return readPortType(node, "output_type", "chat_model");
-  if (nodeType === "EmbeddingModelComponent" || nodeType === "OllamaEmbeddingModelComponent" || nodeType === "VLLMEmbeddingModelComponent")
-    return readPortType(node, "output_type", "embedding_model");
-
   return "any";
 };
 
@@ -85,7 +69,7 @@ export const inferTargetPortType = (
   node: CustomNodeType,
   handleId?: string | null,
 ): PortDataType => {
-  const registryInputHandles = getNodeInputHandles(node.data.type);
+  const registryInputHandles = getNodeInputHandles(node.data.type, node.data);
   if (registryInputHandles.length > 0) {
     const matchedHandle = handleId
       ? registryInputHandles.find((handle) => handle.id === handleId)
@@ -94,11 +78,6 @@ export const inferTargetPortType = (
       return matchedHandle.portType as PortDataType;
     }
   }
-
-  if (handleId === "tools") return "tool";
-  if (handleId === "agent_llm") return "chat_model";
-  if (handleId === "embedding_model") return "embedding_model";
-  if (handleId === "system_prompt" || handleId === "input_value") return "text";
 
   return "any";
 };

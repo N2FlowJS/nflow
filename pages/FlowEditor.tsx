@@ -1,114 +1,84 @@
+import {
+  addEdge,
+  Background,
+  BackgroundVariant,
+  Connection,
+  Controls,
+  Edge,
+  EdgeChange,
+  EdgeTypes,
+  MiniMap,
+  Node,
+  NodeChange,
+  NodeTypes,
+  ReactFlow,
+  ReactFlowInstance,
+  ReactFlowProvider,
+  useEdgesState,
+  useNodesState,
+  useReactFlow
+} from "@xyflow/react";
+import { toPng } from "html-to-image";
+import {
+  DollarSign,
+  History,
+  Plus,
+  Trash2,
+  X
+} from "lucide-react";
 import React, {
   useCallback,
-  useState,
-  useRef,
   useEffect,
   useMemo,
+  useRef,
+  useState,
 } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import CyberEdge from "../components/CyberEdge";
+import CyberGroupNode from "../components/CyberGroupNode";
+import CyberNode from "../components/CyberNode";
+import CyberNoteNode from "../components/CyberNoteNode";
+import CanvasSearch from "../components/editor/CanvasSearch";
+import CommandPalette from "../components/editor/CommandPalette";
+import ContextMenu from "../components/editor/ContextMenu";
+import FlowHeader from "../components/editor/FlowHeader";
+import FlowManager from "../components/editor/FlowManager";
+import LogViewer from "../components/editor/LogViewer";
+import ShortcutHelp from "../components/editor/ShortcutHelp";
+import ValidationPanel from "../components/editor/ValidationPanel";
+import GlobalPreview from "../components/GlobalPreview";
+import { NodeConfigModal } from "../components/node-parts/NodeConfigModal";
+import Playground from "../components/Playground";
+import { Sidebar } from "../components/Sidebar";
+import { initialEdges, initialNodes } from "../data";
 import {
-  ReactFlow,
-  Background,
-  Controls,
-  MiniMap,
-  useNodesState,
-  useEdgesState,
-  addEdge,
-  Connection,
-  Edge,
-  BackgroundVariant,
-  Panel,
-  NodeTypes,
-  EdgeTypes,
-  Node,
-  ReactFlowProvider,
-  useReactFlow,
-  ReactFlowInstance,
-  NodeChange,
-  EdgeChange,
-} from "@xyflow/react";
+  validateFlowGraph,
+  type FlowValidationIssue,
+  type ValidationLocale,
+} from "../flow-validation";
+import { useGraphLayout, type LayoutMode } from "../hooks/useGraphLayout";
 import {
-  PortDataType,
-  readPortType,
+  createNodeDataByType,
+  setNodeFieldValueInSchema
+} from "../node-registry";
+import {
   inferSourcePortType,
   inferTargetPortType,
   normalizeModelNode,
+  PortDataType
 } from "../node-registry/utils";
-import FlowHeader from "../components/editor/FlowHeader";
-import LogViewer from "../components/editor/LogViewer";
-import CommandPalette from "../components/editor/CommandPalette";
-import ValidationPanel from "../components/editor/ValidationPanel";
-import ShortcutHelp from "../components/editor/ShortcutHelp";
-import FlowManager from "../components/editor/FlowManager";
-import CanvasSearch from "../components/editor/CanvasSearch";
-import ContextMenu from "../components/editor/ContextMenu";
-import {
-  RuntimeStatus,
-  PlaygroundMessage,
-  PlaygroundWorkerOutput,
-  CommandAction,
-  GlobalVariable,
-  FlowVersion,
-  SavedFlow,
-  LogEntry,
-} from "../types/editor";
-import CyberNode from "../components/CyberNode";
-import CyberGroupNode from "../components/CyberGroupNode";
-import CyberNoteNode from "../components/CyberNoteNode";
-import CyberEdge from "../components/CyberEdge";
-import Sidebar from "../components/Sidebar";
-import Playground from "../components/Playground";
-import GlobalPreview from "../components/GlobalPreview";
-import { initialNodes, initialEdges } from "../data";
 import { CustomNodeType } from "../types";
 import {
-  Maximize2,
-  GitBranch,
-  Play,
-  Terminal,
-  Layers,
-  Save,
-  Download,
-  Trash2,
-  Ungroup,
-  Undo2,
-  Redo2,
-  Copy,
-  ClipboardPaste,
-  Upload,
-  FileDown,
-  LayoutGrid,
-  Image as ImageIcon,
-  Map as MapIcon,
-  Maximize,
-  ArrowRight,
-  ArrowDown,
-  Wand2,
-  FolderOpen,
-  Activity,
-  Home,
-  AlertTriangle,
-  Settings2,
-  Keyboard,
-  DollarSign,
-  X,
-  Plus,
-  History,
-} from "lucide-react";
-import { useGraphLayout, type LayoutMode } from "../hooks/useGraphLayout";
-import { toPng } from "html-to-image";
-import {
-  createNodeDataByType,
-  getNodeFieldValue,
-  getNodeInputHandles,
-  getNodeSourceHandles,
-  normalizeNodeWithRegistry,
-} from "../node-registry";
-import {
-  type ValidationLocale,
-  type FlowValidationIssue,
-  validateFlowGraph,
-} from "../flow-validation";
-import { useNavigate, useParams } from "react-router-dom";
+  CommandAction,
+  FlowVersion,
+  GlobalVariable,
+  LogEntry,
+  PlaygroundMessage,
+  PlaygroundWorkerOutput,
+  RuntimeStatus,
+  SavedFlow,
+} from "../types/editor";
+import { API_BASE } from "../lib/api";
 
 const nodeTypes: NodeTypes = {
   cyberNode: CyberNode,
@@ -132,7 +102,7 @@ const VariablesPanel: React.FC<{
   onClose: () => void;
   variables: GlobalVariable[];
   onVariablesChange: (variables: GlobalVariable[]) => void;
-}> = ({ isOpen, onClose, variables, onVariablesChange }) => {
+}> = React.memo(({ isOpen, onClose, variables, onVariablesChange }) => {
   if (!isOpen) return null;
 
   const handleAdd = () => {
@@ -207,14 +177,14 @@ const VariablesPanel: React.FC<{
       </button>
     </div>
   );
-};
+});
 
 const VersionHistoryPanel: React.FC<{
   isOpen: boolean;
   onClose: () => void;
   versions: FlowVersion[];
   onLoadVersion: (version: FlowVersion) => void;
-}> = ({ isOpen, onClose, versions, onLoadVersion }) => {
+}> = React.memo(({ isOpen, onClose, versions, onLoadVersion }) => {
   if (!isOpen) return null;
 
   return (
@@ -268,7 +238,7 @@ const VersionHistoryPanel: React.FC<{
       </div>
     </div>
   );
-};
+});
 
 const Flow = () => {
   const { id } = useParams<{ id: string }>();
@@ -312,11 +282,6 @@ const Flow = () => {
         ? "vi"
         : "en",
   );
-  const [activeConnectionHint, setActiveConnectionHint] = useState<{
-    nodeId: string;
-    portType: PortDataType;
-    handleType: "source" | "target";
-  } | null>(null);
   const [isToolsMenuOpen, setIsToolsMenuOpen] = useState(false);
   const [showShortcutHelp, setShowShortcutHelp] = useState(false);
   const [showCommandPalette, setShowCommandPalette] = useState(false);
@@ -327,31 +292,110 @@ const Flow = () => {
   const [savedFlows, setSavedFlows] = useState<SavedFlow[]>([]);
   const [isSaving, setIsSaving] = useState(false);
 
+  // Global Node Config (single panel)
+  const [isNodeConfigOpen, setIsNodeConfigOpen] = useState(false);
+  const [configNodeId, setConfigNodeId] = useState<string | null>(null);
+  const configFieldRefs = useRef<Record<string, HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement | null>>({});
+  const [highlightedConfigField, setHighlightedConfigField] = useState<string | null>(null);
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const ce = e as CustomEvent<{ nodeId?: string; focusField?: string }>;
+      const nodeId = ce.detail?.nodeId;
+      if (!nodeId) return;
+      setConfigNodeId(nodeId);
+      setIsNodeConfigOpen(true);
+      setHighlightedConfigField(ce.detail?.focusField ?? null);
+    };
+    window.addEventListener('openNodeConfig', handler as EventListener);
+    return () => window.removeEventListener('openNodeConfig', handler as EventListener);
+  }, []);
+
+  useEffect(() => {
+    if (!isNodeConfigOpen || !highlightedConfigField) return;
+    const target = configFieldRefs.current[highlightedConfigField];
+    if (!target) return;
+    const focusTimer = window.setTimeout(() => {
+      try { (target as HTMLElement).focus(); } catch {}
+      if ('select' in target && typeof (target as any).select === 'function') (target as any).select();
+      try { target.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch {}
+    }, 50);
+    const clearTimer = window.setTimeout(() => setHighlightedConfigField(null), 2000);
+    return () => {
+      window.clearTimeout(focusTimer);
+      window.clearTimeout(clearTimer);
+    };
+  }, [isNodeConfigOpen, highlightedConfigField]);
+
+  const currentConfigNode = useMemo(() => nodes.find((n) => n.id === configNodeId) || null, [nodes, configNodeId]);
+
+  const updateNodeDataById = (newData: any) => {
+    if (!configNodeId) return;
+    setNodes((nds) => nds.map((n) => (n.id === configNodeId ? { ...n, data: { ...n.data, ...newData } } : n)));
+  };
+
+  const handleConfigParamChange = (name: string, value: any) => {
+    if (!configNodeId) return;
+    setNodes((nds) => nds.map((n) => {
+      if (n.id !== configNodeId) return n;
+      const data = n.data as any;
+      if (data.type === 'Agent' && name === 'agentTemplate') {
+        const templateName = String(value || '');
+        let updatedSchema = setNodeFieldValueInSchema(data.configSchema, 'agentTemplate', templateName);
+        // keep agent template behavior consistent with useCyberNode
+        try {
+          const { AGENT_TEMPLATE_CUSTOM, getAgentInstructionByTemplate } = require('../agent-templates');
+          const templateInstruction = getAgentInstructionByTemplate(templateName);
+          if (templateName !== AGENT_TEMPLATE_CUSTOM && templateInstruction) {
+            updatedSchema = setNodeFieldValueInSchema(updatedSchema, 'instruction', templateInstruction);
+          }
+        } catch {}
+        return { ...n, data: { ...n.data, configSchema: updatedSchema } };
+      }
+      const updatedSchema = setNodeFieldValueInSchema(data.configSchema, name, value);
+      return { ...n, data: { ...n.data, configSchema: updatedSchema } };
+    }));
+  };
+
   // Exclusive setters: ensure only one of Keyboard Shortcuts or System Logs is visible at a time
-  const setShowShortcutHelpExclusive: React.Dispatch<React.SetStateAction<boolean>> = (
-    v,
-  ) => {
+  const setShowShortcutHelpExclusive: React.Dispatch<
+    React.SetStateAction<boolean>
+  > = (v) => {
     setShowShortcutHelp((prev) => {
-      const next = typeof v === 'function' ? (v as (p: boolean) => boolean)(prev) : v;
+      const next =
+        typeof v === "function" ? (v as (p: boolean) => boolean)(prev) : v;
       if (next) setIsLogsOpen(false);
       return next;
     });
   };
 
-  const setIsLogsOpenExclusive: React.Dispatch<React.SetStateAction<boolean>> = (
-    v,
-  ) => {
+  const setIsLogsOpenExclusive: React.Dispatch<
+    React.SetStateAction<boolean>
+  > = (v) => {
     setIsLogsOpen((prev) => {
-      const next = typeof v === 'function' ? (v as (p: boolean) => boolean)(prev) : v;
+      const next =
+        typeof v === "function" ? (v as (p: boolean) => boolean)(prev) : v;
       if (next) setShowShortcutHelp(false);
       return next;
     });
   };
 
-  const API_BASE =
-    (import.meta as { env?: Record<string, string | undefined> }).env
-      ?.VITE_RUNTIME_URL || "http://localhost:8787";
-  const API_FLOWS = `${API_BASE}/api/flows`;
+  const [isOnline, setIsOnline] = useState(true);
+
+  // Heartbeat to check server connectivity
+  useEffect(() => {
+    const checkStatus = async () => {
+      try {
+        const res = await fetch(`${API_BASE}/api/flows`, { method: "GET" });
+        setIsOnline(res.ok);
+      } catch {
+        setIsOnline(false);
+      }
+    };
+    const timer = setInterval(checkStatus, 30000);
+    checkStatus();
+    return () => clearInterval(timer);
+  }, [API_BASE]);
 
   const fetchFlows = useCallback(async () => {
     try {
@@ -366,19 +410,6 @@ const Flow = () => {
     }
     return [];
   }, []);
-
-  const renderedNodes = useMemo(() => {
-    if (!activeConnectionHint) return nodes;
-    return nodes.map((node) => ({
-      ...node,
-      data: {
-        ...node.data,
-        __activeNodeId: activeConnectionHint.nodeId,
-        __activePortType: activeConnectionHint.portType,
-        __activeHandleType: activeConnectionHint.handleType,
-      },
-    }));
-  }, [nodes, activeConnectionHint]);
 
   useEffect(() => {
     const loadFlow = async () => {
@@ -694,39 +725,6 @@ const Flow = () => {
     [nodes, edges, setEdges, takeSnapshot],
   );
 
-  const onConnectStart = useCallback(
-    (_: unknown, params: any) => {
-      if (!params?.nodeId || !params?.handleType) {
-        setActiveConnectionHint(null);
-        return;
-      }
-
-      const node = nodes.find((n) => n.id === params.nodeId) as
-        | CustomNodeType
-        | undefined;
-      if (!node) {
-        setActiveConnectionHint(null);
-        return;
-      }
-
-      const portType =
-        params.handleType === "source"
-          ? inferSourcePortType(node, params.handleId)
-          : inferTargetPortType(node, params.handleId);
-
-      setActiveConnectionHint({
-        nodeId: node.id,
-        portType,
-        handleType: params.handleType,
-      });
-    },
-    [nodes],
-  );
-
-  const onConnectEnd = useCallback(() => {
-    setActiveConnectionHint(null);
-  }, []);
-
   const onNodeContextMenu = useCallback(
     (event: React.MouseEvent, node: any) => {
       event.preventDefault();
@@ -750,31 +748,6 @@ const Flow = () => {
     [setContextMenu],
   );
 
-  useEffect(() => {
-    if (!reactFlowInstance || !currentFlowId || currentFlowId === "new") return;
-
-    const timeout = setTimeout(() => {
-      setIsAutoSaving(true);
-      const flow = reactFlowInstance.toObject();
-      const autoSaveData = {
-        ...flow,
-        globalVariables,
-        updatedAt: Date.now(),
-      };
-
-      localStorage.setItem(
-        `autosave-${currentFlowId}`,
-        JSON.stringify(autoSaveData),
-      );
-
-      setTimeout(() => {
-        setIsAutoSaving(false);
-        setLastAutoSave(Date.now());
-      }, 1000);
-    }, 5000); // Auto-save after 5s of inactivity
-
-    return () => clearTimeout(timeout);
-  }, [nodes, edges, globalVariables, reactFlowInstance, currentFlowId]);
 
   const onAddNode = useCallback(
     (type: string, label: string, position?: { x: number; y: number }) => {
@@ -961,6 +934,21 @@ const Flow = () => {
     [nodes, setNodes, takeSnapshot],
   );
 
+  const focusNode = useCallback(
+    (nodeIdOrNode: string | Node) => {
+      if (!reactFlowInstance) return;
+      const node = typeof nodeIdOrNode === "string"
+        ? nodes.find((n) => n.id === nodeIdOrNode)
+        : nodeIdOrNode;
+      if (!node) return;
+
+      const x = node.position.x + (node.measured?.width || 200) / 2;
+      const y = node.position.y + (node.measured?.height || 100) / 2;
+      reactFlowInstance.setCenter(x, y, { zoom: 1.2, duration: 800 });
+    },
+    [nodes, reactFlowInstance],
+  );
+
   const executeFlow = useCallback(
     async (inputMessage?: string, isSilent: boolean = false) => {
       if (isSilent && isSilentExecutionRunningRef.current) {
@@ -1080,6 +1068,7 @@ const Flow = () => {
               edges,
               inputMessage,
               isSilent,
+              globalVariables,
             }),
           },
         );
@@ -1288,6 +1277,15 @@ const Flow = () => {
     return errors.length === 0;
   }, [validateFlow, setNodes]);
 
+  // Debounced Auto-validation
+  useEffect(() => {
+    if (nodes.length === 0) return;
+    const timer = setTimeout(() => {
+      onValidateFlow();
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [nodes, edges, onValidateFlow]);
+
   const focusIssueNode = useCallback(
     (nodeId?: string, fieldName?: string) => {
       if (!nodeId) return;
@@ -1381,20 +1379,21 @@ const Flow = () => {
   }, [isLiveMode, executeFlow]);
 
   const onSave = useCallback(
-    async (name: string, versionLabel?: string) => {
+    async (name: string, versionLabel?: string, isAutoSave: boolean = false) => {
       if (reactFlowInstance) {
-        setIsSaving(true);
+        if (!isAutoSave) setIsSaving(true);
         const flow = reactFlowInstance.toObject();
         const flowId = currentFlowId || `flow-${Date.now()}`;
-        const newFlow: SavedFlow & { versionLabel?: string } = {
+        const newFlow = {
           id: flowId,
           name: name || currentFlowName,
           data: {
             ...flow,
             globalVariables,
-          } as SavedFlow["data"],
+          },
           updatedAt: Date.now(),
           versionLabel,
+          isAutoSave,
         };
 
         try {
@@ -1403,24 +1402,24 @@ const Flow = () => {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(newFlow),
           });
-
           if (res.ok) {
             setCurrentFlowId(newFlow.id);
             setCurrentFlowName(newFlow.name);
             fetchFlows();
 
             // Reload flow to get updated versions
-            const updatedRes = await fetch(
-              `${API_BASE}/api/flows/${newFlow.id}`,
-            );
+            const updatedRes = await fetch(`${API_BASE}/api/flows/${newFlow.id}`);
             if (updatedRes.ok) {
-              const updatedFlow = await updatedRes.json();
-              setFlowVersions(updatedFlow.versions || []);
+              const updatedResult = await updatedRes.json();
+              setFlowVersions(updatedResult.versions || []);
             }
 
             if (!currentFlowId) {
               navigate(`/flow/${newFlow.id}`);
             }
+            
+            // Success: Reset auto-save baseline to prevent redundant saves
+            setLastAutoSave(Date.now());
             return newFlow.id;
           }
         } catch (err) {
@@ -1457,6 +1456,26 @@ const Flow = () => {
       navigate,
     ],
   );
+
+  // Server-side Auto-save (debounced)
+  useEffect(() => {
+    if (!reactFlowInstance || !currentFlowId || currentFlowId === "new") return;
+
+    const timeout = setTimeout(() => {
+      setIsAutoSaving(true);
+      void onSave(currentFlowName, undefined, true)
+        .then(() => {
+          setIsAutoSaving(false);
+          setLastAutoSave(Date.now());
+        })
+        .catch((err) => {
+          console.error("Auto-save failed:", err);
+          setIsAutoSaving(false);
+        });
+    }, 5000);
+
+    return () => clearTimeout(timeout);
+  }, [nodes, edges, globalVariables, reactFlowInstance, currentFlowId, onSave, currentFlowName]);
 
   const onLoadVersion = useCallback(
     (version: FlowVersion) => {
@@ -1647,6 +1666,11 @@ const Flow = () => {
       setEdges([]);
     }
   }, [setNodes, setEdges, takeSnapshot]);
+
+  const onSelectAll = useCallback(() => {
+    setNodes((nds) => nds.map((n) => ({ ...n, selected: true })));
+    setEdges((eds) => eds.map((e) => ({ ...e, selected: true })));
+  }, [setNodes, setEdges]);
 
   const { runLayout, isLayouting } = useGraphLayout({
     nodes,
@@ -1950,6 +1974,14 @@ const Flow = () => {
         run: () => onClear(),
       },
       {
+        id: "select-all",
+        label: "Select All Nodes",
+        group: "Canvas",
+        shortcut: "Ctrl/Cmd+A",
+        keywords: "select all nodes edges",
+        run: () => onSelectAll(),
+      },
+      {
         id: "toggle-shortcuts",
         label: "Toggle Shortcut Help",
         group: "Help",
@@ -2084,6 +2116,9 @@ const Flow = () => {
         onCopy();
       } else if (isMod && key === "v") {
         onPaste();
+      } else if (isMod && key === "a") {
+        e.preventDefault();
+        onSelectAll();
       } else if (isMod && key === "d") {
         e.preventDefault();
         onDuplicate();
@@ -2204,6 +2239,9 @@ const Flow = () => {
         isLiveMode={isLiveMode}
         reactFlowInstance={reactFlowInstance}
         navigate={navigate}
+        lastAutoSave={lastAutoSave}
+        isAutoSaving={isAutoSaving}
+        isOnline={isOnline}
       />
 
       <div className="flex-1 flex overflow-hidden">
@@ -2216,15 +2254,13 @@ const Flow = () => {
           onDrop={onDrop}
         >
           <ReactFlow
-            nodes={renderedNodes}
+            nodes={nodes}
             edges={renderedEdges}
             onNodesChange={onNodesChangeWrapper}
             onEdgesChange={onEdgesChangeWrapper}
             onNodeDragStart={takeSnapshot}
             onSelectionDragStart={takeSnapshot}
             onConnect={onConnect}
-            onConnectStart={onConnectStart}
-            onConnectEnd={onConnectEnd}
             onNodeContextMenu={onNodeContextMenu}
             onPaneContextMenu={onPaneContextMenu}
             onInit={setReactFlowInstance}
@@ -2283,33 +2319,22 @@ const Flow = () => {
             />
           </ReactFlow>
 
-          {/* Auto-save Indicator */}
-          {(isAutoSaving || lastAutoSave) && (
-            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-50 px-3 py-1.5 bg-black/60 backdrop-blur-md border border-white/10 rounded-full flex items-center gap-2 pointer-events-none">
-              {isAutoSaving ? (
-                <>
-                  <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse" />
-                  <span className="text-[10px] font-mono text-yellow-500/80 uppercase tracking-widest">
-                    Auto-saving...
-                  </span>
-                </>
-              ) : (
-                <>
-                  <div className="w-2 h-2 bg-green-500 rounded-full" />
-                  <span className="text-[10px] font-mono text-green-500/80 uppercase tracking-widest">
-                    Saved to local{" "}
-                    {new Date(lastAutoSave!).toLocaleTimeString()}
-                  </span>
-                </>
-              )}
-            </div>
-          )}
 
           <CanvasSearch
             isOpen={isCanvasSearchOpen}
             onClose={() => setIsCanvasSearchOpen(false)}
             nodes={nodes}
             setNodes={setNodes}
+          />
+          <GlobalPreview />
+          <NodeConfigModal
+            isOpen={isNodeConfigOpen}
+            onClose={() => { setIsNodeConfigOpen(false); setConfigNodeId(null); setHighlightedConfigField(null); }}
+            data={(currentConfigNode && (currentConfigNode as any).data) || { label: '', configSchema: [] }}
+            updateNodeData={updateNodeDataById}
+            handleParamChange={handleConfigParamChange}
+            highlightedField={highlightedConfigField}
+            configFieldRefs={configFieldRefs}
           />
         </div>
 
@@ -2319,8 +2344,6 @@ const Flow = () => {
           executionLogs={executionLogs}
         />
       </div>
-
-      <GlobalPreview />
 
       <Playground
         isOpen={isPlaygroundOpen}
@@ -2371,6 +2394,9 @@ const Flow = () => {
           node={contextMenu.node}
           onClose={() => setContextMenu(null)}
           actions={{
+            onFocus: () => {
+              if (contextMenu.node) focusNode(contextMenu.node);
+            },
             onRun: () => {
               if (contextMenu.node) {
                 setNodes((nds) =>
@@ -2486,6 +2512,7 @@ const Flow = () => {
                 setNodes((nds) => nds.concat(newNode));
               }
             },
+            onSelectAll: onSelectAll,
           }}
         />
       )}

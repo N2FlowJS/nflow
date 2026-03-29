@@ -117,64 +117,30 @@ export const NodeHandles = ({
 
   return (
     <>
-      {registryInputHandles.length > 0 ? (
-        registryInputHandles.map((handle, index) => 
-          renderNamedHandle({
-            kind: 'target',
-            position: handle.position === 'left' ? Position.Left : handle.position === 'right' ? Position.Right : handle.position === 'top' ? Position.Top : Position.Bottom,
-            id: handle.id,
-            portType: handle.portType,
-            style: handle.offsetPercent ? (handle.position === 'top' || handle.position === 'bottom' ? { left: `${handle.offsetPercent}%` } : { top: `${handle.offsetPercent}%` }) : undefined,
-            borderClass: handle.borderClass,
-            hoverBorderClass: handle.hoverBorderClass,
-          }) || <React.Fragment key={`registry-target-${index}`} />
-        )
-      ) : (
+      {registryInputHandles.map((handle, index) => 
         renderNamedHandle({
           kind: 'target',
-          position: Position.Left,
-          portType: isOutput ? 'text' : 'any',
-        })
+          position: handle.position === 'left' ? Position.Left : handle.position === 'right' ? Position.Right : handle.position === 'top' ? Position.Top : Position.Bottom,
+          id: handle.id,
+          portType: handle.portType,
+          style: handle.offsetPercent ? (handle.position === 'top' || handle.position === 'bottom' ? { left: `${handle.offsetPercent}%` } : { top: `${handle.offsetPercent}%` }) : undefined,
+          borderClass: handle.borderClass,
+          hoverBorderClass: handle.hoverBorderClass,
+        }) || <React.Fragment key={`registry-target-${index}`} />
       )}
-      {registrySourceHandles.length > 0 ? (
-        registrySourceHandles.map((handle, index) => 
-          renderNamedHandle({
-            kind: 'source',
-            position: handle.position === 'left' ? Position.Left : handle.position === 'right' ? Position.Right : handle.position === 'top' ? Position.Top : Position.Bottom,
-            id: handle.id,
-            portType: handle.portType,
-            style: handle.offsetPercent ? (handle.position === 'top' || handle.position === 'bottom' ? { left: `${handle.offsetPercent}%` } : { top: `${handle.offsetPercent}%` }) : undefined,
-            borderClass: handle.borderClass,
-            hoverBorderClass: handle.hoverBorderClass,
-            badgeParamKey: handle.badgeParamKey,
-            badgeFallback: handle.badgeFallback,
-            badgeClassName: handle.badgeClassName,
-          }) || <React.Fragment key={`registry-source-${index}`} />
-        )
-      ) : (
-        <>
-          {renderNamedHandle({
-            kind: 'source',
-            position: isLLM ? Position.Bottom : Position.Right,
-            portType: isLLM ? 'chat_model' : isInput ? 'text' : 'any',
-            badgeParamKey: 'output_type',
-            badgeFallback: isLLM ? 'chat_model' : isInput ? 'text' : 'any',
-            badgeClassName: isLLM
-              ? 'left-1/2 -translate-x-1/2 -bottom-6 text-cyber-primary border-cyber-primary/60 bg-black/70'
-              : '-right-1.5 top-1/2 -translate-y-1/2 text-cyber-primary border-cyber-primary/60 bg-black/70',
-          })}
-          {!isLLM && !isInput && !isOutput && renderNamedHandle({
-            kind: 'source',
-            position: Position.Top,
-            id: 'as_tool',
-            portType: 'tool',
-            borderClass: '!border-amber-500',
-            hoverBorderClass: 'hover:!border-amber-400 transition-colors',
-            badgeParamKey: 'as_tool_output_type',
-            badgeFallback: 'tool',
-            badgeClassName: 'left-1/2 -translate-x-1/2 -top-6 text-amber-300 border-amber-500/60 bg-black/70',
-          })}
-        </>
+      {registrySourceHandles.map((handle, index) => 
+        renderNamedHandle({
+          kind: 'source',
+          position: handle.position === 'left' ? Position.Left : handle.position === 'right' ? Position.Right : handle.position === 'top' ? Position.Top : Position.Bottom,
+          id: handle.id,
+          portType: handle.portType,
+          style: handle.offsetPercent ? (handle.position === 'top' || handle.position === 'bottom' ? { left: `${handle.offsetPercent}%` } : { top: `${handle.offsetPercent}%` }) : undefined,
+          borderClass: handle.borderClass,
+          hoverBorderClass: handle.hoverBorderClass,
+          badgeParamKey: handle.badgeParamKey,
+          badgeFallback: handle.badgeFallback,
+          badgeClassName: handle.badgeClassName,
+        }) || <React.Fragment key={`registry-source-${index}`} />
       )}
     </>
   );

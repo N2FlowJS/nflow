@@ -17,6 +17,7 @@ export type NodeInputHandleConfig = {
   hoverBorderClass?: string;
   labelText?: string;
   labelClassName?: string;
+  shouldShow?: (data: any) => boolean;
 };
 
 export type NodeSourceHandleConfig = {
@@ -31,6 +32,7 @@ export type NodeSourceHandleConfig = {
   badgeParamKey?: string;
   badgeFallback?: "text" | "chat_model" | "embedding_model" | "tool" | "boolean_route" | "any";
   badgeClassName?: string;
+  shouldShow?: (data: any) => boolean;
 };
 
 type RegistryConfigField = ConfigSchema[number] & {
@@ -85,7 +87,7 @@ const AS_TOOL_BADGE_75_CLASS =
   "left-[75%] -translate-x-1/2 -top-6 text-amber-300 border-amber-500/60 bg-black/70";
 
 const createPrimarySourceHandle = (
-  portType: NodeSourceHandleConfig["portType"],
+  portType: NodeSourceHandleConfig["portType"] = "text",
   position: "right" | "bottom" = "right",
 ): NodeSourceHandleConfig => ({
   portType,
@@ -117,9 +119,11 @@ const languageModelSchema: RegistryConfigSchema = [
     type: "select",
     options: ["Chat", "Embedding"],
     sourceHandles: [
-      createPrimarySourceHandle("any", "bottom"),
+      createPrimarySourceHandle("text", "bottom"),
     ],
   },
+  { label: "Base URL (Optional)", name: "baseUrl", type: "text" },
+  { label: "API Key (Optional)", name: "apiKey", type: "text" },
   {
     label: "Model Name",
     name: "model",
@@ -136,8 +140,6 @@ const languageModelSchema: RegistryConfigSchema = [
   { label: "Max Tokens", name: "max_tokens", type: "number" },
   { label: "Top P", name: "top_p", type: "number" },
   { label: "Top K", name: "top_k", type: "number" },
-  { label: "API Key (Optional)", name: "apiKey", type: "text" },
-  { label: "Base URL (Optional)", name: "baseUrl", type: "text" },
 ];
 
 const embeddingModelSchema: RegistryConfigSchema = [
@@ -150,14 +152,14 @@ const embeddingModelSchema: RegistryConfigSchema = [
       createPrimarySourceHandle("embedding_model", "bottom"),
     ],
   },
+  { label: "Base URL (Optional)", name: "baseUrl", type: "text" },
+  { label: "API Key (Optional)", name: "apiKey", type: "text" },
   {
     label: "Embedding Model",
     name: "model",
     type: "select",
     options: ["text-embedding-004", "text-embedding-3-large"],
   },
-  { label: "API Key (Optional)", name: "apiKey", type: "text" },
-  { label: "Base URL (Optional)", name: "baseUrl", type: "text" },
 ];
 
 const promptTemplateSchema: RegistryConfigSchema = [
@@ -201,7 +203,7 @@ const gitLabMergeRequestSchema: RegistryConfigSchema = [
     name: "baseUrl",
     type: "text",
     sourceHandles: [
-      createPrimarySourceHandle("any", "right"),
+      createPrimarySourceHandle("text", "right"),
       createAsToolSourceHandle(),
     ],
   },
@@ -223,7 +225,7 @@ const gitHubMergeRequestSchema: RegistryConfigSchema = [
     name: "baseUrl",
     type: "text",
     sourceHandles: [
-      createPrimarySourceHandle("any", "right"),
+      createPrimarySourceHandle("text", "right"),
       createAsToolSourceHandle(),
     ],
   },
@@ -264,6 +266,8 @@ const nodeRegistry: Record<string, NodeRegistryEntry> = {
           createPrimarySourceHandle("chat_model", "bottom"),
         ],
       },
+      { label: "Base URL (Optional)", name: "baseUrl", type: "text" },
+      { label: "API Key (Optional)", name: "apiKey", type: "text" },
       {
         label: "Model Name",
         name: "model",
@@ -280,8 +284,6 @@ const nodeRegistry: Record<string, NodeRegistryEntry> = {
       { label: "Top P", name: "top_p", type: "number" },
       { label: "Presence Penalty", name: "presence_penalty", type: "number" },
       { label: "Frequency Penalty", name: "frequency_penalty", type: "number" },
-      { label: "API Key (Optional)", name: "apiKey", type: "text" },
-      { label: "Base URL (Optional)", name: "baseUrl", type: "text" },
     ], {
       provider: "Google",
       model: "gemini-2.0-flash",
@@ -298,6 +300,8 @@ const nodeRegistry: Record<string, NodeRegistryEntry> = {
     category: "llm",
     icon: "BrainCircuit",
     configSchema: withDefaultValues([
+      { label: "Base URL (Optional)", name: "baseUrl", type: "text" },
+      { label: "API Key (Optional)", name: "apiKey", type: "text" },
       {
         label: "Model Name",
         name: "model",
@@ -310,8 +314,6 @@ const nodeRegistry: Record<string, NodeRegistryEntry> = {
       { label: "Max Tokens", name: "max_tokens", type: "number" },
       { label: "Top P", name: "top_p", type: "number" },
       { label: "Top K", name: "top_k", type: "number" },
-      { label: "API Key (Optional)", name: "apiKey", type: "text" },
-      { label: "Base URL (Optional)", name: "baseUrl", type: "text" },
     ], {
       provider: "Ollama",
       model: "llama3.1:8b",
@@ -327,6 +329,8 @@ const nodeRegistry: Record<string, NodeRegistryEntry> = {
     category: "llm",
     icon: "BrainCircuit",
     configSchema: withDefaultValues([
+      { label: "Base URL (Optional)", name: "baseUrl", type: "text" },
+      { label: "API Key (Optional)", name: "apiKey", type: "text" },
       {
         label: "Model Name",
         name: "model",
@@ -340,8 +344,6 @@ const nodeRegistry: Record<string, NodeRegistryEntry> = {
       { label: "Top P", name: "top_p", type: "number" },
       { label: "Presence Penalty", name: "presence_penalty", type: "number" },
       { label: "Frequency Penalty", name: "frequency_penalty", type: "number" },
-      { label: "API Key (Optional)", name: "apiKey", type: "text" },
-      { label: "Base URL (Optional)", name: "baseUrl", type: "text" },
     ], {
       provider: "vLLM",
       model: "meta-llama/Meta-Llama-3-8B-Instruct",
@@ -365,6 +367,8 @@ const nodeRegistry: Record<string, NodeRegistryEntry> = {
         options: ["NVIDIA"],
         sourceHandles: [createPrimarySourceHandle("chat_model", "bottom")],
       },
+      { label: "Base URL (Optional)", name: "baseUrl", type: "text" },
+      { label: "API Key (Optional)", name: "apiKey", type: "text" },
       {
         label: "Model Name",
         name: "model",
@@ -375,8 +379,6 @@ const nodeRegistry: Record<string, NodeRegistryEntry> = {
       { label: "Max Tokens", name: "max_tokens", type: "number" },
       { label: "Top P", name: "top_p", type: "number" },
       { label: "Top K", name: "top_k", type: "number" },
-      { label: "API Key (Optional)", name: "apiKey", type: "text" },
-      { label: "Base URL (Optional)", name: "baseUrl", type: "text" },
     ], {
       provider: "NVIDIA",
       model: "stepfun-ai/step-3.5-flash",
@@ -397,7 +399,7 @@ const nodeRegistry: Record<string, NodeRegistryEntry> = {
         name: "server",
         type: "text",
         sourceHandles: [
-          createPrimarySourceHandle("any", "right"),
+          createPrimarySourceHandle("text", "right"),
           createAsToolSourceHandle(),
         ],
       },
@@ -474,6 +476,8 @@ const nodeRegistry: Record<string, NodeRegistryEntry> = {
     category: "llm",
     icon: "Cpu",
     configSchema: withDefaultValues([
+      { label: "Base URL (Optional)", name: "baseUrl", type: "text" },
+      { label: "API Key (Optional)", name: "apiKey", type: "text" },
       {
         label: "Embedding Model",
         name: "model",
@@ -482,8 +486,6 @@ const nodeRegistry: Record<string, NodeRegistryEntry> = {
           createPrimarySourceHandle("embedding_model", "bottom"),
         ],
       },
-      { label: "API Key (Optional)", name: "apiKey", type: "text" },
-      { label: "Base URL (Optional)", name: "baseUrl", type: "text" },
     ], {
       provider: "Ollama",
       model: "nomic-embed-text",
@@ -495,6 +497,8 @@ const nodeRegistry: Record<string, NodeRegistryEntry> = {
     category: "llm",
     icon: "Cpu",
     configSchema: withDefaultValues([
+      { label: "Base URL (Optional)", name: "baseUrl", type: "text" },
+      { label: "API Key (Optional)", name: "apiKey", type: "text" },
       {
         label: "Embedding Model",
         name: "model",
@@ -503,8 +507,6 @@ const nodeRegistry: Record<string, NodeRegistryEntry> = {
           createPrimarySourceHandle("embedding_model", "bottom"),
         ],
       },
-      { label: "API Key (Optional)", name: "apiKey", type: "text" },
-      { label: "Base URL (Optional)", name: "baseUrl", type: "text" },
     ], {
       provider: "vLLM",
       model: "BAAI/bge-small-en-v1.5",
@@ -624,6 +626,7 @@ const nodeRegistry: Record<string, NodeRegistryEntry> = {
             badgeFallback: "text",
             badgeClassName:
               "-right-1.5 top-1/2 -translate-y-1/2 text-cyan-300 border-cyan-500/60 bg-black/70",
+            shouldShow: (data) => !String(getNodeFieldValue(data, 'agentTemplate') || '').includes('Search'),
           },
         ],
       },
@@ -667,7 +670,7 @@ const nodeRegistry: Record<string, NodeRegistryEntry> = {
           },
         ],
         sourceHandles: [
-          createPrimarySourceHandle("any", "right"),
+          createPrimarySourceHandle("text", "right"),
         ],
       },
       { label: "Vector Field", name: "vectorField", type: "text" },
@@ -685,7 +688,7 @@ const nodeRegistry: Record<string, NodeRegistryEntry> = {
         type: "select",
         options: ["GET", "POST", "PUT", "DELETE"],
         sourceHandles: [
-          createPrimarySourceHandle("any", "right"),
+          createPrimarySourceHandle("text", "right"),
           createAsToolSourceHandle(),
         ],
       },
@@ -711,7 +714,7 @@ const nodeRegistry: Record<string, NodeRegistryEntry> = {
         type: "text",
         inputHandles: [
           {
-            portType: "any",
+            portType: "text",
             position: "left",
           },
         ],
@@ -762,7 +765,7 @@ const nodeRegistry: Record<string, NodeRegistryEntry> = {
         name: "code",
         type: "textarea",
         sourceHandles: [
-          createPrimarySourceHandle("any", "right"),
+          createPrimarySourceHandle("text", "right"),
           createAsToolSourceHandle(),
         ],
       },
@@ -786,7 +789,7 @@ const nodeRegistry: Record<string, NodeRegistryEntry> = {
         type: "select",
         options: ["Metrics Array", "Single Value"],
         sourceHandles: [
-          createPrimarySourceHandle("any", "right"),
+          createPrimarySourceHandle("text", "right"),
           createAsToolSourceHandle(),
         ],
       },
@@ -836,7 +839,7 @@ const nodeRegistry: Record<string, NodeRegistryEntry> = {
           },
         ],
         sourceHandles: [
-          createPrimarySourceHandle("any", "right"),
+          createPrimarySourceHandle("text", "right"),
         ],
       },
     ], {
@@ -868,7 +871,7 @@ const nodeRegistry: Record<string, NodeRegistryEntry> = {
           },
         ],
         sourceHandles: [
-          createPrimarySourceHandle("any", "right"),
+          createPrimarySourceHandle("text", "right"),
         ],
       },
       {
@@ -957,6 +960,8 @@ const nodeRegistry: Record<string, NodeRegistryEntry> = {
         label: "Delay (ms)",
         name: "delayMs",
         type: "number",
+        inputHandles: [{ portType: "text", position: "left" }],
+        sourceHandles: [createPrimarySourceHandle("text", "right")],
       },
     ], {
       delayMs: 1000,
@@ -965,14 +970,38 @@ const nodeRegistry: Record<string, NodeRegistryEntry> = {
   ChatInput: {
     category: "input",
     icon: "MessageSquare",
+    configSchema: [
+      {
+        label: "System Prompt",
+        name: "system_prompt",
+        type: "textarea",
+        sourceHandles: [createPrimarySourceHandle("text", "right")],
+      }
+    ]
   },
   ChatOutput: {
     category: "output",
     icon: "ArrowRightFromLine",
+    configSchema: [
+      {
+        label: "Output Value",
+        name: "output",
+        type: "textarea",
+        inputHandles: [{ portType: "text", position: "left" }],
+      }
+    ]
   },
   CurrentTime: {
     category: "other",
     icon: "Clock",
+    configSchema: [
+      {
+        label: "Format",
+        name: "format",
+        type: "text",
+        sourceHandles: [createPrimarySourceHandle("text", "right")],
+      }
+    ]
   },
 };
 
@@ -1112,15 +1141,23 @@ export const getNodeValidationRuleConfigs = (
     typeof rule === "string" ? { key: rule } : { ...rule },
   );
 
-export const getNodeInputHandles = (nodeType: string): NodeInputHandleConfig[] =>
-  (nodeRegistry[nodeType]?.configSchema || []).flatMap((field) =>
-    [...(field.inputHandles || [])],
-  );
+export const getNodeInputHandles = (nodeType: string, data?: any): NodeInputHandleConfig[] => {
+  const schema = nodeRegistry[nodeType]?.configSchema || [];
+  return schema.flatMap((field) => {
+    const handles = [...(field.inputHandles || [])];
+    if (!data) return handles;
+    return handles.filter(h => !h.shouldShow || h.shouldShow(data));
+  });
+};
 
-export const getNodeSourceHandles = (nodeType: string): NodeSourceHandleConfig[] =>
-  (nodeRegistry[nodeType]?.configSchema || []).flatMap((field) =>
-    [...(field.sourceHandles || [])],
-  );
+export const getNodeSourceHandles = (nodeType: string, data?: any): NodeSourceHandleConfig[] => {
+  const schema = nodeRegistry[nodeType]?.configSchema || [];
+  return schema.flatMap((field) => {
+    const handles = [...(field.sourceHandles || [])];
+    if (!data) return handles;
+    return handles.filter(h => !h.shouldShow || h.shouldShow(data));
+  });
+};
 
 export const normalizeNodeWithRegistry = (node: Node): Node => {
   const customNode = node as CustomNodeType;

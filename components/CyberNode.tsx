@@ -1,5 +1,5 @@
-import React, { memo, useEffect } from 'react';
-import { Handle, Position, NodeProps } from '@xyflow/react';
+import React, { memo, useEffect, useMemo } from 'react';
+import { Handle, Position, NodeProps, useConnection, useReactFlow } from '@xyflow/react';
 import { CustomNodeType } from '../types';
 import {
   getNodeFieldValue,
@@ -10,13 +10,14 @@ import {
 import {
   PortDataType,
   readPortType,
+  inferSourcePortType,
+  inferTargetPortType,
 } from '../node-registry/utils';
 
 // Sub-components
 import { NodeHeader } from './node-parts/NodeHeader';
 import { NodeActions } from './node-parts/NodeActions';
 import { ResultPreview } from './node-parts/ResultPreview';
-import { NodeConfigModal } from './node-parts/NodeConfigModal';
 import { NodeDataModal } from './node-parts/NodeDataModal';
 import { NodeHandles } from './node-parts/NodeHandles';
 
@@ -83,13 +84,33 @@ const CyberNode = ({ id, data, selected }: NodeProps<CustomNodeType>) => {
     : [];
   const promptVariablesKey = promptVariables.join('|');
 
-  const activeNodeId = (data as any).__activeNodeId as string | undefined;
-  const activePortType = (data as any).__activePortType as PortDataType | undefined;
-  const activeHandleType = (data as any).__activeHandleType as 'source' | 'target' | undefined;
+  const { getNode } = useReactFlow();
+  const connection = useConnection();
+  
+  const activeNodeId = connection?.fromNode?.id;
+  const activeHandleId = connection?.fromHandle?.id;
+  const activeHandleType = connection?.fromHandle?.type;
+
+  const activePortType = useMemo(() => {
+    if (!activeNodeId || !activeHandleType) return undefined;
+    const node = getNode(activeNodeId) as CustomNodeType | undefined;
+    if (!node) return undefined;
+    return activeHandleType === 'source'
+      ? inferSourcePortType(node, activeHandleId || null)
+      : inferTargetPortType(node, activeHandleId || null);
+  }, [activeNodeId, activeHandleId, activeHandleType, getNode]);
+
   const hasActiveConnection = !!activePortType && !!activeNodeId && !!activeHandleType;
 
-  const registryInputHandles = getNodeInputHandles(data.type);
-  const registrySourceHandles = getNodeSourceHandles(data.type);
+  const registryInputHandles = getNodeInputHandles(data.type, data);
+  const registrySourceHandles = getNodeSourceHandles(data.type, data);
+
+  const handleOpenConfig = () => {
+    try {
+      window.dispatchEvent(new CustomEvent('openNodeConfig', { detail: { nodeId: id } }));
+    } catch {}
+    setIsConfigOpen(true);
+  };
 
   useEffect(() => {
     if (isPromptTemplate) updateNodeInternals(id);
@@ -199,7 +220,7 @@ const CyberNode = ({ id, data, selected }: NodeProps<CustomNodeType>) => {
   return (
     <div className={`group relative min-w-[220px] max-w-[300px] bg-cyber-panel/90 backdrop-blur-xl border-2 ${selected ? 'border-cyber-primary ring-1 ring-cyber-primary/50' : (data.status === 'running' ? 'border-yellow-400 animate-pulse' : data.status === 'success' ? 'border-green-500' : 'border-cyber-border')} rounded-xl transition-all duration-300`}>
 
-      <NodeActions onRun={onRun} onOpenConfig={() => setIsConfigOpen(true)} onOpenData={() => setIsDataOpen(true)} onDelete={onDelete} isConfigOpen={isConfigOpen} isDataOpen={isDataOpen} />
+      <NodeActions onRun={onRun} onOpenConfig={handleOpenConfig} onOpenData={() => setIsDataOpen(true)} onDelete={onDelete} isConfigOpen={isConfigOpen} isDataOpen={isDataOpen} />
 
       <NodeHeader data={{ ...data, registryEntry }} selected={selected} isAgent={isAgent} isLLM={isLLM} />
 
@@ -250,7 +271,6 @@ const CyberNode = ({ id, data, selected }: NodeProps<CustomNodeType>) => {
         <span>NODE_ID: {id.split('-')[0]}</span>
       </div>
 
-      <NodeConfigModal isOpen={isConfigOpen} onClose={() => setIsConfigOpen(false)} data={data} updateNodeData={updateNodeData} handleParamChange={handleParamChange} highlightedField={highlightedField} configFieldRefs={configFieldRefs} />
       <NodeDataModal isOpen={isDataOpen} onClose={() => setIsDataOpen(false)} data={data} copyJsonValue={copyJsonValue} copiedDataKey={copiedDataKey} />
     </div>
   );

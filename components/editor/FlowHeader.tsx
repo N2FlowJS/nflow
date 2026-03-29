@@ -33,7 +33,7 @@ interface FlowHeaderProps {
   currentFlowName: string;
   setCurrentFlowName: (name: string) => void;
   isSaving: boolean;
-  onSave: (name: string, versionLabel?: string) => void;
+  onSave: (name: string, versionLabel?: string, isAutoSave?: boolean) => void;
   onRunAll: () => void;
   onValidateFlow: () => void;
   setIsPlaygroundOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -68,6 +68,9 @@ interface FlowHeaderProps {
   isLiveMode: boolean;
   reactFlowInstance: any;
   navigate: (path: string) => void;
+  lastAutoSave: number | null;
+  isAutoSaving: boolean;
+  isOnline?: boolean;
 }
 
 const FlowHeader: React.FC<FlowHeaderProps> = ({
@@ -109,6 +112,9 @@ const FlowHeader: React.FC<FlowHeaderProps> = ({
   isLiveMode,
   reactFlowInstance,
   navigate,
+  lastAutoSave,
+  isAutoSaving,
+  isOnline = true,
 }) => {
   return (
     <div className="h-16 border-b border-cyber-border bg-cyber-panel/50 backdrop-blur-sm flex items-center justify-between px-6 z-10 relative">
@@ -121,15 +127,50 @@ const FlowHeader: React.FC<FlowHeaderProps> = ({
           <Home className="text-cyber-primary" size={20} />
         </button>
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="font-bold text-lg tracking-tight uppercase">n2flow</h1>
-            <input
-              type="text"
-              value={currentFlowName}
-              onChange={(e) => setCurrentFlowName(e.target.value)}
-              className="text-xs font-normal text-cyber-primary bg-cyber-primary/10 px-2 py-0.5 rounded border border-cyber-primary/20 outline-none focus:border-cyber-primary/50 w-48"
-              placeholder="Flow Name"
-            />
+          <div className="flex items-center gap-3">
+            <h1 className="font-bold text-lg tracking-tight uppercase text-white/90">n2flow</h1>
+            <div className="h-4 w-px bg-white/10" />
+            <div className="flex flex-col">
+              <input
+                type="text"
+                value={currentFlowName}
+                onChange={(e) => setCurrentFlowName(e.target.value)}
+                className="text-xs font-bold text-cyber-primary bg-transparent outline-none focus:text-white transition-colors w-48"
+                placeholder="Flow Name"
+              />
+              <div className="flex items-center gap-2 mt-0.5">
+                {isAutoSaving ? (
+                  <div className="flex items-center gap-1.5 leading-none">
+                    <Activity className="w-2.5 h-2.5 text-cyber-primary animate-pulse" />
+                    <span className="text-[9px] text-cyber-primary font-bold uppercase tracking-widest translate-y-[0.5px]">
+                      Syncing...
+                    </span>
+                  </div>
+                ) : lastAutoSave ? (
+                  <div className="flex items-center gap-1.5 leading-none">
+                    <div className="w-1 h-1 rounded-full bg-green-500/80" />
+                    <span className="text-[9px] text-white/40 font-medium uppercase tracking-tighter translate-y-[0.5px]">
+                      Synced
+                    </span>
+                  </div>
+                ) : (
+                  <span className="text-[9px] text-white/20 font-medium italic uppercase tracking-tighter">
+                    Local Draft
+                  </span>
+                )}
+                <div className="h-2 w-px bg-white/5 mx-1" />
+                <div className="flex items-center gap-1 leading-none">
+                  <div
+                    className={`w-1.5 h-1.5 rounded-full ${
+                      isOnline ? "bg-green-500 shadow-[0_0_5px_rgba(34,197,94,0.3)] animate-pulse" : "bg-red-500"
+                    }`}
+                  />
+                  <span className="text-[8px] text-white/30 font-bold uppercase tracking-widest translate-y-[0.5px]">
+                    {isOnline ? "Online" : "Offline"}
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -164,6 +205,7 @@ const FlowHeader: React.FC<FlowHeaderProps> = ({
 
         <button
           onClick={(e) => {
+            if (!isOnline) return;
             if (e.shiftKey) {
               const label = prompt("Enter version label:", "");
               if (label !== null) onSave(currentFlowName, label);
@@ -171,13 +213,15 @@ const FlowHeader: React.FC<FlowHeaderProps> = ({
               onSave(currentFlowName);
             }
           }}
-          disabled={isSaving}
+          disabled={isSaving || !isOnline}
           className={`p-2 rounded-lg transition-colors border ${
             isSaving
               ? "bg-cyber-primary/40 text-white border-cyber-primary/50 cursor-wait"
+              : !isOnline
+              ? "bg-gray-500/10 text-gray-500 border-gray-500/20 cursor-not-allowed"
               : "bg-cyber-primary/20 hover:bg-cyber-primary/40 text-cyber-primary border-cyber-primary/30"
           }`}
-          title="Save (Ctrl/Cmd+S) - Shift+Click to add label"
+          title={!isOnline ? "Offline - Reconnecting..." : "Save (Ctrl/Cmd+S) - Shift+Click to add label"}
         >
           {isSaving ? (
             <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -188,16 +232,26 @@ const FlowHeader: React.FC<FlowHeaderProps> = ({
 
         <button
           onClick={onRunAll}
-          className="flex items-center gap-2 px-3 py-2 bg-yellow-500/10 border border-yellow-500/30 rounded-lg hover:bg-yellow-500 hover:text-black transition-all"
-          title="Deploy (Ctrl/Cmd+Enter)"
+          disabled={!isOnline}
+          className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all border ${
+            !isOnline
+              ? "bg-gray-500/10 text-gray-500 border-gray-500/20 cursor-not-allowed"
+              : "bg-yellow-500/10 border-yellow-500/30 hover:bg-yellow-500 hover:text-black"
+          }`}
+          title={!isOnline ? "Offline - Execution disabled" : "Deploy (Ctrl/Cmd+Enter)"}
         >
           <Play size={14} fill="currentColor" />
         </button>
 
         <button
           onClick={() => setIsPlaygroundOpen(true)}
-          className="p-2 rounded-lg bg-cyber-primary text-black hover:bg-cyan-300 transition-colors flex items-center justify-center"
-          title="Open Playground"
+          disabled={!isOnline}
+          className={`p-2 rounded-lg transition-colors flex items-center justify-center ${
+            !isOnline
+              ? "bg-gray-500/20 text-gray-500 cursor-not-allowed"
+              : "bg-cyber-primary text-black hover:bg-cyan-300"
+          }`}
+          title={!isOnline ? "Offline - Playground disabled" : "Open Playground"}
         >
           <Terminal size={16} />
         </button>
@@ -218,8 +272,13 @@ const FlowHeader: React.FC<FlowHeaderProps> = ({
 
         <button
           onClick={onValidateFlow}
-          className="p-2 rounded-lg transition-colors bg-orange-500/10 border border-orange-500/30 text-gray-300 hover:bg-orange-500 hover:text-black flex items-center justify-center"
-          title="Validate (Ctrl/Cmd+Shift+K)"
+          disabled={!isOnline}
+          className={`p-2 rounded-lg transition-colors flex items-center justify-center border ${
+            !isOnline
+              ? "bg-gray-500/10 text-gray-500 border-gray-500/20 cursor-not-allowed"
+              : "bg-orange-500/10 border-orange-500/30 text-gray-300 hover:bg-orange-500 hover:text-black"
+          }`}
+          title={!isOnline ? "Offline - Validation disabled" : "Validate (Ctrl/Cmd+Shift+K)"}
         >
           <AlertTriangle size={16} />
         </button>
