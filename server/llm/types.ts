@@ -24,6 +24,7 @@ export type LlmRuntimeConfig = {
   top_k?: number;
   presence_penalty?: number;
   frequency_penalty?: number;
+  stream?: boolean;
 };
 
 export interface LlmProvider {
@@ -36,6 +37,7 @@ export interface LlmProvider {
     availableTools: any[],
     executeToolByName: (name: string, callArgs: Record<string, string>) => Promise<string>,
     log: (msg: string) => void,
+    onStream?: (chunk: string) => void,
   ) => Promise<string>;
   embedText: (cfg: LlmRuntimeConfig, input: string) => Promise<number[]>;
 }

@@ -67,6 +67,7 @@ export const agentHandler: NodeHandler = async (ctx) => {
     max_tokens: llmCfg?.max_tokens as number | undefined,
     top_p: llmCfg?.top_p as number | undefined,
     top_k: llmCfg?.top_k as number | undefined,
+    stream: getNodeFieldValue(node, 'stream') === true,
   };
 
   const executeToolByNameWithContext = async (name: string, callArgs: Record<string, string>) => {
@@ -93,7 +94,9 @@ export const agentHandler: NodeHandler = async (ctx) => {
   };
 
   try {
-    return await runChat(runtimeCfg, systemPrompt, userPrompt, ctx.availableTools, executeToolByNameWithContext, ctx.log);
+    return await runChat(runtimeCfg, systemPrompt, userPrompt, ctx.availableTools, executeToolByNameWithContext, ctx.log, (chunk) => {
+      ctx.onEvent?.({ type: 'llm_chunk', nodeId: node.id, chunk });
+    });
   } catch (err) {
     if (err instanceof NodeExecutionError) throw err;
     const rawMessage = err instanceof Error ? err.message : String(err);

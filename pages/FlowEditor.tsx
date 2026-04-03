@@ -1017,7 +1017,7 @@ const Flow = () => {
       let hadRuntimeError = false;
 
       const applyEvent = (event: any) => {
-        const { type, message, nodeId, data } = event;
+        const { type, message, nodeId, data, chunk } = event;
         if (type === "log" || type === "error" || type === "nodeUpdate") {
           setExecutionLogs((prev) => [
             {
@@ -1033,6 +1033,21 @@ const Flow = () => {
             },
             ...prev.slice(0, 99),
           ]);
+        }
+        if (type === "llm_chunk" && chunk && !isSilent) {
+          setPlaygroundMessages((prev) => {
+            const lastMsg = prev[prev.length - 1];
+            if (lastMsg && lastMsg.role === "assistant") {
+              const updated = [...prev];
+              updated[updated.length - 1] = {
+                ...lastMsg,
+                text: lastMsg.text + chunk,
+              };
+              return updated;
+            }
+            return [...prev, { role: "assistant", text: chunk }];
+          });
+          return;
         }
         switch (type) {
           case "log":
@@ -1225,16 +1240,23 @@ const Flow = () => {
   const appendAssistantOutput = useCallback(
     (response: PlaygroundWorkerOutput) => {
       if (typeof response === "string") {
-        setPlaygroundMessages((prev) => [
-          ...prev,
-          { role: "assistant", text: response },
-        ]);
+        setPlaygroundMessages((prev) => {
+          const lastMsg = prev[prev.length - 1];
+          if (lastMsg && lastMsg.role === "assistant" && lastMsg.text) {
+            return prev;
+          }
+          return [...prev, { role: "assistant", text: response }];
+        });
         return;
       }
 
       const text = (response.text || "").trim();
 
       setPlaygroundMessages((prev) => {
+        const lastMsg = prev[prev.length - 1];
+        if (lastMsg && lastMsg.role === "assistant" && lastMsg.text) {
+          return prev;
+        }
         const next = [...prev];
         if (text) {
           next.push({ role: "assistant", text });
@@ -1360,16 +1382,24 @@ const Flow = () => {
   const onSendMessage = useCallback(
     async (msg: string) => {
       setPlaygroundMessages((prev) => [...prev, { role: "user", text: msg }]);
+      setPlaygroundMessages((prev) => [...prev, { role: "assistant", text: "" }]);
       setIsPlaygroundTyping(true);
 
       const response = await executeFlow(msg);
 
       setIsPlaygroundTyping(false);
-      if (response) {
-        appendAssistantOutput(response);
+      const responseText = typeof response === 'string' ? response : response?.text;
+      if (!responseText?.trim()) {
+        setPlaygroundMessages((prev) => {
+          const lastMsg = prev[prev.length - 1];
+          if (lastMsg && lastMsg.role === "assistant" && !lastMsg.text) {
+            return prev.slice(0, -1);
+          }
+          return prev;
+        });
       }
     },
-    [executeFlow, appendAssistantOutput],
+    [executeFlow],
   );
 
   const onRunAll = useCallback(async () => {

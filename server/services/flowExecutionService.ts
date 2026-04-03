@@ -217,7 +217,8 @@ export async function executeFlowOnServer({
         incomingMap,
         nodeById,
         log,
-        globalVariables
+        globalVariables,
+        onEvent
       };
 
       result = await executeNode(ctx);

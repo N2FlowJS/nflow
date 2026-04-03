@@ -27,7 +27,7 @@ export default function Home() {
         const res = await fetch(`${API_BASE}/api/flows`);
         if (res.ok) {
           const data = await res.json();
-          setFlows(data);
+          setFlows(Array.isArray(data) ? data : data.flows || []);
         }
       } catch (err) {
         console.error('Failed to load flows from server:', err);
@@ -107,9 +107,9 @@ export default function Home() {
     return new Date(ts).toLocaleDateString();
   };
 
-  const totalNodes = flows.reduce((acc, f) => acc + (f.nodeCount || f.data?.nodes?.length || 0), 0);
+  const totalNodes = (flows || []).reduce((acc, f) => acc + (f.nodeCount || f.data?.nodes?.length || 0), 0);
 
-  const filteredFlows = flows.filter(f => 
+  const filteredFlows = (flows || []).filter(f => 
     f.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
     f.id.toLowerCase().includes(searchTerm.toLowerCase())
   );

@@ -5,7 +5,7 @@ import { getNodeFieldValue } from '../../node-registry';
 
 interface NodeHeaderProps {
   data: any;
-  selected: boolean;
+  selected?: boolean;
   isAgent: boolean;
   isLLM: boolean;
 }

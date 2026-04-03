@@ -12,6 +12,7 @@ export type FlowRuntimeContext = {
   nodeById: Map<string, FlowNode>;
   log: (msg: string) => void;
   globalVariables: GlobalVariable[];
+  onEvent?: (event: any) => void;
 };
 
 export type NodeHandler = (

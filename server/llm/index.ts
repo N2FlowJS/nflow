@@ -3,7 +3,7 @@ import { runOpenAICompatibleChat, runDalleImageGeneration, listModels as openaiL
 import { runOllamaChat, listModels as ollamaList, embedText as ollamaEmbed } from './ollama';
 import { runGoogleChat, listModels as genaiList, embedText as genaiEmbed } from './genai';
 import { runAnthropicChat, listModels as anthropicList, embedText as anthropicEmbed } from './anthropic';
-import { listModels as nvidiaList } from './nvidia';
+import { listModels as nvidiaList, runNvidiaChat, embedText as nvidiaEmbed } from './nvidia';
 import { normalizeModelsJson, trimTrailingSlash, tryFetchModelsFromBase } from './utils';
 
 export type { LlmRuntimeConfig, AgentTool, LlmProvider };
@@ -67,8 +67,8 @@ LlmProviderRegistry.register({
     }
     return openaiList(cfg);
   },
-  runChat: runOpenAICompatibleChat, // NVIDIA NIM is OpenAI-compatible
-  embedText: openaiEmbed
+  runChat: runNvidiaChat,
+  embedText: nvidiaEmbed
 });
 
 LlmProviderRegistry.register({
@@ -95,17 +95,18 @@ export const runChat = async (
   availableTools: AgentTool[] = [],
   executeToolByName?: (name: string, callArgs: Record<string, string>) => Promise<string>,
   log?: (msg: string) => void,
+  onStream?: (chunk: string) => void,
 ) => {
   const provider = LlmProviderRegistry.getProvider(cfg.provider);
   const safeLog = typeof log === 'function' ? log : () => {};
   const exec = executeToolByName || (async () => '');
 
   if (provider) {
-    return provider.runChat(cfg, systemPrompt, userPrompt, availableTools, exec, safeLog);
+    return provider.runChat(cfg, systemPrompt, userPrompt, availableTools, exec, safeLog, onStream);
   }
 
   // Default: OpenAI-compatible endpoints
-  return runOpenAICompatibleChat(cfg, systemPrompt, userPrompt, availableTools, exec, safeLog);
+  return runOpenAICompatibleChat(cfg, systemPrompt, userPrompt, availableTools, exec, safeLog, onStream);
 };
 
 export const generateImage = async (

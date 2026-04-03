@@ -203,6 +203,7 @@ export default function Playground({
         )}
 
         {messages.map((m, i) => {
+          const isLastAndEmpty = i === messages.length - 1 && m.role === 'assistant' && !m.text;
           if (m.role === 'system') {
             return (
               <div key={i} className="flex gap-2 items-start opacity-70">
@@ -210,6 +211,14 @@ export default function Playground({
                 <div className="text-[10px] font-mono text-cyber-muted leading-relaxed break-all">
                   {m.text}
                 </div>
+              </div>
+            );
+          }
+          if (isLastAndEmpty && isTyping) {
+            return (
+              <div key={i} className="flex gap-3 items-center text-cyber-muted italic text-[10px] animate-pulse">
+                <Sparkles size={12} />
+                Agent is thinking...
               </div>
             );
           }
@@ -230,12 +239,6 @@ export default function Playground({
             </div>
           );
         })}
-        {isTyping && (
-          <div className="flex gap-3 items-center text-cyber-muted italic text-[10px] animate-pulse">
-            <Sparkles size={12} />
-            Agent is thinking...
-          </div>
-        )}
         {notice && (
           <div className="sticky bottom-2 z-10 px-3 py-2 rounded-lg border border-cyber-primary/30 bg-cyber-primary/10 text-[10px] font-mono text-cyber-primary text-center">
             {notice}

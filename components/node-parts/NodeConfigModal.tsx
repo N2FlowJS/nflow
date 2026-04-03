@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Panel } from '@xyflow/react';
-import { Settings, X } from 'lucide-react';
+import { Settings, X, Hash, Type, List, FileText, ToggleLeft, Link, Eye, EyeOff } from 'lucide-react';
 import { getNodeFieldValue } from '../../node-registry';
 import NumberInput from '../ui/NumberInput';
 import { API_BASE } from '../../lib/api';
@@ -15,6 +15,37 @@ interface NodeConfigModalProps {
   configFieldRefs: React.MutableRefObject<Record<string, HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement | null>>;
 }
 
+const FieldIcon = ({ type }: { type: string }) => {
+  switch (type) {
+    case 'select':
+      return <List size={12} className="text-purple-400" />;
+    case 'textarea':
+      return <FileText size={12} className="text-blue-400" />;
+    case 'number':
+      return <Hash size={12} className="text-cyan-400" />;
+    case 'boolean':
+      return <ToggleLeft size={12} className="text-amber-400" />;
+    default:
+      return <Type size={12} className="text-gray-400" />;
+  }
+};
+
+const ToggleSwitch = ({ checked, onChange }: { checked: boolean; onChange: (val: boolean) => void }) => (
+  <button
+    type="button"
+    onClick={() => onChange(!checked)}
+    className={`nodrag relative inline-flex h-6 w-11 items-center rounded-full transition-all duration-200 ${
+      checked ? 'bg-cyber-primary' : 'bg-white/10'
+    }`}
+  >
+    <span
+      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ${
+        checked ? 'translate-x-6' : 'translate-x-1'
+      }`}
+    />
+  </button>
+);
+
 export const NodeConfigModal = ({
   isOpen,
   onClose,
@@ -28,13 +59,13 @@ export const NodeConfigModal = ({
   const [models, setModels] = useState<string[]>([]);
   const [modelsLoading, setModelsLoading] = useState(false);
   const [modelsError, setModelsError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState<Record<string, boolean>>({});
   const lastFetchKeyRef = useRef<string | null>(null);
 
   const baseValueGlobal = String(getNodeFieldValue(data, 'baseUrl') ?? '');
   const apiKeyValueGlobal = String(getNodeFieldValue(data, 'apiKey') ?? '');
 
   useEffect(() => {
-    // clear loaded models when base/api change
     setModels([]);
     setModelsError(null);
     setModelsLoading(false);
@@ -54,32 +85,23 @@ export const NodeConfigModal = ({
     setModels([]);
     
     try {
-      // Use backend endpoint to avoid CORS issues
       const response = await fetch(`${API_BASE}/api/llm/models`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          baseUrl,
-          apiKey: apiKey || '',
-          provider: 'NVIDIA', // Detect from context if needed
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ baseUrl, apiKey: apiKey || '', provider: 'NVIDIA' }),
       });
 
-      if (!response.ok) {
-        throw new Error(`Server returned ${response.status}`);
-      }
+      if (!response.ok) throw new Error(`Server returned ${response.status}`);
 
-      const data = await response.json();
-      if (data.ok && Array.isArray(data.models)) {
-        setModels(data.models.map((m: any) => m.id || m.name || String(m)));
+      const resData = await response.json();
+      if (resData.ok && Array.isArray(resData.models)) {
+        setModels(resData.models.map((m: any) => m.id || m.name || String(m)));
         lastFetchKeyRef.current = fetchKey;
       } else {
         setModelsError('No models found in response');
       }
     } catch (err: any) {
-      setModelsError(`Failed to fetch models: ${err?.message ?? 'Unknown error'}. Make sure the base URL and API key are correct.`);
+      setModelsError(`Failed: ${err?.message ?? 'Unknown error'}`);
       console.error('Model fetch error:', err);
     } finally {
       setModelsLoading(false);
@@ -88,118 +110,125 @@ export const NodeConfigModal = ({
 
   useEffect(() => {
     if (!isOpen) return;
-    const onKey = (ev: KeyboardEvent) => {
-      if (ev.key === 'Escape') onClose();
-    };
-    const onMouse = (ev: MouseEvent) => {
-      if (!panelRef.current) return;
-      if (!panelRef.current.contains(ev.target as Node)) onClose();
-    };
+    const onKey = (ev: KeyboardEvent) => { if (ev.key === 'Escape') onClose(); };
+    const onMouse = (ev: MouseEvent) => { if (panelRef.current && !panelRef.current.contains(ev.target as Node)) onClose(); };
     window.addEventListener('keydown', onKey);
     window.addEventListener('mousedown', onMouse);
-    return () => {
-      window.removeEventListener('keydown', onKey);
-      window.removeEventListener('mousedown', onMouse);
-    };
+    return () => { window.removeEventListener('keydown', onKey); window.removeEventListener('mousedown', onMouse); };
   }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
+  const isPasswordField = (field: any) => field.name?.toLowerCase().includes('key') || field.name?.toLowerCase().includes('token') || field.name?.toLowerCase().includes('secret');
+
   return (
     <Panel position="top-right" className="m-4 w-[min(640px,95%)] z-50">
       <div ref={panelRef} className="bg-cyber-panel/95 border border-cyber-border rounded-xl shadow-2xl overflow-hidden">
-        <div className="px-3 py-2 border-b border-white/10 flex items-center justify-between bg-black/30">
-          <div className="flex items-center gap-2">
-            <Settings size={15} className="text-cyber-primary" />
-            <h4 className="text-[11px] font-bold text-cyber-primary uppercase tracking-widest">Node Settings</h4>
-            <span className="text-[10px] text-gray-500">{data.label}</span>
+        <div className="px-4 py-3 border-b border-white/10 flex items-center justify-between bg-gradient-to-r from-black/50 to-transparent">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-cyber-primary/10 rounded-lg">
+              <Settings size={16} className="text-cyber-primary" />
+            </div>
+            <div>
+              <h4 className="text-sm font-bold text-white uppercase tracking-wider">Node Settings</h4>
+              <span className="text-[10px] text-gray-500 font-mono">{data.type}</span>
+            </div>
           </div>
-          <button
-            type="button"
-            className="p-1 rounded-md text-gray-400 hover:text-white hover:bg-white/10"
-            onClick={onClose}
-          >
-            <X size={14} />
+          <button type="button" className="p-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors" onClick={onClose}>
+            <X size={16} />
           </button>
         </div>
 
-        <div className="p-4 space-y-3 max-h-[70vh] overflow-y-auto">
-          <div className="space-y-1">
-            <label className="text-[10px] text-gray-500 uppercase">Description</label>
+        <div className="p-4 space-y-4 max-h-[75vh] overflow-y-auto">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <FileText size={12} className="text-gray-500" />
+              <label className="text-[10px] text-gray-400 uppercase tracking-wider">Description</label>
+            </div>
             <textarea
-              className="nodrag nowheel w-full bg-black/50 border border-white/10 rounded px-2.5 py-2 text-[12px] text-white focus:border-cyber-primary outline-none min-h-[64px]"
+              className="nodrag nowheel w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2.5 text-[12px] text-white placeholder-gray-600 focus:border-cyber-primary/50 focus:ring-1 focus:ring-cyber-primary/20 outline-none min-h-[80px] resize-none transition-all"
               value={data.description || ''}
               onFocus={() => window.dispatchEvent(new CustomEvent('takeSnapshot'))}
               onChange={(e) => updateNodeData({ description: e.target.value })}
-              placeholder="Brief explanation of the node's purpose..."
+              placeholder="Describe this node's purpose..."
             />
           </div>
+
+          <div className="border-t border-white/5 my-4" />
 
           {data.configSchema?.filter((field: any) => !field.hidden).map((field: any) => {
             const baseVal = String(getNodeFieldValue(data, 'baseUrl') ?? '');
             const apiKeyVal = String(getNodeFieldValue(data, 'apiKey') ?? '');
             const canFetchModels = !!baseVal && !!apiKeyVal;
+            const isPassword = isPasswordField(field);
+            const showPw = showPassword[field.name];
 
             return (
-              <div key={field.name} className="space-y-1.5">
-                <label className="text-[10px] text-gray-500 uppercase flex items-center justify-between">
-                  <span>{field.label}</span>
+              <div key={field.name} className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="flex items-center gap-2 text-[11px] text-gray-400 uppercase tracking-wider">
+                    <FieldIcon type={field.type} />
+                    {field.label}
+                  </label>
                   {field.name === 'model' && canFetchModels && (
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => tryFetchModels(baseVal, apiKeyVal)}
-                        className="text-[11px] px-2 py-0.5 bg-black/20 border border-white/6 rounded text-cyber-primary hover:bg-white/5"
-                      >
-                        Load models
-                      </button>
-                      {modelsLoading && <span className="text-[11px] text-gray-400">Loading...</span>}
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() => tryFetchModels(baseVal, apiKeyVal)}
+                      disabled={modelsLoading}
+                      className="text-[10px] px-3 py-1 bg-cyber-primary/10 hover:bg-cyber-primary/20 border border-cyber-primary/30 text-cyber-primary rounded-md transition-colors disabled:opacity-50"
+                    >
+                      {modelsLoading ? 'Loading...' : 'Fetch Models'}
+                    </button>
                   )}
-                </label>
+                </div>
 
                 {field.name === 'model' && canFetchModels ? (
-                  // when baseUrl+apiKey present allow loading selectable models
                   <div>
                     {models.length > 0 ? (
                       <select
                         ref={(el) => { configFieldRefs.current[field.name] = el; }}
-                        className={`nodrag w-full bg-black/50 border rounded px-2.5 py-2 text-[12px] text-white outline-none transition-[border-color,box-shadow] duration-700 ease-out ${highlightedField === field.name ? 'border-yellow-400 ring-1 ring-yellow-400/60' : 'border-white/10 focus:border-cyber-primary'}`}
+                        className="nodrag w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2.5 text-[12px] text-white focus:border-cyber-primary/50 focus:ring-1 focus:ring-cyber-primary/20 outline-none transition-all cursor-pointer"
                         onFocus={() => window.dispatchEvent(new CustomEvent('takeSnapshot'))}
                         value={String(getNodeFieldValue(data, field.name) ?? '')}
                         onChange={(e) => handleParamChange(field.name, e.target.value)}
                       >
-                        <option value="">-- choose model --</option>
-                        {models.map((m) => <option key={m} value={m}>{m}</option>)}
+                        <option value="" className="text-gray-500">-- Select Model --</option>
+                        {models.map((m) => <option key={m} value={m} className="text-white">{m}</option>)}
                       </select>
                     ) : (
-                      <div>
+                      <div className="space-y-2">
                         <input
                           ref={(el) => { configFieldRefs.current[field.name] = el; }}
-                          type={field.type}
-                          className={`nodrag w-full bg-black/50 border rounded px-2.5 py-2 text-[12px] text-white outline-none transition-[border-color,box-shadow] duration-700 ease-out ${highlightedField === field.name ? 'border-yellow-400 ring-1 ring-yellow-400/60' : 'border-white/10 focus:border-cyber-primary'}`}
+                          type="text"
+                          className="nodrag w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2.5 text-[12px] text-white focus:border-cyber-primary/50 focus:ring-1 focus:ring-cyber-primary/20 outline-none transition-all"
                           onFocus={() => window.dispatchEvent(new CustomEvent('takeSnapshot'))}
                           value={String(getNodeFieldValue(data, field.name) ?? '')}
                           onChange={(e) => handleParamChange(field.name, e.target.value)}
+                          placeholder="Enter model name..."
                         />
-                        {modelsError && <div className="text-xs text-amber-400 mt-1">{modelsError}</div>}
+                        {modelsError && <div className="text-[10px] text-amber-400">{modelsError}</div>}
                       </div>
                     )}
                   </div>
                 ) : field.type === 'select' ? (
-                  <select
-                    ref={(el) => { configFieldRefs.current[field.name] = el; }}
-                    className={`nodrag w-full bg-black/50 border rounded px-2.5 py-2 text-[12px] text-white outline-none transition-[border-color,box-shadow] duration-700 ease-out ${highlightedField === field.name ? 'border-yellow-400 ring-1 ring-yellow-400/60' : 'border-white/10 focus:border-cyber-primary'}`}
-                    onFocus={() => window.dispatchEvent(new CustomEvent('takeSnapshot'))}
-                    value={String(getNodeFieldValue(data, field.name) ?? '')}
-                    onChange={(e) => handleParamChange(field.name, e.target.value)}
-                  >
-                    {field.options?.map((opt: string) => <option key={opt} value={opt}>{opt}</option>)}
-                  </select>
+                  <div className="relative">
+                    <select
+                      ref={(el) => { configFieldRefs.current[field.name] = el; }}
+                      className="nodrag w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2.5 text-[12px] text-white focus:border-cyber-primary/50 focus:ring-1 focus:ring-cyber-primary/20 outline-none transition-all cursor-pointer appearance-none"
+                      onFocus={() => window.dispatchEvent(new CustomEvent('takeSnapshot'))}
+                      value={String(getNodeFieldValue(data, field.name) ?? '')}
+                      onChange={(e) => handleParamChange(field.name, e.target.value)}
+                    >
+                      {field.options?.map((opt: string) => <option key={opt} value={opt} className="text-white">{opt}</option>)}
+                    </select>
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                      <List size={14} className="text-gray-500" />
+                    </div>
+                  </div>
                 ) : field.type === 'textarea' ? (
                   <textarea
                     ref={(el) => { configFieldRefs.current[field.name] = el; }}
-                    className={`nodrag nowheel w-full bg-black/50 border rounded px-2.5 py-2 text-[12px] text-white outline-none min-h-[96px] transition-[border-color,box-shadow] duration-700 ease-out ${highlightedField === field.name ? 'border-yellow-400 ring-1 ring-yellow-400/60' : 'border-white/10 focus:border-cyber-primary'}`}
+                    className="nodrag nowheel w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2.5 text-[12px] text-white placeholder-gray-600 focus:border-cyber-primary/50 focus:ring-1 focus:ring-cyber-primary/20 outline-none min-h-[100px] resize-none transition-all"
                     onFocus={() => window.dispatchEvent(new CustomEvent('takeSnapshot'))}
                     value={(getNodeFieldValue(data, field.name) as string) ?? ''}
                     onChange={(e) => handleParamChange(field.name, e.target.value)}
@@ -209,18 +238,48 @@ export const NodeConfigModal = ({
                     inputRef={(el) => { configFieldRefs.current[field.name] = el; }}
                     value={String(getNodeFieldValue(data, field.name) ?? '')}
                     onChange={(val) => handleParamChange(field.name, val)}
-                    step={field.name?.toLowerCase().includes('temp') || field.name?.toLowerCase().includes('temperature') || field.name?.toLowerCase().includes('top_p') ? 0.1 : 1}
+                    step={field.name?.toLowerCase().includes('temp') || field.name?.toLowerCase().includes('top_p') ? 0.1 : 1}
                     onFocus={() => window.dispatchEvent(new CustomEvent('takeSnapshot'))}
-                    className={`nodrag w-full bg-black/50 border rounded px-2.5 py-2 text-[12px] text-white outline-none transition-[border-color,box-shadow] duration-700 ease-out ${highlightedField === field.name ? 'border-yellow-400 ring-1 ring-yellow-400/60' : 'border-white/10 focus:border-cyber-primary'}`}
+                    className="nodrag w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2.5 text-[12px] text-white focus:border-cyber-primary/50 focus:ring-1 focus:ring-cyber-primary/20 outline-none transition-all"
                   />
+                ) : field.type === 'boolean' ? (
+                  <div className="flex items-center justify-between p-3 bg-black/30 rounded-lg border border-white/5">
+                    <span className="text-[12px] text-gray-400">
+                      {getNodeFieldValue(data, field.name) ? 'Enabled' : 'Disabled'}
+                    </span>
+                    <ToggleSwitch
+                      checked={getNodeFieldValue(data, field.name) === true}
+                      onChange={(val) => handleParamChange(field.name, val)}
+                    />
+                  </div>
+                ) : isPassword ? (
+                  <div className="relative">
+                    <input
+                      ref={(el) => { configFieldRefs.current[field.name] = el; }}
+                      type={showPw ? 'text' : 'password'}
+                      className="nodrag w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2.5 pr-10 text-[12px] text-white focus:border-cyber-primary/50 focus:ring-1 focus:ring-cyber-primary/20 outline-none transition-all"
+                      onFocus={() => window.dispatchEvent(new CustomEvent('takeSnapshot'))}
+                      value={String(getNodeFieldValue(data, field.name) ?? '')}
+                      onChange={(e) => handleParamChange(field.name, e.target.value)}
+                      placeholder="Enter value..."
+                    />
+                    <button
+                      type="button"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300"
+                      onClick={() => setShowPassword((prev) => ({ ...prev, [field.name]: !prev[field.name] }))}
+                    >
+                      {showPw ? <EyeOff size={14} /> : <Eye size={14} />}
+                    </button>
+                  </div>
                 ) : (
                   <input
                     ref={(el) => { configFieldRefs.current[field.name] = el; }}
-                    type={field.type}
-                    className={`nodrag w-full bg-black/50 border rounded px-2.5 py-2 text-[12px] text-white outline-none transition-[border-color,box-shadow] duration-700 ease-out ${highlightedField === field.name ? 'border-yellow-400 ring-1 ring-yellow-400/60' : 'border-white/10 focus:border-cyber-primary'}`}
+                    type="text"
+                    className="nodrag w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2.5 text-[12px] text-white placeholder-gray-600 focus:border-cyber-primary/50 focus:ring-1 focus:ring-cyber-primary/20 outline-none transition-all"
                     onFocus={() => window.dispatchEvent(new CustomEvent('takeSnapshot'))}
                     value={String(getNodeFieldValue(data, field.name) ?? '')}
                     onChange={(e) => handleParamChange(field.name, e.target.value)}
+                    placeholder="Enter value..."
                   />
                 )}
               </div>
@@ -228,7 +287,7 @@ export const NodeConfigModal = ({
           })}
 
           {!data.configSchema && (
-            <div className="text-[11px] text-gray-600 italic">No parameters available for this node.</div>
+            <div className="text-[11px] text-gray-600 italic py-4 text-center">No parameters available for this node.</div>
           )}
         </div>
       </div>

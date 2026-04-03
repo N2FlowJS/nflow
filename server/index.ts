@@ -43,9 +43,10 @@ app.use((req, res, next) => {
 app.use(limiter);
 
 // Authentication middleware for sensitive endpoints
-app.post('/api/flow/execute*', authMiddleware);
+app.post('/api/flow/execute', authMiddleware);
+app.post('/api/flow/execute/stream', authMiddleware);
 app.post('/api/flows', authMiddleware);
-app.delete('/api/flows*', authMiddleware);
+app.delete('/api/flows/:id', authMiddleware);
 
 app.use('/', rootRouter);
 

@@ -26,6 +26,8 @@ export const runGoogleChat = async (
   userPrompt: string,
   availableTools: AgentTool[] = [],
   executeToolByName?: (name: string, callArgs: Record<string, string>) => Promise<string>,
+  log?: (msg: string) => void,
+  onStream?: (chunk: string) => void,
 ) => {
   if (!cfg.apiKey) throw new Error('Missing API key for Google GenAI');
   const ai: any = new (GoogleGenAI as any)({ apiKey: cfg.apiKey });
@@ -33,6 +35,7 @@ export const runGoogleChat = async (
   const messages: any[] = [];
   if (systemPrompt) messages.push({ role: 'system', content: systemPrompt });
   messages.push({ role: 'user', content: userPrompt });
+  const stream = cfg.stream === true && typeof onStream === 'function';
 
   // Prefer provider agent APIs when available (lets SDK manage tool calls)
   const exec = executeToolByName || (async () => '');
@@ -66,14 +69,40 @@ export const runGoogleChat = async (
   try {
     // ai.chat.create
     if (ai.chat && typeof ai.chat.create === 'function') {
-      const resp = await ai.chat.create({ model: modelName, messages, temperature: cfg.temperature, max_tokens: cfg.max_tokens });
+      const resp = await ai.chat.create({ model: modelName, messages, temperature: cfg.temperature, max_tokens: cfg.max_tokens, stream: stream });
+      
+      if (stream) {
+        let fullText = '';
+        for await (const chunk of resp) {
+          const delta = chunk.text || chunk.candidates?.[0]?.content || '';
+          if (delta) {
+            fullText += delta;
+            onStream(delta);
+          }
+        }
+        return fullText;
+      }
+      
       const text = resp?.output_text || resp?.text || (Array.isArray(resp?.candidates) && resp.candidates[0]?.content) || (resp?.choices?.[0]?.message?.content) || (resp?.messages?.[0]?.content);
       return String(text || '');
     }
 
     // ai.chat.completions.create
     if (ai.chat?.completions && typeof ai.chat.completions.create === 'function') {
-      const resp = await ai.chat.completions.create({ model: modelName, messages, temperature: cfg.temperature, max_tokens: cfg.max_tokens });
+      const resp = await ai.chat.completions.create({ model: modelName, messages, temperature: cfg.temperature, max_tokens: cfg.max_tokens, stream: stream });
+      
+      if (stream) {
+        let fullText = '';
+        for await (const chunk of resp) {
+          const delta = chunk.choices?.[0]?.message?.content || chunk.choices?.[0]?.text || '';
+          if (delta) {
+            fullText += delta;
+            onStream(delta);
+          }
+        }
+        return fullText;
+      }
+      
       const text = resp?.output_text || resp?.text || (Array.isArray(resp?.choices) && (resp.choices[0]?.message?.content || resp.choices[0]?.text)) || '';
       return String(text || '');
     }

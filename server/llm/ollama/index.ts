@@ -14,9 +14,12 @@ export const runOllamaChat = async (
   availableTools: AgentTool[],
   executeToolByName: (name: string, callArgs: Record<string, string>) => Promise<string>,
   log: (msg: string) => void,
+  onStream?: (chunk: string) => void,
 ) => {
   const ollama = getOllamaClient(cfg);
+  const ollamaAny = ollama as any;
   const tools = availableTools.length > 0 ? toOpenAiToolDeclarations(availableTools) : undefined;
+  const stream = cfg.stream === true && typeof onStream === 'function';
 
   const messages: any[] = [];
   if (systemPrompt) messages.push({ role: 'system', content: systemPrompt });
@@ -39,19 +42,46 @@ export const runOllamaChat = async (
   }
 
   for (let step = 0; step < 8; step += 1) {
-    const payload = await ollama.chat({
-      model: String(cfg.model),
-      stream: false,
-      messages,
-      tools: tools as any,
-      options: {
-        temperature: cfg.temperature,
-        num_predict: cfg.max_tokens,
-        top_p: cfg.top_p,
-        top_k: cfg.top_k,
+    let content = '';
+    let payload: any;
+
+    if (stream) {
+      const streamResp = await ollamaAny.chat({
+        model: String(cfg.model),
+        stream: true,
+        messages,
+        tools: tools as any,
+        options: {
+          temperature: cfg.temperature,
+          num_predict: cfg.max_tokens,
+          top_p: cfg.top_p,
+          top_k: cfg.top_k,
+        }
+      });
+
+      for await (const chunk of streamResp) {
+        const delta = chunk.message?.content;
+        if (delta) {
+          content += delta;
+          onStream(delta);
+        }
       }
-    });
-    const content = typeof payload?.message?.content === 'string' ? payload.message.content : '';
+    } else {
+      payload = await ollamaAny.chat({
+        model: String(cfg.model),
+        stream: false,
+        messages,
+        tools: tools as any,
+        options: {
+          temperature: cfg.temperature,
+          num_predict: cfg.max_tokens,
+          top_p: cfg.top_p,
+          top_k: cfg.top_k,
+        }
+      });
+      content = typeof payload?.message?.content === 'string' ? payload.message.content : '';
+    }
+    
     const toolCalls = extractOllamaToolCalls(payload as any);
 
     if (toolCalls.length === 0) {

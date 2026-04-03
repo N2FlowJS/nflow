@@ -218,11 +218,11 @@ const CyberNode = ({ id, data, selected }: NodeProps<CustomNodeType>) => {
   const displayedErrorText = showFullError || !isLongError ? errorText : `${errorText.slice(0, 240)}...`;
 
   return (
-    <div className={`group relative min-w-[220px] max-w-[300px] bg-cyber-panel/90 backdrop-blur-xl border-2 ${selected ? 'border-cyber-primary ring-1 ring-cyber-primary/50' : (data.status === 'running' ? 'border-yellow-400 animate-pulse' : data.status === 'success' ? 'border-green-500' : 'border-cyber-border')} rounded-xl transition-all duration-300`}>
+    <div className={`group relative min-w-[220px] max-w-[300px] bg-cyber-panel/90 backdrop-blur-xl border-2 ${!!selected ? 'border-cyber-primary ring-1 ring-cyber-primary/50' : (data.status === 'running' ? 'border-yellow-400 animate-pulse' : data.status === 'success' ? 'border-green-500' : 'border-cyber-border')} rounded-xl transition-all duration-300`}>
 
       <NodeActions onRun={onRun} onOpenConfig={handleOpenConfig} onOpenData={() => setIsDataOpen(true)} onDelete={onDelete} isConfigOpen={isConfigOpen} isDataOpen={isDataOpen} />
 
-      <NodeHeader data={{ ...data, registryEntry }} selected={selected} isAgent={isAgent} isLLM={isLLM} />
+      <NodeHeader data={{ ...data, registryEntry }} selected={!!selected} isAgent={isAgent} isLLM={isLLM} />
 
       <div className="relative p-3">
         {data.status === 'error' && errorText && (

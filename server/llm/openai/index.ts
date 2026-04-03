@@ -37,10 +37,12 @@ export const runOpenAICompatibleChat = async (
   availableTools: any[],
   executeToolByName: (name: string, callArgs: Record<string, string>) => Promise<string>,
   log: (msg: string) => void,
+  onStream?: (chunk: string) => void,
 ) => {
   const client = getOpenAIClient(cfg) as any;
   const tools = availableTools.length > 0 ? toOpenAiToolDeclarations(availableTools) : undefined;
   const exec = executeToolByName || (async () => '');
+  const stream = cfg.stream === true && typeof onStream === 'function';
 
   // Log the provider and model being used for debugging
   if (cfg.provider === 'NVIDIA') {
@@ -48,7 +50,7 @@ export const runOpenAICompatibleChat = async (
     const normalizedBase = actualBase.includes('nvidia.com') && !actualBase.endsWith('/v1') 
       ? `${actualBase}/v1` 
       : actualBase;
-    console.debug(`[NVIDIA OpenAI Chat] Provider: ${cfg.provider}, Model: ${cfg.model}, Base: ${normalizedBase}`);
+    console.debug(`[NVIDIA OpenAI Chat] Provider: ${cfg.provider}, Model: ${cfg.model}, Base: ${normalizedBase}, Stream: ${stream}`);
   }
 
   const toolsWithImpl = (availableTools || []).length > 0 ? (availableTools as AgentTool[]).map(t => ({
@@ -109,26 +111,42 @@ export const runOpenAICompatibleChat = async (
       top_p: cfg.top_p,
       presence_penalty: cfg.presence_penalty,
       frequency_penalty: cfg.frequency_penalty,
+      stream: stream,
     });
 
-    const first = completion.choices?.[0] as any;
+    let fullContent = '';
+    
+    if (stream) {
+      for await (const chunk of completion) {
+        const delta = chunk.choices?.[0]?.delta?.content;
+        if (delta) {
+          fullContent += delta;
+          onStream(delta);
+        }
+      }
+    } else {
+      const first = completion.choices?.[0] as any;
+      const message = first?.message || {};
+      const content = message?.content;
+      if (typeof content === 'string') fullContent = content;
+      else if (Array.isArray(content)) {
+        fullContent = content
+          .map((part: any) => (typeof part?.text === 'string' ? part.text : ''))
+          .join('')
+          .trim();
+      }
+    }
+
+    const first = !stream ? (completion.choices?.[0] as any) : null;
     const message = first?.message || {};
     const toolCalls = Array.isArray(message.tool_calls) ? message.tool_calls : [];
 
     if (toolCalls.length === 0) {
-      const content = message?.content;
-      if (typeof content === 'string') return content || '[Empty model response]';
-      if (Array.isArray(content)) {
-        const text = content
-          .map((part: any) => (typeof part?.text === 'string' ? part.text : ''))
-          .join('')
-          .trim();
-        return text || '[Empty model response]';
-      }
+      if (fullContent) return fullContent;
       return '[Empty model response]';
     }
 
-    messages.push({ role: 'assistant', content: typeof message.content === 'string' ? message.content : '', tool_calls: toolCalls });
+    messages.push({ role: 'assistant', content: fullContent, tool_calls: toolCalls });
 
     for (const tc of toolCalls) {
       const id = String((tc as any).id || 'tool_call');
