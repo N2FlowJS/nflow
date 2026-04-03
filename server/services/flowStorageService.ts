@@ -153,12 +153,15 @@ export class FlowStorageService {
     return flow.id;
   }
 
-  static async deleteFlow(id: string) {
+  static async deleteFlow(id: string, userId?: string) {
     await this.ensureDir();
     const filePath = path.join(FLOWS_DIR, `${id}.json`);
     try {
       await fs.unlink(filePath);
-    } catch {
+      if (userId) {
+        console.log(`[Audit] User ${userId} deleted flow ${id}`);
+      }
+    } catch (err) {
       // Ignore if file doesn't exist
     }
     
@@ -166,5 +169,117 @@ export class FlowStorageService {
     const index = await this.readIndex();
     const newIndex = index.filter(f => f.id !== id);
     await this.writeIndex(newIndex);
+  }
+
+  /**
+   * Get all versions of a flow
+   */
+  static async getFlowVersions(id: string) {
+    await this.ensureDir();
+    try {
+      const filePath = path.join(FLOWS_DIR, `${id}.json`);
+      const content = await fs.readFile(filePath, 'utf-8');
+      const flow = JSON.parse(content);
+      
+      if (!flow.versions) {
+        return [];
+      }
+
+      // Return version metadata without full data
+      return flow.versions.map((v: any) => ({
+        id: v.id,
+        timestamp: v.timestamp,
+        label: v.label || `Version ${new Date(v.timestamp).toLocaleString()}`,
+        isAutoSave: v.isAutoSave || false,
+      }));
+    } catch (err) {
+      throw new Error(`Failed to get versions for flow ${id}`);
+    }
+  }
+
+  /**
+   * Get a specific version of a flow
+   */
+  static async getFlowVersion(id: string, versionId: string) {
+    await this.ensureDir();
+    try {
+      const filePath = path.join(FLOWS_DIR, `${id}.json`);
+      const content = await fs.readFile(filePath, 'utf-8');
+      const flow = JSON.parse(content);
+      
+      if (!flow.versions) {
+        return null;
+      }
+
+      const version = flow.versions.find((v: any) => v.id === versionId);
+      if (!version) {
+        return null;
+      }
+
+      // Return the version with metadata
+      return {
+        ...version,
+        id: flow.id,
+        name: flow.name,
+        description: flow.description,
+      };
+    } catch (err) {
+      throw new Error(`Failed to get version ${versionId} for flow ${id}`);
+    }
+  }
+
+  /**
+   * Restore a previous version of a flow
+   */
+  static async restoreFlowVersion(id: string, versionId: string, userId?: string) {
+    await this.ensureDir();
+    try {
+      const filePath = path.join(FLOWS_DIR, `${id}.json`);
+      const content = await fs.readFile(filePath, 'utf-8');
+      const flow = JSON.parse(content);
+      
+      if (!flow.versions) {
+        throw new Error('No versions available for this flow');
+      }
+
+      const version = flow.versions.find((v: any) => v.id === versionId);
+      if (!version) {
+        throw new Error(`Version ${versionId} not found`);
+      }
+
+      // Create a new version for the restoration
+      const timestamp = Date.now();
+      const restoredVersion = {
+        id: `v-${timestamp}`,
+        timestamp,
+        data: version.data,
+        label: `Restored from ${version.label} at ${new Date().toLocaleString()}`,
+        isAutoSave: false,
+      };
+
+      // Add as most recent version
+      flow.versions = [restoredVersion, ...flow.versions].slice(0, 50);
+      flow.data = version.data;
+      flow.updatedAt = timestamp;
+
+      // Save
+      await fs.writeFile(filePath, JSON.stringify(flow, null, 2), 'utf-8');
+
+      // Update index
+      const index = await this.readIndex();
+      const indexEntry = index.find((f: any) => f.id === id);
+      if (indexEntry) {
+        indexEntry.updatedAt = timestamp;
+        await this.writeIndex(index);
+      }
+
+      if (userId) {
+        console.log(`[Audit] User ${userId} restored flow ${id} to version ${versionId}`);
+      }
+
+      return flow;
+    } catch (err) {
+      throw err;
+    }
   }
 }

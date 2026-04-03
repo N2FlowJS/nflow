@@ -1,98 +1,135 @@
 import { Router, Request, Response } from 'express';
 import { executeFlowOnServer } from '../services/flowExecutionService';
 import { FlowStorageService } from '../services/flowStorageService';
+import { RequestValidator, TypeConverters } from '../middleware/validation';
+import { LogSanitizer } from '../middleware/logSanitizer';
+import { AuthRequest } from '../middleware/auth';
 
 const router = Router();
 
 // Execution endpoints
-router.post('/flow/execute', async (req: Request, res: Response) => {
+router.post('/flow/execute', async (req: AuthRequest, res: Response) => {
   try {
-    const { nodes, edges, inputMessage, isSilent = false, apiKey, globalVariables } = req.body || {};
-    if (!Array.isArray(nodes) || !Array.isArray(edges)) {
-      res.status(400).json({ error: 'Invalid payload. nodes and edges must be arrays.' });
-      return;
-    }
+    // Validate request payload
+    const validatedRequest = RequestValidator.validateFlowExecution(req.body);
 
     const result = await executeFlowOnServer({
-      nodes,
-      edges,
-      inputMessage,
-      isSilent,
-      apiKey: typeof apiKey === 'string' ? apiKey : undefined,
-      globalVariables,
+      nodes: TypeConverters.toFlowNodes(validatedRequest.nodes),
+      edges: TypeConverters.toFlowEdges(validatedRequest.edges),
+      inputMessage: validatedRequest.inputMessage,
+      isSilent: validatedRequest.isSilent || false,
+      apiKey: validatedRequest.apiKey,
+      globalVariables: TypeConverters.toGlobalVariables(validatedRequest.globalVariables || []),
     });
+
+    // Log execution with user context
+    if (req.userId) {
+      console.log(`[Audit] User ${req.userId} executed flow`);
+    }
 
     res.json({ ok: true, ...result });
   } catch (err) {
+    const errorMsg = err instanceof Error ? err.message : 'Flow execution failed';
+    const sanitized = LogSanitizer.sanitize(errorMsg);
+    console.error('[Flow Execute Error]', sanitized, { userId: req.userId });
     res.status(500).json({
       ok: false,
-      error: err instanceof Error ? err.message : 'Flow execution failed',
+      error: sanitized,
     });
   }
 });
 
-router.post('/flow/execute/stream', async (req: Request, res: Response) => {
-  const { nodes, edges, inputMessage, isSilent = false, apiKey, globalVariables } = req.body || {};
-  if (!Array.isArray(nodes) || !Array.isArray(edges)) {
-    res.status(400).json({ error: 'Invalid payload. nodes and edges must be arrays.' });
-    return;
-  }
-
-  res.setHeader('Content-Type', 'application/x-ndjson; charset=utf-8');
-  res.setHeader('Cache-Control', 'no-cache, no-transform');
-  res.setHeader('Connection', 'keep-alive');
-  res.flushHeaders?.();
-
-  let clientDisconnected = false;
-  req.on('close', () => {
-    clientDisconnected = true;
-  });
-
-  const writeEvent = (event: unknown) => {
-    if (clientDisconnected) return;
-    try {
-      res.write(`${JSON.stringify(event)}\n`);
-    } catch {
-    }
-  };
-
-  const heartbeat = setInterval(() => {
-    writeEvent({ type: 'ping' });
-  }, 10000);
-
+router.post('/flow/execute/stream', async (req: AuthRequest, res: Response) => {
   try {
-    const result = await executeFlowOnServer({
-      nodes,
-      edges,
-      inputMessage,
-      isSilent,
-      apiKey: typeof apiKey === 'string' ? apiKey : undefined,
-      onEvent: writeEvent,
-      shouldStop: () => clientDisconnected,
-      globalVariables,
+    // Validate request payload
+    const validatedRequest = RequestValidator.validateFlowExecution(req.body);
+
+    res.setHeader('Content-Type', 'application/x-ndjson; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-cache, no-transform');
+    res.setHeader('Connection', 'keep-alive');
+    res.flushHeaders?.();
+
+    let clientDisconnected = false;
+    req.on('close', () => {
+      clientDisconnected = true;
     });
-    writeEvent({ type: 'done', output: result.output });
-  } catch (err) {
-    if (!clientDisconnected) {
-      writeEvent({
-        type: 'error',
-        message: err instanceof Error ? err.message : 'Flow execution failed',
+
+    const writeEvent = (event: unknown) => {
+      if (clientDisconnected) return;
+      try {
+        res.write(`${JSON.stringify(event)}\n`);
+      } catch {
+        // Client disconnected
+      }
+    };
+
+    const heartbeat = setInterval(() => {
+      writeEvent({ type: 'ping' });
+    }, 10000);
+
+    try {
+      const result = await executeFlowOnServer({
+        nodes: TypeConverters.toFlowNodes(validatedRequest.nodes),
+        edges: TypeConverters.toFlowEdges(validatedRequest.edges),
+        inputMessage: validatedRequest.inputMessage,
+        isSilent: validatedRequest.isSilent || false,
+        apiKey: validatedRequest.apiKey,
+        onEvent: writeEvent,
+        shouldStop: () => clientDisconnected,
+        globalVariables: TypeConverters.toGlobalVariables(validatedRequest.globalVariables || []),
       });
+      
+      // Log execution with user context
+      if (req.userId) {
+        console.log(`[Audit] User ${req.userId} executed flow (streaming)`);
+      }
+      writeEvent({ type: 'done', output: result.output });
+    } catch (err) {
+      if (!clientDisconnected) {
+        const errorMsg = err instanceof Error ? err.message : 'Flow execution failed';
+        writeEvent({
+          type: 'error',
+          message: LogSanitizer.sanitizeError(errorMsg),
+        });
+      }
+    } finally {
+      clearInterval(heartbeat);
+      if (!clientDisconnected) {
+        res.end();
+      }
     }
-  } finally {
-    clearInterval(heartbeat);
-    if (!clientDisconnected) {
-      res.end();
-    }
+  } catch (err) {
+    const errorMsg = err instanceof Error ? err.message : 'Invalid request';
+    const sanitized = LogSanitizer.sanitize(errorMsg);
+    console.error('[Flow Execute Stream Error]', sanitized);
+    res.status(400).json({ error: sanitized });
   }
 });
+
 
 // Storage endpoints
-router.get('/flows', async (_req: Request, res: Response) => {
+router.get('/flows', async (req: Request, res: Response) => {
   try {
-    const flows = await FlowStorageService.listFlows();
-    res.json(flows);
+    // Parse pagination parameters
+    const limit = Math.min(Math.max(parseInt(String(req.query.limit)) || 20, 1), 100);
+    const offset = Math.max(parseInt(String(req.query.offset)) || 0, 0);
+    
+    const allFlows = await FlowStorageService.listFlows();
+    const total = allFlows.length;
+    const flows = allFlows.slice(offset, offset + limit);
+    
+    res.json({
+      flows,
+      pagination: {
+        limit,
+        offset,
+        total,
+        hasMore: offset + limit < total,
+      },
+    });
   } catch (err) {
+    const errorMsg = err instanceof Error ? err.message : String(err);
+    console.error('List flows error:', LogSanitizer.sanitize(errorMsg));
     res.status(500).json({ error: 'Failed to list flows' });
   }
 });
@@ -106,22 +143,75 @@ router.get('/flows/:id', async (req: Request, res: Response) => {
   }
 });
 
-router.post('/flows', async (req: Request, res: Response) => {
+router.post('/flows', async (req: AuthRequest, res: Response) => {
   try {
-    const id = await FlowStorageService.saveFlow(req.body);
+    // Validate request payload
+    const validatedRequest = RequestValidator.validateFlowSave(req.body);
+
+    const id = await FlowStorageService.saveFlow({
+      ...validatedRequest,
+      userId: req.userId, // Add user context
+    });
     res.json({ ok: true, id });
   } catch (err) {
-    console.error('Save flow error:', err);
-    res.status(500).json({ error: 'Failed to save flow' });
+    const errorMsg = err instanceof Error ? err.message : 'Failed to save flow';
+    const sanitized = LogSanitizer.sanitize(errorMsg);
+    console.error('Save flow error:', sanitized, { userId: req.userId });
+    res.status(400).json({ error: sanitized });
   }
 });
 
-router.delete('/flows/:id', async (req: Request, res: Response) => {
+router.delete('/flows/:id', async (req: AuthRequest, res: Response) => {
   try {
-    await FlowStorageService.deleteFlow(String(req.params.id));
+    await FlowStorageService.deleteFlow(String(req.params.id), req.userId);
     res.json({ ok: true });
   } catch (err) {
-    res.status(500).json({ error: 'Failed to delete flow' });
+    const errorMsg = err instanceof Error ? err.message : 'Failed to delete flow';
+    const sanitized = LogSanitizer.sanitize(errorMsg);
+    console.error('Delete flow error:', sanitized, { userId: req.userId });
+    res.status(500).json({ error: sanitized });
+  }
+});
+
+// Version history endpoints
+router.get('/flows/:id/versions', async (req: Request, res: Response) => {
+  try {
+    const versions = await FlowStorageService.getFlowVersions(String(req.params.id));
+    res.json(versions || []);
+  } catch (err) {
+    res.status(404).json({ error: 'Flow not found' });
+  }
+});
+
+router.get('/flows/:id/versions/:versionId', async (req: Request, res: Response) => {
+  try {
+    const flow = await FlowStorageService.getFlowVersion(
+      String(req.params.id),
+      String(req.params.versionId)
+    );
+    if (!flow) {
+      res.status(404).json({ error: 'Version not found' });
+      return;
+    }
+    res.json(flow);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to retrieve version' });
+  }
+});
+
+router.post('/flows/:id/versions/:versionId/restore', async (req: AuthRequest, res: Response) => {
+  try {
+    const flow = await FlowStorageService.restoreFlowVersion(
+      String(req.params.id),
+      String(req.params.versionId),
+      req.userId
+    );
+    res.json({ ok: true, flow });
+  } catch (err) {
+    const errorMsg = err instanceof Error ? err.message : 'Failed to restore version';
+    const sanitized = LogSanitizer.sanitize(errorMsg);
+    console.error('Restore version error:', sanitized, { userId: req.userId });
+    res.status(400).json({ error: sanitized });
   }
 });
 

@@ -60,7 +60,11 @@ LlmProviderRegistry.register({
     try {
       const resp = await nvidiaList(cfg);
       if (resp.length > 0) return resp;
-    } catch {}
+    } catch (err) {
+      // NVIDIA list failed, falling back to OpenAI-compatible
+      const errorMsg = err instanceof Error ? err.message : String(err);
+      console.warn(`[LLM] NVIDIA listModels fallback: ${errorMsg}`);
+    }
     return openaiList(cfg);
   },
   runChat: runOpenAICompatibleChat, // NVIDIA NIM is OpenAI-compatible

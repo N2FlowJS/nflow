@@ -3,6 +3,7 @@ import { Panel } from '@xyflow/react';
 import { Settings, X } from 'lucide-react';
 import { getNodeFieldValue } from '../../node-registry';
 import NumberInput from '../ui/NumberInput';
+import { API_BASE } from '../../lib/api';
 
 interface NodeConfigModalProps {
   isOpen: boolean;
@@ -47,51 +48,42 @@ export const NodeConfigModal = ({
     }
     const fetchKey = `${baseUrl}::${apiKey || ''}`;
     if (lastFetchKeyRef.current === fetchKey && models.length > 0) return;
+    
     setModelsLoading(true);
     setModelsError(null);
     setModels([]);
-    const candidates = ['', '/models', '/v1/models', '/v1/engines', '/engines', '/v1/models/list'];
-    const tried: string[] = [];
-    let found: string[] = [];
-    for (const ep of candidates) {
-      const url = `${baseUrl.replace(/\/$/, '')}${ep}`;
-      try {
-        const headers: Record<string, string> = {};
-        if (apiKey) {
-          headers['Authorization'] = /^Bearer\s+/i.test(apiKey) ? apiKey : `Bearer ${apiKey}`;
-          headers['x-api-key'] = apiKey;
-        }
-        const resp = await fetch(url, { method: 'GET', headers });
-        if (!resp.ok) {
-          tried.push(`${url} -> ${resp.status}`);
-          continue;
-        }
-        const body = await resp.json();
-        // flexible parsing
-        if (Array.isArray(body)) {
-          found = body.map((i: any) => i.id || i.name || i.model || i.engine || String(i)).filter(Boolean);
-        } else if (Array.isArray(body.data)) {
-          found = body.data.map((i: any) => i.id || i.name || i.model || i.engine).filter(Boolean);
-        } else if (Array.isArray(body.models)) {
-          found = body.models.map((i: any) => i.id || i.name || i.model).filter(Boolean);
-        } else if (body.models && typeof body.models === 'object') {
-          found = Object.keys(body.models);
-        } else if (body.model && typeof body.model === 'string') {
-          found = [body.model];
-        }
-        if (found.length > 0) {
-          setModels(found);
-          lastFetchKeyRef.current = fetchKey;
-          setModelsLoading(false);
-          return;
-        }
-        tried.push(`${url} -> parsed-none`);
-      } catch (err: any) {
-        tried.push(`${url} -> ${err?.message ?? 'error'}`);
+    
+    try {
+      // Use backend endpoint to avoid CORS issues
+      const response = await fetch(`${API_BASE}/api/llm/models`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          baseUrl,
+          apiKey: apiKey || '',
+          provider: 'NVIDIA', // Detect from context if needed
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Server returned ${response.status}`);
       }
+
+      const data = await response.json();
+      if (data.ok && Array.isArray(data.models)) {
+        setModels(data.models.map((m: any) => m.id || m.name || String(m)));
+        lastFetchKeyRef.current = fetchKey;
+      } else {
+        setModelsError('No models found in response');
+      }
+    } catch (err: any) {
+      setModelsError(`Failed to fetch models: ${err?.message ?? 'Unknown error'}. Make sure the base URL and API key are correct.`);
+      console.error('Model fetch error:', err);
+    } finally {
+      setModelsLoading(false);
     }
-    setModelsLoading(false);
-    setModelsError(`No models found. Tried: ${tried.join('; ')}`);
   };
 
   useEffect(() => {

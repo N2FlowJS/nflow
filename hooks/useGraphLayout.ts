@@ -22,6 +22,53 @@ export type LayoutMode =
   | "DAGRE_RL"
   | "DAGRE_BT";
 
+// Type extensions for third-party library integration
+type MeasuredNode = Node & {
+  measured?: {
+    width?: number;
+    height?: number;
+  };
+};
+
+type EdgeWithHandles = Edge & {
+  sourceHandle?: string | null;
+  targetHandle?: string | null;
+};
+
+type ELKNode = {
+  id: string;
+  width?: number;
+  height?: number;
+  x?: number;
+  y?: number;
+  layoutOptions?: Record<string, string>;
+  children?: ELKNode[];
+  ports?: Array<{ id: string }>;
+};
+
+type ELKEdge = {
+  id: string;
+  sources: string[];
+  targets: string[];
+  sections?: Array<{
+    startPoint?: { x: number; y: number };
+    endPoint?: { x: number; y: number };
+    bendPoints?: Array<{ x: number; y: number }>;
+  }>;
+};
+
+type ELKLayoutConfig = {
+  id: string;
+  layoutOptions: Record<string, string>;
+  children: ELKNode[];
+  edges: ELKEdge[];
+};
+
+type ELKLayoutResult = {
+  children?: Array<{ id: string; x: number; y: number }>;
+  edges?: ELKEdge[];
+};
+
 export const useGraphLayout = ({
   nodes,
   edges,
@@ -42,7 +89,11 @@ export const useGraphLayout = ({
     let attempts = 0;
     while (attempts < maxAttempts) {
       const flowNodes = reactFlowInstance.getNodes();
-      const hasMeasured = flowNodes.some((n) => typeof (n as any).measured?.width === 'number' && (n as any).measured.width > 0 && typeof (n as any).measured?.height === 'number' && (n as any).measured.height > 0);
+      const hasMeasured = flowNodes.some((n) => {
+        const measured = (n as MeasuredNode).measured;
+        return typeof measured?.width === 'number' && measured.width > 0 && 
+               typeof measured?.height === 'number' && measured.height > 0;
+      });
       if (hasMeasured) return;
       // wait a bit for the renderer to measure nodes
       // eslint-disable-next-line no-await-in-loop
@@ -141,7 +192,7 @@ export const useGraphLayout = ({
 
           const getNodeSize = (node: Node) => {
             const flowNode = reactFlowInstance ? reactFlowInstance.getNodes().find((n) => n.id === node.id) || node : node;
-            const measured = (flowNode as any).measured;
+            const measured = (flowNode as MeasuredNode).measured;
             return {
               width: typeof measured?.width === "number" ? measured.width : getNodeType(node) === "Agent" ? 350 : 300,
               height: typeof measured?.height === "number" ? measured.height : getNodeType(node) === "Agent" ? 250 : 150,
@@ -299,31 +350,32 @@ export const useGraphLayout = ({
             return portId;
           };
 
-          const elkEdges = edges
+          const elkEdges: ELKEdge[] = edges
             .map((edge) => {
               const sourceNode = nodeById.get(edge.source);
               const targetNode = nodeById.get(edge.target);
               if (!sourceNode || !targetNode) return null;
 
+              const edgeWithHandles = edge as EdgeWithHandles;
               const sourcePlacement = resolveSourcePlacement(
                 sourceNode,
-                (edge as any).sourceHandle,
+                edgeWithHandles.sourceHandle,
               );
               const targetPlacement = resolveTargetPlacement(
                 targetNode,
-                (edge as any).targetHandle,
+                edgeWithHandles.targetHandle,
               );
 
               const sourcePort = ensurePort(
                 edge.source,
                 "source",
-                (edge as any).sourceHandle,
+                edgeWithHandles.sourceHandle,
                 sourcePlacement,
               );
               const targetPort = ensurePort(
                 edge.target,
                 "target",
-                (edge as any).targetHandle,
+                edgeWithHandles.targetHandle,
                 targetPlacement,
               );
 
@@ -333,7 +385,7 @@ export const useGraphLayout = ({
                 targets: [targetPort],
               };
             })
-            .filter((e): e is { id: string; sources: string[]; targets: string[] } => !!e);
+            .filter((e): e is ELKEdge => !!e);
 
           const elkNodes = nodes.map((node) => {
             const size = getNodeSize(node);
@@ -355,8 +407,8 @@ export const useGraphLayout = ({
             const { default: ELK } = await import("elkjs/lib/elk.bundled.js");
             const elk = new ELK();
 
-            const buildLayoutOptions = (alg: string) => {
-              const opts: any = {
+            const buildLayoutOptions = (alg: string): Record<string, string> => {
+              const opts: Record<string, string> = {
                 "elk.algorithm": alg,
                 "elk.spacing.nodeNode": "140",
                 "elk.spacing.edgeNode": "60",
@@ -394,16 +446,18 @@ export const useGraphLayout = ({
 
             const runElkOnce = async (alg: string) => {
               const layoutOptions = buildLayoutOptions(alg);
-              const elkPromise = elk.layout({ id: "root", layoutOptions, children: elkNodes, edges: elkEdges } as any);
+              // Cast to any for elk library compatibility - the library has loose typing
+              const layoutConfig = { id: "root", layoutOptions, children: elkNodes, edges: elkEdges } as unknown;
+              const elkPromise = elk.layout(layoutConfig as any);
               const res = await Promise.race([
                 elkPromise,
                 new Promise((_, reject) => setTimeout(() => reject(new Error('ELK layout timeout')), 8000)),
               ]);
-              return res as any;
+              return res as ELKLayoutResult;
             };
 
-            const applyElkResult = (result: any) => {
-              const children = ((result.children || []) as Array<{ id: string; x: number; y: number }>);
+            const applyElkResult = (result: ELKLayoutResult) => {
+              const children = (result.children || []) as Array<{ id: string; x: number; y: number }>;
               const positionById = new Map(children.map((child) => [child.id, { x: child.x, y: child.y }]));
 
               // apply node positions
@@ -422,11 +476,11 @@ export const useGraphLayout = ({
               );
 
               // set elkPoints on edges
-              const elkEdgeMap = new Map(((result.edges || []) as any[]).map((e: any) => [e.id, e]));
+              const elkEdgeMap = new Map((result.edges || []).map((e) => [e.id, e]));
               try {
                 setEdges((eds: Edge[]) =>
                   eds.map((edge) => {
-                    const prevData = (edge as any).data || {};
+                    const prevData = (edge.data as Record<string, unknown>) || {};
                     const elkEdge = elkEdgeMap.get(edge.id as string);
                     if (!elkEdge) return { ...edge, data: { ...prevData, elkPoints: undefined } };
 
@@ -502,8 +556,9 @@ export const useGraphLayout = ({
         dagreGraph.setGraph({ rankdir, ranksep: 220, nodesep: 160 });
 
         nodes.forEach((node) => {
-          const width = (node as any).type === "Agent" ? 350 : 300;
-          const height = (node as any).type === "Agent" ? 250 : 150;
+          const isAgent = node.type === "Agent";
+          const width = isAgent ? 350 : 300;
+          const height = isAgent ? 250 : 150;
           dagreGraph.setNode(node.id, { width, height });
         });
 
@@ -515,11 +570,12 @@ export const useGraphLayout = ({
 
         setNodes((nds: Node[]) =>
           nds.map((node) => {
-            const nodeWithPosition = dagreGraph.node(node.id as any) as
+            const nodeWithPosition = dagreGraph.node(node.id) as
               | { x: number; y: number }
               | undefined;
-            const width = (node as any).type === "Agent" ? 350 : 300;
-            const height = (node as any).type === "Agent" ? 250 : 150;
+            const isAgent = node.type === "Agent";
+            const width = isAgent ? 350 : 300;
+            const height = isAgent ? 250 : 150;
 
             if (!nodeWithPosition) return node;
             return {

@@ -42,19 +42,19 @@ export function Sidebar({
 
   const nodeTemplates: NodeTemplate[] = useMemo(() => {
     return Object.entries(nodeRegistry).map(([type, entry]) => {
-      const iconName = (entry as any)?.icon || "Star";
-      const IconComponent = (Icons as any)[iconName] || Icons.Star;
-      const label = prettifyLabel((entry as any)?.label || type);
-      const color =
-        CATEGORY_COLOR[(entry as any)?.category as string] || "text-gray-400";
-      const bundle = (entry as any)?.bundle || (entry as any)?.category || "";
+      const iconName = entry?.icon || "Star";
+      const IconComponent =
+        (Icons as Record<string, unknown>)[iconName] as React.ComponentType<Record<string, unknown>> || Icons.Star;
+      const label = prettifyLabel(type);
+      const category = entry?.category || "";
+      const color = CATEGORY_COLOR[category] || "text-gray-400";
       return {
         label,
         type,
         icon: IconComponent,
         color,
-        category: (entry as any)?.category || "",
-        bundle,
+        category,
+        bundle: category,
       };
     });
   }, []);

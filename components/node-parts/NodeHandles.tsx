@@ -91,6 +91,7 @@ export const NodeHandles = ({
               badgeParamKey: handle.badgeParamKey,
               badgeFallback: handle.badgeFallback,
               badgeClassName: handle.badgeClassName,
+              index,
             }) || <React.Fragment key={`registry-source-${index}`} />
           )
         ) : (
@@ -126,6 +127,7 @@ export const NodeHandles = ({
           style: handle.offsetPercent ? (handle.position === 'top' || handle.position === 'bottom' ? { left: `${handle.offsetPercent}%` } : { top: `${handle.offsetPercent}%` }) : undefined,
           borderClass: handle.borderClass,
           hoverBorderClass: handle.hoverBorderClass,
+          index,
         }) || <React.Fragment key={`registry-target-${index}`} />
       )}
       {registrySourceHandles.map((handle, index) => 
@@ -140,6 +142,7 @@ export const NodeHandles = ({
           badgeParamKey: handle.badgeParamKey,
           badgeFallback: handle.badgeFallback,
           badgeClassName: handle.badgeClassName,
+          index,
         }) || <React.Fragment key={`registry-source-${index}`} />
       )}
     </>

@@ -1,5 +1,5 @@
 import React, { memo, useState } from 'react';
-import { NodeProps, NodeResizer, useReactFlow } from '@xyflow/react';
+import { NodeProps, NodeResizer, useReactFlow, type Node } from '@xyflow/react';
 import { Layers, ChevronDown, ChevronRight, Maximize2, Minimize2 } from 'lucide-react';
 import { NodeData } from '../types';
 
@@ -19,12 +19,12 @@ const CyberGroupNode = ({ id, data, selected }: NodeProps) => {
           
           return {
             ...node,
-            data: { ...node.data, isCollapsed: !isCollapsed },
+            data: { ...node.data, isCollapsed: !isCollapsed } as unknown as NodeData & Record<string, unknown>,
             // If collapsing, shrink the group node
             style: !isCollapsed 
               ? { ...node.style, width: 200, height: 44 } 
               : { ...node.style, width: expandedWidth, height: expandedHeight }
-          } as any;
+          };
         }
         // Hide/Show children
         if (node.parentId === id) {

@@ -177,14 +177,14 @@ const CyberNode = ({ id, data, selected }: NodeProps<CustomNodeType>) => {
   };
 
   const renderNamedHandle = (options: any) => {
-    const { kind, position, portType, id: hId, style, borderClass = '!border-cyber-muted', hoverBorderClass = 'hover:!border-cyber-primary transition-colors', badgeParamKey, badgeFallback, badgeClassName } = options;
+    const { kind, position, portType, id: hId, style, borderClass = '!border-cyber-muted', hoverBorderClass = 'hover:!border-cyber-primary transition-colors', badgeParamKey, badgeFallback, badgeClassName, index } = options;
     const effectiveType = kind === 'source' && badgeParamKey ? readPortType(data, badgeParamKey, badgeFallback || portType) : portType;
     const bClass = `!w-3 !h-3 !bg-cyber-panel !border-2 ${borderClass} ${hoverBorderClass} ${handleBaseClasses}`;
     const computedClass = getHandleClass(kind, effectiveType, bClass);
     const isHovered = hoveredHandle === hId;
 
     return (
-      <React.Fragment key={`${kind}-${String(hId || 'default')}-${position}`}>
+      <React.Fragment key={`${kind}-${String(hId || `default-${index}`)}-${position}`}>
         {kind === 'source' && badgeParamKey && badgeFallback && badgeClassName && renderOutputTypeBadge(badgeParamKey, badgeFallback, badgeClassName, isHovered)}
         <Handle
           type={kind}

@@ -20,7 +20,13 @@ export const listModels = async (
 };
 
 export const getOpenAIClient = (cfg: LlmRuntimeConfig) => {
-  const baseURL = trimTrailingSlash(cfg.baseUrl || 'http://localhost:8000/v1');
+  let baseURL = trimTrailingSlash(cfg.baseUrl || 'http://localhost:8000/v1');
+  
+  // NVIDIA NIM requires /v1 in the base URL for OpenAI-compatible endpoints
+  if (cfg.provider === 'NVIDIA' && baseURL.includes('nvidia.com') && !baseURL.endsWith('/v1')) {
+    baseURL = `${baseURL}/v1`;
+  }
+  
   return new OpenAI({ baseURL, apiKey: String(cfg.apiKey || 'not-required') });
 };
 
@@ -35,6 +41,15 @@ export const runOpenAICompatibleChat = async (
   const client = getOpenAIClient(cfg) as any;
   const tools = availableTools.length > 0 ? toOpenAiToolDeclarations(availableTools) : undefined;
   const exec = executeToolByName || (async () => '');
+
+  // Log the provider and model being used for debugging
+  if (cfg.provider === 'NVIDIA') {
+    const actualBase = trimTrailingSlash(cfg.baseUrl || 'http://localhost:8000/v1');
+    const normalizedBase = actualBase.includes('nvidia.com') && !actualBase.endsWith('/v1') 
+      ? `${actualBase}/v1` 
+      : actualBase;
+    console.debug(`[NVIDIA OpenAI Chat] Provider: ${cfg.provider}, Model: ${cfg.model}, Base: ${normalizedBase}`);
+  }
 
   const toolsWithImpl = (availableTools || []).length > 0 ? (availableTools as AgentTool[]).map(t => ({
     type: 'function',

@@ -317,7 +317,9 @@ const Flow = () => {
     if (!target) return;
     const focusTimer = window.setTimeout(() => {
       try { (target as HTMLElement).focus(); } catch {}
-      if ('select' in target && typeof (target as any).select === 'function') (target as any).select();
+      if ('select' in target && typeof (target as HTMLInputElement | HTMLTextAreaElement).select === 'function') {
+        ((target as HTMLInputElement | HTMLTextAreaElement).select());
+      }
       try { target.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch {}
     }, 50);
     const clearTimer = window.setTimeout(() => setHighlightedConfigField(null), 2000);
@@ -338,10 +340,11 @@ const Flow = () => {
     if (!configNodeId) return;
     setNodes((nds) => nds.map((n) => {
       if (n.id !== configNodeId) return n;
-      const data = n.data as any;
+      const data = n.data as Record<string, unknown>;
       if (data.type === 'Agent' && name === 'agentTemplate') {
         const templateName = String(value || '');
-        let updatedSchema = setNodeFieldValueInSchema(data.configSchema, 'agentTemplate', templateName);
+        const configSchema = Array.isArray(data.configSchema) ? data.configSchema : [];
+        let updatedSchema = setNodeFieldValueInSchema(configSchema, 'agentTemplate', templateName);
         // keep agent template behavior consistent with useCyberNode
         try {
           const { AGENT_TEMPLATE_CUSTOM, getAgentInstructionByTemplate } = require('../agent-templates');
@@ -349,10 +352,14 @@ const Flow = () => {
           if (templateName !== AGENT_TEMPLATE_CUSTOM && templateInstruction) {
             updatedSchema = setNodeFieldValueInSchema(updatedSchema, 'instruction', templateInstruction);
           }
-        } catch {}
+        } catch (err) {
+          // Silently ignore agent template loading errors - templates are optional
+          console.debug(`Agent template loading failed: ${err instanceof Error ? err.message : String(err)}`);
+        }
         return { ...n, data: { ...n.data, configSchema: updatedSchema } };
       }
-      const updatedSchema = setNodeFieldValueInSchema(data.configSchema, name, value);
+      const configSchema = Array.isArray(data.configSchema) ? data.configSchema : undefined;
+      const updatedSchema = setNodeFieldValueInSchema(configSchema, name, value);
       return { ...n, data: { ...n.data, configSchema: updatedSchema } };
     }));
   };
@@ -418,20 +425,22 @@ const Flow = () => {
           const res = await fetch(`${API_BASE}/api/flows/${id}`);
           if (res.ok) {
             const flow = await res.json();
-            setNodes((flow.data.nodes || []).map(normalizeModelNode));
-            setEdges(flow.data.edges || []);
-            setGlobalVariables(flow.data.globalVariables || []);
-            setFlowVersions(flow.versions || []);
-            setCurrentFlowId(flow.id);
-            setCurrentFlowName(flow.name);
-            shouldFitAfterLoadRef.current = true;
+            if (flow && flow.data) {
+              setNodes((flow.data.nodes || []).map(normalizeModelNode));
+              setEdges(flow.data.edges || []);
+              setGlobalVariables(flow.data.globalVariables || []);
+              setFlowVersions(flow.versions || []);
+              setCurrentFlowId(flow.id);
+              setCurrentFlowName(flow.name);
+              shouldFitAfterLoadRef.current = true;
+            }
           } else {
             // Fallback to localStorage for migration
             const saved = localStorage.getItem("cyber-flows");
             if (saved) {
               const flows: SavedFlow[] = JSON.parse(saved);
               const flow = flows.find((f) => f.id === id);
-              if (flow) {
+              if (flow && flow.data) {
                 setNodes((flow.data.nodes || []).map(normalizeModelNode));
                 setEdges(flow.data.edges || []);
                 setCurrentFlowId(flow.id);
@@ -464,8 +473,8 @@ const Flow = () => {
   const executionAbortRef = useRef<AbortController | null>(null);
   const isSilentExecutionRunningRef = useRef(false);
   const wasPlaygroundOpenRef = useRef(false);
-  const importInputRef = useRef<HTMLInputElement | null>(null);
-  const commandInputRef = useRef<HTMLInputElement | null>(null);
+  const importInputRef = useRef<HTMLInputElement>(null!);
+  const commandInputRef = useRef<HTMLInputElement>(null!);
 
   useEffect(() => {
     stateRef.current = { nodes, edges };
@@ -569,6 +578,12 @@ const Flow = () => {
 
   const onNodesChangeWrapper = useCallback(
     (changes: NodeChange[]) => {
+      // Prevent node modifications during flow execution to avoid state desynchronization
+      if (runtimeStatus === "running") {
+        console.warn("[Security] Node modifications blocked during flow execution");
+        return;
+      }
+
       const isSignificant = changes.some(
         (c) => c.type === "remove" || c.type === "add",
       );
@@ -577,11 +592,17 @@ const Flow = () => {
       }
       onNodesChange(changes);
     },
-    [onNodesChange, takeSnapshot],
+    [onNodesChange, takeSnapshot, runtimeStatus],
   );
 
   const onEdgesChangeWrapper = useCallback(
     (changes: EdgeChange[]) => {
+      // Prevent edge modifications during flow execution to avoid state desynchronization
+      if (runtimeStatus === "running") {
+        console.warn("[Security] Edge modifications blocked during flow execution");
+        return;
+      }
+
       const isSignificant = changes.some(
         (c) => c.type === "remove" || c.type === "add",
       );
@@ -590,7 +611,7 @@ const Flow = () => {
       }
       onEdgesChange(changes);
     },
-    [onEdgesChange, takeSnapshot],
+    [onEdgesChange, takeSnapshot, runtimeStatus],
   );
 
   const onConnect = useCallback(
@@ -748,6 +769,19 @@ const Flow = () => {
     [setContextMenu],
   );
 
+  // Wrapper for ReactFlow which passes native MouseEvent or React.MouseEvent
+  const onPaneContextMenuHandler = useCallback(
+    (event: MouseEvent | React.MouseEvent<Element, MouseEvent>) => {
+      const clientX = event instanceof MouseEvent ? event.clientX : (event as React.MouseEvent).clientX;
+      const clientY = event instanceof MouseEvent ? event.clientY : (event as React.MouseEvent).clientY;
+      event.preventDefault();
+      setContextMenu({
+        x: clientX,
+        y: clientY,
+      });
+    },
+    [setContextMenu],
+  );
 
   const onAddNode = useCallback(
     (type: string, label: string, position?: { x: number; y: number }) => {
@@ -1690,6 +1724,14 @@ const Flow = () => {
     [runLayout, takeSnapshot],
   );
 
+  // Wrapper for FlowHeader which expects (type: string) => void
+  const onLayoutHandler = useCallback(
+    (type: string) => {
+      onLayout(type as LayoutMode);
+    },
+    [onLayout],
+  );
+
   const onDownloadImage = useCallback(() => {
     const reactFlowElement = document.querySelector(
       ".react-flow",
@@ -2229,7 +2271,7 @@ const Flow = () => {
         onDuplicate={onDuplicate}
         undo={undo}
         redo={redo}
-        onLayout={onLayout}
+        onLayout={onLayoutHandler}
         onGroupNodes={onGroupNodes}
         onUngroupNodes={onUngroupNodes}
         onDownloadImage={onDownloadImage}
@@ -2262,7 +2304,7 @@ const Flow = () => {
             onSelectionDragStart={takeSnapshot}
             onConnect={onConnect}
             onNodeContextMenu={onNodeContextMenu}
-            onPaneContextMenu={onPaneContextMenu}
+            onPaneContextMenu={onPaneContextMenuHandler}
             onInit={setReactFlowInstance}
             nodeTypes={nodeTypes}
             edgeTypes={edgeTypes}
@@ -2330,7 +2372,7 @@ const Flow = () => {
           <NodeConfigModal
             isOpen={isNodeConfigOpen}
             onClose={() => { setIsNodeConfigOpen(false); setConfigNodeId(null); setHighlightedConfigField(null); }}
-            data={(currentConfigNode && (currentConfigNode as any).data) || { label: '', configSchema: [] }}
+            data={currentConfigNode?.data || { label: '', configSchema: [] }}
             updateNodeData={updateNodeDataById}
             handleParamChange={handleConfigParamChange}
             highlightedField={highlightedConfigField}
@@ -2486,7 +2528,7 @@ const Flow = () => {
             },
             onLayout: (type?: string) => {
               if (type) {
-                onLayout(type as any);
+                onLayout(type as LayoutMode);
               } else {
                 onLayout("LR");
               }

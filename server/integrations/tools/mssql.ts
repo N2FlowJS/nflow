@@ -62,15 +62,38 @@ export const mssqlHandler: ToolHandler = async (node, args) => {
   const queryTemplate = String(getNodeFieldValue(node, 'query') || args.query || '');
   if (!queryTemplate) return 'Error: SQL query is empty.';
 
+  // Extract parameter names from template
+  const paramNames = new Set<string>();
+  queryTemplate.replace(/\{\s*([a-zA-Z0-9_]+)\s*\}/g, (_m, key) => {
+    paramNames.add(key);
+    return '';
+  });
+
+  // Validate that all required parameters are provided
+  const missingParams: string[] = [];
+  for (const paramName of paramNames) {
+    if (args[paramName] === undefined) {
+      missingParams.push(paramName);
+    }
+  }
+
+  if (missingParams.length > 0 && paramNames.size > 0) {
+    return `Error: Missing SQL parameters: ${missingParams.join(', ')}. Query template expects: ${Array.from(paramNames).join(', ')}`;
+  }
+
   // Parameterize the query: replace {var} with @var for safe binding
   const params: Record<string, any> = {};
   const safeQuery = queryTemplate.replace(/\{\s*([a-zA-Z0-9_]+)\s*\}/g, (_m, key) => {
-    const value = args[key];
-    if (value !== undefined) {
-      params[key] = value;
-      return `@${key}`;
+    if (/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(key)) {  // Validate parameter name format
+      const value = args[key];
+      if (value !== undefined) {
+        params[key] = value;
+        return `@${key}`;
+      }
+      return `{${key}}`; // If not provided, keep original (will be caught above)
+    } else {
+      return _m; // Return as-is if format is invalid (suspicious)
     }
-    return `{${key}}`; // Leave as is if not found (legacy behavior)
   });
 
   const body = {

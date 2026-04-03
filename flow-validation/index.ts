@@ -3,6 +3,8 @@ import { getNodeValidationRuleConfigs } from '../node-registry';
 import type { CustomNodeType } from '../types';
 import { validatorsByRuleKey } from './ruleRegistry';
 import type { FlowValidationIssue, ValidationContext } from './types';
+import { validateNodeConnectivity, validateToolConnectivity, validateAgentConnectivity } from './utils';
+
 export type { FlowValidationIssue } from './types';
 
 export type ValidationLocale = 'en' | 'vi';
@@ -39,6 +41,7 @@ export const validateFlowGraph = (
   const locale = options?.locale || 'en';
   const nodeMap = new Map(nodes.map((node) => [node.id, node as CustomNodeType]));
 
+  // Basic structural validation
   edges.forEach((edge) => {
     if (!nodeMap.has(edge.source) || !nodeMap.has(edge.target)) {
       issues.push({
@@ -50,6 +53,7 @@ export const validateFlowGraph = (
 
   const context: ValidationContext = { nodes, edges, nodeMap };
 
+  // Node-specific validation rules
   nodes.forEach((rawNode) => {
     const node = rawNode as CustomNodeType;
     const ruleConfigs = getNodeValidationRuleConfigs(node.data.type);
@@ -72,6 +76,11 @@ export const validateFlowGraph = (
       issues.push(...nodeIssues);
     });
   });
+
+  // Graph connectivity validation
+  issues.push(...validateNodeConnectivity(nodes, edges));
+  issues.push(...validateToolConnectivity(nodes, edges));
+  issues.push(...validateAgentConnectivity(nodes, edges));
 
   return issues;
 };
