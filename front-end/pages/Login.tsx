@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Lock, Mail, User, Eye, EyeOff } from 'lucide-react';
+import { API_BASE, clearAuthData, fetchWithAuth, setCurrentUser } from '../lib/api';
 
 interface AuthFormData {
   email: string;
@@ -13,6 +14,7 @@ export default function Login() {
   const location = useLocation();
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [checkingSession, setCheckingSession] = useState(true);
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState<AuthFormData>({
@@ -21,7 +23,51 @@ export default function Login() {
     username: '',
   });
 
-  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8787';
+  useEffect(() => {
+    let isMounted = true;
+
+    const bootstrapLoginSession = async () => {
+      const token = localStorage.getItem('authToken');
+
+      if (!token) {
+        if (isMounted) {
+          setCheckingSession(false);
+        }
+        return;
+      }
+
+      try {
+        const response = await fetchWithAuth('/api/auth/profile');
+
+        if (!isMounted) {
+          return;
+        }
+
+        if (response.ok && response.user) {
+          setCurrentUser(response.user);
+          const from = (location.state as any)?.from?.pathname || '/';
+          navigate(from, { replace: true });
+          return;
+        }
+
+        clearAuthData();
+        setCheckingSession(false);
+      } catch {
+        if (!isMounted) {
+          return;
+        }
+
+        clearAuthData();
+        setCheckingSession(false);
+      }
+    };
+
+    void bootstrapLoginSession();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [location.state, navigate]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -38,15 +84,17 @@ export default function Login() {
 
     try {
       const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
+      const email = formData.email.trim();
+      const username = formData.username?.trim();
       const payload = isLogin
-        ? { email: formData.email, password: formData.password }
+        ? { email, password: formData.password }
         : {
-            email: formData.email,
-            username: formData.username || formData.email.split('@')[0],
+            email,
+            username: username || email.split('@')[0],
             password: formData.password,
           };
 
-      const response = await fetch(`${apiUrl}${endpoint}`, {
+      const response = await fetch(`${API_BASE}${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -72,6 +120,14 @@ export default function Login() {
       setLoading(false);
     }
   };
+
+  if (checkingSession) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
+        <div className="text-sm uppercase tracking-[0.3em] text-cyan-400">Checking Session...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">

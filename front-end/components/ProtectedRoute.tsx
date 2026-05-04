@@ -1,15 +1,32 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
+import { clearAuthData } from '../lib/api';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
+  isAuthenticated?: boolean;
+  isCheckingAuth?: boolean;
 }
 
-export function ProtectedRoute({ children }: ProtectedRouteProps) {
+export function ProtectedRoute({
+  children,
+  isAuthenticated,
+  isCheckingAuth = false,
+}: ProtectedRouteProps) {
   const location = useLocation();
-  const token = localStorage.getItem('authToken');
 
-  if (!token) {
+  if (isCheckingAuth) {
+    return (
+      <div className="min-h-screen bg-slate-950 text-slate-200 flex items-center justify-center">
+        <div className="text-sm uppercase tracking-[0.3em] text-cyan-400">Checking Session...</div>
+      </div>
+    );
+  }
+
+  const token = localStorage.getItem('authToken');
+  const authenticated = isAuthenticated ?? !!token;
+
+  if (!authenticated) {
     // Redirect to login, but save the location they were trying to access
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
@@ -29,8 +46,7 @@ export function useAuthUser() {
 
 export function useLogout() {
   return () => {
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('user');
+    clearAuthData();
     window.location.href = '/login';
   };
 }

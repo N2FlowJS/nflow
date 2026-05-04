@@ -58,6 +58,8 @@ export interface FlowSaveRequest {
   edges: Edge[];
   metadata?: Record<string, any>;
   globalVariables?: GlobalVariable[];
+  versionLabel?: string;
+  isAutoSave?: boolean;
   viewport?: {
     x: number;
     y: number;
@@ -172,6 +174,8 @@ export class RequestValidator {
       edges: edges,
       metadata: obj.metadata,
       globalVariables: obj.globalVariables,
+      versionLabel: typeof obj.versionLabel === 'string' ? obj.versionLabel : undefined,
+      isAutoSave: typeof obj.isAutoSave === 'boolean' ? obj.isAutoSave : undefined,
       viewport: obj.viewport,
     };
   }

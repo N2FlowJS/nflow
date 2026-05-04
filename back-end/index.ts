@@ -45,7 +45,12 @@ app.use(limiter);
 // Authentication middleware for sensitive endpoints
 app.post('/api/flow/execute', authMiddleware);
 app.post('/api/flow/execute/stream', authMiddleware);
+app.get('/api/flows', authMiddleware);
+app.get('/api/flows/:id', authMiddleware);
+app.get('/api/flows/:id/versions', authMiddleware);
+app.get('/api/flows/:id/versions/:versionId', authMiddleware);
 app.post('/api/flows', authMiddleware);
+app.post('/api/flows/:id/versions/:versionId/restore', authMiddleware);
 app.delete('/api/flows/:id', authMiddleware);
 
 app.use('/', rootRouter);

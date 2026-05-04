@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { AuthService } from '../services/authService';
 import { AuthRequest } from '../middleware/auth';
+import { authMiddleware } from '../middleware/auth';
 
 const router = Router();
 
@@ -68,7 +69,7 @@ router.post('/login', async (req: Request, res: Response) => {
  * Get current user profile
  * GET /api/auth/profile
  */
-router.get('/profile', async (req: AuthRequest, res: Response) => {
+router.get('/profile', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
     if (!req.userId) {
       return res.status(401).json({ ok: false, error: 'Not authenticated' });
@@ -92,7 +93,7 @@ router.get('/profile', async (req: AuthRequest, res: Response) => {
  * Logout (client-side operation - just returns success)
  * POST /api/auth/logout
  */
-router.post('/logout', async (req: AuthRequest, res: Response) => {
+router.post('/logout', authMiddleware, async (req: AuthRequest, res: Response) => {
   res.json({ ok: true, message: 'Logged out successfully' });
 });
 

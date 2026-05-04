@@ -1,4 +1,5 @@
 import 'dotenv/config';
+import { PrismaPg } from '@prisma/adapter-pg';
 // Use the generated local Prisma client (bundled under `lib/prisma-client`) so
 // runtime configuration (inline schema, runtime data model) matches the
 // generated artifacts. Importing from `@prisma/client` can lead to
@@ -9,10 +10,19 @@ import type { PrismaClient as PrismaClientType } from './prisma-client';
 
 let prisma: PrismaClientType;
 
+function createPrismaClient() {
+  const databaseUrl = process.env.DATABASE_URL;
+
+  if (!databaseUrl) {
+    throw new Error('DATABASE_URL is required to initialize Prisma');
+  }
+
+  return new PrismaClient({
+    adapter: new PrismaPg({ connectionString: databaseUrl }),
+  });
+}
+
 if (process.env.NODE_ENV === 'production') {
-  const opts = process.env.DATABASE_URL
-    ? { datasources: { db: { url: process.env.DATABASE_URL } } }
-    : {};
   // Debug: ensure env is loaded at runtime
   // (mask credentials when printing)
   const _dbUrl = process.env.DATABASE_URL;
@@ -20,16 +30,10 @@ if (process.env.NODE_ENV === 'production') {
   if (_dbUrl) {
     console.log('PRISMA DEBUG: DATABASE_URL (masked):', _dbUrl.replace(/:\/\/([^@]+)@/, '://***@'));
   }
-  // Do not pass `datasources` to the PrismaClient constructor —
-  // Prisma reads `DATABASE_URL` from the environment. Passing
-  // `datasources` here can cause a constructor validation error
-  prisma = new PrismaClient();
+  prisma = createPrismaClient();
 } else {
   // Avoid instantiating multiple PrismaClient instances in development
   if (!globalThis.prisma) {
-    const opts = process.env.DATABASE_URL
-      ? { datasources: { db: { url: process.env.DATABASE_URL } } }
-      : {};
     // Debug: confirm env in development
     const _dbUrl = process.env.DATABASE_URL;
     console.log('PRISMA DEBUG (dev): DATABASE_URL set:', !!_dbUrl);
@@ -37,8 +41,7 @@ if (process.env.NODE_ENV === 'production') {
       console.log('PRISMA DEBUG (dev): DATABASE_URL (masked):', _dbUrl.replace(/:\/\/([^@]+)@/, '://***@'));
     }
     // @ts-ignore
-    // Do not pass `datasources` here for the same reason as above.
-    globalThis.prisma = new PrismaClient();
+    globalThis.prisma = createPrismaClient();
   }
   // @ts-ignore
   prisma = globalThis.prisma;

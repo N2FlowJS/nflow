@@ -11,6 +11,24 @@ export interface ApiResponse<T = any> {
   [key: string]: any; // Allow other properties like 'secret', 'secrets', 'key', etc.
 }
 
+export function clearAuthData(): void {
+  localStorage.removeItem('authToken');
+  localStorage.removeItem('user');
+}
+
+function notifyUnauthorized(): void {
+  window.dispatchEvent(new Event('auth:unauthorized'));
+}
+
+export function setCurrentUser(user: unknown): void {
+  if (!user) {
+    localStorage.removeItem('user');
+    return;
+  }
+
+  localStorage.setItem('user', JSON.stringify(user));
+}
+
 /**
  * Authenticated fetch wrapper that includes JWT token and parses JSON
  */
@@ -36,6 +54,11 @@ export async function fetchWithAuth<T = any>(
     ...options,
     headers,
   });
+
+  if (response.status === 401) {
+    clearAuthData();
+    notifyUnauthorized();
+  }
 
   try {
     const data = await response.json();

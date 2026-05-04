@@ -78,7 +78,7 @@ import {
   RuntimeStatus,
   SavedFlow,
 } from "../types/editor";
-import { API_BASE } from "../lib/api";
+import { API_BASE, fetchWithAuth } from "../lib/api";
 
 const nodeTypes: NodeTypes = {
   cyberNode: CyberNode as any,
@@ -184,7 +184,8 @@ const VersionHistoryPanel: React.FC<{
   onClose: () => void;
   versions: FlowVersion[];
   onLoadVersion: (version: FlowVersion) => void;
-}> = React.memo(({ isOpen, onClose, versions, onLoadVersion }) => {
+  isRestoring?: boolean;
+}> = React.memo(({ isOpen, onClose, versions, onLoadVersion, isRestoring = false }) => {
   if (!isOpen) return null;
 
   return (
@@ -209,6 +210,7 @@ const VersionHistoryPanel: React.FC<{
                   `Are you sure you want to load version "${version.label || version.id}"? This will overwrite your current unsaved changes.`,
                 )
               ) {
+                if (isRestoring) return;
                 onLoadVersion(version);
               }
             }}
@@ -225,6 +227,11 @@ const VersionHistoryPanel: React.FC<{
               {new Date(version.timestamp).toLocaleDateString()} •{" "}
               {version.data.nodes?.length || 0} nodes
             </div>
+            {isRestoring && (
+              <div className="mt-2 text-[10px] text-cyber-primary uppercase tracking-wider">
+                Restoring...
+              </div>
+            )}
           </div>
         ))}
         {versions.length === 0 && (
@@ -268,6 +275,7 @@ const Flow = () => {
   const [isCanvasSearchOpen, setIsCanvasSearchOpen] = useState(false);
   const [globalVariables, setGlobalVariables] = useState<GlobalVariable[]>([]);
   const [flowVersions, setFlowVersions] = useState<FlowVersion[]>([]);
+  const [isRestoringVersion, setIsRestoringVersion] = useState(false);
   const [isAutoSaving, setIsAutoSaving] = useState(false);
   const [lastAutoSave, setLastAutoSave] = useState<number | null>(null);
   const [contextMenu, setContextMenu] = useState<{
@@ -393,8 +401,8 @@ const Flow = () => {
   useEffect(() => {
     const checkStatus = async () => {
       try {
-        const res = await fetch(`${API_BASE}/api/flows`, { method: "GET" });
-        setIsOnline(res.ok);
+        const response = await fetchWithAuth('/api/flows', { method: 'GET' });
+        setIsOnline(response.ok);
       } catch {
         setIsOnline(false);
       }
@@ -406,11 +414,11 @@ const Flow = () => {
 
   const fetchFlows = useCallback(async () => {
     try {
-      const res = await fetch(`${API_BASE}/api/flows`);
-      if (res.ok) {
-        const data = await res.json();
-        setSavedFlows(data);
-        return data;
+      const response = await fetchWithAuth('/api/flows');
+      if (response.ok) {
+        const flows = Array.isArray(response.flows) ? response.flows : [];
+        setSavedFlows(flows);
+        return flows;
       }
     } catch (err) {
       console.error("Failed to fetch flows", err);
@@ -422,9 +430,9 @@ const Flow = () => {
     const loadFlow = async () => {
       if (id && id !== "new") {
         try {
-          const res = await fetch(`${API_BASE}/api/flows/${id}`);
-          if (res.ok) {
-            const flow = await res.json();
+          const response = await fetchWithAuth(`/api/flows/${id}`);
+          if (response.ok) {
+            const flow = response;
             if (flow && flow.data) {
               setNodes((flow.data.nodes || []).map(normalizeModelNode));
               setEdges(flow.data.edges || []);
@@ -1461,20 +1469,19 @@ const Flow = () => {
         };
 
         try {
-          const res = await fetch(`${API_BASE}/api/flows`, {
+          const response = await fetchWithAuth(`/api/flows`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
             body: JSON.stringify(newFlow),
           });
-          if (res.ok) {
+          if (response.ok) {
             setCurrentFlowId(newFlow.id);
             setCurrentFlowName(newFlow.name);
             fetchFlows();
 
             // Reload flow to get updated versions
-            const updatedRes = await fetch(`${API_BASE}/api/flows/${newFlow.id}`);
-            if (updatedRes.ok) {
-              const updatedResult = await updatedRes.json();
+            const updatedResponse = await fetchWithAuth(`/api/flows/${newFlow.id}`);
+              if (updatedResponse.ok) {
+                const updatedResult = updatedResponse;
               setFlowVersions(updatedResult.versions || []);
             }
 
@@ -1542,24 +1549,47 @@ const Flow = () => {
   }, [nodes, edges, globalVariables, reactFlowInstance, currentFlowId, onSave, currentFlowName]);
 
   const onLoadVersion = useCallback(
-    (version: FlowVersion) => {
-      if (version.data) {
-        setNodes((version.data.nodes || []).map(normalizeModelNode));
-        setEdges(version.data.edges || []);
-        setGlobalVariables(version.data.globalVariables || []);
+    async (version: FlowVersion) => {
+      if (!currentFlowId) {
+        return;
+      }
+
+      setIsRestoringVersion(true);
+      try {
+        const response = await fetchWithAuth(`/api/flows/${currentFlowId}/versions/${version.id}/restore`, {
+          method: 'POST',
+        });
+
+        if (!response.ok || !response.flow) {
+          throw new Error(response.error || 'Failed to restore version');
+        }
+
+        const restoredFlow = response.flow;
+        if (restoredFlow.data) {
+          setNodes((restoredFlow.data.nodes || []).map(normalizeModelNode));
+          setEdges(restoredFlow.data.edges || []);
+          setGlobalVariables(restoredFlow.data.globalVariables || []);
+          setFlowVersions(restoredFlow.versions || []);
+          setCurrentFlowName(restoredFlow.name || currentFlowName);
+        }
+
         setIsVersionHistoryOpen(false);
+      } catch (err) {
+        console.error('Failed to restore version', err);
+      } finally {
+        setIsRestoringVersion(false);
       }
     },
-    [setNodes, setEdges, setGlobalVariables],
+    [currentFlowId, currentFlowName, setNodes, setEdges, setGlobalVariables],
   );
 
   const onDeleteFlow = useCallback(
     async (flowId: string) => {
       try {
-        const res = await fetch(`${API_BASE}/api/flows/${flowId}`, {
+        const response = await fetchWithAuth(`/api/flows/${flowId}`, {
           method: "DELETE",
         });
-        if (res.ok) {
+        if (response.ok) {
           fetchFlows();
           if (currentFlowId === flowId) {
             navigate("/flow/new");
@@ -2111,7 +2141,11 @@ const Flow = () => {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const isMod = e.ctrlKey || e.metaKey;
-      const key = e.key.toLowerCase();
+      const key = typeof e.key === 'string' ? e.key.toLowerCase() : '';
+
+      if (!key) {
+        return;
+      }
 
       if (showCommandPalette) {
         if (key === "escape") {
@@ -2162,7 +2196,9 @@ const Flow = () => {
 
       if (
         e.target instanceof HTMLInputElement ||
-        e.target instanceof HTMLTextAreaElement
+        e.target instanceof HTMLTextAreaElement ||
+        e.target instanceof HTMLSelectElement ||
+        (e.target instanceof HTMLElement && e.target.isContentEditable)
       ) {
         return;
       }
@@ -2451,6 +2487,7 @@ const Flow = () => {
         onClose={() => setIsVersionHistoryOpen(false)}
         versions={flowVersions}
         onLoadVersion={onLoadVersion}
+        isRestoring={isRestoringVersion}
       />
       <VariablesPanel
         isOpen={isVariablesPanelOpen}

@@ -19,61 +19,66 @@ export interface AuthRequest extends Request {
   apiKeyId?: string;
 }
 
+export function isAuthEnforced(): boolean {
+  return process.env.ENABLE_AUTH === 'true' || process.env.NODE_ENV === 'production';
+}
+
+function applyAuthContext(req: AuthRequest): { ok: true } | { ok: false; status: number; error: string } {
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.substring(7).trim();
+    const payload = AuthService.verifyToken(token);
+    if (!payload?.userId) {
+      return {
+        ok: false,
+        status: 401,
+        error: 'Invalid or expired token.',
+      };
+    }
+
+    req.userId = payload.userId;
+    return { ok: true };
+  }
+
+  const apiKey = extractApiKey(req);
+  if (!apiKey) {
+    return { ok: true };
+  }
+
+  if (!isValidApiKey(apiKey)) {
+    return {
+      ok: false,
+      status: 403,
+      error: 'Invalid or expired API key.',
+    };
+  }
+
+  req.userId = extractUserIdFromKey(apiKey);
+  req.apiKeyId = apiKey.substring(0, 8) + '***';
+  return { ok: true };
+}
+
 export const authMiddleware = async (
   req: AuthRequest,
   res: Response,
   next: NextFunction,
 ): Promise<void> => {
-  // Check if auth is enabled
-  const authEnabled = process.env.ENABLE_AUTH === "true";
-  if (!authEnabled) {
-    next();
+  const authResult = applyAuthContext(req);
+  if (!authResult.ok) {
+    res.status(authResult.status).json({
+      ok: false,
+      error: authResult.error,
+    });
     return;
   }
 
-  // Try JWT token first
-  const authHeader = req.headers.authorization;
-  if (authHeader && authHeader.startsWith("Bearer ")) {
-    const token = authHeader.substring(7).trim();
-    const payload = AuthService.verifyToken(token);
-    if (!payload?.userId) {
-      res.status(401).json({
-        ok: false,
-        error: "Invalid or expired token.",
-      });
-      return;
-    }
-
-    if (payload) {
-      req.userId = payload.userId;
-      next();
-      return;
-    }
-  }
-
-  // Fall back to API key
-  const apiKey = extractApiKey(req);
-
-  if (!apiKey) {
+  if (isAuthEnforced() && !req.userId) {
     res.status(401).json({
       ok: false,
-      error: "Authentication required. Provide JWT token or API key.",
+      error: 'Authentication required. Provide JWT token or API key.',
     });
     return;
   }
-
-  // Validate API key
-  if (!isValidApiKey(apiKey)) {
-    res.status(403).json({
-      ok: false,
-      error: "Invalid or expired API key.",
-    });
-    return;
-  }
-
-  // Attach user context to request
-  req.userId = extractUserIdFromKey(apiKey);
-  req.apiKeyId = apiKey.substring(0, 8) + "***"; // Partial key for logging
 
   next();
 };
@@ -131,10 +136,13 @@ export const optionalAuth = (
   res: Response,
   next: NextFunction,
 ): void => {
-  const apiKey = extractApiKey(req);
-  if (apiKey && isValidApiKey(apiKey)) {
-    req.userId = extractUserIdFromKey(apiKey);
-    req.apiKeyId = apiKey.substring(0, 8) + "***";
+  const authResult = applyAuthContext(req);
+  if (!authResult.ok) {
+    res.status(authResult.status).json({
+      ok: false,
+      error: authResult.error,
+    });
+    return;
   }
   next();
 };

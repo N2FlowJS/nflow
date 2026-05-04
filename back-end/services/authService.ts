@@ -23,6 +23,14 @@ export interface AuthResponse {
   error?: string;
 }
 
+function normalizeEmail(email: string): string {
+  return email.trim().toLowerCase();
+}
+
+function normalizeUsername(username: string): string {
+  return username.trim();
+}
+
 export class AuthService {
   /**
    * Hash password with bcrypt
@@ -69,8 +77,11 @@ export class AuthService {
     name?: string
   ): Promise<AuthResponse> {
     try {
+      const normalizedEmail = normalizeEmail(email);
+      const normalizedUsername = normalizeUsername(username);
+
       // Validate input
-      if (!email || !username || !password) {
+      if (!normalizedEmail || !normalizedUsername || !password) {
         return { ok: false, error: 'Email, username, and password are required' };
       }
 
@@ -81,14 +92,14 @@ export class AuthService {
       // Check if user already exists
       const existingUser = await prisma.user.findFirst({
         where: {
-          OR: [{ email }, { username }],
+          OR: [{ email: normalizedEmail }, { username: normalizedUsername }],
         },
       });
 
       if (existingUser) {
         return {
           ok: false,
-          error: existingUser.email === email ? 'Email already registered' : 'Username already taken',
+          error: existingUser.email === normalizedEmail ? 'Email already registered' : 'Username already taken',
         };
       }
 
@@ -98,10 +109,10 @@ export class AuthService {
       // Create user
       const user = await prisma.user.create({
         data: {
-          email,
-          username,
+          email: normalizedEmail,
+          username: normalizedUsername,
           password: hashedPassword,
-          name: name || username,
+          name: name?.trim() || normalizedUsername,
         },
       });
 
@@ -129,14 +140,16 @@ export class AuthService {
    */
   static async login(email: string, password: string): Promise<AuthResponse> {
     try {
+      const normalizedEmail = normalizeEmail(email);
+
       // Validate input
-      if (!email || !password) {
+      if (!normalizedEmail || !password) {
         return { ok: false, error: 'Email and password are required' };
       }
 
       // Find user by email
       const user = await prisma.user.findUnique({
-        where: { email },
+        where: { email: normalizedEmail },
       });
 
       if (!user) {

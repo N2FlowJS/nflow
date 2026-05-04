@@ -1,6 +1,14 @@
 import prisma from "../lib/prisma";
 
 export class FlowStorageService {
+  static requireUserId(userId?: string) {
+    if (!userId) {
+      throw new Error('User ID is required');
+    }
+
+    return userId;
+  }
+
   /**
    * Initialize storage (no-op for Prisma - database is already initialized)
    */
@@ -63,15 +71,25 @@ export class FlowStorageService {
     }));
   }
 
+  static async listFlowsScoped(userId?: string) {
+    const ownerId = this.requireUserId(userId);
+    return this.listFlowsForUser(ownerId);
+  }
+
   /**
    * Get a specific flow by ID
    */
-  static async getFlow(id: string) {
+  static async getFlow(id: string, userId?: string) {
     const flow = await prisma.flow.findUnique({
       where: { id },
     });
 
     if (!flow) {
+      throw new Error(`Flow ${id} not found`);
+    }
+
+    const ownerId = this.requireUserId(userId);
+    if (flow.userId !== ownerId) {
       throw new Error(`Flow ${id} not found`);
     }
 
@@ -96,10 +114,6 @@ export class FlowStorageService {
       throw new Error('Flow ID is required');
     }
 
-    if (!flow.userId) {
-      throw new Error('User ID is required');
-    }
-
     const timestamp = Date.now();
     const isAutoSave = !!flow.isAutoSave;
 
@@ -111,7 +125,7 @@ export class FlowStorageService {
       });
 
       // Verify user owns this flow
-      if (existingFlow && existingFlow.userId !== flow.userId) {
+      if (existingFlow && flow.userId && existingFlow.userId !== flow.userId) {
         throw new Error('Forbidden: User does not own this flow');
       }
     } catch (err) {
@@ -120,6 +134,19 @@ export class FlowStorageService {
         throw err;
       }
     }
+
+    const ownerId = flow.userId || existingFlow?.userId || this.requireUserId(flow.userId);
+
+    const currentFlowData = flow.data && typeof flow.data === 'object'
+      ? flow.data
+      : {
+          nodes: flow.nodes || [],
+          edges: flow.edges || [],
+          globalVariables: flow.globalVariables || [],
+          viewport: flow.viewport,
+          metadata: flow.metadata,
+          description: flow.description,
+        };
 
     // Prepare versions
     let versions = [];
@@ -130,7 +157,7 @@ export class FlowStorageService {
         const newVersion = {
           id: `v-${timestamp}`,
           timestamp,
-          data: flow.data,
+          data: currentFlowData,
           label: flow.versionLabel || `Version ${new Date(timestamp).toLocaleString()}`,
         };
         versions = [newVersion, ...(existingData.versions || [])].slice(0, 50);
@@ -143,7 +170,7 @@ export class FlowStorageService {
       const newVersion = {
         id: `v-${timestamp}`,
         timestamp,
-        data: flow.data,
+        data: currentFlowData,
         label: flow.versionLabel || 'Initial Version',
       };
       versions = [newVersion];
@@ -151,7 +178,7 @@ export class FlowStorageService {
 
     // Prepare flow data with versions
     const flowData = {
-      ...flow.data,
+      ...currentFlowData,
       versions,
     };
 
@@ -163,7 +190,7 @@ export class FlowStorageService {
       create: {
         id: flow.id,
         name: flow.name || flow.id,
-        userId: flow.userId,
+        userId: ownerId,
         data: JSON.stringify(flowData),
       },
       update: {
@@ -213,16 +240,9 @@ export class FlowStorageService {
   /**
    * Get all versions of a flow
    */
-  static async getFlowVersions(id: string) {
-    const flow = await prisma.flow.findUnique({
-      where: { id },
-    });
-
-    if (!flow) {
-      throw new Error(`Flow ${id} not found`);
-    }
-
-    const data = JSON.parse(flow.data);
+  static async getFlowVersions(id: string, userId?: string) {
+    const flow = await this.getFlow(id, userId);
+    const data = flow.data;
     const versions = data.versions || [];
 
     return versions.map((v: any) => ({
@@ -236,16 +256,9 @@ export class FlowStorageService {
   /**
    * Get a specific version of a flow
    */
-  static async getFlowVersion(id: string, versionId: string) {
-    const flow = await prisma.flow.findUnique({
-      where: { id },
-    });
-
-    if (!flow) {
-      throw new Error(`Flow ${id} not found`);
-    }
-
-    const data = JSON.parse(flow.data);
+  static async getFlowVersion(id: string, versionId: string, userId?: string) {
+    const flow = await this.getFlow(id, userId);
+    const data = flow.data;
     const versions = data.versions || [];
     const version = versions.find((v: any) => v.id === versionId);
 
@@ -265,12 +278,17 @@ export class FlowStorageService {
    * Restore a previous version of a flow
    */
   static async restoreFlowVersion(id: string, versionId: string, userId?: string) {
+    const ownerId = this.requireUserId(userId);
     const flow = await prisma.flow.findUnique({
       where: { id },
     });
 
     if (!flow) {
       throw new Error(`Flow ${id} not found`);
+    }
+
+    if (flow.userId !== ownerId) {
+      throw new Error('Forbidden: User does not own this flow');
     }
 
     const data = JSON.parse(flow.data);
@@ -295,6 +313,8 @@ export class FlowStorageService {
     data.versions = [restoredVersion, ...versions].slice(0, 50);
     data.nodes = version.data.nodes;
     data.edges = version.data.edges;
+    data.globalVariables = version.data.globalVariables || data.globalVariables || [];
+    data.viewport = version.data.viewport || data.viewport;
 
     // Save restored flow
     await prisma.flow.update({
@@ -313,6 +333,7 @@ export class FlowStorageService {
       name: flow.name,
       data,
       updatedAt: timestamp,
+      versions: data.versions,
     };
   }
 }

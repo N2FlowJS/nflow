@@ -5,8 +5,9 @@
   "description": "N2Flow backend server with Express and LLM integration",
   "main": "dist/index.js",
   "scripts": {
-    "dev": "concurrently \"tsc -w --preserveWatchOutput\" \"tsx watch index.ts\"",
+    "dev": "node --watch --import tsx index.ts",
     "build": "tsc && node scripts/postbuild.cjs",
+    "type-check": "tsc --noEmit",
     "start": "node --enable-source-maps dist/index.js",
     "db:studio": "prisma studio --config prisma.config.ts",
     "db:migrate": "prisma migrate dev --config prisma.config.ts",

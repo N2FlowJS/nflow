@@ -7,6 +7,18 @@ import { AuthRequest } from '../middleware/auth';
 
 const router = Router();
 
+function requireFlowUser(req: AuthRequest, res: Response): string | null {
+  if (!req.userId) {
+    res.status(401).json({
+      ok: false,
+      error: 'Authentication required.',
+    });
+    return null;
+  }
+
+  return req.userId;
+}
+
 // Execution endpoints
 router.post('/flow/execute', async (req: AuthRequest, res: Response) => {
   try {
@@ -108,13 +120,16 @@ router.post('/flow/execute/stream', async (req: AuthRequest, res: Response) => {
 
 
 // Storage endpoints
-router.get('/flows', async (req: Request, res: Response) => {
+router.get('/flows', async (req: AuthRequest, res: Response) => {
   try {
+    const userId = requireFlowUser(req, res);
+    if (!userId) return;
+
     // Parse pagination parameters
     const limit = Math.min(Math.max(parseInt(String(req.query.limit)) || 20, 1), 100);
     const offset = Math.max(parseInt(String(req.query.offset)) || 0, 0);
     
-    const allFlows = await FlowStorageService.listFlows();
+    const allFlows = await FlowStorageService.listFlowsScoped(userId);
     const total = allFlows.length;
     const flows = allFlows.slice(offset, offset + limit);
     
@@ -134,9 +149,12 @@ router.get('/flows', async (req: Request, res: Response) => {
   }
 });
 
-router.get('/flows/:id', async (req: Request, res: Response) => {
+router.get('/flows/:id', async (req: AuthRequest, res: Response) => {
   try {
-    const data = await FlowStorageService.getFlow(String(req.params.id));
+    const userId = requireFlowUser(req, res);
+    if (!userId) return;
+
+    const data = await FlowStorageService.getFlow(String(req.params.id), userId);
     res.json(data);
   } catch (err) {
     res.status(404).json({ error: 'Flow not found' });
@@ -145,12 +163,15 @@ router.get('/flows/:id', async (req: Request, res: Response) => {
 
 router.post('/flows', async (req: AuthRequest, res: Response) => {
   try {
+    const userId = requireFlowUser(req, res);
+    if (!userId) return;
+
     // Validate request payload
     const validatedRequest = RequestValidator.validateFlowSave(req.body);
 
     const id = await FlowStorageService.saveFlow({
       ...validatedRequest,
-      userId: req.userId, // Add user context
+      userId, // Add user context
     });
     res.json({ ok: true, id });
   } catch (err) {
@@ -163,7 +184,10 @@ router.post('/flows', async (req: AuthRequest, res: Response) => {
 
 router.delete('/flows/:id', async (req: AuthRequest, res: Response) => {
   try {
-    await FlowStorageService.deleteFlow(String(req.params.id), req.userId);
+    const userId = requireFlowUser(req, res);
+    if (!userId) return;
+
+    await FlowStorageService.deleteFlow(String(req.params.id), userId);
     res.json({ ok: true });
   } catch (err) {
     const errorMsg = err instanceof Error ? err.message : 'Failed to delete flow';
@@ -174,20 +198,27 @@ router.delete('/flows/:id', async (req: AuthRequest, res: Response) => {
 });
 
 // Version history endpoints
-router.get('/flows/:id/versions', async (req: Request, res: Response) => {
+router.get('/flows/:id/versions', async (req: AuthRequest, res: Response) => {
   try {
-    const versions = await FlowStorageService.getFlowVersions(String(req.params.id));
+    const userId = requireFlowUser(req, res);
+    if (!userId) return;
+
+    const versions = await FlowStorageService.getFlowVersions(String(req.params.id), userId);
     res.json(versions || []);
   } catch (err) {
     res.status(404).json({ error: 'Flow not found' });
   }
 });
 
-router.get('/flows/:id/versions/:versionId', async (req: Request, res: Response) => {
+router.get('/flows/:id/versions/:versionId', async (req: AuthRequest, res: Response) => {
   try {
+    const userId = requireFlowUser(req, res);
+    if (!userId) return;
+
     const flow = await FlowStorageService.getFlowVersion(
       String(req.params.id),
-      String(req.params.versionId)
+      String(req.params.versionId),
+      userId,
     );
     if (!flow) {
       res.status(404).json({ error: 'Version not found' });
@@ -201,10 +232,13 @@ router.get('/flows/:id/versions/:versionId', async (req: Request, res: Response)
 
 router.post('/flows/:id/versions/:versionId/restore', async (req: AuthRequest, res: Response) => {
   try {
+    const userId = requireFlowUser(req, res);
+    if (!userId) return;
+
     const flow = await FlowStorageService.restoreFlowVersion(
       String(req.params.id),
       String(req.params.versionId),
-      req.userId
+      userId
     );
     res.json({ ok: true, flow });
   } catch (err) {

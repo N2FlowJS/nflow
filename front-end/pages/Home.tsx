@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, FolderOpen, Trash2, Clock, GitBranch, Copy, GitCommit, Search } from 'lucide-react';
 import { FLOW_TEMPLATES, createSavedFlowFromTemplate } from '../../back-end/flow-templates';
-import { API_BASE } from '../lib/api';
+import { API_BASE, fetchWithAuth } from '../lib/api';
 
 type SavedFlow = {
   id: string;
@@ -24,10 +24,10 @@ export default function Home() {
   useEffect(() => {
     const loadFlows = async () => {
       try {
-        const res = await fetch(`${API_BASE}/api/flows`);
-        if (res.ok) {
-          const data = await res.json();
-          setFlows(Array.isArray(data) ? data : data.flows || []);
+        const response = await fetchWithAuth('/api/flows');
+        if (response.ok) {
+          const flows = Array.isArray(response.flows) ? response.flows : [];
+          setFlows(flows);
         }
       } catch (err) {
         console.error('Failed to load flows from server:', err);
@@ -40,9 +40,9 @@ export default function Home() {
     e.stopPropagation();
     if (confirm('Are you sure you want to delete this flow?')) {
       try {
-        const res = await fetch(`${API_BASE}/api/flows/${id}`, { method: 'DELETE' });
+        const response = await fetchWithAuth(`/api/flows/${id}`, { method: 'DELETE' });
 
-        if (res.ok) {
+        if (response.ok) {
           setFlows(flows.filter(f => f.id !== id));
         }
       } catch (err) {
@@ -55,9 +55,9 @@ export default function Home() {
     e.stopPropagation();
     try {
       // Fetch full flow data if needed
-      const fullRes = await fetch(`${API_BASE}/api/flows/${flow.id}`);
-      if (!fullRes.ok) throw new Error('Failed to fetch full flow data');
-      const fullFlow = await fullRes.json();
+      const fullResponse = await fetchWithAuth(`/api/flows/${flow.id}`);
+      if (!fullResponse.ok) throw new Error(fullResponse.error || 'Failed to fetch full flow data');
+      const fullFlow = fullResponse;
 
       const newFlow: SavedFlow = {
         ...fullFlow,
@@ -66,13 +66,12 @@ export default function Home() {
         updatedAt: Date.now(),
       };
 
-      const res = await fetch(`${API_BASE}/api/flows`, {
+      const response = await fetchWithAuth('/api/flows', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newFlow),
       });
 
-      if (res.ok) {
+      if (response.ok) {
         setFlows([newFlow, ...flows]);
       }
     } catch (err) {
@@ -85,13 +84,12 @@ export default function Home() {
     if (!newFlow) return;
     
     try {
-      const res = await fetch(`${API_BASE}/api/flows`, {
+      const response = await fetchWithAuth('/api/flows', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newFlow),
       });
 
-      if (res.ok) {
+      if (response.ok) {
         navigate(`/flow/${newFlow.id}`);
       }
     } catch (err) {
