@@ -1,0 +1,36 @@
+{
+  "name": "n2flow-frontend",
+  "version": "0.0.0",
+  "type": "module",
+  "description": "N2Flow frontend - AI-powered flow editor",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "type-check": "tsc -p tsconfig.node.json && tsc --noEmit"
+  },
+  "dependencies": {
+    "@tailwindcss/typography": "^0.5.19",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@xyflow/react": "^12.10.2",
+    "dagre": "^0.8.5",
+    "elkjs": "^0.11.1",
+    "html-to-image": "^1.11.13",
+    "lucide-react": "0.300.0",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "react-markdown": "^10.1.0",
+    "react-router-dom": "^7.13.1",
+    "recharts": "^3.7.0"
+  },
+  "devDependencies": {
+    "@types/dagre": "^0.7.53",
+    "@types/node": "^20.11.0",
+    "@vitejs/plugin-react": "^5.0.0",
+    "typescript": "~5.8.2",
+    "vite": "^6.2.0",
+    "@n2flow/types": "file:../packages/types"
+  }
+
+}

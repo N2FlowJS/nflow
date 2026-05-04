@@ -1,0 +1,71 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider   = "prisma-client-js"
+  engineType = "binary"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String       @id @default(cuid())
+  email     String       @unique
+  username  String       @unique
+  password  String       // Hashed password
+  name      String?
+  flows     Flow[]
+  secrets   UserSecret[]
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  @@map("users")
+}
+
+model Flow {
+  id          String          @id @default(cuid())
+  name        String
+  data        String          // Stores JSON as string (nodes and edges)
+  userId      String          // Owner of the flow
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  executions  FlowExecution[]
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@index([userId])
+  @@map("flows")
+}
+
+model FlowExecution {
+  id        String   @id @default(cuid())
+  flowId    String
+  flow      Flow     @relation(fields: [flowId], references: [id], onDelete: Cascade)
+  status    String   @default("idle") // idle, running, success, error
+  input     String?
+  output    String?
+  error     String?
+  startedAt DateTime?
+  endedAt   DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([flowId])
+  @@map("flow_executions")
+}
+
+model UserSecret {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String   // Display name (e.g., "OpenAI API Key")
+  key         String   @unique // The secret value (encrypted)
+  label       String?  // Short label/description
+  lastUsedAt  DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([userId, name])
+  @@index([userId])
+  @@map("user_secrets")
+}

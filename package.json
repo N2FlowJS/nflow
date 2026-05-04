@@ -3,47 +3,29 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "description": "AI-powered flow editor with LLM integration",
+  "author": "n2flow team",
   "scripts": {
-    "dev": "vite",
-    "dev:server": "tsx server/index.ts",
-    "build": "vite build",
-    "preview": "vite preview",
-    "dev:all": "concurrently \"npm run dev\" \"npm run dev:server\""
-  },
-  "dependencies": {
-    "@anthropic-ai/sdk": "^0.80.0",
-    "@elastic/elasticsearch": "^9.1.1",
-    "@google/genai": "^1.42.0",
-    "@tailwindcss/typography": "^0.5.19",
-    "@types/dagre": "^0.7.53",
-    "@xyflow/react": "12.0.0",
-    "cors": "^2.8.6",
-    "dagre": "^0.8.5",
-    "dotenv": "^17.3.1",
-    "elkjs": "^0.11.1",
-    "express": "^5.2.1",
-    "express-rate-limit": "^8.3.1",
-    "html-to-image": "^1.11.13",
-    "lucide-react": "0.300.0",
-    "mssql": "^12.2.0",
-    "ollama": "^0.6.3",
-    "openai": "^6.25.0",
-    "react": "18.3.1",
-    "react-dom": "18.3.1",
-    "react-markdown": "^10.1.0",
-    "react-router-dom": "^7.13.1",
-    "recharts": "^3.7.0"
+    "install:all": "npm install && cd back-end && npm install && cd ../front-end && npm install",
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "cd back-end && npm run dev",
+    "dev:frontend": "cd front-end && npm run dev",
+    "build": "concurrently \"npm run build:backend\" \"npm run build:frontend\"",
+    "build:backend": "cd back-end && npm run build",
+    "build:frontend": "cd front-end && npm run build",
+    "preview": "cd front-end && npm run preview",
+    "db:studio": "cd back-end && npm run db:studio",
+    "db:migrate": "cd back-end && npm run db:migrate",
+    "db:generate": "cd back-end && npm run db:generate",
+    "db:push": "cd back-end && npm run db:push",
+    "db:reset": "cd back-end && npm run db:reset",
+    "db:seed": "cd back-end && npm run db:seed"
   },
   "devDependencies": {
-    "@types/cors": "^2.8.19",
-    "@types/express": "^5.0.6",
-    "@types/mssql": "^9.1.9",
-    "@types/node": "^22.14.0",
-    "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-react": "^5.0.0",
-    "concurrently": "^9.2.1",
-    "tsx": "^4.20.5",
-    "typescript": "~5.8.2",
-    "vite": "^6.2.0"
+    "@xyflow/react": "^12.10.2",
+    "concurrently": "^9.2.1"
+  },
+  "dependencies": {
+    "@prisma/client": "^7.7.0"
   }
 }

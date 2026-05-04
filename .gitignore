@@ -15,6 +15,14 @@ dist-ssr
 .env.local
 .env.*.local
 
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Prisma
+prisma/*.db
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
