@@ -10,10 +10,18 @@ import {
   setNodeFieldValueInSchema,
 } from '../../back-end/node-registry';
 
+type CyberNodeTransientData = CustomNodeType['data'] & {
+  __openConfigToken?: number;
+  __openDataToken?: number;
+  __focusFieldName?: string;
+  __focusFieldToken?: number;
+};
+
 export const useCyberNode = (id: string, data: CustomNodeType['data']) => {
   const { setNodes, deleteElements } = useReactFlow();
   const updateNodeInternals = useUpdateNodeInternals();
   const edges = useEdges();
+  const transientData = data as CyberNodeTransientData;
 
   const [isConfigOpen, setIsConfigOpen] = useState(false);
   const [isDataOpen, setIsDataOpen] = useState(false);
@@ -26,10 +34,10 @@ export const useCyberNode = (id: string, data: CustomNodeType['data']) => {
   const copiedDataTimeoutRef = useRef<number | null>(null);
   const configFieldRefs = useRef<Record<string, HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement | null>>({});
 
-  const openConfigToken = (data as any).__openConfigToken as number | undefined;
-  const openDataToken = (data as any).__openDataToken as number | undefined;
-  const focusFieldName = (data as any).__focusFieldName as string | undefined;
-  const focusFieldToken = (data as any).__focusFieldToken as number | undefined;
+  const openConfigToken = transientData.__openConfigToken;
+  const openDataToken = transientData.__openDataToken;
+  const focusFieldName = transientData.__focusFieldName;
+  const focusFieldToken = transientData.__focusFieldToken;
 
   useEffect(() => {
     if (openConfigToken === undefined) return;
@@ -70,7 +78,7 @@ export const useCyberNode = (id: string, data: CustomNodeType['data']) => {
     };
   }, []);
 
-  const updateNodeData = useCallback((newData: any) => {
+  const updateNodeData = useCallback((newData: Partial<CyberNodeTransientData>) => {
     setNodes((nds) => nds.map((node) => {
       if (node.id === id) {
         return { ...node, data: { ...node.data, ...newData } };
@@ -79,7 +87,7 @@ export const useCyberNode = (id: string, data: CustomNodeType['data']) => {
     }));
   }, [id, setNodes]);
 
-  const handleParamChange = useCallback((name: string, value: any) => {
+  const handleParamChange = useCallback((name: string, value: string | number | boolean) => {
     if (data.type === 'Agent' && name === 'agentTemplate') {
       const templateName = String(value || '');
       let updatedSchema = setNodeFieldValueInSchema(data.configSchema, 'agentTemplate', templateName);

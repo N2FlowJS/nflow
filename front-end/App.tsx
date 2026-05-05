@@ -5,54 +5,31 @@ import FlowEditor from './pages/FlowEditor';
 import Login from './pages/Login';
 import SecretManager from './pages/SecretManager';
 import { ProtectedRoute } from './components/ProtectedRoute';
-import { clearAuthData, fetchWithAuth, setCurrentUser } from './lib/api';
+import {
+  AUTH_STATE_CHANGED_EVENT,
+  bootstrapAuthSession,
+  getAuthToken,
+  type AuthStateChangeDetail,
+} from './lib/api';
 
 export default function App() {
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(
-    () => !!localStorage.getItem('authToken'),
+    () => !!getAuthToken(),
   );
 
   useEffect(() => {
     let isMounted = true;
 
     const bootstrapAuth = async () => {
-      const token = localStorage.getItem('authToken');
+      const session = await bootstrapAuthSession();
 
-      if (!token) {
-        if (isMounted) {
-          setIsAuthenticated(false);
-          setIsCheckingAuth(false);
-        }
+      if (!isMounted) {
         return;
       }
 
-      try {
-        const response = await fetchWithAuth('/api/auth/profile');
-
-        if (!isMounted) {
-          return;
-        }
-
-        if (response.ok && response.user) {
-          setCurrentUser(response.user);
-          setIsAuthenticated(true);
-          setIsCheckingAuth(false);
-          return;
-        }
-
-        clearAuthData();
-        setIsAuthenticated(false);
-        setIsCheckingAuth(false);
-      } catch {
-        if (!isMounted) {
-          return;
-        }
-
-        clearAuthData();
-        setIsAuthenticated(false);
-        setIsCheckingAuth(false);
-      }
+      setIsAuthenticated(session.authenticated);
+      setIsCheckingAuth(false);
     };
 
     void bootstrapAuth();
@@ -63,15 +40,15 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    const handleUnauthorized = () => {
-      clearAuthData();
-      setIsAuthenticated(false);
+    const handleAuthStateChanged = (event: Event) => {
+      const detail = (event as CustomEvent<AuthStateChangeDetail>).detail;
+      setIsAuthenticated(detail?.authenticated ?? !!getAuthToken());
       setIsCheckingAuth(false);
     };
 
-    window.addEventListener('auth:unauthorized', handleUnauthorized);
+    window.addEventListener(AUTH_STATE_CHANGED_EVENT, handleAuthStateChanged as EventListener);
     return () => {
-      window.removeEventListener('auth:unauthorized', handleUnauthorized);
+      window.removeEventListener(AUTH_STATE_CHANGED_EVENT, handleAuthStateChanged as EventListener);
     };
   }, []);
 

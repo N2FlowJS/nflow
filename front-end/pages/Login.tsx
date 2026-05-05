@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Lock, Mail, User, Eye, EyeOff } from 'lucide-react';
-import { API_BASE, clearAuthData, fetchWithAuth, setCurrentUser } from '../lib/api';
+import { API_BASE, bootstrapAuthSession, setAuthSession } from '../lib/api';
 
 interface AuthFormData {
   email: string;
@@ -12,6 +12,7 @@ interface AuthFormData {
 export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
+  const redirectPath = (location.state as any)?.from?.pathname || '/';
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   const [checkingSession, setCheckingSession] = useState(true);
@@ -27,39 +28,18 @@ export default function Login() {
     let isMounted = true;
 
     const bootstrapLoginSession = async () => {
-      const token = localStorage.getItem('authToken');
+      const session = await bootstrapAuthSession();
 
-      if (!token) {
-        if (isMounted) {
-          setCheckingSession(false);
-        }
+      if (!isMounted) {
         return;
       }
 
-      try {
-        const response = await fetchWithAuth('/api/auth/profile');
-
-        if (!isMounted) {
-          return;
-        }
-
-        if (response.ok && response.user) {
-          setCurrentUser(response.user);
-          const from = (location.state as any)?.from?.pathname || '/';
-          navigate(from, { replace: true });
-          return;
-        }
-
-        clearAuthData();
-        setCheckingSession(false);
-      } catch {
-        if (!isMounted) {
-          return;
-        }
-
-        clearAuthData();
-        setCheckingSession(false);
+      if (session.authenticated) {
+        navigate(redirectPath, { replace: true });
+        return;
       }
+
+      setCheckingSession(false);
     };
 
     void bootstrapLoginSession();
@@ -67,7 +47,7 @@ export default function Login() {
     return () => {
       isMounted = false;
     };
-  }, [location.state, navigate]);
+  }, [navigate, redirectPath]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -107,13 +87,15 @@ export default function Login() {
         return;
       }
 
-      // Save token to localStorage
-      localStorage.setItem('authToken', result.token);
-      localStorage.setItem('user', JSON.stringify(result.user));
+      if (!result.token || !result.user) {
+        setError('Authentication response is missing session data');
+        return;
+      }
+
+      setAuthSession(result.token, result.user);
 
       // Redirect to previous page or home
-      const from = (location.state as any)?.from?.pathname || '/';
-      navigate(from, { replace: true });
+      navigate(redirectPath, { replace: true });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Network error');
     } finally {

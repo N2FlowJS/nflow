@@ -1,6 +1,7 @@
 import React, { memo, useEffect, useMemo } from 'react';
-import { Handle, Position, NodeProps, useConnection, useReactFlow } from '@xyflow/react';
+import { Handle, NodeProps, useConnection, useReactFlow } from '@xyflow/react';
 import type { CustomNodeType } from '@n2flow/types';
+import type { NamedHandleRenderOptions } from './node-parts/NodeHandles';
 import {
   getNodeFieldValue,
   getNodeInputHandles,
@@ -17,7 +18,6 @@ import {
 // Sub-components
 import { NodeHeader } from './node-parts/NodeHeader';
 import { NodeActions } from './node-parts/NodeActions';
-import { ResultPreview } from './node-parts/ResultPreview';
 import { NodeDataModal } from './node-parts/NodeDataModal';
 import { NodeHandles } from './node-parts/NodeHandles';
 
@@ -56,16 +56,12 @@ const CyberNode = ({ id, data, selected }: NodeProps<CustomNodeType>) => {
     isConfigOpen, setIsConfigOpen,
     isDataOpen, setIsDataOpen,
     hoveredHandle, setHoveredHandle,
-    highlightedField,
     showFullError, setShowFullError,
     copiedDataKey,
-    configFieldRefs,
-    updateNodeData,
     handleParamChange,
     onRun,
     onDelete,
     copyJsonValue,
-    edges,
     updateNodeInternals
   } = useCyberNode(id, data);
 
@@ -138,7 +134,7 @@ const CyberNode = ({ id, data, selected }: NodeProps<CustomNodeType>) => {
     if (!hasActiveConnection) return bClass;
 
     const isCompatible = isCompatibleHandle(kind, portType);
-    return `${bClass} ${isCompatible ? '!opacity-100 !border-cyber-primary !shadow-[0_0_15px_rgba(0,240,255,0.8)] animate-pulse scale-125' : 'opacity-20'}`;
+    return `${bClass} ${isCompatible ? '!opacity-100 !w-4 !h-4 !border-cyber-primary !shadow-[0_0_15px_rgba(0,240,255,0.8)] animate-pulse' : 'opacity-20'}`;
   };
 
   const colorByPortType: Record<PortDataType, string> = {
@@ -176,7 +172,7 @@ const CyberNode = ({ id, data, selected }: NodeProps<CustomNodeType>) => {
     );
   };
 
-  const renderNamedHandle = (options: any) => {
+  const renderNamedHandle = (options: NamedHandleRenderOptions) => {
     const { kind, position, portType, id: hId, style, borderClass = '!border-cyber-muted', hoverBorderClass = 'hover:!border-cyber-primary transition-colors', badgeParamKey, badgeFallback, badgeClassName, index } = options;
     const effectiveType = kind === 'source' && badgeParamKey ? readPortType(data, badgeParamKey, badgeFallback || portType) : portType;
     const bClass = `!w-3 !h-3 !bg-cyber-panel !border-2 ${borderClass} ${hoverBorderClass} ${handleBaseClasses}`;

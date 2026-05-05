@@ -8,19 +8,61 @@ import { LogSanitizer, installGlobalLogSanitizer } from './middleware/logSanitiz
 
 const app = express();
 const port = Number(process.env.SQL_SERVER_PORT || 8787);
+const isProduction = process.env.NODE_ENV === 'production';
+
+function readNumberEnv(name: string, fallback: number): number {
+  const rawValue = process.env[name];
+  if (!rawValue) {
+    return fallback;
+  }
+
+  const parsed = Number(rawValue);
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : fallback;
+}
+
+function createJsonRateLimitMessage(windowMs: number, message: string) {
+  return {
+    ok: false,
+    error: message,
+    retryAfterMs: windowMs,
+  };
+}
 
 // Enable global log sanitization if requested
 if (process.env.ENABLE_LOG_SANITIZATION === 'true') {
   installGlobalLogSanitizer();
 }
 
-// Security: Rate limiting to prevent DoS/Brute-force
+// Security: keep request throttling configurable. Local development is noisy
+// because the editor polls and retries often, so only enable the global limiter
+// outside dev unless explicitly requested.
+const globalRateLimitWindowMs = readNumberEnv('RATE_LIMIT_WINDOW_MS', 15 * 60 * 1000);
+const globalRateLimitMax = readNumberEnv('RATE_LIMIT_MAX', 100);
+const authRateLimitWindowMs = readNumberEnv('AUTH_RATE_LIMIT_WINDOW_MS', 15 * 60 * 1000);
+const authRateLimitMax = readNumberEnv('AUTH_RATE_LIMIT_MAX', 10);
+const enableGlobalRateLimit = process.env.ENABLE_RATE_LIMIT === 'true' || isProduction;
+const enableAuthRateLimit = process.env.ENABLE_AUTH_RATE_LIMIT === 'true' || isProduction;
+
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
+  windowMs: globalRateLimitWindowMs,
+  max: globalRateLimitMax,
   standardHeaders: true,
   legacyHeaders: false,
-  message: 'Too many requests from this IP, please try again after 15 minutes',
+  message: createJsonRateLimitMessage(
+    globalRateLimitWindowMs,
+    'Too many requests from this IP, please try again later',
+  ),
+});
+
+const authLimiter = rateLimit({
+  windowMs: authRateLimitWindowMs,
+  max: authRateLimitMax,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: createJsonRateLimitMessage(
+    authRateLimitWindowMs,
+    'Too many authentication attempts from this IP, please try again later',
+  ),
 });
 
 // Security: CORS configuration
@@ -39,8 +81,14 @@ app.use((req, res, next) => {
   }
 });
 
-// Apply rate limiting to all requests
-app.use(limiter);
+if (enableGlobalRateLimit) {
+  app.use(limiter);
+}
+
+if (enableAuthRateLimit) {
+  app.use('/api/auth/login', authLimiter);
+  app.use('/api/auth/register', authLimiter);
+}
 
 // Authentication middleware for sensitive endpoints
 app.post('/api/flow/execute', authMiddleware);

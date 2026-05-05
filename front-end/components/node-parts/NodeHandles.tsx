@@ -1,18 +1,63 @@
-import React from 'react';
+import React, { CSSProperties } from 'react';
 import { Handle, Position } from '@xyflow/react';
+import type { NodeData } from '@n2flow/types';
+import type {
+  NodeInputHandleConfig,
+  NodeSourceHandleConfig,
+} from '../../../back-end/node-registry';
 import { PortDataType, readPortType } from '../../../back-end/node-registry/utils';
+
+type RegistryHandleConfig = NodeInputHandleConfig | NodeSourceHandleConfig;
+
+export interface NamedHandleRenderOptions {
+  kind: 'source' | 'target';
+  position: Position;
+  id?: string;
+  portType: PortDataType;
+  style?: CSSProperties;
+  borderClass?: string;
+  hoverBorderClass?: string;
+  badgeParamKey?: string;
+  badgeFallback?: PortDataType;
+  badgeClassName?: string;
+  index: number;
+}
+
+function resolveHandlePosition(position: RegistryHandleConfig['position']): Position {
+  switch (position) {
+    case 'left':
+      return Position.Left;
+    case 'right':
+      return Position.Right;
+    case 'top':
+      return Position.Top;
+    case 'bottom':
+    default:
+      return Position.Bottom;
+  }
+}
+
+function resolveHandleStyle(handle: RegistryHandleConfig): CSSProperties | undefined {
+  if (!handle.offsetPercent) {
+    return undefined;
+  }
+
+  return handle.position === 'top' || handle.position === 'bottom'
+    ? { left: `${handle.offsetPercent}%` }
+    : { top: `${handle.offsetPercent}%` };
+}
 
 interface NodeHandlesProps {
   id: string;
-  data: any;
-  registryInputHandles: any[];
-  registrySourceHandles: any[];
+  data: NodeData;
+  registryInputHandles: NodeInputHandleConfig[];
+  registrySourceHandles: NodeSourceHandleConfig[];
   isLLM: boolean;
   isInput: boolean;
   isOutput: boolean;
   isPromptTemplate: boolean;
   promptVariables: string[];
-  renderNamedHandle: (options: any) => React.ReactNode;
+  renderNamedHandle: (options: NamedHandleRenderOptions) => React.ReactNode;
   getHandleClass: (kind: 'source' | 'target', portType: PortDataType, baseClass: string) => string;
   handleBaseClasses: string;
   setHoveredHandle: (handle: string | null) => void;
@@ -82,10 +127,10 @@ export const NodeHandles = ({
           registrySourceHandles.map((handle, index) => 
             renderNamedHandle({
               kind: 'source',
-              position: handle.position === 'left' ? Position.Left : handle.position === 'right' ? Position.Right : handle.position === 'top' ? Position.Top : Position.Bottom,
+              position: resolveHandlePosition(handle.position),
               id: handle.id,
               portType: handle.portType,
-              style: handle.offsetPercent ? (handle.position === 'top' || handle.position === 'bottom' ? { left: `${handle.offsetPercent}%` } : { top: `${handle.offsetPercent}%` }) : undefined,
+              style: resolveHandleStyle(handle),
               borderClass: handle.borderClass,
               hoverBorderClass: handle.hoverBorderClass,
               badgeParamKey: handle.badgeParamKey,
@@ -121,10 +166,10 @@ export const NodeHandles = ({
       {registryInputHandles.map((handle, index) => 
         renderNamedHandle({
           kind: 'target',
-          position: handle.position === 'left' ? Position.Left : handle.position === 'right' ? Position.Right : handle.position === 'top' ? Position.Top : Position.Bottom,
+          position: resolveHandlePosition(handle.position),
           id: handle.id,
           portType: handle.portType,
-          style: handle.offsetPercent ? (handle.position === 'top' || handle.position === 'bottom' ? { left: `${handle.offsetPercent}%` } : { top: `${handle.offsetPercent}%` }) : undefined,
+          style: resolveHandleStyle(handle),
           borderClass: handle.borderClass,
           hoverBorderClass: handle.hoverBorderClass,
           index,
@@ -133,10 +178,10 @@ export const NodeHandles = ({
       {registrySourceHandles.map((handle, index) => 
         renderNamedHandle({
           kind: 'source',
-          position: handle.position === 'left' ? Position.Left : handle.position === 'right' ? Position.Right : handle.position === 'top' ? Position.Top : Position.Bottom,
+          position: resolveHandlePosition(handle.position),
           id: handle.id,
           portType: handle.portType,
-          style: handle.offsetPercent ? (handle.position === 'top' || handle.position === 'bottom' ? { left: `${handle.offsetPercent}%` } : { top: `${handle.offsetPercent}%` }) : undefined,
+          style: resolveHandleStyle(handle),
           borderClass: handle.borderClass,
           hoverBorderClass: handle.hoverBorderClass,
           badgeParamKey: handle.badgeParamKey,

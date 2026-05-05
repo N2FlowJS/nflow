@@ -1,11 +1,12 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
 import { Info, X } from 'lucide-react';
+import type { CustomNodeType } from '@n2flow/types';
 
 interface NodeDataModalProps {
   isOpen: boolean;
   onClose: () => void;
-  data: any;
+  data: CustomNodeType['data'];
   copyJsonValue: (value: unknown, key: 'input' | 'output') => void;
   copiedDataKey: 'input' | 'output' | null;
 }

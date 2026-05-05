@@ -24,7 +24,7 @@ export function ProtectedRoute({
   }
 
   const token = localStorage.getItem('authToken');
-  const authenticated = isAuthenticated ?? !!token;
+  const authenticated = Boolean(isAuthenticated || token);
 
   if (!authenticated) {
     // Redirect to login, but save the location they were trying to access
