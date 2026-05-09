@@ -1,5 +1,14 @@
 export const trimTrailingSlash = (url: unknown) => String(url || '').replace(/\/+$/, '');
 
+export const normalizeApiKey = (apiKey: unknown): string => {
+  const raw = String(apiKey || '').trim();
+  if (!raw) return '';
+  return raw.replace(/^Bearer\s+/i, '').trim();
+};
+
+export const hasTemplatePlaceholder = (value: unknown): boolean =>
+  typeof value === 'string' && /\{\{\s*[^{}]+\s*\}\}/.test(value);
+
 export const normalizeModelsJson = (payload: any): Array<{ id: string; name?: string; description?: string }> => {
   if (!payload) return [];
 
@@ -136,6 +145,7 @@ export const toOpenAiToolDeclarations = (tools: AgentTool[]) =>
 
 export default {
   trimTrailingSlash,
+  normalizeApiKey,
   normalizeModelsJson,
   tryFetchModelsFromBase,
   parseToolArgs,

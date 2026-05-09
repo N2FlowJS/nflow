@@ -1,35 +1,38 @@
-import { getNodeFieldValue } from '../utils/common';
+import { getNodeFieldValue, resolveVariablePlaceholders } from '../utils/common';
 import { NodeHandler } from './registry';
 import { runChat } from '../llm';
 import { NodeExecutionError } from './errors';
 
 export const llmConfigHandler: NodeHandler = async (ctx) => {
   const node = ctx.node;
+  const resolveRuntimeValue = (key: string) =>
+    resolveVariablePlaceholders(getNodeFieldValue(node, key), ctx.globalVariables);
+
   return {
     kind: 'llm_chat',
     provider:
-      getNodeFieldValue(node, 'provider') ||
+      resolveRuntimeValue('provider') ||
       (node.data.type.includes('Ollama')
         ? 'Ollama'
         : node.data.type.includes('VLLM')
           ? 'vLLM'
           : 'Google'),
-    model: getNodeFieldValue(node, 'model') || 'gemini-2.0-flash',
-    apiKey: getNodeFieldValue(node, 'apiKey') || '',
-    baseUrl: getNodeFieldValue(node, 'baseUrl') || '',
+    model: resolveRuntimeValue('model') || 'gemini-2.0-flash',
+    apiKey: resolveRuntimeValue('apiKey') || '',
+    baseUrl: resolveRuntimeValue('baseUrl') || '',
     temperature: Number(
-      getNodeFieldValue(node, 'temperature') ??
-        getNodeFieldValue(node, 'temp') ??
+      resolveRuntimeValue('temperature') ??
+        resolveRuntimeValue('temp') ??
         0.7,
     ),
-    max_tokens: Number(getNodeFieldValue(node, 'max_tokens') || 2048),
-    top_p: Number(getNodeFieldValue(node, 'top_p') || 0.95),
-    top_k: Number(getNodeFieldValue(node, 'top_k') || 40),
+    max_tokens: Number(resolveRuntimeValue('max_tokens') || 2048),
+    top_p: Number(resolveRuntimeValue('top_p') || 0.95),
+    top_k: Number(resolveRuntimeValue('top_k') || 40),
     presence_penalty: Number(
-      getNodeFieldValue(node, 'presence_penalty') || 0,
+      resolveRuntimeValue('presence_penalty') || 0,
     ),
     frequency_penalty: Number(
-      getNodeFieldValue(node, 'frequency_penalty') || 0,
+      resolveRuntimeValue('frequency_penalty') || 0,
     ),
   };
 };

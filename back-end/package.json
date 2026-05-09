@@ -7,6 +7,7 @@
   "scripts": {
     "dev": "node --watch --import tsx index.ts",
     "build": "tsc && node scripts/postbuild.cjs",
+    "test": "vitest",
     "type-check": "tsc --noEmit",
     "start": "node --enable-source-maps dist/index.js",
     "db:studio": "prisma studio --config prisma.config.ts",
@@ -43,6 +44,7 @@
     "prisma": "^7.6.0",
     "tsx": "^4.20.5",
     "typescript": "~5.8.2",
+    "vitest": "^1.0.0",
     "@n2flow/types": "file:../packages/types"
   }
 }

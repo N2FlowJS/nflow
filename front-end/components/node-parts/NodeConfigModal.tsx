@@ -1,21 +1,74 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Panel } from '@xyflow/react';
+import type { CustomNodeType, NodeData } from '@n2flow/types';
 import { Settings, X, Hash, Type, List, FileText, ToggleLeft, Link, Eye, EyeOff } from 'lucide-react';
 import { getNodeFieldValue } from '../../../back-end/node-registry';
 import NumberInput from '../ui/NumberInput';
 import { API_BASE } from '../../lib/api';
+import type { GlobalVariable } from '../../types/editor';
+
+type ConfigField = NonNullable<NodeData['configSchema']>[number];
+
+type ModelOption = {
+  id?: string;
+  name?: string;
+};
+
+type ModelListResponse = {
+  ok?: boolean;
+  error?: string;
+  models?: Array<string | ModelOption>;
+};
+
+function getModelOptionLabel(model: string | ModelOption): string {
+  if (typeof model === 'string') {
+    return model;
+  }
+
+  return model.id || model.name || String(model);
+}
+
+function getUniqueModelLabels(models: Array<string | ModelOption>): string[] {
+  return Array.from(
+    new Set(models.map(getModelOptionLabel).filter(Boolean)),
+  );
+}
+
+function toGlobalVariablePlaceholder(name: string): string {
+  return `{{${name}}}`;
+}
+
+function getSelectedGlobalVariableName(value: string): string {
+  const match = value.match(/^\{\{\s*([^{}]+?)\s*\}\}$/);
+  return match?.[1] || '';
+}
+
+function maskSecretValue(value: string): string {
+  const trimmed = String(value || '').trim();
+  if (!trimmed) return '[empty]';
+  if (trimmed.length <= 8) return `${trimmed.slice(0, 2)}***`;
+  return `${trimmed.slice(0, 4)}***${trimmed.slice(-4)}`;
+}
+
+function looksLikeSecret(value: string): boolean {
+  const trimmed = String(value || '').trim();
+  if (!trimmed) return false;
+  return /^(?:Bearer\s+)?(?:nvapi-|sk-|pk-|ghp_|glpat-|AIza|xoxb-|ya29\.)/i.test(trimmed)
+    || /^[A-Za-z0-9_\-]{24,}$/.test(trimmed);
+}
 
 interface NodeConfigModalProps {
   isOpen: boolean;
   onClose: () => void;
-  data: any;
-  updateNodeData: (newData: any) => void;
-  handleParamChange: (name: string, value: any) => void;
+  data: CustomNodeType['data'];
+  updateNodeData: (newData: Partial<CustomNodeType['data']>) => void;
+  handleParamChange: (name: string, value: string | number | boolean) => void;
   highlightedField: string | null;
   configFieldRefs: React.MutableRefObject<Record<string, HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement | null>>;
+  globalVariables: GlobalVariable[];
 }
 
-const FieldIcon = ({ type }: { type: string }) => {
+const FieldIcon = ({ type }: { type: ConfigField['type'] }) => {
   switch (type) {
     case 'select':
       return <List size={12} className="text-purple-400" />;
@@ -53,7 +106,8 @@ export const NodeConfigModal = ({
   updateNodeData,
   handleParamChange,
   highlightedField,
-  configFieldRefs
+  configFieldRefs,
+  globalVariables,
 }: NodeConfigModalProps) => {
   const panelRef = useRef<HTMLDivElement | null>(null);
   const [models, setModels] = useState<string[]>([]);
@@ -93,15 +147,16 @@ export const NodeConfigModal = ({
 
       if (!response.ok) throw new Error(`Server returned ${response.status}`);
 
-      const resData = await response.json();
+      const resData = await response.json() as ModelListResponse;
       if (resData.ok && Array.isArray(resData.models)) {
-        setModels(resData.models.map((m: any) => m.id || m.name || String(m)));
+        setModels(getUniqueModelLabels(resData.models));
         lastFetchKeyRef.current = fetchKey;
       } else {
-        setModelsError('No models found in response');
+        setModelsError(resData.error || 'No models found in response');
       }
-    } catch (err: any) {
-      setModelsError(`Failed: ${err?.message ?? 'Unknown error'}`);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      setModelsError(`Failed: ${message}`);
       console.error('Model fetch error:', err);
     } finally {
       setModelsLoading(false);
@@ -111,7 +166,7 @@ export const NodeConfigModal = ({
   useEffect(() => {
     if (!isOpen) return;
     const onKey = (ev: KeyboardEvent) => { if (ev.key === 'Escape') onClose(); };
-    const onMouse = (ev: MouseEvent) => { if (panelRef.current && !panelRef.current.contains(ev.target as Node)) onClose(); };
+    const onMouse = (ev: MouseEvent) => { if (panelRef.current && !panelRef.current.contains(ev.target as globalThis.Node)) onClose(); };
     window.addEventListener('keydown', onKey);
     window.addEventListener('mousedown', onMouse);
     return () => { window.removeEventListener('keydown', onKey); window.removeEventListener('mousedown', onMouse); };
@@ -119,7 +174,7 @@ export const NodeConfigModal = ({
 
   if (!isOpen) return null;
 
-  const isPasswordField = (field: any) => field.name?.toLowerCase().includes('key') || field.name?.toLowerCase().includes('token') || field.name?.toLowerCase().includes('secret');
+  const isPasswordField = (field: ConfigField) => field.name.toLowerCase().includes('key') || field.name.toLowerCase().includes('token') || field.name.toLowerCase().includes('secret');
 
   return (
     <Panel position="top-right" className="m-4 w-[min(640px,95%)] z-50">
@@ -156,12 +211,18 @@ export const NodeConfigModal = ({
 
           <div className="border-t border-white/5 my-4" />
 
-          {data.configSchema?.filter((field: any) => !field.hidden).map((field: any) => {
+          {data.configSchema?.filter((field) => !field.hidden).map((field) => {
             const baseVal = String(getNodeFieldValue(data, 'baseUrl') ?? '');
             const apiKeyVal = String(getNodeFieldValue(data, 'apiKey') ?? '');
             const canFetchModels = !!baseVal && !!apiKeyVal;
             const isPassword = isPasswordField(field);
             const showPw = showPassword[field.name];
+            const selectedVariableName = getSelectedGlobalVariableName(String(getNodeFieldValue(data, field.name) ?? ''));
+            const selectedVariable = selectedVariableName
+              ? globalVariables.find((variable) => variable.name === selectedVariableName)
+              : undefined;
+            const selectedVariableValue = String(selectedVariable?.value || '').trim();
+            const selectedVariableNameLooksSecret = looksLikeSecret(selectedVariableName);
 
             return (
               <div key={field.name} className="space-y-2">
@@ -193,7 +254,11 @@ export const NodeConfigModal = ({
                         onChange={(e) => handleParamChange(field.name, e.target.value)}
                       >
                         <option value="" className="text-gray-500">-- Select Model --</option>
-                        {models.map((m) => <option key={m} value={m} className="text-white">{m}</option>)}
+                        {models.map((m, index) => (
+                          <option key={`${m}-${index}`} value={m} className="text-white">
+                            {m}
+                          </option>
+                        ))}
                       </select>
                     ) : (
                       <div className="space-y-2">
@@ -219,7 +284,7 @@ export const NodeConfigModal = ({
                       value={String(getNodeFieldValue(data, field.name) ?? '')}
                       onChange={(e) => handleParamChange(field.name, e.target.value)}
                     >
-                      {field.options?.map((opt: string) => <option key={opt} value={opt} className="text-white">{opt}</option>)}
+                      {field.options?.map((opt) => <option key={opt} value={opt} className="text-white">{opt}</option>)}
                     </select>
                     <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
                       <List size={14} className="text-gray-500" />
@@ -230,7 +295,7 @@ export const NodeConfigModal = ({
                     ref={(el) => { configFieldRefs.current[field.name] = el; }}
                     className="nodrag nowheel w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2.5 text-[12px] text-white placeholder-gray-600 focus:border-cyber-primary/50 focus:ring-1 focus:ring-cyber-primary/20 outline-none min-h-[100px] resize-none transition-all"
                     onFocus={() => window.dispatchEvent(new CustomEvent('takeSnapshot'))}
-                    value={(getNodeFieldValue(data, field.name) as string) ?? ''}
+                      value={String(getNodeFieldValue(data, field.name) ?? '')}
                     onChange={(e) => handleParamChange(field.name, e.target.value)}
                   />
                 ) : field.type === 'number' ? (
@@ -253,23 +318,65 @@ export const NodeConfigModal = ({
                     />
                   </div>
                 ) : isPassword ? (
-                  <div className="relative">
-                    <input
-                      ref={(el) => { configFieldRefs.current[field.name] = el; }}
-                      type={showPw ? 'text' : 'password'}
-                      className="nodrag w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2.5 pr-10 text-[12px] text-white focus:border-cyber-primary/50 focus:ring-1 focus:ring-cyber-primary/20 outline-none transition-all"
-                      onFocus={() => window.dispatchEvent(new CustomEvent('takeSnapshot'))}
-                      value={String(getNodeFieldValue(data, field.name) ?? '')}
-                      onChange={(e) => handleParamChange(field.name, e.target.value)}
-                      placeholder="Enter value..."
-                    />
-                    <button
-                      type="button"
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300"
-                      onClick={() => setShowPassword((prev) => ({ ...prev, [field.name]: !prev[field.name] }))}
-                    >
-                      {showPw ? <EyeOff size={14} /> : <Eye size={14} />}
-                    </button>
+                  <div className="space-y-2">
+                    {field.name !== 'apiKey' && globalVariables.length > 0 && (
+                      <select
+                        className="nodrag w-full bg-black/30 border border-cyan-500/20 rounded-lg px-3 py-2 text-[11px] text-cyan-200 focus:border-cyan-400/60 focus:ring-1 focus:ring-cyan-400/20 outline-none transition-all cursor-pointer"
+                        value={getSelectedGlobalVariableName(String(getNodeFieldValue(data, field.name) ?? ''))}
+                        onChange={(e) => {
+                          const variableName = e.target.value;
+                          if (!variableName) {
+                            return;
+                          }
+                          window.dispatchEvent(new CustomEvent('takeSnapshot'));
+                          handleParamChange(field.name, toGlobalVariablePlaceholder(variableName));
+                        }}
+                      >
+                        <option value="">Select Global Variable...</option>
+                        {globalVariables.map((variable) => (
+                          <option key={variable.id} value={variable.name}>
+                            {variable.name}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+
+                    <div className="relative">
+                      <input
+                        ref={(el) => { configFieldRefs.current[field.name] = el; }}
+                        type={showPw ? 'text' : 'password'}
+                        className="nodrag w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2.5 pr-10 text-[12px] text-white focus:border-cyber-primary/50 focus:ring-1 focus:ring-cyber-primary/20 outline-none transition-all"
+                        onFocus={() => window.dispatchEvent(new CustomEvent('takeSnapshot'))}
+                        value={String(getNodeFieldValue(data, field.name) ?? '')}
+                        onChange={(e) => handleParamChange(field.name, e.target.value)}
+                        placeholder={field.name === 'apiKey' ? 'Enter API key...' : (globalVariables.length > 0 ? 'Enter value or use {{GLOBAL_VARIABLE}}' : 'Enter value...')}
+                      />
+                      <button
+                        type="button"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300"
+                        onClick={() => setShowPassword((prev) => ({ ...prev, [field.name]: !prev[field.name] }))}
+                      >
+                        {showPw ? <EyeOff size={14} /> : <Eye size={14} />}
+                      </button>
+                    </div>
+
+                    {field.name !== 'apiKey' && selectedVariable && (
+                      <div className="space-y-1 text-[10px]">
+                        <div className="text-cyan-300/80">
+                          Resolved from variable <span className="font-mono text-cyan-200">{selectedVariable.name}</span>: <span className="font-mono">{maskSecretValue(selectedVariableValue)}</span>
+                        </div>
+                        {!selectedVariableValue && (
+                          <div className="text-amber-400">
+                            Selected Global Variable has an empty value. The placeholder will resolve to an empty API key.
+                          </div>
+                        )}
+                        {selectedVariableNameLooksSecret && (
+                          <div className="text-amber-400">
+                            This variable name looks like a real secret. Prefer a name like <span className="font-mono">NVIDIA_API_KEY</span> and put the actual key in the value field.
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <input

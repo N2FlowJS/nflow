@@ -62,7 +62,7 @@ router.post('/flow/execute/stream', async (req: AuthRequest, res: Response) => {
     res.flushHeaders?.();
 
     let clientDisconnected = false;
-    req.on('close', () => {
+    res.on('close', () => {
       clientDisconnected = true;
     });
 

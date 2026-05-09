@@ -10,6 +10,7 @@
     "type-check": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
+    "@tailwindcss/postcss": "^4.2.4",
     "@tailwindcss/typography": "^0.5.19",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
@@ -18,19 +19,20 @@
     "elkjs": "^0.11.1",
     "html-to-image": "^1.11.13",
     "lucide-react": "0.300.0",
+    "postcss": "^8.5.14",
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "react-markdown": "^10.1.0",
     "react-router-dom": "^7.13.1",
-    "recharts": "^3.7.0"
+    "recharts": "^3.7.0",
+    "tailwindcss": "^4.2.4"
   },
   "devDependencies": {
+    "@n2flow/types": "file:../packages/types",
     "@types/dagre": "^0.7.53",
     "@types/node": "^20.11.0",
     "@vitejs/plugin-react": "^5.0.0",
     "typescript": "~5.8.2",
-    "vite": "^6.2.0",
-    "@n2flow/types": "file:../packages/types"
+    "vite": "^6.2.0"
   }
-
 }

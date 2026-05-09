@@ -3,6 +3,7 @@ import {
   getNodeFieldValue,
   getNodeInputHandles,
   getNodeSourceHandles,
+  type NodeHandleContextData,
   normalizeNodeWithRegistry,
 } from "./index";
 import type { FlowNode as CustomNodeType } from "../flowTypes";
@@ -30,7 +31,7 @@ export const readPortType = (
   fallback: PortDataType,
 ): PortDataType => {
   const data = "data" in nodeOrData ? nodeOrData.data : nodeOrData;
-  const raw = getNodeFieldValue(data as any, key);
+  const raw = getNodeFieldValue(data as NodeHandleContextData, key);
   if (typeof raw !== "string") return fallback;
   
   if (PORT_TYPE_OPTIONS.includes(raw as PortDataType)) {
@@ -82,5 +83,5 @@ export const inferTargetPortType = (
   return "any";
 };
 
-export const normalizeModelNode = (node: any): any =>
-  normalizeNodeWithRegistry(node as any);
+export const normalizeModelNode = <T>(node: T): T =>
+  normalizeNodeWithRegistry(node);

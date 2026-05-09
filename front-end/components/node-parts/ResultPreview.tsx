@@ -1,11 +1,66 @@
 import React from "react";
 
 interface ResultPreviewProps {
-  output: any;
+  output: unknown;
+}
+
+type PreviewRow = Record<string, unknown>;
+
+function isPreviewRow(value: unknown): value is PreviewRow {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function parseRows(output: unknown): PreviewRow[] {
+  if (Array.isArray(output)) {
+    return output.filter(isPreviewRow);
+  }
+
+  if (isPreviewRow(output) && Array.isArray(output.rows)) {
+    return output.rows.filter(isPreviewRow);
+  }
+
+  if (typeof output === 'string') {
+    try {
+      const parsed = JSON.parse(output) as unknown;
+      if (Array.isArray(parsed)) {
+        return parsed.filter(isPreviewRow);
+      }
+      if (isPreviewRow(parsed) && Array.isArray(parsed.rows)) {
+        return parsed.rows.filter(isPreviewRow);
+      }
+    } catch {
+      return [];
+    }
+  }
+
+  return [];
+}
+
+function stringifyOutput(output: unknown): string {
+  if (typeof output === 'string') {
+    return output;
+  }
+
+  try {
+    return JSON.stringify(output, null, 2);
+  } catch {
+    return String(output);
+  }
+}
+
+function getRowText(row: PreviewRow, key: string): string {
+  return stringifyOutput(row[key]);
+}
+
+function hasRowValue(row: PreviewRow, key: string): boolean {
+  const value = row[key];
+  return value !== undefined && value !== null && value !== '';
 }
 
 export const ResultPreview = ({ output }: ResultPreviewProps) => {
   if (output === undefined || output === null) return null;
+
+  const rows = parseRows(output);
 
   return (
     <div className="p-2 max-h-[180px] overflow-auto text-[10px] font-mono text-gray-300 custom-scrollbar">
@@ -45,28 +100,11 @@ export const ResultPreview = ({ output }: ResultPreviewProps) => {
         }
 
         // 2. Detect Table Shape
-        let rows: any[] = [];
         let cols: string[] = [];
-
-        if (typeof output === "object") {
-          if ("rows" in output && Array.isArray(output.rows)) {
-            rows = output.rows;
-          } else if (Array.isArray(output)) {
-            rows = output;
-          }
-        } else if (typeof output === "string") {
-          try {
-            const parsed = JSON.parse(output);
-            if (Array.isArray(parsed)) rows = parsed;
-            else if (parsed && typeof parsed === "object" && "rows" in parsed)
-              rows = parsed.rows;
-          } catch {}
-        }
 
         if (
           rows.length > 0 &&
-          typeof rows[0] === "object" &&
-          rows[0] !== null
+          isPreviewRow(rows[0])
         ) {
           cols = Object.keys(rows[0])
             .filter(
@@ -120,8 +158,7 @@ export const ResultPreview = ({ output }: ResultPreviewProps) => {
         // 3. Detect List Shape
         if (
           rows.length > 0 &&
-          typeof rows[0] === "object" &&
-          rows[0] !== null
+          isPreviewRow(rows[0])
         ) {
           const r0 = rows[0];
           if ("title" in r0 || "snippet" in r0 || "text" in r0) {
@@ -132,21 +169,24 @@ export const ResultPreview = ({ output }: ResultPreviewProps) => {
                     key={i}
                     className="pb-2 border-b border-white/5 last:border-0 last:pb-0 group"
                   >
-                    {item.title && (
+                    {hasRowValue(item, 'title') && (
                       <div className="text-cyber-primary truncate font-bold group-hover:text-cyan-300 transition-colors">
-                        {item.title}
+                        {getRowText(item, 'title')}
                       </div>
                     )}
-                    {item.link && (
+                    {hasRowValue(item, 'link') && (
                       <div className="text-[8px] text-gray-500 truncate mb-1">
-                        {item.link}
+                        {getRowText(item, 'link')}
                       </div>
                     )}
                     <div className="text-gray-400 line-clamp-3 text-[9px] leading-snug">
-                      {item.snippet ||
-                        item.text ||
-                        item.content ||
-                        JSON.stringify(item)}
+                      {item.snippet
+                        ? getRowText(item, 'snippet')
+                        : item.text
+                          ? getRowText(item, 'text')
+                          : item.content
+                            ? getRowText(item, 'content')
+                            : stringifyOutput(item)}
                     </div>
                   </div>
                 ))}
@@ -156,8 +196,7 @@ export const ResultPreview = ({ output }: ResultPreviewProps) => {
         }
 
         // 4. Fallback
-        const text =
-          typeof output === "string" ? output : JSON.stringify(output, null, 2);
+        const text = stringifyOutput(output);
         return (
           <div className="whitespace-pre-wrap line-clamp-[12] break-all leading-normal">
             {text}

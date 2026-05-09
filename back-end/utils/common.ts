@@ -1,4 +1,5 @@
 import type { FlowNode } from '../flowTypes';
+import type { GlobalVariable } from '../flowTypes';
 
 export const getNodeFieldValue = (
   node: FlowNode | undefined,
@@ -16,6 +17,25 @@ export const interpolate = (template: string, values: Record<string, string>) =>
     const value = values[key];
     return value === undefined || value === null ? `{${key}}` : String(value);
   });
+
+export const resolveVariablePlaceholders = (
+  value: unknown,
+  globalVariables: GlobalVariable[] = [],
+): unknown => {
+  if (typeof value !== 'string' || globalVariables.length === 0) {
+    return value;
+  }
+
+  const variableMap = Object.fromEntries(
+    globalVariables.map((variable) => [variable.name, variable.value]),
+  );
+
+  return value.replace(/\{\{\s*([^{}]+?)\s*\}\}/g, (match, rawName) => {
+    const name = String(rawName).trim();
+    const resolved = variableMap[name];
+    return resolved !== undefined ? resolved : match;
+  });
+};
 
 export const parseJsonSafely = (raw: string): unknown => {
   try {

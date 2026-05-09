@@ -128,6 +128,9 @@ export async function executeFlowOnServer({
   const MAX_CONCURRENCY = Math.max(1, Number(process.env.EXECUTOR_CONCURRENCY || 4));
   const MAX_FLOW_NODES = Number(process.env.MAX_FLOW_NODES || 500);
   const GLOBAL_FLOW_TIMEOUT = Number(process.env.GLOBAL_FLOW_TIMEOUT || 300000); // 5 minutes
+  const NODE_EXECUTION_TIMEOUT_MS = Number(
+    process.env.NODE_EXECUTION_TIMEOUT_MS || 180000,
+  );
 
   const nodeResults = new Map<string, unknown>();
   let finalOutput = '';
@@ -156,6 +159,9 @@ export async function executeFlowOnServer({
 
     const node = nodeById.get(nodeId);
     if (!node) return;
+    const nodeLabel = String(node.data.label || node.data.type || nodeId);
+
+    log(`[Server] Starting node: ${nodeLabel} (${nodeId})`);
 
     emit({
       type: 'nodeUpdate',
@@ -221,14 +227,28 @@ export async function executeFlowOnServer({
         onEvent
       };
 
-      result = await executeNode(ctx);
+      result = await Promise.race([
+        executeNode(ctx),
+        new Promise<never>((_, reject) => {
+          setTimeout(() => {
+            reject(
+              new Error(
+                `Node execution timed out after ${Math.round(NODE_EXECUTION_TIMEOUT_MS / 1000)}s.`,
+              ),
+            );
+          }, NODE_EXECUTION_TIMEOUT_MS);
+        }),
+      ]);
       if (node.data.type === 'ChatOutput') {
         finalOutput = String(result || '');
       }
 
+      log(`[Server] Completed node: ${nodeLabel} (${nodeId})`);
+
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       const relatedNodeIds = err instanceof NodeExecutionError ? err.relatedNodeIds : [];
+      log(`[Server] Node failed: ${nodeLabel} (${nodeId}) -> ${message}`);
       
       emit({
         type: 'nodeUpdate',

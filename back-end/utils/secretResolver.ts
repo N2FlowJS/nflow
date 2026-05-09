@@ -21,7 +21,8 @@ export const resolveSecrets = (data: Record<string, any>): Record<string, any> =
         }
       } else if (value.includes('{{')) {
         // Partial match: "Bearer {{MY_TOKEN}}"
-        resolved[key] = value.replace(/\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g, (_match, name) => {
+        resolved[key] = value.replace(/\{\{\s*([^{}]+?)\s*\}\}/g, (_match, rawName) => {
+          const name = String(rawName).trim();
           return process.env[name] || _match;
         });
       }

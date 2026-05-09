@@ -20,7 +20,7 @@
     "db:studio": "npm --prefix back-end run db:studio",
     "db:migrate": "npm --prefix back-end run db:migrate",
     "db:generate": "npm --prefix back-end run db:generate",
-    "db:push": "npm --prefix back-end run db:push",
+    "db:push": "npm --prefix back-end run db:push",  
     "db:reset": "npm --prefix back-end run db:reset",
     "db:seed": "npm --prefix back-end run db:seed"
   },

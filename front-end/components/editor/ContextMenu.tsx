@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState, useLayoutEffect } from 'react';
+import type { Node as FlowNode } from '@xyflow/react';
 import { 
   Copy, 
   Trash2, 
@@ -17,7 +18,7 @@ import {
 export type ContextMenuProps = {
   x: number;
   y: number;
-  node?: any;
+  node?: FlowNode;
   onClose: () => void;
   actions: {
     onRun?: () => void;
@@ -51,7 +52,7 @@ const ContextMenu = ({ x, y, node, onClose, actions }: ContextMenuProps) => {
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+      if (menuRef.current && !menuRef.current.contains(e.target as globalThis.Node)) {
         onClose();
       }
     };
@@ -185,7 +186,7 @@ const ContextMenu = ({ x, y, node, onClose, actions }: ContextMenuProps) => {
       {node ? (
         <>
           <div className="px-3 py-1.5 border-b border-white/5 mb-1">
-            <div className="text-[10px] text-gray-500 uppercase font-bold truncate">{node.data?.label || 'Node'}</div>
+            <div className="text-[10px] text-gray-500 uppercase font-bold truncate">{String(node.data?.label || 'Node')}</div>
           </div>
           {!isGroup && <MenuItem icon={Play} label="Run Node" onClick={actions.onRun} />}
           <MenuItem icon={Maximize2} label="Focus Node" onClick={actions.onFocus} />

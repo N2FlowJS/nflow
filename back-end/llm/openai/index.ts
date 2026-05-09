@@ -1,13 +1,13 @@
 import OpenAI from 'openai';
 import type { LlmRuntimeConfig, AgentTool } from '../types';
-import { trimTrailingSlash, toOpenAiToolDeclarations, clampToolResult, parseToolArgs } from '../utils';
+import { trimTrailingSlash, normalizeApiKey, toOpenAiToolDeclarations, clampToolResult, parseToolArgs } from '../utils';
 
 export const listModels = async (
   cfg: LlmRuntimeConfig,
 ): Promise<Array<{ id: string; name?: string; description?: string }>> => {
   const base = trimTrailingSlash(cfg.baseUrl || 'http://localhost:8000/v1');
   try {
-    const client = new OpenAI({ baseURL: base, apiKey: String(cfg.apiKey || '') }) as any;
+    const client = new OpenAI({ baseURL: base, apiKey: normalizeApiKey(cfg.apiKey) }) as any;
     if (client.models && typeof client.models.list === 'function') {
       const resp = await client.models.list();
       const data = Array.isArray(resp?.data) ? resp.data : resp?.models || [];
@@ -27,7 +27,7 @@ export const getOpenAIClient = (cfg: LlmRuntimeConfig) => {
     baseURL = `${baseURL}/v1`;
   }
   
-  return new OpenAI({ baseURL, apiKey: String(cfg.apiKey || 'not-required') });
+  return new OpenAI({ baseURL, apiKey: normalizeApiKey(cfg.apiKey) || 'not-required' });
 };
 
 export const runOpenAICompatibleChat = async (

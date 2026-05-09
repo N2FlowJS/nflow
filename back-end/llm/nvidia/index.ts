@@ -1,6 +1,34 @@
 import type { LlmRuntimeConfig, AgentTool } from '../types';
-import { trimTrailingSlash, toOpenAiToolDeclarations, clampToolResult, parseToolArgs } from '../utils';
+import { trimTrailingSlash, normalizeApiKey, hasTemplatePlaceholder, toOpenAiToolDeclarations, clampToolResult, parseToolArgs } from '../utils';
 import OpenAI from 'openai';
+
+const NVIDIA_CHAT_TIMEOUT_MS = Number(process.env.NVIDIA_CHAT_TIMEOUT_MS || 120000);
+
+function maskApiKey(apiKey: string): string {
+  if (!apiKey) return 'missing';
+  if (apiKey.length <= 8) return `${apiKey.slice(0, 2)}***`;
+  return `${apiKey.slice(0, 4)}***${apiKey.slice(-4)}`;
+}
+
+async function withNvidiaTimeout<T>(operation: Promise<T>): Promise<T> {
+  return Promise.race<T>([
+    operation,
+    new Promise<T>((_, reject) => {
+      setTimeout(() => {
+        reject(
+          new Error(
+            `NVIDIA chat request timed out after ${Math.round(NVIDIA_CHAT_TIMEOUT_MS / 1000)}s.`,
+          ),
+        );
+      }, NVIDIA_CHAT_TIMEOUT_MS);
+    }),
+  ]);
+}
+
+type NvidiaChatStepResult = {
+  fullContent: string;
+  toolCalls: any[];
+};
 
 export const listModels = async (
   cfg: LlmRuntimeConfig,
@@ -19,9 +47,10 @@ export const listModels = async (
   console.debug(`[NVIDIA] Listing models from ${baseUrl}`);
 
   try {
+    const normalizedApiKey = normalizeApiKey(cfg.apiKey);
     const client = new OpenAI({
       baseURL: baseUrl,
-      apiKey: String(cfg.apiKey || 'not-required'),
+      apiKey: normalizedApiKey || 'not-required',
       defaultHeaders: {
         'User-Agent': 'N2Flow-Client/1.0',
       },
@@ -63,9 +92,25 @@ export const runNvidiaChat = async (
     baseUrl = `${baseUrl}/v1`;
   }
 
+  if (hasTemplatePlaceholder(cfg.apiKey)) {
+    throw new Error(
+      'NVIDIA API key placeholder was not resolved. Check the selected Global Variable name and ensure it has a value.',
+    );
+  }
+
+  const normalizedApiKey = normalizeApiKey(cfg.apiKey);
+
+  if (!normalizedApiKey) {
+    throw new Error('Missing NVIDIA API key. Enter a value or select a Global Variable with a non-empty value.');
+  }
+
+  log(
+    `[NVIDIA] Runtime config: model=${String(cfg.model || '')}, baseUrl=${baseUrl || '[missing]'}, apiKey=${maskApiKey(normalizedApiKey)}`,
+  );
+
   const client = new OpenAI({
     baseURL: baseUrl,
-    apiKey: String(cfg.apiKey || 'not-required'),
+    apiKey: normalizedApiKey,
   }) as any;
 
   const tools = availableTools.length > 0 ? toOpenAiToolDeclarations(availableTools) : undefined;
@@ -97,44 +142,72 @@ export const runNvidiaChat = async (
   messages.push({ role: 'user', content: userPrompt });
 
   for (let step = 0; step < 8; step += 1) {
-    const completion = await client.chat.completions.create({
-      model: String(cfg.model),
-      messages,
-      tools: tools as any,
-      temperature: cfg.temperature,
-      max_tokens: cfg.max_tokens,
-      top_p: cfg.top_p,
-      presence_penalty: cfg.presence_penalty,
-      frequency_penalty: cfg.frequency_penalty,
-      stream: stream,
-    });
+    let stepResult: NvidiaChatStepResult;
+    try {
+      stepResult = await withNvidiaTimeout<NvidiaChatStepResult>(
+        (async () => {
+          const completion = await client.chat.completions.create({
+            model: String(cfg.model),
+            messages,
+            tools: tools as any,
+            temperature: cfg.temperature,
+            max_tokens: cfg.max_tokens,
+            top_p: cfg.top_p,
+            presence_penalty: cfg.presence_penalty,
+            frequency_penalty: cfg.frequency_penalty,
+            stream: stream,
+          });
 
-    let fullContent = '';
-    
-    if (stream) {
-      for await (const chunk of completion) {
-        const delta = chunk.choices?.[0]?.delta?.content;
-        if (delta) {
-          fullContent += delta;
-          onStream(delta);
-        }
+          let fullContent = '';
+
+          if (stream) {
+            for await (const chunk of completion as AsyncIterable<any>) {
+              const delta = chunk.choices?.[0]?.delta?.content;
+              if (delta) {
+                fullContent += delta;
+                onStream?.(delta);
+              }
+            }
+
+            return {
+              fullContent,
+              toolCalls: [],
+            };
+          }
+
+          const first = (completion as any).choices?.[0] as any;
+          const message = first?.message || {};
+          const content = message?.content;
+          if (typeof content === 'string') fullContent = content;
+          else if (Array.isArray(content)) {
+            fullContent = content
+              .map((part: any) => (typeof part?.text === 'string' ? part.text : ''))
+              .join('')
+              .trim();
+          }
+
+          return {
+            fullContent,
+            toolCalls: Array.isArray(message.tool_calls) ? message.tool_calls : [],
+          };
+        })(),
+      );
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      if (/\b401\b/.test(message)) {
+        throw new Error(
+          'Unauthorized by NVIDIA NIM (401). Check API key value, remove any leading "Bearer ", and verify the selected key/global variable is correct.',
+        );
       }
-    } else {
-      const first = completion.choices?.[0] as any;
-      const message = first?.message || {};
-      const content = message?.content;
-      if (typeof content === 'string') fullContent = content;
-      else if (Array.isArray(content)) {
-        fullContent = content
-          .map((part: any) => (typeof part?.text === 'string' ? part.text : ''))
-          .join('')
-          .trim();
+      if (/\b404\b/.test(message)) {
+        const modelName = String(cfg.model || '').trim() || '[missing model]';
+        throw new Error(
+          `NVIDIA NIM returned 404 for model "${modelName}". Auth appears OK, but this model id is likely not available on the chat endpoint. For Gemma, use a chat/instruct variant such as "google/gemma-2-2b-it" or "google/gemma-3-27b-it", or choose directly from Fetch Models.`,
+        );
       }
+      throw err;
     }
-
-    const first = !stream ? (completion.choices?.[0] as any) : null;
-    const message = first?.message || {};
-    const toolCalls = Array.isArray(message.tool_calls) ? message.tool_calls : [];
+    const { fullContent, toolCalls } = stepResult;
 
     if (toolCalls.length === 0) {
       if (fullContent) return fullContent;
@@ -167,7 +240,7 @@ export const embedText = async (cfg: LlmRuntimeConfig, input: string): Promise<n
 
   const client = new OpenAI({
     baseURL: baseUrl,
-    apiKey: String(cfg.apiKey || 'not-required'),
+    apiKey: normalizeApiKey(cfg.apiKey) || 'not-required',
   }) as any;
 
   const payload = await client.embeddings.create({

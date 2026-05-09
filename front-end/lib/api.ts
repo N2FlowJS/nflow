@@ -22,6 +22,8 @@ export interface AuthSessionResult {
   user?: unknown;
 }
 
+let bootstrapAuthSessionPromise: Promise<AuthSessionResult> | null = null;
+
 function notifyAuthStateChanged(detail: AuthStateChangeDetail): void {
   window.dispatchEvent(new CustomEvent<AuthStateChangeDetail>(AUTH_STATE_CHANGED_EVENT, { detail }));
 }
@@ -60,22 +62,34 @@ export async function bootstrapAuthSession(): Promise<AuthSessionResult> {
     return { authenticated: false };
   }
 
-  try {
-    const response = await fetchWithAuth('/api/auth/profile');
-
-    if (response.ok && response.user) {
-      setCurrentUser(response.user);
-      return {
-        authenticated: true,
-        user: response.user,
-      };
-    }
-  } catch {
-    // Ignore here and fall through to clearing auth state.
+  if (bootstrapAuthSessionPromise) {
+    return bootstrapAuthSessionPromise;
   }
 
-  clearAuthData();
-  return { authenticated: false };
+  bootstrapAuthSessionPromise = (async () => {
+    try {
+      const response = await fetchWithAuth('/api/auth/profile');
+
+      if (response.ok && response.user) {
+        setCurrentUser(response.user);
+        return {
+          authenticated: true,
+          user: response.user,
+        };
+      }
+    } catch {
+      // Ignore here and fall through to clearing auth state.
+    }
+
+    clearAuthData();
+    return { authenticated: false };
+  })();
+
+  try {
+    return await bootstrapAuthSessionPromise;
+  } finally {
+    bootstrapAuthSessionPromise = null;
+  }
 }
 
 /**

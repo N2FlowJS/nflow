@@ -24,6 +24,55 @@ import { NodeHandles } from './node-parts/NodeHandles';
 // Hook
 import { useCyberNode } from '../hooks/useCyberNode';
 
+function stringifyUnknown(value: unknown): string {
+  if (typeof value === 'string') {
+    return value;
+  }
+
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return String(value);
+  }
+}
+
+function extractErrorText(error: unknown): string {
+  if (!error) {
+    return '';
+  }
+
+  const compact = stringifyUnknown(error).replace(/\s+/g, ' ').trim();
+  const jsonStart = compact.indexOf('{"error"');
+
+  if (jsonStart >= 0) {
+    try {
+      const payload = JSON.parse(compact.slice(jsonStart)) as {
+        error?: { message?: unknown };
+      };
+      const message = payload.error?.message;
+      if (typeof message === 'string' && message.trim()) {
+        return message.trim();
+      }
+    } catch {
+      // Ignore malformed embedded JSON and fall back to the compact text.
+    }
+  }
+
+  return compact;
+}
+
+function getOutputSummary(output: unknown): string {
+  if (typeof output === 'string') {
+    return `${output.slice(0, 80)}${output.length > 80 ? '...' : ''}`;
+  }
+
+  if (output === undefined || output === null) {
+    return 'No result';
+  }
+
+  return 'Result available';
+}
+
 const PreviewButton: React.FC<{ output: unknown }> = ({ output }) => {
   const onOpen = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -195,20 +244,7 @@ const CyberNode = ({ id, data, selected }: NodeProps<CustomNodeType>) => {
     );
   };
 
-  const errorText = (() => {
-    if (!data.errorMessage) return '';
-    const raw = typeof data.errorMessage === 'string' ? data.errorMessage : JSON.stringify(data.errorMessage);
-    const compact = raw.replace(/\s+/g, ' ').trim();
-    const jsonStart = compact.indexOf('{"error"');
-    if (jsonStart >= 0) {
-      try {
-        const payload = JSON.parse(compact.slice(jsonStart));
-        const msg = payload?.error?.message;
-        if (typeof msg === 'string' && msg.trim()) return msg.trim();
-      } catch { }
-    }
-    return compact;
-  })();
+  const errorText = extractErrorText(data.errorMessage);
 
   const isLongError = errorText.length > 240;
   const displayedErrorText = showFullError || !isLongError ? errorText : `${errorText.slice(0, 240)}...`;
@@ -234,9 +270,7 @@ const CyberNode = ({ id, data, selected }: NodeProps<CustomNodeType>) => {
           <>
             <div className="mt-2 flex items-center justify-between gap-2">
               <div className="text-[10px] text-gray-400 truncate max-w-[180px]">
-                {typeof data.lastOutput === 'string'
-                  ? `${(data.lastOutput as string).slice(0, 80)}${(data.lastOutput as string).length > 80 ? '...' : ''}`
-                  : 'Result available'}
+                {getOutputSummary(data.lastOutput)}
               </div>
               <PreviewButton output={data.lastOutput} />
             </div>

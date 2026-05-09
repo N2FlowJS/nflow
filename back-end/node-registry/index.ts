@@ -8,6 +8,25 @@ import type { FlowNode as CustomNodeType } from "../flowTypes";
 import type { NodeData } from "@n2flow/types";
 
 type ConfigSchema = NonNullable<NodeData["configSchema"]>;
+export type NodeHandleContextData = {
+  configSchema?: NodeData["configSchema"];
+  params?: Record<string, unknown>;
+  [key: string]: unknown;
+};
+
+type RegistryAwareNode = CustomNodeType & {
+  data: CustomNodeType["data"] & {
+    type: string;
+  };
+};
+
+function isRegistryAwareNode(node: unknown): node is RegistryAwareNode {
+  return (
+    typeof node === "object" &&
+    node !== null &&
+    typeof (node as { data?: { type?: unknown } }).data?.type === "string"
+  );
+}
 
 export type NodeInputHandleConfig = {
   id?: string;
@@ -24,7 +43,7 @@ export type NodeInputHandleConfig = {
   hoverBorderClass?: string;
   labelText?: string;
   labelClassName?: string;
-  shouldShow?: (data: any) => boolean;
+  shouldShow?: (data: NodeHandleContextData) => boolean;
 };
 
 export type NodeSourceHandleConfig = {
@@ -51,7 +70,7 @@ export type NodeSourceHandleConfig = {
     | "boolean_route"
     | "any";
   badgeClassName?: string;
-  shouldShow?: (data: any) => boolean;
+  shouldShow?: (data: NodeHandleContextData) => boolean;
 };
 
 type RegistryConfigField = ConfigSchema[number] & {
@@ -1227,7 +1246,7 @@ export const getNodeValidationRuleConfigs = (
 
 export const getNodeInputHandles = (
   nodeType: string,
-  data?: any,
+  data?: NodeHandleContextData,
 ): NodeInputHandleConfig[] => {
   const schema = nodeRegistry[nodeType]?.configSchema || [];
   return schema.flatMap((field) => {
@@ -1239,7 +1258,7 @@ export const getNodeInputHandles = (
 
 export const getNodeSourceHandles = (
   nodeType: string,
-  data?: any,
+  data?: NodeHandleContextData,
 ): NodeSourceHandleConfig[] => {
   const schema = nodeRegistry[nodeType]?.configSchema || [];
   return schema.flatMap((field) => {
@@ -1249,9 +1268,10 @@ export const getNodeSourceHandles = (
   });
 };
 
-export const normalizeNodeWithRegistry = (node: any): any => {
-  const customNode = node as CustomNodeType;
-  if (!customNode?.data?.type) return node;
+export const normalizeNodeWithRegistry = <T>(node: T): T => {
+  if (!isRegistryAwareNode(node)) return node;
+
+  const customNode = node;
 
   const entry = getRegistryEntry(customNode.data.type);
   if (!entry) return node;
@@ -1275,8 +1295,15 @@ export const normalizeNodeWithRegistry = (node: any): any => {
   const hasVisibleSchema = !!customNode.data.configSchema?.some(
     (field) => !field.hidden,
   );
+  const extraSchemaFields = (customNode.data.configSchema || []).filter(
+    (field) =>
+      !defaultSchema?.some((defaultField) => defaultField.name === field.name),
+  );
+  const mergedVisibleSchema = defaultSchema
+    ? [...defaultSchema, ...extraSchemaFields]
+    : customNode.data.configSchema;
   const baseSchema = hasVisibleSchema
-    ? customNode.data.configSchema
+    ? mergedVisibleSchema
     : defaultSchema;
   const resolvedSchema = mergeSchemaWithParams(baseSchema, resolvedValues);
 
@@ -1286,7 +1313,7 @@ export const normalizeNodeWithRegistry = (node: any): any => {
       ...customNode.data,
       configSchema: ensureDynamicPortTypeFields(resolvedSchema),
     },
-  };
+  } as T;
 };
 
 export const createNodeDataByType = (

@@ -52,6 +52,10 @@ import Playground from "../components/Playground";
 import { Sidebar } from "../components/Sidebar";
 import { initialEdges, initialNodes } from "../data";
 import {
+  AGENT_TEMPLATE_CUSTOM,
+  getAgentInstructionByTemplate,
+} from "../../back-end/agent-templates";
+import {
   validateFlowGraph,
   type FlowValidationIssue,
   type ValidationLocale,
@@ -143,7 +147,7 @@ const VariablesPanel: React.FC<{
                 handleUpdate(variable.id, "name", e.target.value)
               }
               className="bg-white/5 border border-white/10 rounded px-2 py-1 text-sm w-1/3 focus:border-cyber-primary outline-none"
-              placeholder="Name"
+              placeholder="Name, eg NVIDIA_API_KEY"
             />
             <input
               type="text"
@@ -152,7 +156,7 @@ const VariablesPanel: React.FC<{
                 handleUpdate(variable.id, "value", e.target.value)
               }
               className="bg-white/5 border border-white/10 rounded px-2 py-1 text-sm w-2/3 focus:border-cyber-primary outline-none"
-              placeholder="Value"
+              placeholder="Secret value used at runtime"
             />
             <button
               onClick={() => handleDelete(variable.id)}
@@ -281,7 +285,7 @@ const Flow = () => {
   const [contextMenu, setContextMenu] = useState<{
     x: number;
     y: number;
-    node?: any;
+    node?: Node;
   } | null>(null);
   const [validationLocale, setValidationLocale] = useState<ValidationLocale>(
     () =>
@@ -337,32 +341,31 @@ const Flow = () => {
     };
   }, [isNodeConfigOpen, highlightedConfigField]);
 
-  const currentConfigNode = useMemo(() => nodes.find((n) => n.id === configNodeId) || null, [nodes, configNodeId]);
+  const currentConfigNode = useMemo(
+    () => nodes.find((n) => n.id === configNodeId) || null,
+    [nodes, configNodeId],
+  );
 
-  const updateNodeDataById = (newData: any) => {
+  const updateNodeDataById = (newData: Partial<CustomNodeType["data"]>) => {
     if (!configNodeId) return;
     setNodes((nds) => nds.map((n) => (n.id === configNodeId ? { ...n, data: { ...n.data, ...newData } } : n)));
   };
 
-  const handleConfigParamChange = (name: string, value: any) => {
+  const handleConfigParamChange = (
+    name: string,
+    value: string | number | boolean,
+  ) => {
     if (!configNodeId) return;
     setNodes((nds) => nds.map((n) => {
       if (n.id !== configNodeId) return n;
-      const data = n.data as Record<string, unknown>;
+      const data = n.data as CustomNodeType["data"];
       if (data.type === 'Agent' && name === 'agentTemplate') {
         const templateName = String(value || '');
         const configSchema = Array.isArray(data.configSchema) ? data.configSchema : [];
         let updatedSchema = setNodeFieldValueInSchema(configSchema, 'agentTemplate', templateName);
-        // keep agent template behavior consistent with useCyberNode
-        try {
-          const { AGENT_TEMPLATE_CUSTOM, getAgentInstructionByTemplate } = require('../agent-templates');
-          const templateInstruction = getAgentInstructionByTemplate(templateName);
-          if (templateName !== AGENT_TEMPLATE_CUSTOM && templateInstruction) {
-            updatedSchema = setNodeFieldValueInSchema(updatedSchema, 'instruction', templateInstruction);
-          }
-        } catch (err) {
-          // Silently ignore agent template loading errors - templates are optional
-          console.debug(`Agent template loading failed: ${err instanceof Error ? err.message : String(err)}`);
+        const templateInstruction = getAgentInstructionByTemplate(templateName);
+        if (templateName !== AGENT_TEMPLATE_CUSTOM && templateInstruction) {
+          updatedSchema = setNodeFieldValueInSchema(updatedSchema, 'instruction', templateInstruction);
         }
         return { ...n, data: { ...n.data, configSchema: updatedSchema } };
       }
@@ -755,7 +758,7 @@ const Flow = () => {
   );
 
   const onNodeContextMenu = useCallback(
-    (event: React.MouseEvent, node: any) => {
+    (event: React.MouseEvent, node: Node) => {
       event.preventDefault();
       setContextMenu({
         x: event.clientX,
@@ -2307,7 +2310,7 @@ const Flow = () => {
   }, [edges, nodes]);
 
   return (
-    <div className="w-full h-screen bg-cyber-dark text-white overflow-hidden flex flex-col">
+    <div className="w-full h-screen min-h-0 bg-cyber-dark text-white overflow-hidden flex flex-col">
       <FlowHeader
         currentFlowName={currentFlowName}
         setCurrentFlowName={setCurrentFlowName}
@@ -2352,12 +2355,12 @@ const Flow = () => {
         isOnline={isOnline}
       />
 
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 min-h-0 min-w-0 flex overflow-hidden">
         <Sidebar onAddNode={onAddNode} />
 
         {/* React Flow Canvas */}
         <div
-          className="flex-1 relative"
+          className="flex-1 min-h-0 min-w-0 relative"
           onDragOver={onDragOver}
           onDrop={onDrop}
         >
@@ -2438,11 +2441,12 @@ const Flow = () => {
           <NodeConfigModal
             isOpen={isNodeConfigOpen}
             onClose={() => { setIsNodeConfigOpen(false); setConfigNodeId(null); setHighlightedConfigField(null); }}
-            data={currentConfigNode?.data || { label: '', configSchema: [] }}
+            data={(currentConfigNode?.data as CustomNodeType['data'] | undefined) || { label: '', type: '', configSchema: [] }}
             updateNodeData={updateNodeDataById}
             handleParamChange={handleConfigParamChange}
             highlightedField={highlightedConfigField}
             configFieldRefs={configFieldRefs}
+            globalVariables={globalVariables}
           />
         </div>
 
@@ -2504,13 +2508,15 @@ const Flow = () => {
           onClose={() => setContextMenu(null)}
           actions={{
             onFocus: () => {
-              if (contextMenu.node) focusNode(contextMenu.node);
+              const node = contextMenu.node;
+              if (node) focusNode(node);
             },
             onRun: () => {
-              if (contextMenu.node) {
+              const node = contextMenu.node;
+              if (node) {
                 setNodes((nds) =>
                   nds.map((n) =>
-                    n.id === contextMenu.node.id
+                    n.id === node.id
                       ? { ...n, data: { ...n.data, status: "running" } }
                       : n,
                   ),
@@ -2519,7 +2525,7 @@ const Flow = () => {
                 setTimeout(() => {
                   setNodes((nds) =>
                     nds.map((n) =>
-                      n.id === contextMenu.node.id
+                      n.id === node.id
                         ? { ...n, data: { ...n.data, status: "success" } }
                         : n,
                     ),
@@ -2527,7 +2533,7 @@ const Flow = () => {
                   setTimeout(() => {
                     setNodes((nds) =>
                       nds.map((n) =>
-                        n.id === contextMenu.node.id
+                        n.id === node.id
                           ? { ...n, data: { ...n.data, status: "idle" } }
                           : n,
                       ),
@@ -2537,10 +2543,11 @@ const Flow = () => {
               }
             },
             onOpenConfig: () => {
-              if (contextMenu.node) {
+              const node = contextMenu.node;
+              if (node) {
                 setNodes((nds) =>
                   nds.map((n) =>
-                    n.id === contextMenu.node.id
+                    n.id === node.id
                       ? {
                           ...n,
                           data: {
@@ -2554,12 +2561,13 @@ const Flow = () => {
               }
             },
             onOpenData: () => {
-              if (contextMenu.node) {
+              const node = contextMenu.node;
+              if (node) {
                 // Similar to config but for data
                 // In CyberNode we use local state for isDataOpen, but we can trigger it via data prop
                 setNodes((nds) =>
                   nds.map((n) =>
-                    n.id === contextMenu.node.id
+                    n.id === node.id
                       ? {
                           ...n,
                           data: {
@@ -2583,14 +2591,16 @@ const Flow = () => {
             },
             onDuplicate: () => onDuplicate(),
             onDelete: () => {
-              if (contextMenu.node) {
+              const node = contextMenu.node;
+              if (node) {
                 takeSnapshot();
-                deleteElements({ nodes: [contextMenu.node] });
+                deleteElements({ nodes: [node] });
               }
             },
             onUngroup: () => {
-              if (contextMenu.node && contextMenu.node.type === "cyberGroup") {
-                onUngroupNodes(contextMenu.node.id);
+              const node = contextMenu.node;
+              if (node && node.type === "cyberGroup") {
+                onUngroupNodes(node.id);
               }
             },
             onLayout: (type?: string) => {

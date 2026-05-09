@@ -24,7 +24,8 @@ export const initialNodes: Node<NodeData>[] = [
           options: AGENT_TEMPLATE_OPTIONS,
           value: DEFAULT_AGENT_TEMPLATE,
         },
-        { label: 'System Instruction', name: 'instruction', type: 'textarea', value: DEFAULT_AGENT_INSTRUCTION }
+        { label: 'System Instruction', name: 'instruction', type: 'textarea', value: DEFAULT_AGENT_INSTRUCTION },
+        { label: 'Stream Response', name: 'stream', type: 'boolean', value: false }
       ]
     }
   },

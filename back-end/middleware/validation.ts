@@ -133,14 +133,30 @@ export class RequestValidator {
       throw new Error('Flow name is required and must be a string');
     }
 
-    // Handle nested structure: data: { nodes, edges } or flat structure: { nodes, edges }
+    // Handle nested structure: data: { nodes, edges, globalVariables, ... }
+    // or flat structure: { nodes, edges, globalVariables, ... }
     let nodes = obj.nodes;
     let edges = obj.edges;
+    let globalVariables = obj.globalVariables;
+    let metadata = obj.metadata;
+    let viewport = obj.viewport;
     
     if (!Array.isArray(nodes) && obj.data && typeof obj.data === 'object') {
       // Try to extract from nested data structure
       nodes = obj.data.nodes;
       edges = obj.data.edges;
+    }
+
+    if (globalVariables === undefined && obj.data && typeof obj.data === 'object') {
+      globalVariables = obj.data.globalVariables;
+    }
+
+    if (metadata === undefined && obj.data && typeof obj.data === 'object') {
+      metadata = obj.data.metadata;
+    }
+
+    if (viewport === undefined && obj.data && typeof obj.data === 'object') {
+      viewport = obj.data.viewport;
     }
 
     if (!Array.isArray(nodes)) {
@@ -172,11 +188,11 @@ export class RequestValidator {
       description: obj.description,
       nodes: nodes,
       edges: edges,
-      metadata: obj.metadata,
-      globalVariables: obj.globalVariables,
+      metadata,
+      globalVariables,
       versionLabel: typeof obj.versionLabel === 'string' ? obj.versionLabel : undefined,
       isAutoSave: typeof obj.isAutoSave === 'boolean' ? obj.isAutoSave : undefined,
-      viewport: obj.viewport,
+      viewport,
     };
   }
 
