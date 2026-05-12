@@ -2,7 +2,7 @@ import type { NodeValidator } from '../types';
 
 export const validateAgentNode: NodeValidator = (node, context) => {
   const hasLlm = context.edges.some(
-    (edge) => edge.target === node.id && edge.targetHandle === 'agent_llm',
+    (e) => e.target === node.id && (e.targetHandle === 'agent_llm' || e.targetHandle?.includes('llm')),
   );
   if (hasLlm) return [];
 
@@ -10,7 +10,7 @@ export const validateAgentNode: NodeValidator = (node, context) => {
     {
       level: 'error',
       nodeId: node.id,
-      message: `Agent "${node.data.label}" is missing Chat Model connection (LLM_LINK).`,
+      message: `Agent "${node.data.label}" is missing Chat Model connection.`,
     },
   ];
 };

@@ -2,11 +2,9 @@ import type { Edge, Node } from '@xyflow/react';
 import type { CustomNodeType } from '@n2flow/types';
 import type { FlowValidationIssue } from './types';
 
-type SchemaField = NonNullable<CustomNodeType['data'] extends { configSchema?: infer C } ? C : never>[number];
-
 export const readParamString = (node: CustomNodeType, key: string) =>
   String(
-    node.data.configSchema?.find((field) => (field as any).name === key)?.value ??
+    node.data.configSchema?.find((f: any) => f.name === key)?.value ??
       (node.data as any).params?.[key] ??
       '',
   ).trim();
@@ -79,19 +77,3 @@ export const validateToolConnectivity = (
       message: `Tool node "${(node as CustomNodeType).data?.label || node.id}" has no input connections.`,
     }));
 };
-
-/**
- * Validate agent node has required connections
- */
-export const validateAgentConnectivity = (
-  nodes: Node[],
-  edges: Edge[],
-): FlowValidationIssue[] =>
-  nodes
-    .filter((node) => (node as CustomNodeType).data?.type === 'Agent')
-    .filter((node) => !edges.some((e) => e.target === node.id && (e.targetHandle === 'agent_llm' || e.targetHandle?.includes('llm'))))
-    .map((node) => ({
-      level: 'error',
-      nodeId: node.id,
-      message: `Agent "${(node as CustomNodeType).data?.label || node.id}" requires a Language Model connection.`,
-    }));

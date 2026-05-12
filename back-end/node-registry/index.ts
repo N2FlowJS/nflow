@@ -132,6 +132,7 @@ const AS_TOOL_BADGE_CENTER_CLASS =
 const AS_TOOL_BADGE_75_CLASS =
   "left-[75%] -translate-x-1/2 -top-6 text-amber-300 border-amber-500/60 bg-black/70";
 
+// --- Helpers ---
 const createPrimarySourceHandle = (
   portType: NodeSourceHandleConfig["portType"] = "text",
   position: "right" | "bottom" = "right",
@@ -164,6 +165,38 @@ const createAsToolSourceHandle = (
     offsetPercent === 75 ? AS_TOOL_BADGE_75_CLASS : AS_TOOL_BADGE_CENTER_CLASS,
 });
 
+const commonModelFields = (sourceType: NodeSourceHandleConfig["portType"] = "chat_model"): RegistryConfigSchema => [
+  { label: "Base URL (Optional)", name: "baseUrl", type: "text" },
+  { label: "API Key (Optional)", name: "apiKey", type: "text" },
+  {
+    label: "Model Name",
+    name: "model",
+    type: "text",
+    sourceHandles: [createPrimarySourceHandle(sourceType, "bottom")],
+  },
+  { label: "Temperature", name: "temperature", type: "number" },
+  { label: "Max Tokens", name: "max_tokens", type: "number" },
+  { label: "Top P", name: "top_p", type: "number" },
+];
+
+const chatModelFields = (extraFields: RegistryConfigField[] = []): RegistryConfigSchema => [
+  ...commonModelFields("chat_model"),
+  ...extraFields,
+  { label: "Stream", name: "stream", type: "boolean" },
+];
+
+const embeddingModelFields = (sourceType: NodeSourceHandleConfig["portType"] = "embedding_model"): RegistryConfigSchema => [
+  { label: "Base URL (Optional)", name: "baseUrl", type: "text" },
+  { label: "API Key (Optional)", name: "apiKey", type: "text" },
+  {
+    label: "Embedding Model",
+    name: "model",
+    type: "text",
+    sourceHandles: [createPrimarySourceHandle(sourceType, "bottom")],
+  },
+];
+
+// --- Schemas ---
 const languageModelSchema: RegistryConfigSchema = [
   {
     label: "Model Type",
@@ -210,16 +243,7 @@ const embeddingModelSchema: RegistryConfigSchema = [
   },
 ];
 
-const localEmbeddingSchema: RegistryConfigSchema = [
-  { label: "Base URL (Optional)", name: "baseUrl", type: "text" },
-  { label: "API Key (Optional)", name: "apiKey", type: "text" },
-  {
-    label: "Embedding Model",
-    name: "model",
-    type: "text",
-    sourceHandles: [createPrimarySourceHandle("embedding_model", "bottom")],
-  },
-];
+const localEmbeddingSchema = embeddingModelFields();
 
 const promptTemplateSchema: RegistryConfigSchema = [
   {
@@ -254,49 +278,27 @@ const gitLabReviewTemplateSchema: RegistryConfigSchema = [
   },
 ];
 
-const gitLabMergeRequestSchema: RegistryConfigSchema = [
+const gitApiSchema = (p: 'GitLab' | 'GitHub'): RegistryConfigSchema => [
   {
-    label: "GitLab API Base URL",
+    label: `${p} API Base URL`,
     name: "baseUrl",
     type: "text",
-    sourceHandles: [
-      createPrimarySourceHandle("text", "right"),
-      createAsToolSourceHandle(),
-    ],
+    sourceHandles: [createPrimarySourceHandle("text", "right"), createAsToolSourceHandle()],
   },
-  { label: "Project ID", name: "projectId", type: "text" },
-  { label: "Merge Request IID", name: "mergeRequestIid", type: "text" },
-  { label: "Private Token", name: "privateToken", type: "text" },
+  { label: p === 'GitLab' ? "Project ID" : "Repository (owner/repo)", name: p === 'GitLab' ? "projectId" : "repoFullName", type: "text" },
+  { label: p === 'GitLab' ? "Merge Request IID" : "Pull Request #", name: p === 'GitLab' ? "mergeRequestIid" : "pullRequestNumber", type: "text" },
+  { label: p === 'GitLab' ? "Private Token" : "Access Token", name: p === 'GitLab' ? "privateToken" : "githubToken", type: "text" },
   {
     label: "Action",
     name: "action",
     type: "select",
-    options: ["get_changes", "get_notes", "get_discussions", "post_note"],
+    options: p === 'GitLab' ? ["get_changes", "get_notes", "get_discussions", "post_note"] : ["get_files", "get_comments", "post_comment"],
   },
-  { label: "Note Body Template", name: "noteBody", type: "textarea" },
+  { label: p === 'GitLab' ? "Note Body Template" : "Comment Body Template", name: "noteBody", type: "textarea" },
 ];
 
-const gitHubMergeRequestSchema: RegistryConfigSchema = [
-  {
-    label: "GitHub API Base URL",
-    name: "baseUrl",
-    type: "text",
-    sourceHandles: [
-      createPrimarySourceHandle("text", "right"),
-      createAsToolSourceHandle(),
-    ],
-  },
-  { label: "Repository (owner/repo)", name: "repoFullName", type: "text" },
-  { label: "Pull Request #", name: "pullRequestNumber", type: "text" },
-  { label: "Access Token", name: "githubToken", type: "text" },
-  {
-    label: "Action",
-    name: "action",
-    type: "select",
-    options: ["get_files", "get_comments", "post_comment"],
-  },
-  { label: "Comment Body Template", name: "noteBody", type: "textarea" },
-];
+const gitLabMergeRequestSchema = gitApiSchema('GitLab');
+const gitHubMergeRequestSchema = gitApiSchema('GitHub');
 
 const nodeRegistry: Record<string, NodeRegistryEntry> = {
   
@@ -355,21 +357,7 @@ const nodeRegistry: Record<string, NodeRegistryEntry> = {
     category: "llm",
     icon: "BrainCircuit",
     configSchema: withDefaultValues(
-      [
-        { label: "Base URL (Optional)", name: "baseUrl", type: "text" },
-        { label: "API Key (Optional)", name: "apiKey", type: "text" },
-        {
-          label: "Model Name",
-          name: "model",
-          type: "text",
-          sourceHandles: [createPrimarySourceHandle("chat_model", "bottom")],
-        },
-        { label: "Temperature", name: "temperature", type: "number" },
-        { label: "Max Tokens", name: "max_tokens", type: "number" },
-        { label: "Top P", name: "top_p", type: "number" },
-        { label: "Top K", name: "top_k", type: "number" },
-        { label: "Stream", name: "stream", type: "boolean" },
-      ],
+      chatModelFields([{ label: "Top K", name: "top_k", type: "number" }]),
       {
         provider: "Ollama",
         model: "llama3.1:8b",
@@ -387,26 +375,10 @@ const nodeRegistry: Record<string, NodeRegistryEntry> = {
     category: "llm",
     icon: "BrainCircuit",
     configSchema: withDefaultValues(
-      [
-        { label: "Base URL (Optional)", name: "baseUrl", type: "text" },
-        { label: "API Key (Optional)", name: "apiKey", type: "text" },
-        {
-          label: "Model Name",
-          name: "model",
-          type: "text",
-          sourceHandles: [createPrimarySourceHandle("chat_model", "bottom")],
-        },
-        { label: "Temperature", name: "temperature", type: "number" },
-        { label: "Max Tokens", name: "max_tokens", type: "number" },
-        { label: "Top P", name: "top_p", type: "number" },
+      chatModelFields([
         { label: "Presence Penalty", name: "presence_penalty", type: "number" },
-        {
-          label: "Frequency Penalty",
-          name: "frequency_penalty",
-          type: "number",
-        },
-        { label: "Stream", name: "stream", type: "boolean" },
-      ],
+        { label: "Frequency Penalty", name: "frequency_penalty", type: "number" },
+      ]),
       {
         provider: "vLLM",
         model: "meta-llama/Meta-Llama-3-8B-Instruct",
@@ -426,28 +398,7 @@ const nodeRegistry: Record<string, NodeRegistryEntry> = {
     category: "llm",
     icon: "BrainCircuit",
     configSchema: withDefaultValues(
-      [
-        {
-          label: "Provider",
-          name: "provider",
-          type: "select",
-          options: ["NVIDIA"],
-          sourceHandles: [createPrimarySourceHandle("chat_model", "bottom")],
-        },
-        { label: "Base URL (Optional)", name: "baseUrl", type: "text" },
-        { label: "API Key (Optional)", name: "apiKey", type: "text" },
-        {
-          label: "Model Name",
-          name: "model",
-          type: "text",
-          sourceHandles: [createPrimarySourceHandle("chat_model", "bottom")],
-        },
-        { label: "Temperature", name: "temperature", type: "number" },
-        { label: "Max Tokens", name: "max_tokens", type: "number" },
-        { label: "Top P", name: "top_p", type: "number" },
-        { label: "Top K", name: "top_k", type: "number" },
-        { label: "Stream", name: "stream", type: "boolean" },
-      ],
+      chatModelFields([{ label: "Top K", name: "top_k", type: "number" }]),
       {
         provider: "NVIDIA",
         model: "stepfun-ai/step-3.5-flash",

@@ -3,7 +3,7 @@ import { getNodeValidationRuleConfigs } from '../node-registry';
 import type { CustomNodeType } from '@n2flow/types';
 import { validatorsByRuleKey } from './ruleRegistry';
 import type { FlowValidationIssue, ValidationContext } from './types';
-import { validateNodeConnectivity, validateToolConnectivity, validateAgentConnectivity } from './utils';
+import { validateNodeConnectivity, validateToolConnectivity } from './utils';
 
 export type { FlowValidationIssue } from './types';
 
@@ -67,6 +67,5 @@ export const validateFlowGraph = (
     ...issues,
     ...validateNodeConnectivity(nodes, edges),
     ...validateToolConnectivity(nodes, edges),
-    ...validateAgentConnectivity(nodes, edges),
   ];
 };

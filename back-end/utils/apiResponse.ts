@@ -25,8 +25,8 @@ export interface ApiError {
  */
 export const successResponse = <T>(data?: T, pagination?: ApiResponse['pagination']): ApiResponse<T> => ({
   ok: true,
-  ...(data !== undefined && { data }),
-  ...(pagination && { pagination }),
+  data,
+  pagination,
 });
 
 /**
