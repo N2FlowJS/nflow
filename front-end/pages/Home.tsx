@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, FolderOpen, Trash2, Clock, GitBranch, Copy, GitCommit, Search } from 'lucide-react';
 import { FLOW_TEMPLATES, createSavedFlowFromTemplate } from '../../back-end/flow-templates';
-import { API_BASE, fetchWithAuth } from '../lib/api';
+import { API_BASE } from '../lib/api';
+import { apiService } from '../lib/apiService';
 
 type SavedFlow = {
   id: string;
@@ -24,10 +25,9 @@ export default function Home() {
   useEffect(() => {
     const loadFlows = async () => {
       try {
-        const response = await fetchWithAuth('/api/flows');
+        const response = await apiService.get('/api/flows');
         if (response.ok) {
-          const flows = Array.isArray(response.flows) ? response.flows : [];
-          setFlows(flows);
+          setFlows(response.data || []);
         }
       } catch (err) {
         console.error('Failed to load flows from server:', err);
@@ -40,7 +40,7 @@ export default function Home() {
     e.stopPropagation();
     if (confirm('Are you sure you want to delete this flow?')) {
       try {
-        const response = await fetchWithAuth(`/api/flows/${id}`, { method: 'DELETE' });
+        const response = await apiService.delete(`/api/flows/${id}`);
 
         if (response.ok) {
           setFlows(flows.filter(f => f.id !== id));
@@ -55,9 +55,10 @@ export default function Home() {
     e.stopPropagation();
     try {
       // Fetch full flow data if needed
-      const fullResponse = await fetchWithAuth(`/api/flows/${flow.id}`);
+      const fullResponse = await apiService.get(`/api/flows/${flow.id}`);
       if (!fullResponse.ok) throw new Error(fullResponse.error || 'Failed to fetch full flow data');
-      const fullFlow = fullResponse;
+      
+      const fullFlow = fullResponse.data;
 
       const newFlow: SavedFlow = {
         ...fullFlow,
@@ -66,10 +67,7 @@ export default function Home() {
         updatedAt: Date.now(),
       };
 
-      const response = await fetchWithAuth('/api/flows', {
-        method: 'POST',
-        body: JSON.stringify(newFlow),
-      });
+      const response = await apiService.post('/api/flows', newFlow);
 
       if (response.ok) {
         setFlows([newFlow, ...flows]);
@@ -84,10 +82,7 @@ export default function Home() {
     if (!newFlow) return;
     
     try {
-      const response = await fetchWithAuth('/api/flows', {
-        method: 'POST',
-        body: JSON.stringify(newFlow),
-      });
+      const response = await apiService.post('/api/flows', newFlow);
 
       if (response.ok) {
         navigate(`/flow/${newFlow.id}`);

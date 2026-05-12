@@ -4,6 +4,7 @@ import type {
   FlowNode,
   FlowEdge,
   FlowRuntimeEvent,
+  NodeData,
 } from '../flowTypes';
 import { executeNode, FlowRuntimeContext, NodeExecutionError } from '../nodes';
 import { ToolDefinition, executeToolNode } from '../tools';
@@ -17,13 +18,22 @@ const NODE_EXECUTION_TIMEOUT_MS = Number(process.env.NODE_EXECUTION_TIMEOUT_MS |
 
 type EventHandler = (event: FlowRuntimeEvent) => void;
 
+type PartialRuntimeEvent = 
+  | { type: 'log'; message: string }
+  | { type: 'ping' }
+  | { type: 'nodeUpdate'; nodeId: string; data: Partial<NodeData> }
+  | { type: 'result'; output: any }
+  | { type: 'error'; message: string; nodeId?: string }
+  | { type: 'done'; output: any };
+
 function makeEvents(
   isSilent: boolean,
   handler?: EventHandler,
 ) {
   const events: FlowRuntimeEvent[] = [];
-  const emit = (event: FlowRuntimeEvent) => {
-    if (!isSilent || event.type === 'result' || event.type === 'error') {
+  const emit = (partialEvent: PartialRuntimeEvent) => {
+    const event: FlowRuntimeEvent = { ...partialEvent, timestamp: Date.now() } as FlowRuntimeEvent;
+    if (!isSilent || event.type === 'result' || event.type === 'error' || event.type === 'done') {
       if (!handler) events.push(event);
       try { handler?.(event); } catch {}
     }

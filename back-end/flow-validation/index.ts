@@ -1,14 +1,12 @@
 import type { Edge, Node } from '@xyflow/react';
 import { getNodeValidationRuleConfigs } from '../node-registry';
-import type { CustomNodeType } from '@n2flow/types';
+import type { CustomNodeType, FlowValidationIssue, ValidationLocale } from '@n2flow/types';
 import { validatorsByRuleKey } from './ruleRegistry';
-import type { FlowValidationIssue, ValidationContext } from './types';
+import type { ValidationContext } from './types';
 import { validateNodeConnectivity, validateToolConnectivity } from './utils';
 import { formatValidationMessage } from '../utils/common';
 
-export type { FlowValidationIssue } from './types';
-
-export type ValidationLocale = 'en' | 'vi';
+export type { FlowValidationIssue, ValidationLocale };
 
 type ValidateFlowOptions = {
   locale?: ValidationLocale;

@@ -84,6 +84,7 @@ import {
   SavedFlow,
 } from "../types/editor";
 import { API_BASE, fetchWithAuth } from "../lib/api";
+import { apiService } from "../lib/apiService";
 
 const nodeTypes: NodeTypes = {
   cyberNode: CyberNode as any,
@@ -410,7 +411,7 @@ const Flow = () => {
   useEffect(() => {
     const checkStatus = async () => {
       try {
-        const response = await fetchWithAuth('/api/flows', { method: 'GET' });
+        const response = await apiService.get('/health');
         setIsOnline(response.ok);
       } catch {
         setIsOnline(false);
@@ -419,13 +420,13 @@ const Flow = () => {
     const timer = setInterval(checkStatus, 30000);
     checkStatus();
     return () => clearInterval(timer);
-  }, [API_BASE]);
+  }, []);
 
   const fetchFlows = useCallback(async () => {
     try {
-      const response = await fetchWithAuth('/api/flows');
+      const response = await apiService.get('/flows');
       if (response.ok) {
-        const flows = Array.isArray(response.flows) ? response.flows : [];
+        const flows = Array.isArray(response.data) ? response.data : [];
         setSavedFlows(flows);
         return flows;
       }
@@ -439,14 +440,20 @@ const Flow = () => {
     const loadFlow = async () => {
       if (id && id !== "new") {
         try {
-          const response = await fetchWithAuth(`/api/flows/${id}`);
-          if (response.ok) {
-            const flow = response;
+          const response = await apiService.get(`/flows/${id}`);
+          if (response.ok && response.data) {
+            const flow = response.data;
             if (flow && flow.data) {
               setNodes((flow.data.nodes || []).map(normalizeModelNode));
               setEdges(flow.data.edges || []);
               setGlobalVariables(flow.data.globalVariables || []);
-              setFlowVersions(flow.versions || []);
+              
+              // Load versions sequentially
+              const versionsResp = await apiService.get(`/flows/${id}/versions`);
+              if (versionsResp.ok) {
+                setFlowVersions(versionsResp.data || []);
+              }
+
               setCurrentFlowId(flow.id);
               setCurrentFlowName(flow.name);
               shouldFitAfterLoadRef.current = true;
@@ -1461,22 +1468,23 @@ const Flow = () => {
         if (!isAutoSave) setIsSaving(true);
         const flow = reactFlowInstance.toObject();
         const flowId = currentFlowId || `flow-${Date.now()}`;
-        const newFlow = {
+        const newFlow: SavedFlow = {
           id: flowId,
           name: name || currentFlowName,
           data: {
-            ...flow,
+            nodes: flow.nodes as any,
+            edges: flow.edges as any,
+            viewport: flow.viewport,
             globalVariables,
           },
           updatedAt: Date.now(),
-          versionLabel,
-          isAutoSave,
         };
 
         try {
-          const response = await fetchWithAuth(`/api/flows`, {
-            method: "POST",
-            body: JSON.stringify(newFlow),
+          const response = await apiService.post(`/flows`, {
+            ...newFlow,
+            versionLabel,
+            isAutoSave
           });
           if (response.ok) {
             setCurrentFlowId(newFlow.id);
@@ -1484,10 +1492,9 @@ const Flow = () => {
             fetchFlows();
 
             // Reload flow to get updated versions
-            const updatedResponse = await fetchWithAuth(`/api/flows/${newFlow.id}`);
-              if (updatedResponse.ok) {
-                const updatedResult = updatedResponse;
-              setFlowVersions(updatedResult.versions || []);
+            const updatedResponse = await apiService.get(`/flows/${newFlow.id}/versions`);
+            if (updatedResponse.ok) {
+              setFlowVersions(updatedResponse.data || []);
             }
 
             if (!currentFlowId) {

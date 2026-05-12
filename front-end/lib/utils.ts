@@ -1,11 +1,9 @@
+import { Utils } from "@n2flow/types";
+
 /** Convert an internal component type name to a human-readable label.
  *  e.g. "ChatModelComponent" → "Chat Model"
  */
-export function prettifyLabel(typeName: string): string {
-  const withoutComp = typeName.replace(/Component$/, '').replace(/_/g, ' ');
-  const spaced = withoutComp.replace(/([a-z0-9])([A-Z])/g, '$1 $2');
-  return spaced.replace(/\b([a-z])/g, (s) => s.toUpperCase());
-}
+export const prettifyLabel = Utils.prettifyLabel;
 
 /** Safely convert any value to a string. */
 export function stringifyUnknown(value: unknown): string {
@@ -41,7 +39,7 @@ export function extractErrorMessage(error: unknown): string {
 export function maskSecretValue(v: string | unknown): string {
   const s = String(v || '').trim();
   if (!s) return '[empty]';
-  return s.length <= 8 ? `${s.slice(0, 2)}***` : `${s.slice(0, 4)}***${s.slice(-4)}`;
+  return Utils.maskString(s);
 }
 
 export function looksLikeSecret(v: string | unknown): boolean {

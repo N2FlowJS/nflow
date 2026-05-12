@@ -1,4 +1,11 @@
 import { ReactFlowInstance } from "@xyflow/react";
+import { 
+  NodeData as BaseNodeData, 
+  GlobalVariable as BaseGlobalVariable,
+  FlowData as BaseFlowData,
+  FlowVersion as BaseFlowVersion,
+  SavedFlow as BaseSavedFlow
+} from "@n2flow/types";
 
 export type RuntimeStatus = "idle" | "running" | "success" | "error" | "cancelled";
 
@@ -22,30 +29,10 @@ export type CommandAction = {
   run: () => void;
 };
 
-export type GlobalVariable = {
-  id: string;
-  name: string;
-  value: string;
-};
-
-export type FlowData = ReturnType<ReactFlowInstance["toObject"]> & {
-  globalVariables?: GlobalVariable[];
-};
-
-export type FlowVersion = {
-  id: string;
-  timestamp: number;
-  data: FlowData;
-  label?: string;
-};
-
-export type SavedFlow = {
-  id: string;
-  name: string;
-  data?: FlowData;
-  versions?: FlowVersion[];
-  updatedAt: number;
-};
+export type GlobalVariable = BaseGlobalVariable;
+export type FlowData = BaseFlowData;
+export type FlowVersion = BaseFlowVersion;
+export type SavedFlow = BaseSavedFlow;
 
 export type LogEntry = {
   id: string;

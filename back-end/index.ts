@@ -5,6 +5,7 @@ import rateLimit from 'express-rate-limit';
 import rootRouter from './routes';
 import { authMiddleware } from './middleware/auth';
 import { LogSanitizer, installGlobalLogSanitizer } from './middleware/logSanitizer';
+import { globalErrorHandler, notFoundHandler } from './middleware/errorHandler';
 
 const app = express();
 const port = Number(process.env.SQL_SERVER_PORT || 8787);
@@ -102,6 +103,10 @@ app.post('/api/flows/:id/versions/:versionId/restore', authMiddleware);
 app.delete('/api/flows/:id', authMiddleware);
 
 app.use('/', rootRouter);
+
+// Error handlers (must be after routes)
+app.use(notFoundHandler);
+app.use(globalErrorHandler);
 
 app.listen(port, () => {
   console.log(`[n2flow] SQL server is running at http://localhost:${port}`);

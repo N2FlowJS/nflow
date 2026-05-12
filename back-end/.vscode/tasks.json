@@ -1,0 +1,23 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Run newly created API tests",
+			"type": "shell",
+			"command": "npm"
+		},
+		{
+			"label": "Run newly created API tests",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"run",
+				"test",
+				"--",
+				"tests/flow.test.ts",
+				"tests/secrets.test.ts",
+				"--run"
+			]
+		}
+	]
+}

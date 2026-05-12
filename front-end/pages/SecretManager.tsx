@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Modal } from '../components/Modal';
-import { fetchWithAuth } from '../lib/api';
+import { apiService } from '../lib/apiService';
 
 interface Secret {
   id: string;
@@ -40,9 +40,9 @@ const SecretManager: React.FC = () => {
   const loadSecrets = async () => {
     try {
       setLoading(true);
-      const response = await fetchWithAuth('/api/secrets');
+      const response = await apiService.get('/api/secrets');
       if (response.ok) {
-        setSecrets(response.secrets || []);
+        setSecrets(response.data || []);
         setError(null);
       } else {
         setError(response.error || 'Failed to load secrets');
@@ -86,17 +86,9 @@ const SecretManager: React.FC = () => {
 
       let response;
       if (isEditing && editingId) {
-        response = await fetchWithAuth(`/api/secrets/${editingId}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(formData),
-        });
+        response = await apiService.put(`/api/secrets/${editingId}`, formData);
       } else {
-        response = await fetchWithAuth('/api/secrets', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(formData),
-        });
+        response = await apiService.post('/api/secrets', formData);
       }
 
       if (response.ok) {
@@ -117,9 +109,7 @@ const SecretManager: React.FC = () => {
     }
 
     try {
-      const response = await fetchWithAuth(`/api/secrets/${id}`, {
-        method: 'DELETE',
-      });
+      const response = await apiService.delete(`/api/secrets/${id}`);
 
       if (response.ok) {
         setError(null);
@@ -138,14 +128,12 @@ const SecretManager: React.FC = () => {
     }
 
     try {
-      const response = await fetchWithAuth(`/api/secrets/${id}/regenerate`, {
-        method: 'POST',
-      });
+      const response = await apiService.post(`/api/secrets/${id}/regenerate`, {});
 
       if (response.ok) {
         setError(null);
         // Show the new key temporarily
-        setShowSecretValue(response.key);
+        setShowSecretValue(response.data?.key);
         setTimeout(() => setShowSecretValue(null), 10000); // Hide after 10 seconds
         loadSecrets();
       } else {
@@ -158,9 +146,9 @@ const SecretManager: React.FC = () => {
 
   const handleRevealSecret = async (id: string) => {
     try {
-      const response = await fetchWithAuth(`/api/secrets/${id}`);
+      const response = await apiService.get(`/api/secrets/${id}`);
       if (response.ok) {
-        setShowSecretValue(response.secret?.key);
+        setShowSecretValue(response.data?.key);
         // Auto-hide after 30 seconds for security
         setTimeout(() => setShowSecretValue(null), 30000);
       } else {
@@ -173,9 +161,9 @@ const SecretManager: React.FC = () => {
 
   const handleCopyToClipboard = async (id: string) => {
     try {
-      const response = await fetchWithAuth(`/api/secrets/${id}`);
+      const response = await apiService.get(`/api/secrets/${id}`);
       if (response.ok) {
-        const secretValue = response.secret?.key;
+        const secretValue = response.data?.key;
         if (secretValue) {
           await navigator.clipboard.writeText(secretValue);
           setCopiedId(id);

@@ -1,12 +1,7 @@
 import type { Edge, Node } from '@xyflow/react';
-import type { CustomNodeType } from '@n2flow/types';
+import type { CustomNodeType, FlowValidationIssue } from '@n2flow/types';
 
-export type FlowValidationIssue = {
-  level: 'error' | 'warning';
-  nodeId?: string;
-  fieldName?: string;
-  message: string;
-};
+export type { FlowValidationIssue };
 
 export type ValidationContext = {
   nodes: Node[];

@@ -1,3 +1,4 @@
+import { Utils } from '@n2flow/types';
 import type { FlowNode } from '../flowTypes';
 import type { GlobalVariable } from '../flowTypes';
 
@@ -100,18 +101,10 @@ export const toErrorMessage = (err: unknown, fallback = 'An unexpected error occ
   err instanceof Error ? err.message : (typeof err === 'string' ? err : fallback);
 
 /** Mask an API key for safe logging. */
-export const maskApiKey = (apiKey: string): string => {
-  if (!apiKey) return 'missing';
-  if (apiKey.length <= 8) return `${apiKey.slice(0, 2)}***`;
-  return `${apiKey.slice(0, 4)}***${apiKey.slice(-4)}`;
-};
+export const maskApiKey = Utils.maskString;
 
 /** Normalize an API key by trimming and removing Bearer prefix. */
-export const normalizeApiKey = (apiKey: unknown): string => {
-  const raw = String(apiKey || '').trim();
-  if (!raw) return '';
-  return raw.replace(/^Bearer\s+/i, '').trim();
-};
+export const normalizeApiKey = Utils.normalizeApiKey;
 
 /** Race a promise against a timeout that rejects with the given message. */
 export const withTimeout = <T>(operation: Promise<T>, ms: number, message: string): Promise<T> =>
