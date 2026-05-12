@@ -4,7 +4,13 @@ import { toErrorMessage } from '../utils/common';
 
 const router = Router();
 
-router.post('/sql/query', async (req: Request, res: Response) => {
+const asyncHandler = (fn: any) => (req: Request, res: Response, next: any) => 
+  Promise.resolve(fn(req, res, next)).catch(err => {
+    const errorMsg = toErrorMessage(err);
+    res.status(500).json({ ok: false, error: errorMsg });
+  });
+
+router.post('/sql/query', asyncHandler(async (req: Request, res: Response) => {
   const {
     server,
     port: dbPort,
@@ -19,10 +25,10 @@ router.post('/sql/query', async (req: Request, res: Response) => {
   } = req.body || {};
 
   if (!server || !user || !database || !query) {
-    res.status(400).json({
+    return res.status(400).json({
+      ok: false,
       error: 'Missing required fields: server, user, database, query',
     });
-    return;
   }
 
   const config = {
@@ -52,6 +58,7 @@ router.post('/sql/query', async (req: Request, res: Response) => {
       : [];
 
     res.json({
+      ok: true,
       rows,
       rowCount: rows.length,
       totalRowCount: Array.isArray(result.recordset) ? result.recordset.length : 0,
@@ -59,10 +66,6 @@ router.post('/sql/query', async (req: Request, res: Response) => {
       recordsets: result.recordsets || [],
       durationMs,
       columns: result.recordset?.columns ? Object.keys(result.recordset.columns) : undefined,
-    });
-  } catch (err) {
-    res.status(500).json({
-      error: toErrorMessage(err, 'SQL execution failed'),
     });
   } finally {
     if (pool) {
@@ -72,6 +75,6 @@ router.post('/sql/query', async (req: Request, res: Response) => {
       }
     }
   }
-});
+}));
 
 export default router;

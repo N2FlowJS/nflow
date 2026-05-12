@@ -67,7 +67,27 @@ export interface FlowSaveRequest {
   };
 }
 
-const PLACEHOLDER_REGEX = /\{\{\s*([^{}]+?)\s*\}\}/g;
+export const PLACEHOLDER_REGEX = /\{\{\s*([^{}]+?)\s*\}\}/g;
+
+/**
+ * Validates if a string contains placeholders that can be resolved either by 
+ * global variables or by server environment variables.
+ * Returns null if valid, or an error message if missing.
+ */
+export const validatePlaceholder = (value: string, globalVariables: GlobalVariable[] = []): string | null => {
+  const matches = value.matchAll(PLACEHOLDER_REGEX);
+  const variableNames = new Set(globalVariables.map(v => v.name.trim()));
+
+  for (const match of matches) {
+    const placeholderName = String(match[1] || '').trim();
+    if (!placeholderName) continue;
+
+    if (!variableNames.has(placeholderName) && process.env[placeholderName] === undefined) {
+      return `Placeholder "{{${placeholderName}}}" could not be resolved`;
+    }
+  }
+  return null;
+};
 
 /**
  * Validation utility to safely parse and validate requests
@@ -280,35 +300,11 @@ export class RequestValidator {
 
   static validateResolvablePlaceholders(nodes: any[], vars: any[]): string[] {
     const errors: string[] = [];
-    const variableMap = new Map<string, string>();
-
-    for (const variable of vars) {
-      if (!variable || typeof variable !== 'object' || typeof variable.name !== 'string') {
-        continue;
-      }
-      variableMap.set(variable.name.trim(), String(variable.value ?? ''));
-    }
 
     const visit = (value: unknown, path: string) => {
       if (typeof value === 'string') {
-        const matches = value.matchAll(PLACEHOLDER_REGEX);
-        for (const match of matches) {
-          const placeholderName = String(match[1] || '').trim();
-          if (!placeholderName) {
-            continue;
-          }
-
-          if (variableMap.has(placeholderName)) {
-            if (!variableMap.get(placeholderName)?.trim()) {
-              errors.push(`${path}: global variable "${placeholderName}" is empty`);
-            }
-            continue;
-          }
-
-          if (process.env[placeholderName] === undefined) {
-            errors.push(`${path}: placeholder "{{${placeholderName}}}" could not be resolved`);
-          }
-        }
+        const err = validatePlaceholder(value, vars);
+        if (err) errors.push(`${path}: ${err}`);
         return;
       }
 

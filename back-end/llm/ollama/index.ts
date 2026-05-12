@@ -1,6 +1,6 @@
 import { Ollama } from 'ollama';
 import type { LlmRuntimeConfig, AgentTool } from '../types';
-import { trimTrailingSlash, toOpenAiToolDeclarations, extractOllamaToolCalls, clampToolResult } from '../utils';
+import { trimTrailingSlash, toOpenAiToolDeclarations, extractOllamaToolCalls, clampToolResult, createChatOrchestrator } from '../utils';
 
 const getOllamaClient = (cfg: LlmRuntimeConfig) => {
   const host = trimTrailingSlash(cfg.baseUrl || 'http://localhost:11434');
@@ -25,72 +25,71 @@ export const runOllamaChat = async (
   if (systemPrompt) messages.push({ role: 'system', content: systemPrompt });
   messages.push({ role: 'user', content: userPrompt });
 
-  // Prefer Ollama SDK-managed agents if present
+  // 1. Try SDK-managed agent APIs (Speculative)
   if (ollamaAny.agents && typeof ollamaAny.agents.run === 'function') {
     try {
       const resp = await ollamaAny.agents.run({ model: String(cfg.model), input: userPrompt, tools: tools as any, temperature: cfg.temperature, max_output_tokens: cfg.max_tokens });
       const text = resp?.output_text || resp?.message?.content || resp?.text || '';
       if (text) return String(text);
-    } catch {
-      // fallback to manual loop
-    }
+    } catch { /* fallback */ }
   }
 
-  for (let step = 0; step < 8; step += 1) {
-    let content = '';
-    let payload: any;
-    const chatOptions = {
-      model: String(cfg.model),
-      messages,
-      tools: tools as any,
-      options: {
-        temperature: cfg.temperature,
-        num_predict: cfg.max_tokens,
-        top_p: cfg.top_p,
-        top_k: cfg.top_k,
-      }
-    };
-
-    if (stream) {
-      const streamResp = await (ollamaAny.chat as any)({ ...chatOptions, stream: true });
-
-      for await (const chunk of streamResp) {
-        const delta = chunk.message?.content;
-        if (delta) {
-          content += delta;
-          onStream(delta);
+  // 2. Use Orchestrator for manual loop
+  return createChatOrchestrator({
+    log,
+    executeToolByName,
+    onStep: async () => {
+      let content = '';
+      let payload: any;
+      const chatOptions = {
+        model: String(cfg.model),
+        messages,
+        tools: tools as any,
+        options: {
+          temperature: cfg.temperature,
+          num_predict: cfg.max_tokens,
+          top_p: cfg.top_p,
+          top_k: cfg.top_k,
         }
+      };
+
+      if (stream) {
+        const streamResp = await (ollamaAny.chat as any)({ ...chatOptions, stream: true });
+        for await (const chunk of streamResp) {
+          const delta = chunk.message?.content;
+          if (delta) {
+            content += delta;
+            onStream(delta);
+          }
+        }
+      } else {
+        payload = await (ollamaAny.chat as any)({ ...chatOptions, stream: false });
+        content = typeof payload?.message?.content === 'string' ? payload.message.content : '';
       }
-    } else {
-      payload = await (ollamaAny.chat as any)({ ...chatOptions, stream: false });
-      content = typeof payload?.message?.content === 'string' ? payload.message.content : '';
-    }
-    
-    const toolCalls = extractOllamaToolCalls(payload as any);
+      
+      const toolCalls = extractOllamaToolCalls(payload as any);
+      if (toolCalls.length > 0) {
+        messages.push({ role: 'assistant', content, tool_calls: toolCalls.map(tc => tc.raw) });
+      } else {
+        messages.push({ role: 'assistant', content });
+      }
 
-    if (toolCalls.length === 0) {
-      return content || '[Empty model response]';
-    }
-
-    messages.push({ role: 'assistant', content, tool_calls: toolCalls.map(tc => tc.raw) });
-
-    for (const tc of toolCalls) {
-      log(`[Agent] Tool call: ${tc.name} → ${JSON.stringify(tc.args)}`);
-      const toolResult = await executeToolByName(tc.name, tc.args);
-      log(`[Agent] Tool result: ${String(toolResult).substring(0, 120)}`);
-      const safeToolResult = clampToolResult(String(toolResult || ''));
+      return {
+        content,
+        toolCalls: toolCalls.map(tc => ({ id: tc.id, name: tc.name, args: tc.args }))
+      };
+    },
+    onToolResult: (tc, result) => {
       messages.push({
         role: 'tool',
         id: tc.id,
         tool_call_id: tc.id,
         name: tc.name,
         tool_name: tc.name,
-        content: safeToolResult,
+        content: result,
       });
     }
-  }
-
-  throw new Error('Ollama tool loop exceeded max iterations.');
+  });
 };
 
 export const listModels = async (

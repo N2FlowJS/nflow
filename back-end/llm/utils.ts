@@ -142,6 +142,61 @@ export const toAnthropicToolDeclarations = (tools: AgentTool[]) =>
     input_schema: t.parameters,
   }));
 
+export const toGoogleToolDeclarations = (tools: AgentTool[]) =>
+  tools.map(t => ({
+    name: t.name,
+    description: t.description,
+    parameters: t.parameters,
+  }));
+
+export type NormalizedToolCall = {
+  id: string;
+  name: string;
+  args: Record<string, string>;
+  raw?: any; // The original provider-specific tool call object (needed for message history)
+};
+
+/**
+ * Standard response from a single LLM step
+ */
+export type StepResult = {
+  content: string;
+  toolCalls: NormalizedToolCall[];
+};
+
+/**
+ * Orchestrates multi-step tool loops (ReAct/Agentic loops) across LLM providers.
+ */
+export const createChatOrchestrator = async (options: {
+  maxSteps?: number;
+  log: (msg: string) => void;
+  executeToolByName: (name: string, callArgs: Record<string, string>) => Promise<string>;
+  onStep: (stepCount: number) => Promise<StepResult>;
+  onToolResult: (toolCall: NormalizedToolCall, result: string) => void | Promise<void>;
+}): Promise<string> => {
+  const { maxSteps = 8, log, executeToolByName, onStep, onToolResult } = options;
+  let lastContent = '';
+
+  for (let step = 0; step < maxSteps; step++) {
+    const { content, toolCalls } = await onStep(step);
+    if (!lastContent || content) lastContent = content;
+
+    if (toolCalls.length === 0) {
+      return lastContent || '[Empty model response]';
+    }
+
+    for (const tc of toolCalls) {
+      log(`[Agent] Tool call: ${tc.name} → ${JSON.stringify(tc.args)}`);
+      const rawResult = await executeToolByName(tc.name, tc.args);
+      log(`[Agent] Tool result: ${String(rawResult).substring(0, 120)}`);
+      const safeResult = clampToolResult(String(rawResult || ''));
+      await onToolResult(tc, safeResult);
+    }
+  }
+
+  return lastContent;
+};
+
 export default {
   trimTrailingSlash,
   normalizeApiKey,
@@ -151,4 +206,5 @@ export default {
   clampToolResult,
   extractOllamaToolCalls,
   toOpenAiToolDeclarations,
+  createChatOrchestrator,
 };

@@ -53,32 +53,3 @@ export const conditionHandler: ToolHandler = async (node, args) => {
   }
 };
 
-export const jsonParserHandler: ToolHandler = async (node, args) => {
-  const raw = String(args.query || args.json || args.input || '');
-  if (!raw.trim()) {
-    return 'Error: JSON input is empty. Provide JSON text in tool args.query.';
-  }
-
-  const parsed = parseJsonSafely(raw);
-  if (parsed === undefined) {
-    return 'Error: Invalid JSON input.';
-  }
-
-  return JSON.stringify(parsed);
-};
-
-export const dataStreamHandler: ToolHandler = async (node, args) => {
-  const streamType = String(getNodeFieldValue(node, 'streamType') || 'Metrics Array');
-  if (streamType === 'Single Value') {
-    const value = Number.parseFloat(String(args.query || ''));
-    return Number.isFinite(value)
-      ? String(value)
-      : String(Math.round((50 + Math.random() * 50) * 100) / 100);
-  }
-
-  const samples = Array.from({ length: 10 }, (_, idx) => ({
-    name: `P${idx + 1}`,
-    value: Math.round((20 + Math.random() * 80) * 100) / 100,
-  }));
-  return JSON.stringify(samples);
-};

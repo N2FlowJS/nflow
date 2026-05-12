@@ -1,21 +1,32 @@
 import OpenAI from 'openai';
 import type { LlmRuntimeConfig, AgentTool } from '../types';
-import { trimTrailingSlash, toOpenAiToolDeclarations, clampToolResult } from '../utils';
+import { trimTrailingSlash, toOpenAiToolDeclarations, clampToolResult, createChatOrchestrator, tryFetchModelsFromBase } from '../utils';
 import { normalizeApiKey } from '@/utils/common';
 
 export const listModels = async (
   cfg: LlmRuntimeConfig,
 ): Promise<Array<{ id: string; name?: string; description?: string }>> => {
-  const base = trimTrailingSlash(cfg.baseUrl || 'http://localhost:8000/v1');
+  let base = trimTrailingSlash(cfg.baseUrl || 'http://localhost:8000/v1');
+  
+  // NVIDIA NIM requires /v1 in the base URL for OpenAI-compatible endpoints
+  if (cfg.provider === 'NVIDIA' && base.includes('nvidia.com') && !base.endsWith('/v1')) {
+    base = `${base}/v1`;
+  }
+
   try {
-    const client = new OpenAI({ baseURL: base, apiKey: normalizeApiKey(cfg.apiKey) }) as any;
+    const client = new OpenAI({ baseURL: base, apiKey: normalizeApiKey(cfg.apiKey) || 'not-required' }) as any;
     if (client.models && typeof client.models.list === 'function') {
       const resp = await client.models.list();
       const data = Array.isArray(resp?.data) ? resp.data : resp?.models || [];
-      return (data || []).map((m: any) => ({ id: String(m.id || m.name || m.model || ''), name: m.name || m.id || m.model, description: m.description }));
+      return (data || []).map((m: any) => ({ 
+        id: String(m.id || m.name || m.model || ''), 
+        name: m.name || m.id || m.model, 
+        description: m.description 
+      }));
     }
   } catch (err) {
-    // ignore
+    // fallback to generic fetch for non-openai compliant but open-ai shaped APIs
+    return tryFetchModelsFromBase(base, normalizeApiKey(cfg.apiKey));
   }
   return [];
 };
@@ -42,14 +53,13 @@ export const runOpenAICompatibleChat = async (
 ) => {
   const client = getOpenAIClient(cfg) as any;
   const tools = availableTools.length > 0 ? toOpenAiToolDeclarations(availableTools) : undefined;
-  const exec = executeToolByName || (async () => '');
   const stream = cfg.stream === true && typeof onStream === 'function';
 
   const messages: any[] = [];
   if (systemPrompt) messages.push({ role: 'system', content: systemPrompt });
   messages.push({ role: 'user', content: userPrompt });
 
-  // Prefer SDK-managed agent/run APIs when available (lets SDK handle tool invocation)
+  // 1. Try SDK-managed agent/run APIs (Speculative)
   try {
     if (client.agents && typeof client.agents.run === 'function') {
       const agentResp = await client.agents.run({
@@ -64,77 +74,62 @@ export const runOpenAICompatibleChat = async (
       const text = agentResp?.output_text || agentResp?.message?.content || (Array.isArray(agentResp?.output) && (agentResp.output[0]?.content?.[0]?.text || agentResp.output[0]?.text)) || (agentResp?.choices?.[0]?.message?.content) || '';
       if (text) return String(text);
     }
+  } catch (e) { /* ignore */ }
 
-    if (client.responses && typeof client.responses.create === 'function') {
-      const resp = await client.responses.create({ model: String(cfg.model), input: userPrompt, temperature: cfg.temperature, max_output_tokens: cfg.max_tokens });
-      const text = resp?.output?.[0]?.content?.[0]?.text || resp?.output_text || '';
-      if (text) return String(text);
-    }
-  } catch (e) {
-    // ignore agent errors and fallback to manual tool loop
-  }
+  // 2. Use Orchestrator for manual loop
+  return createChatOrchestrator({
+    log,
+    executeToolByName,
+    onStep: async () => {
+      const completion = await client.chat.completions.create({
+        model: String(cfg.model),
+        messages,
+        tools: tools as any,
+        temperature: cfg.temperature,
+        max_tokens: cfg.max_tokens,
+        top_p: cfg.top_p,
+        presence_penalty: cfg.presence_penalty,
+        frequency_penalty: cfg.frequency_penalty,
+        stream,
+      });
 
-  for (let step = 0; step < 8; step += 1) {
-    const completion = await client.chat.completions.create({
-      model: String(cfg.model),
-      messages,
-      tools: tools as any,
-      temperature: cfg.temperature,
-      max_tokens: cfg.max_tokens,
-      top_p: cfg.top_p,
-      presence_penalty: cfg.presence_penalty,
-      frequency_penalty: cfg.frequency_penalty,
-      stream: stream,
-    });
-
-    let fullContent = '';
-    
-    if (stream) {
-      for await (const chunk of completion) {
-        const delta = chunk.choices?.[0]?.delta?.content;
-        if (delta) {
-          fullContent += delta;
-          onStream(delta);
+      let fullContent = '';
+      if (stream) {
+        for await (const chunk of completion) {
+          const delta = chunk.choices?.[0]?.delta?.content;
+          if (delta) {
+            fullContent += delta;
+            onStream(delta);
+          }
         }
+      } else {
+        const first = completion.choices?.[0] as any;
+        const msg = first?.message || {};
+        fullContent = typeof msg.content === 'string' ? msg.content : (Array.isArray(msg.content) ? msg.content.map((p: any) => p.text || '').join('') : '');
       }
-    } else {
-      const first = completion.choices?.[0] as any;
-      const message = first?.message || {};
-      const content = message?.content;
-      if (typeof content === 'string') fullContent = content;
-      else if (Array.isArray(content)) {
-        fullContent = content
-          .map((part: any) => (typeof part?.text === 'string' ? part.text : ''))
-          .join('')
-          .trim();
+
+      const firstChoice = !stream ? (completion.choices?.[0] as any) : null;
+      const message = firstChoice?.message || {};
+      const tool_calls = Array.isArray(message.tool_calls) ? message.tool_calls : [];
+
+      if (tool_calls.length > 0) {
+        messages.push({ role: 'assistant', content: fullContent, tool_calls });
       }
+
+      return {
+        content: fullContent,
+        toolCalls: tool_calls.map((tc: any) => ({
+          id: String(tc.id),
+          name: String(tc.function?.name),
+          args: tc.function?.arguments ? (typeof tc.function.arguments === 'string' ? JSON.parse(tc.function.arguments) : tc.function.arguments) : {},
+          raw: tc
+        }))
+      };
+    },
+    onToolResult: (tc, result) => {
+      messages.push({ role: 'tool', tool_call_id: tc.id, name: tc.name, content: result });
     }
-
-    const first = !stream ? (completion.choices?.[0] as any) : null;
-    const message = first?.message || {};
-    const toolCalls = Array.isArray(message.tool_calls) ? message.tool_calls : [];
-
-    if (toolCalls.length === 0) {
-      if (fullContent) return fullContent;
-      return '[Empty model response]';
-    }
-
-    messages.push({ role: 'assistant', content: fullContent, tool_calls: toolCalls });
-
-    for (const tc of toolCalls) {
-      const id = String((tc as any).id || 'tool_call');
-      const fn = (tc as any).function || {};
-      const fnName = String(fn.name || 'unknown_tool');
-      const fnArgs = (tc as any).arguments || tc.arguments || {};
-      log(`[Agent] Tool call: ${fnName} → ${JSON.stringify(fnArgs)}`);
-      const toolResult = await executeToolByName(fnName, fnArgs as Record<string, string>);
-      log(`[Agent] Tool result: ${String(toolResult).substring(0, 120)}`);
-      const safeToolResult = clampToolResult(String(toolResult || ''));
-      messages.push({ role: 'tool', tool_call_id: id, name: fnName, content: safeToolResult });
-    }
-  }
-
-  throw new Error('OpenAI-compatible tool loop exceeded max iterations.');
+  });
 };
 
 export const runDalleImageGeneration = async (

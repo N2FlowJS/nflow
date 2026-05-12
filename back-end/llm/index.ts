@@ -111,12 +111,6 @@ export const runChat = async (
   return runOpenAICompatibleChat(cfg, systemPrompt, userPrompt, availableTools, exec, safeLog, onStream);
 };
 
-export const generateImage = async (
-  cfg: LlmRuntimeConfig,
-  prompt: string,
-  options: { size?: string; model?: string } = {},
-) => runDalleImageGeneration(cfg, prompt, options);
-
 export const embedText = async (cfg: LlmRuntimeConfig, input: string) => {
   const provider = LlmProviderRegistry.getProvider(cfg.provider);
   if (provider) {
@@ -133,6 +127,5 @@ export const embedText = async (cfg: LlmRuntimeConfig, input: string) => {
 export default {
   listModels,
   runChat,
-  generateImage,
   embedText,
 };

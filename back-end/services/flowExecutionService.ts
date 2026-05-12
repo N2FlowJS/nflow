@@ -8,9 +8,7 @@ import type {
 import { executeNode, FlowRuntimeContext, NodeExecutionError } from '../nodes';
 import { ToolDefinition, executeToolNode } from '../tools';
 import { AgentTool } from '../llm';
-import { resolveSecrets } from '../utils/secretResolver';
-import { withTimeout } from '../utils/common';
-import { resolveSecretString } from '../utils/secretResolver';
+import { resolveVariablePlaceholders, withTimeout } from '../utils/common';
 
 const MAX_CONCURRENCY = Math.max(1, Number(process.env.EXECUTOR_CONCURRENCY || 4));
 const MAX_FLOW_NODES = Number(process.env.MAX_FLOW_NODES || 500);
@@ -155,15 +153,15 @@ export async function executeFlowOnServer({
       data: { status: 'running', lastInput: undefined, lastOutput: undefined, errorMessage: undefined },
     });
 
-    // Security: Resolve any {{SECRET_NAME}} placeholders before execution
-    const resolvedNode = {
+    // Security: Resolve any {{SECRET_NAME}} or {{VAR_NAME}} placeholders before execution
+    const resolvedNode: FlowNode = {
       ...node,
       data: {
         ...node.data,
-        params: resolveSecrets(node.data?.params || {}),
+        params: resolveVariablePlaceholders(node.data?.params || {}, globalVariables) as Record<string, unknown>,
         configSchema: node.data?.configSchema?.map((field: any) => ({
           ...field,
-          value: typeof field.value === 'string' ? resolveSecretString(field.value) : field.value,
+          value: resolveVariablePlaceholders(field.value, globalVariables),
         }))
       }
     };

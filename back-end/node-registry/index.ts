@@ -558,22 +558,6 @@ const nodeRegistry: Record<string, NodeRegistryEntry> = {
       },
     ],
   },
-  DataStreamComponent: {
-    category: "logic",
-    icon: "Cpu",
-    configSchema: [
-      {
-        label: "Stream Type",
-        name: "streamType",
-        type: "select",
-        options: ["Metrics Array", "Single Value"],
-        sourceHandles: [
-          createPrimarySourceHandle("text", "right"),
-          createAsToolSourceHandle(),
-        ],
-      },
-    ],
-  },
   TextInput: {
     category: "input",
     icon: "Type",

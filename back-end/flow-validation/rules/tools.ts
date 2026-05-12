@@ -31,3 +31,9 @@ export const validateConditionNode: NodeValidator = (n) =>
 
 export const validateSerperApiKeyNode: NodeValidator = (n) =>
   validateSingleParam(n, 'apiKey', 'error', `Serper node "${n.data.label}" missing API key.`);
+
+export const validateElasticsearchNode: NodeValidator = (n) =>
+  validateRequiredParams(n, ['nodeUrl', 'indexName'], (f) => {
+    const labels: Record<string, string> = { nodeUrl: 'Node URL', indexName: 'Index Name' };
+    return `Elasticsearch "${n.data.label}" missing ${labels[f] || f}.`;
+  });

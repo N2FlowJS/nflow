@@ -24,16 +24,21 @@ export interface ToolRegistration {
   handler: ToolHandler;
   requiresEmbedding?: boolean;
   resultParser?: (result: string) => any;
+  metadata?: {
+    category?: string;
+    description?: string;
+    requiredParams?: string[];
+  };
 }
 
 export class ToolRegistry {
   private static registeredTools: Record<string, ToolRegistration> = {};
 
-  static register(type: string, registration: ToolRegistration | ToolHandler) {
+  static register(type: string, registration: ToolRegistration | ToolHandler, metadata?: ToolRegistration['metadata']) {
     if (typeof registration === 'function') {
-      this.registeredTools[type] = { handler: registration };
+      this.registeredTools[type] = { handler: registration, metadata };
     } else {
-      this.registeredTools[type] = registration;
+      this.registeredTools[type] = { ...registration, metadata: metadata || registration.metadata };
     }
   }
 

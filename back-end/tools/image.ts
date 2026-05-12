@@ -1,6 +1,6 @@
 import { ToolHandler } from './registry';
 import { getNodeFieldValue } from '../utils/common';
-import { generateImage } from '../llm';
+import { runDalleImageGeneration } from '../llm/openai';
 
 export const imageGenerationHandler: ToolHandler = async (node, args, options) => {
   const prompt = String(args.query || args.prompt || '');
@@ -12,7 +12,7 @@ export const imageGenerationHandler: ToolHandler = async (node, args, options) =
   };
   
   try {
-    const imageUrl = await generateImage(runtimeCfg, prompt, { model, size });
+    const imageUrl = await runDalleImageGeneration(runtimeCfg, prompt, { model, size });
     return imageUrl;
   } catch (e) {
     return `Error generating image: ${String(e)}`;

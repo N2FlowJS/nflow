@@ -29,19 +29,40 @@ export const resolveVariablePlaceholders = (
   value: unknown,
   globalVariables: GlobalVariable[] = [],
 ): unknown => {
-  if (typeof value !== 'string' || globalVariables.length === 0) {
+  if (Array.isArray(value)) {
+    return value.map(v => resolveVariablePlaceholders(v, globalVariables));
+  }
+  if (value && typeof value === 'object') {
+    const resolved: Record<string, any> = {};
+    for (const [k, v] of Object.entries(value)) {
+      resolved[k] = resolveVariablePlaceholders(v, globalVariables);
+    }
+    return resolved;
+  }
+  if (typeof value !== 'string') {
     return value;
   }
+  
+  // First resolve global variables {{VAR}}
+  let result = value;
+  if (globalVariables.length > 0) {
+    const variableMap = Object.fromEntries(
+      globalVariables.map((variable) => [variable.name, variable.value]),
+    );
 
-  const variableMap = Object.fromEntries(
-    globalVariables.map((variable) => [variable.name, variable.value]),
-  );
+    result = result.replace(/\{\{\s*([^{}]+?)\s*\}\}/g, (match, rawName) => {
+      const name = String(rawName).trim();
+      const resolved = variableMap[name];
+      return resolved !== undefined ? resolved : match;
+    });
+  }
 
-  return value.replace(/\{\{\s*([^{}]+?)\s*\}\}/g, (match, rawName) => {
-    const name = String(rawName).trim();
-    const resolved = variableMap[name];
-    return resolved !== undefined ? resolved : match;
-  });
+  // Then resolve environment secrets {{SECRET}} if {{ is still present
+  if (result.includes('{{')) {
+    result = result.replace(/\{\{\s*([^{}]+?)\s*\}\}/g, (m, n) => process.env[String(n).trim()] ?? m);
+  }
+
+  return result;
 };
 
 export const parseJsonSafely = (raw: string): unknown => {
@@ -70,6 +91,9 @@ export const serializeToolResult = (value: unknown): string => {
     }, 2);
   }
 };
+
+
+
 
 /** Extract a plain error message string from any caught value. */
 export const toErrorMessage = (err: unknown, fallback = 'An unexpected error occurred'): string =>

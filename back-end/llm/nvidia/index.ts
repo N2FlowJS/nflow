@@ -4,66 +4,20 @@ import {
   hasTemplatePlaceholder,
   toOpenAiToolDeclarations,
   clampToolResult,
+  createChatOrchestrator,
 } from "../utils";
 import { maskApiKey, normalizeApiKey, toErrorMessage, withTimeout } from "../../utils/common";
 import { createLogger } from "../../utils/logger";
 import OpenAI from "openai";
+
+import { listModels as listOpenAIModels, runOpenAICompatibleChat } from "../openai";
 
 const logger = createLogger("NVIDIA");
 const NVIDIA_CHAT_TIMEOUT_MS = Number(
   process.env.NVIDIA_CHAT_TIMEOUT_MS || 120000,
 );
 
-type NvidiaChatStepResult = {
-  fullContent: string;
-  toolCalls: any[];
-};
-
-export const listModels = async (
-  cfg: LlmRuntimeConfig,
-): Promise<Array<{ id: string; name?: string; description?: string }>> => {
-  let baseUrl = trimTrailingSlash(cfg.baseUrl || "");
-  if (!baseUrl) {
-    logger.warn("No baseUrl provided");
-    return [];
-  }
-
-  if (baseUrl.includes("nvidia.com") && !baseUrl.endsWith("/v1")) {
-    baseUrl = `${baseUrl}/v1`;
-  }
-
-  logger.debug(`Listing models from ${baseUrl}`);
-
-  try {
-    const normalizedApiKey = normalizeApiKey(cfg.apiKey);
-    const client = new OpenAI({
-      baseURL: baseUrl,
-      apiKey: normalizedApiKey || "not-required",
-      defaultHeaders: { "User-Agent": "N2Flow-Client/1.0" },
-    }) as any;
-
-    if (client.models && typeof client.models.list === "function") {
-      const resp = await client.models.list();
-      const data = Array.isArray(resp?.data) ? resp.data : resp?.models || [];
-      const models = (data || []).map((m: any) => ({
-        id: String(m.id || m.name || m.model || ""),
-        name: m.name || m.id || m.model,
-        description: m.description,
-      }));
-
-      if (models.length > 0) {
-        logger.info(`Fetched ${models.length} models`);
-        return models;
-      }
-    }
-  } catch (err) {
-    logger.warn("Failed to fetch models via OpenAI SDK", {
-      error: toErrorMessage(err),
-    });
-  }
-
-  return [];
-};
+export const listModels = listOpenAIModels;
 
 export const runNvidiaChat = async (
   cfg: LlmRuntimeConfig,
@@ -116,113 +70,88 @@ export const runNvidiaChat = async (
   if (systemPrompt) messages.push({ role: "system", content: systemPrompt });
   messages.push({ role: "user", content: userPrompt });
 
-  for (let step = 0; step < 8; step += 1) {
-    let stepResult: NvidiaChatStepResult;
-    try {
-      stepResult = await withTimeout<NvidiaChatStepResult>(
-        (async () => {
-          const completion = await client.chat.completions.create({
-            model: String(cfg.model),
-            messages,
-            tools: tools as any,
-            temperature: cfg.temperature,
-            max_tokens: cfg.max_tokens,
-            top_p: cfg.top_p,
-            presence_penalty: cfg.presence_penalty,
-            frequency_penalty: cfg.frequency_penalty,
-            stream: stream,
-          });
-
-          let fullContent = "";
-
-          if (stream) {
-            for await (const chunk of completion as AsyncIterable<any>) {
-              const delta = chunk.choices?.[0]?.delta?.content;
-              if (delta) {
-                fullContent += delta;
-                onStream?.(delta);
-              }
-            }
-
-            return {
-              fullContent,
-              toolCalls: [],
-            };
-          }
-
-          const first = (completion as any).choices?.[0] as any;
-          const message = first?.message || {};
-          const content = message?.content;
-          if (typeof content === "string") fullContent = content;
-          else if (Array.isArray(content)) {
-            fullContent = content
-              .map((part: any) =>
-                typeof part?.text === "string" ? part.text : "",
-              )
-              .join("")
-              .trim();
-          }
-
-          return {
-            fullContent,
-            toolCalls: Array.isArray(message.tool_calls)
-              ? message.tool_calls
-              : [],
-          };
-        })(),
+  return createChatOrchestrator({
+    log,
+    executeToolByName: exec,
+    onStep: async () => {
+      const completion = await withTimeout<any>(
+        client.chat.completions.create({
+          model: String(cfg.model),
+          messages,
+          tools: tools as any,
+          temperature: cfg.temperature,
+          max_tokens: cfg.max_tokens,
+          top_p: cfg.top_p,
+          presence_penalty: cfg.presence_penalty,
+          frequency_penalty: cfg.frequency_penalty,
+          stream: stream,
+        }),
         NVIDIA_CHAT_TIMEOUT_MS,
         `NVIDIA chat request timed out after ${Math.round(NVIDIA_CHAT_TIMEOUT_MS / 1000)}s.`,
-      );
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      if (/\b401\b/.test(message)) {
-        throw new Error(
-          'Unauthorized by NVIDIA NIM (401). Check API key value, remove any leading "Bearer ", and verify the selected key/global variable is correct.',
-        );
-      }
-      if (/\b404\b/.test(message)) {
-        const modelName = String(cfg.model || "").trim() || "[missing model]";
-        throw new Error(
-          `NVIDIA NIM returned 404 for model "${modelName}". Auth appears OK, but this model id is likely not available on the chat endpoint. For Gemma, use a chat/instruct variant such as "google/gemma-2-2b-it" or "google/gemma-3-27b-it", or choose directly from Fetch Models.`,
-        );
-      }
-      throw err;
-    }
-    const { fullContent, toolCalls } = stepResult;
-
-    if (toolCalls.length === 0) {
-      if (fullContent) return fullContent;
-      return "[Empty model response]";
-    }
-
-    messages.push({
-      role: "assistant",
-      content: fullContent,
-      tool_calls: toolCalls,
-    });
-
-    for (const tc of toolCalls) {
-      const id = String((tc as any).id || "tool_call");
-      const fn = (tc as any).function || {};
-      const fnName = String(fn.name || "unknown_tool");
-      const fnArgs = (tc as any).arguments || tc.arguments || {};
-      log(`[Agent] Tool call: ${fnName} → ${JSON.stringify(fnArgs)}`);
-      const toolResult = await executeToolByName(
-        fnName,
-        fnArgs as Record<string, string>,
-      );
-      log(`[Agent] Tool result: ${String(toolResult).substring(0, 120)}`);
-      const safeToolResult = clampToolResult(String(toolResult || ""));
-      messages.push({
-        role: "tool",
-        tool_call_id: id,
-        name: fnName,
-        content: safeToolResult,
+      ).catch(err => {
+         const message = err instanceof Error ? err.message : String(err);
+         if (/\b401\b/.test(message)) {
+           throw new Error(
+             'Unauthorized by NVIDIA NIM (401). Check API key value, remove any leading "Bearer ", and verify the selected key/global variable is correct.',
+           );
+         }
+         if (/\b404\b/.test(message)) {
+           const modelName = String(cfg.model || "").trim() || "[missing model]";
+           throw new Error(
+             `NVIDIA NIM returned 404 for model "${modelName}". Auth appears OK, but this model id is likely not available on the chat endpoint. For Gemma, use a chat/instruct variant such as "google/gemma-2-2b-it" or "google/gemma-3-27b-it", or choose directly from Fetch Models.`,
+           );
+         }
+         throw err;
       });
-    }
-  }
 
-  throw new Error("NVIDIA tool loop exceeded max iterations.");
+      let fullContent = "";
+      if (stream) {
+        for await (const chunk of completion as AsyncIterable<any>) {
+          const delta = chunk.choices?.[0]?.delta?.content;
+          if (delta) {
+            fullContent += delta;
+            onStream?.(delta);
+          }
+        }
+      } else {
+        const first = completion.choices?.[0] as any;
+        const message = first?.message || {};
+        const content = message?.content;
+        if (typeof content === "string") fullContent = content;
+        else if (Array.isArray(content)) {
+          fullContent = content
+            .map((part: any) =>
+              typeof part?.text === "string" ? part.text : "",
+            )
+            .join("")
+            .trim();
+        }
+      }
+
+      const firstChoice = !stream ? (completion.choices?.[0] as any) : null;
+      const message = firstChoice?.message || {};
+      const tool_calls = Array.isArray(message.tool_calls) ? message.tool_calls : [];
+
+      if (tool_calls.length > 0) {
+        messages.push({ role: "assistant", content: fullContent, tool_calls });
+      } else {
+        messages.push({ role: "assistant", content: fullContent });
+      }
+
+      return {
+        content: fullContent,
+        toolCalls: tool_calls.map((tc: any) => ({
+          id: String(tc.id),
+          name: String(tc.function?.name),
+          args: tc.function?.arguments ? (typeof tc.function.arguments === 'string' ? JSON.parse(tc.function.arguments) : tc.function.arguments) : {},
+          raw: tc
+        }))
+      };
+    },
+    onToolResult: (tc, result) => {
+      messages.push({ role: "tool", tool_call_id: tc.id, name: tc.name, content: result });
+    }
+  });
 };
 
 export const embedText = async (

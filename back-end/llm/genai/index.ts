@@ -1,5 +1,6 @@
 import { GoogleGenAI } from '@google/genai';
 import type { LlmRuntimeConfig, AgentTool } from '../types';
+import { parseToolArgs, toGoogleToolDeclarations, createChatOrchestrator } from '../utils';
 
 export const listModels = async (
   cfg: LlmRuntimeConfig,
@@ -36,8 +37,7 @@ export const runGoogleChat = async (
   messages.push({ role: 'user', content: userPrompt });
   const stream = cfg.stream === true && typeof onStream === 'function';
 
-  // Prefer provider agent APIs when available (lets SDK manage tool calls)
-  const toolsDecl = availableTools.length > 0 ? availableTools.map(t => ({ name: t.name, description: t.description, parameters: t.parameters })) : undefined;
+  const toolsDecl = availableTools.length > 0 ? toGoogleToolDeclarations(availableTools) : undefined;
 
   try {
     if (ai.agents && typeof ai.agents.run === 'function') {
@@ -49,59 +49,81 @@ export const runGoogleChat = async (
     // ignore and fall back to standard SDK calls
   }
 
-  // Try several SDK method shapes
-  try {
-    // ai.chat.create
-    if (ai.chat && typeof ai.chat.create === 'function') {
-      const resp = await ai.chat.create({ model: modelName, messages, temperature: cfg.temperature, max_tokens: cfg.max_tokens, stream: stream });
-      
-      if (stream) {
-        let fullText = '';
-        for await (const chunk of resp) {
-          const delta = chunk.text || chunk.candidates?.[0]?.content || '';
-          if (delta) {
-            fullText += delta;
-            onStream(delta);
+  // Orchestrator for manual loop (fallback if SDK doesn't handle tool calls automatically)
+  return createChatOrchestrator({
+    log: log || (() => {}),
+    executeToolByName: executeToolByName || (async () => ''),
+    onStep: async () => {
+      // Try several SDK method shapes
+      let content = '';
+      let tool_calls: any[] = [];
+
+      try {
+        // ai.chat.create
+        if (ai.chat && typeof ai.chat.create === 'function') {
+          const resp = await ai.chat.create({ model: modelName, messages, tools: toolsDecl, temperature: cfg.temperature, max_tokens: cfg.max_tokens, stream: stream });
+          
+          if (stream) {
+            for await (const chunk of resp) {
+              const delta = chunk.text || chunk.candidates?.[0]?.content || '';
+              if (delta) {
+                content += delta;
+                onStream!(delta);
+              }
+            }
+          } else {
+            content = resp?.output_text || resp?.text || (Array.isArray(resp?.candidates) && (resp.candidates[0]?.content?.parts?.[0]?.text || resp.candidates[0]?.content)) || (resp?.choices?.[0]?.message?.content) || (resp?.messages?.[0]?.content) || '';
+            tool_calls = resp?.candidates?.[0]?.content?.parts?.filter((p: any) => p.functionCall) || [];
+          }
+        } else if (ai.chat?.completions && typeof ai.chat.completions.create === 'function') {
+           // ai.chat.completions.create
+          const resp = await ai.chat.completions.create({ model: modelName, messages, tools: toolsDecl, temperature: cfg.temperature, max_tokens: cfg.max_tokens, stream: stream });
+          
+          if (stream) {
+            for await (const chunk of resp) {
+              const delta = chunk.choices?.[0]?.message?.content || chunk.choices?.[0]?.text || '';
+              if (delta) {
+                content += delta;
+                onStream!(delta);
+              }
+            }
+          } else {
+            content = resp?.output_text || resp?.text || (Array.isArray(resp?.choices) && (resp.choices[0]?.message?.content || resp.choices[0]?.text)) || '';
+            tool_calls = resp?.choices?.[0]?.message?.tool_calls || [];
           }
         }
-        return fullText;
+      } catch (err) {
+        // fall through
       }
-      
-      const text = resp?.output_text || resp?.text || (Array.isArray(resp?.candidates) && resp.candidates[0]?.content) || (resp?.choices?.[0]?.message?.content) || (resp?.messages?.[0]?.content);
-      return String(text || '');
-    }
 
-    // ai.chat.completions.create
-    if (ai.chat?.completions && typeof ai.chat.completions.create === 'function') {
-      const resp = await ai.chat.completions.create({ model: modelName, messages, temperature: cfg.temperature, max_tokens: cfg.max_tokens, stream: stream });
-      
-      if (stream) {
-        let fullText = '';
-        for await (const chunk of resp) {
-          const delta = chunk.choices?.[0]?.message?.content || chunk.choices?.[0]?.text || '';
-          if (delta) {
-            fullText += delta;
-            onStream(delta);
-          }
-        }
-        return fullText;
+      if (tool_calls.length > 0) {
+        messages.push({ role: 'assistant', content, tool_calls });
+      } else {
+        messages.push({ role: 'assistant', content });
       }
-      
-      const text = resp?.output_text || resp?.text || (Array.isArray(resp?.choices) && (resp.choices[0]?.message?.content || resp.choices[0]?.text)) || '';
-      return String(text || '');
-    }
 
-    // ai.models.generate
-    if (ai.models && typeof ai.models.generate === 'function') {
-      const resp = await ai.models.generate({ model: modelName, input: messages.map(m => m.content).join('\n'), temperature: cfg.temperature, max_output_tokens: cfg.max_tokens });
-      const text = resp?.output?.[0]?.content?.[0]?.text || resp?.output_text || '';
-      return String(text || '');
+      return {
+        content,
+        toolCalls: tool_calls.map((tc: any) => ({
+          id: tc.id || tc.functionCall?.name,
+          name: tc.name || tc.functionCall?.name,
+          args: parseToolArgs(tc.args || tc.functionCall?.args)
+        }))
+      };
+    },
+    onToolResult: (tc, result) => {
+      messages.push({
+        role: 'user',
+        content: [
+          {
+            type: 'tool_response',
+            tool_call_id: tc.id,
+            content: result,
+          },
+        ],
+      });
     }
-  } catch (err) {
-    // fall through
-  }
-
-  throw new Error('Google GenAI chat failed');
+  });
 };
 
 export const embedText = async (cfg: LlmRuntimeConfig, input: string): Promise<number[]> => {

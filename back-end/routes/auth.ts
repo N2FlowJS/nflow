@@ -8,95 +8,67 @@ import { createLogger } from '../utils/logger';
 const router = Router();
 const logger = createLogger('Auth');
 
+const asyncHandler = (fn: any) => (req: Request, res: Response, next: any) => 
+  Promise.resolve(fn(req, res, next)).catch(err => {
+    const errorMsg = toErrorMessage(err);
+    logger.error('Route error', err);
+    res.status(500).json({ ok: false, error: errorMsg });
+  });
+
 /**
  * Register new user
  * POST /api/auth/register
  */
-router.post('/register', async (req: Request, res: Response) => {
-  try {
-    const { email, username, password, name } = req.body;
+router.post('/register', asyncHandler(async (req: Request, res: Response) => {
+  const { email, username, password, name } = req.body;
 
-    // Basic validation
-    if (!email || !username || !password) {
-      return res.status(400).json({
-        ok: false,
-        error: 'Email, username, and password are required',
-      });
-    }
+  const result = await AuthService.register(email, username, password, name);
 
-    const result = await AuthService.register(email, username, password, name);
-
-    if (!result.ok) {
-      return res.status(400).json(result);
-    }
-
-    res.json(result);
-  } catch (err) {
-    const errorMsg = toErrorMessage(err, 'Registration failed');
-    logger.error('Register error', err);
-    res.status(500).json({ ok: false, error: errorMsg });
+  if (!result.ok) {
+    return res.status(400).json(result);
   }
-});
+
+  res.json(result);
+}));
 
 /**
  * Login user
  * POST /api/auth/login
  */
-router.post('/login', async (req: Request, res: Response) => {
-  try {
-    const { email, password } = req.body;
+router.post('/login', asyncHandler(async (req: Request, res: Response) => {
+  const { email, password } = req.body;
 
-    // Basic validation
-    if (!email || !password) {
-      return res.status(400).json({
-        ok: false,
-        error: 'Email and password are required',
-      });
-    }
+  const result = await AuthService.login(email, password);
 
-    const result = await AuthService.login(email, password);
-
-    if (!result.ok) {
-      return res.status(401).json(result);
-    }
-
-    res.json(result);
-  } catch (err) {
-    const errorMsg = toErrorMessage(err, 'Login failed');
-    logger.error('Login error', err);
-    res.status(500).json({ ok: false, error: errorMsg });
+  if (!result.ok) {
+    return res.status(401).json(result);
   }
-});
+
+  res.json(result);
+}));
 
 /**
  * Get current user profile
  * GET /api/auth/profile
  */
-router.get('/profile', authMiddleware, async (req: AuthRequest, res: Response) => {
-  try {
-    if (!req.userId) {
-      return res.status(401).json({ ok: false, error: 'Not authenticated' });
-    }
-
-    const user = await AuthService.getUserById(req.userId);
-
-    if (!user) {
-      return res.status(404).json({ ok: false, error: 'User not found' });
-    }
-
-    res.json({ ok: true, user });
-  } catch (err) {
-    const errorMsg = toErrorMessage(err, 'Failed to get profile');
-    logger.error('Profile error', err);
-    res.status(500).json({ ok: false, error: errorMsg });
+router.get('/profile', authMiddleware, asyncHandler(async (req: AuthRequest, res: Response) => {
+  if (!req.userId) {
+    return res.status(401).json({ ok: false, error: 'Not authenticated' });
   }
-});
+
+  const user = await AuthService.getUserById(req.userId);
+
+  if (!user) {
+    return res.status(404).json({ ok: false, error: 'User not found' });
+  }
+
+  res.json({ ok: true, user });
+}));
 
 /**
  * Logout (client-side operation - just returns success)
- * POST /api/auth/logout
  */
-router.post('/logout', authMiddleware, async (req: AuthRequest, res: Response) => {
+router.post('/logout', authMiddleware, (req: AuthRequest, res: Response) => {
   res.json({ ok: true, message: 'Logged out successfully' });
 });
 
