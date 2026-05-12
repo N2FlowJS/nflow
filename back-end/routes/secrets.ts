@@ -19,6 +19,9 @@ function resolveParamId(id: string | string[]): string {
   return Array.isArray(id) ? id[0] : id;
 }
 
+const secretErrStatus = (err: unknown) =>
+  err instanceof Error && err.message === 'Secret not found' ? 404 : 500;
+
 router.post('/secrets', async (req: AuthRequest, res: Response) => {
   const userId = requireUserId(req, res);
   if (!userId) return;
@@ -33,7 +36,7 @@ router.post('/secrets', async (req: AuthRequest, res: Response) => {
   } catch (err) {
     const errorMsg = toErrorMessage(err, 'Failed to create secret');
     logger.error('Create error', err, { userId });
-    res.status(400).json({ ok: false, error: errorMsg });
+    res.status(secretErrStatus(err)).json({ ok: false, error: errorMsg });
   }
 });
 
@@ -60,7 +63,7 @@ router.get('/secrets/:id', async (req: AuthRequest, res: Response) => {
   } catch (err) {
     const errorMsg = toErrorMessage(err, 'Failed to get secret');
     logger.error('Get error', err, { userId });
-    res.status(err instanceof Error && err.message === 'Secret not found' ? 404 : 500).json({ ok: false, error: errorMsg });
+    res.status(secretErrStatus(err)).json({ ok: false, error: errorMsg });
   }
 });
 
@@ -75,7 +78,7 @@ router.put('/secrets/:id', async (req: AuthRequest, res: Response) => {
   } catch (err) {
     const errorMsg = toErrorMessage(err, 'Failed to update secret');
     logger.error('Update error', err, { userId });
-    res.status(err instanceof Error && err.message === 'Secret not found' ? 404 : 400).json({ ok: false, error: errorMsg });
+    res.status(secretErrStatus(err)).json({ ok: false, error: errorMsg });
   }
 });
 
@@ -89,7 +92,7 @@ router.delete('/secrets/:id', async (req: AuthRequest, res: Response) => {
   } catch (err) {
     const errorMsg = toErrorMessage(err, 'Failed to delete secret');
     logger.error('Delete error', err, { userId });
-    res.status(err instanceof Error && err.message === 'Secret not found' ? 404 : 500).json({ ok: false, error: errorMsg });
+    res.status(secretErrStatus(err)).json({ ok: false, error: errorMsg });
   }
 });
 
@@ -103,7 +106,7 @@ router.post('/secrets/:id/regenerate', async (req: AuthRequest, res: Response) =
   } catch (err) {
     const errorMsg = toErrorMessage(err, 'Failed to regenerate secret');
     logger.error('Regenerate error', err, { userId });
-    res.status(err instanceof Error && err.message === 'Secret not found' ? 404 : 500).json({ ok: false, error: errorMsg });
+    res.status(secretErrStatus(err)).json({ ok: false, error: errorMsg });
   }
 });
 

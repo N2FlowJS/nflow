@@ -26,19 +26,14 @@ export const runOllamaChat = async (
   messages.push({ role: 'user', content: userPrompt });
 
   // Prefer Ollama SDK-managed agents if present
-  try {
-    const clientAny: any = ollama as any;
-    if (clientAny.agents && typeof clientAny.agents.run === 'function') {
-      try {
-        const resp = await clientAny.agents.run({ model: String(cfg.model), input: userPrompt, tools: tools as any, temperature: cfg.temperature, max_output_tokens: cfg.max_tokens });
-        const text = resp?.output_text || resp?.message?.content || resp?.text || '';
-        if (text) return String(text);
-      } catch {
-        // fallback to manual loop
-      }
+  if (ollamaAny.agents && typeof ollamaAny.agents.run === 'function') {
+    try {
+      const resp = await ollamaAny.agents.run({ model: String(cfg.model), input: userPrompt, tools: tools as any, temperature: cfg.temperature, max_output_tokens: cfg.max_tokens });
+      const text = resp?.output_text || resp?.message?.content || resp?.text || '';
+      if (text) return String(text);
+    } catch {
+      // fallback to manual loop
     }
-  } catch {
-    // ignore
   }
 
   for (let step = 0; step < 8; step += 1) {

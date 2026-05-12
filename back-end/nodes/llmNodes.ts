@@ -7,6 +7,7 @@ export const llmConfigHandler: NodeHandler = async (ctx) => {
   const node = ctx.node;
   const resolveRuntimeValue = (key: string) =>
     resolveVariablePlaceholders(getNodeFieldValue(node, key), ctx.globalVariables);
+  const num = (key: string, def: number) => Number(resolveRuntimeValue(key) || def);
 
   return {
     kind: 'llm_chat',
@@ -20,20 +21,12 @@ export const llmConfigHandler: NodeHandler = async (ctx) => {
     model: resolveRuntimeValue('model') || 'gemini-2.0-flash',
     apiKey: resolveRuntimeValue('apiKey') || '',
     baseUrl: resolveRuntimeValue('baseUrl') || '',
-    temperature: Number(
-      resolveRuntimeValue('temperature') ??
-        resolveRuntimeValue('temp') ??
-        0.7,
-    ),
-    max_tokens: Number(resolveRuntimeValue('max_tokens') || 2048),
-    top_p: Number(resolveRuntimeValue('top_p') || 0.95),
-    top_k: Number(resolveRuntimeValue('top_k') || 40),
-    presence_penalty: Number(
-      resolveRuntimeValue('presence_penalty') || 0,
-    ),
-    frequency_penalty: Number(
-      resolveRuntimeValue('frequency_penalty') || 0,
-    ),
+    temperature: Number(resolveRuntimeValue('temperature') ?? resolveRuntimeValue('temp') ?? 0.7),
+    max_tokens: num('max_tokens', 2048),
+    top_p: num('top_p', 0.95),
+    top_k: num('top_k', 40),
+    presence_penalty: num('presence_penalty', 0),
+    frequency_penalty: num('frequency_penalty', 0),
   };
 };
 

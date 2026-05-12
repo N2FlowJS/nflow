@@ -210,6 +210,17 @@ const embeddingModelSchema: RegistryConfigSchema = [
   },
 ];
 
+const localEmbeddingSchema: RegistryConfigSchema = [
+  { label: "Base URL (Optional)", name: "baseUrl", type: "text" },
+  { label: "API Key (Optional)", name: "apiKey", type: "text" },
+  {
+    label: "Embedding Model",
+    name: "model",
+    type: "text",
+    sourceHandles: [createPrimarySourceHandle("embedding_model", "bottom")],
+  },
+];
+
 const promptTemplateSchema: RegistryConfigSchema = [
   {
     label: "Template",
@@ -539,50 +550,22 @@ const nodeRegistry: Record<string, NodeRegistryEntry> = {
   OllamaEmbeddingModelComponent: {
     category: "llm",
     icon: "Cpu",
-    configSchema: withDefaultValues(
-      [
-        { label: "Base URL (Optional)", name: "baseUrl", type: "text" },
-        { label: "API Key (Optional)", name: "apiKey", type: "text" },
-        {
-          label: "Embedding Model",
-          name: "model",
-          type: "text",
-          sourceHandles: [
-            createPrimarySourceHandle("embedding_model", "bottom"),
-          ],
-        },
-      ],
-      {
-        provider: "Ollama",
-        model: "nomic-embed-text",
-        apiKey: "",
-        baseUrl: "http://localhost:11434",
-      },
-    ),
+    configSchema: withDefaultValues(localEmbeddingSchema, {
+      provider: "Ollama",
+      model: "nomic-embed-text",
+      apiKey: "",
+      baseUrl: "http://localhost:11434",
+    }),
   },
   VLLMEmbeddingModelComponent: {
     category: "llm",
     icon: "Cpu",
-    configSchema: withDefaultValues(
-      [
-        { label: "Base URL (Optional)", name: "baseUrl", type: "text" },
-        { label: "API Key (Optional)", name: "apiKey", type: "text" },
-        {
-          label: "Embedding Model",
-          name: "model",
-          type: "text",
-          sourceHandles: [
-            createPrimarySourceHandle("embedding_model", "bottom"),
-          ],
-        },
-      ],
-      {
-        provider: "vLLM",
-        model: "BAAI/bge-small-en-v1.5",
-        apiKey: "",
-        baseUrl: "http://localhost:8000/v1",
-      },
-    ),
+    configSchema: withDefaultValues(localEmbeddingSchema, {
+      provider: "vLLM",
+      model: "BAAI/bge-small-en-v1.5",
+      apiKey: "",
+      baseUrl: "http://localhost:8000/v1",
+    }),
   },
   PromptTemplate: {
     category: "template",
@@ -1213,9 +1196,6 @@ export const setNodeFieldValueInSchema = (
   ];
 };
 
-const getRegistryEntry = (nodeType: string): NodeRegistryEntry | undefined =>
-  nodeRegistry[nodeType];
-
 export const getNodeRegistryEntry = (
   nodeType: string,
 ): NodeRegistryEntry | undefined => nodeRegistry[nodeType];
@@ -1234,36 +1214,34 @@ export const getNodeValidationRuleConfigs = (
     typeof rule === "string" ? { key: rule } : { ...rule },
   );
 
+const getHandles = <T extends { shouldShow?: (data: NodeHandleContextData) => boolean }>(
+  nodeType: string,
+  key: 'inputHandles' | 'sourceHandles',
+  data?: NodeHandleContextData,
+): T[] => {
+  const schema = nodeRegistry[nodeType]?.configSchema || [];
+  return schema.flatMap((field) => {
+    const handles = [...((field as any)[key] || [])] as T[];
+    return !data ? handles : handles.filter((h) => !h.shouldShow || h.shouldShow(data));
+  });
+};
+
 export const getNodeInputHandles = (
   nodeType: string,
   data?: NodeHandleContextData,
-): NodeInputHandleConfig[] => {
-  const schema = nodeRegistry[nodeType]?.configSchema || [];
-  return schema.flatMap((field) => {
-    const handles = [...(field.inputHandles || [])];
-    if (!data) return handles;
-    return handles.filter((h) => !h.shouldShow || h.shouldShow(data));
-  });
-};
+): NodeInputHandleConfig[] => getHandles<NodeInputHandleConfig>(nodeType, 'inputHandles', data);
 
 export const getNodeSourceHandles = (
   nodeType: string,
   data?: NodeHandleContextData,
-): NodeSourceHandleConfig[] => {
-  const schema = nodeRegistry[nodeType]?.configSchema || [];
-  return schema.flatMap((field) => {
-    const handles = [...(field.sourceHandles || [])];
-    if (!data) return handles;
-    return handles.filter((h) => !h.shouldShow || h.shouldShow(data));
-  });
-};
+): NodeSourceHandleConfig[] => getHandles<NodeSourceHandleConfig>(nodeType, 'sourceHandles', data);
 
 export const normalizeNodeWithRegistry = <T>(node: T): T => {
   if (!isRegistryAwareNode(node)) return node;
 
   const customNode = node;
 
-  const entry = getRegistryEntry(customNode.data.type);
+  const entry = nodeRegistry[customNode.data.type];
   if (!entry) return node;
 
   const defaultSchema = cloneConfigSchema(entry.configSchema);
@@ -1313,7 +1291,7 @@ export const createNodeDataByType = (
   NodeData,
   "label" | "type" | "status" | "description" | "configSchema"
 > => {
-  const entry = getRegistryEntry(nodeType);
+  const entry = nodeRegistry[nodeType];
   const defaultSchema = cloneConfigSchema(entry?.configSchema);
 
   return {

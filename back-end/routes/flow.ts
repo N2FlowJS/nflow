@@ -145,7 +145,6 @@ router.get('/flows', async (req: AuthRequest, res: Response) => {
       },
     });
   } catch (err) {
-    const errorMsg = toErrorMessage(err);
     logger.error('List flows error', err);
     res.status(500).json({ error: 'Failed to list flows' });
   }

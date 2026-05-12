@@ -25,7 +25,7 @@ export const runAnthropicChat = async (
       // agents.run style
       if (client.agents && typeof client.agents.run === 'function') {
         try {
-          const toolsDecl = availableTools.length > 0 ? availableTools.map(t => ({ name: t.name, description: t.description, parameters: t.parameters })) : undefined;
+          const toolsDecl = availableTools.length > 0 ? toAnthropicToolDeclarations(availableTools) : undefined;
           const resp = await client.agents.run({ model: cfg.model || 'claude-3-5-sonnet', input: userPrompt, tools: toolsDecl, temperature: cfg.temperature, max_output_tokens: cfg.max_tokens });
           const text = resp?.output_text || resp?.text || (Array.isArray(resp?.output) && (resp.output[0]?.content?.[0]?.text || resp.output[0]?.text)) || '';
           if (text) return String(text);

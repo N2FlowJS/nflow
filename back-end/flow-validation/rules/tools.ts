@@ -1,93 +1,26 @@
 import type { NodeValidator } from '../types';
-import { readParamString, validateRequiredParams } from '../utils';
+import { validateRequiredParams, validateSingleParam } from '../utils';
 
-export const validateMssqlNode: NodeValidator = (node) =>
-  validateRequiredParams(
-    node,
-    ['server', 'user', 'database', 'query'],
-    (fieldName) => `MSSQL "${node.data.label}" missing ${fieldName}.`,
-  );
+export const validateMssqlNode: NodeValidator = (n) =>
+  validateRequiredParams(n, ['server', 'user', 'database', 'query'], (f) => `MSSQL "${n.data.label}" missing ${f}.`);
 
-export const validateElasticsearchNode: NodeValidator = (node) => {
-  const endpoint = readParamString(node, 'endpoint');
-  if (endpoint) return [];
+export const validateElasticsearchNode: NodeValidator = (n) =>
+  validateSingleParam(n, 'endpoint', 'error', `Elasticsearch "${n.data.label}" missing endpoint URL.`);
 
-  return [
-    {
-      level: 'error',
-      nodeId: node.id,
-      fieldName: 'endpoint',
-      message: `Elasticsearch "${node.data.label}" missing endpoint URL.`,
-    },
-  ];
-};
+export const validateGitLabNode: NodeValidator = (n) =>
+  validateRequiredParams(n, ['baseUrl', 'projectId', 'mergeRequestIid'], (f) => `GitLab "${n.data.label}" missing ${f}.`);
 
-export const validateGitLabNode: NodeValidator = (node) =>
-  validateRequiredParams(
-    node,
-    ['baseUrl', 'projectId', 'mergeRequestIid'],
-    (fieldName) => `GitLab node "${node.data.label}" missing ${fieldName}.`,
-  );
+export const validateGitHubNode: NodeValidator = (n) =>
+  validateRequiredParams(n, ['baseUrl', 'repoFullName', 'pullRequestNumber'], (f) => `GitHub "${n.data.label}" missing ${f}.`);
 
-export const validateGitHubNode: NodeValidator = (node) =>
-  validateRequiredParams(
-    node,
-    ['baseUrl', 'repoFullName', 'pullRequestNumber'],
-    (fieldName) => `GitHub node "${node.data.label}" missing ${fieldName}.`,
-  );
+export const validateHttpRequestNode: NodeValidator = (n) =>
+  validateSingleParam(n, 'url', 'error', `HTTP Request "${n.data.label}" missing url.`);
 
-export const validateHttpRequestNode: NodeValidator = (node) => {
-  const url = readParamString(node, 'url');
-  if (url) return [];
+export const validateCodeExecutionNode: NodeValidator = (n) =>
+  validateSingleParam(n, 'code', 'warning', `JS Code "${n.data.label}" has empty code.`);
 
-  return [
-    {
-      level: 'error',
-      nodeId: node.id,
-      fieldName: 'url',
-      message: `HTTP Request "${node.data.label}" missing url.`,
-    },
-  ];
-};
+export const validateConditionNode: NodeValidator = (n) =>
+  validateSingleParam(n, 'condition', 'warning', `Condition "${n.data.label}" has empty expression.`);
 
-export const validateCodeExecutionNode: NodeValidator = (node) => {
-  const code = readParamString(node, 'code');
-  if (code) return [];
-
-  return [
-    {
-      level: 'warning',
-      nodeId: node.id,
-      fieldName: 'code',
-      message: `JS Code "${node.data.label}" has empty code.`,
-    },
-  ];
-};
-
-export const validateConditionNode: NodeValidator = (node) => {
-  const condition = readParamString(node, 'condition');
-  if (condition) return [];
-
-  return [
-    {
-      level: 'warning',
-      nodeId: node.id,
-      fieldName: 'condition',
-      message: `Condition "${node.data.label}" has empty expression.`,
-    },
-  ];
-};
-
-export const validateSerperApiKeyNode: NodeValidator = (node) => {
-  const apiKey = readParamString(node, 'apiKey');
-  if (apiKey) return [];
-
-  return [
-    {
-      level: 'error',
-      nodeId: node.id,
-      fieldName: 'apiKey',
-      message: `Serper API Key node "${node.data.label}" is missing API key.`,
-    },
-  ];
-};
+export const validateSerperApiKeyNode: NodeValidator = (n) =>
+  validateSingleParam(n, 'apiKey', 'error', `Serper node "${n.data.label}" missing API key.`);

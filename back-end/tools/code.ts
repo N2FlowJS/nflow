@@ -8,6 +8,8 @@ const executeJsTool = (code: string, input: string, args: Record<string, string>
   }
 
   const { log } = options;
+  const makeConsoleMethod = (tag: string) => (...msg: any[]) =>
+    log(`[JS:${tag}] ${msg.map(m => typeof m === 'object' ? JSON.stringify(m) : String(m)).join(' ')}`);
 
   const sandbox: Record<string, unknown> = {
     input,
@@ -17,19 +19,10 @@ const executeJsTool = (code: string, input: string, args: Record<string, string>
     Math,
     Date,
     console: {
-      log: (...msg: any[]) => {
-        const formatted = msg.map(m => typeof m === 'object' ? JSON.stringify(m) : String(m)).join(' ');
-        log(`[JS:Log] ${formatted}`);
-      },
-      error: (...msg: any[]) => {
-        const formatted = msg.map(m => typeof m === 'object' ? JSON.stringify(m) : String(m)).join(' ');
-        log(`[JS:Error] ${formatted}`);
-      },
-      warn: (...msg: any[]) => {
-        const formatted = msg.map(m => typeof m === 'object' ? JSON.stringify(m) : String(m)).join(' ');
-        log(`[JS:Warn] ${formatted}`);
-      }
-    }
+      log: makeConsoleMethod('Log'),
+      error: makeConsoleMethod('Error'),
+      warn: makeConsoleMethod('Warn'),
+    },
   };
 
   const context = createContext(sandbox);

@@ -1,6 +1,10 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import prisma from '../lib/prisma';
+import { createLogger } from '../utils/logger';
+import { toErrorMessage } from '../utils/common';
+
+const logger = createLogger('Auth');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'default-secret-key';
 const JWT_EXPIRY = '7d';
@@ -31,13 +35,16 @@ function normalizeUsername(username: string): string {
   return username.trim();
 }
 
+function mapUser(user: { id: string; email: string; username: string; name: string | null }) {
+  return { id: user.id, email: user.email, username: user.username, name: user.name || undefined };
+}
+
 export class AuthService {
   /**
    * Hash password with bcrypt
    */
   static async hashPassword(password: string): Promise<string> {
-    const salt = await bcrypt.genSalt(10);
-    return bcrypt.hash(password, salt);
+    return bcrypt.hash(password, 10);
   }
 
   /**
@@ -122,15 +129,10 @@ export class AuthService {
       return {
         ok: true,
         token,
-        user: {
-          id: user.id,
-          email: user.email,
-          username: user.username,
-          name: user.name || undefined,
-        },
+        user: mapUser(user),
       };
     } catch (error) {
-      console.error('[Auth] Registration error:', error);
+      logger.error('Registration error', { error: toErrorMessage(error) });
       return { ok: false, error: 'Registration failed' };
     }
   }
@@ -169,15 +171,10 @@ export class AuthService {
       return {
         ok: true,
         token,
-        user: {
-          id: user.id,
-          email: user.email,
-          username: user.username,
-          name: user.name || undefined,
-        },
+        user: mapUser(user),
       };
     } catch (error) {
-      console.error('[Auth] Login error:', error);
+      logger.error('Login error', { error: toErrorMessage(error) });
       return { ok: false, error: 'Login failed' };
     }
   }

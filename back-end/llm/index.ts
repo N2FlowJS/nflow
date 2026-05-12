@@ -4,7 +4,11 @@ import { runOllamaChat, listModels as ollamaList, embedText as ollamaEmbed } fro
 import { runGoogleChat, listModels as genaiList, embedText as genaiEmbed } from './genai';
 import { runAnthropicChat, listModels as anthropicList, embedText as anthropicEmbed } from './anthropic';
 import { listModels as nvidiaList, runNvidiaChat, embedText as nvidiaEmbed } from './nvidia';
-import { normalizeModelsJson, trimTrailingSlash, tryFetchModelsFromBase } from './utils';
+import { tryFetchModelsFromBase } from './utils';
+import { createLogger } from '../utils/logger';
+import { toErrorMessage } from '../utils/common';
+
+const logger = createLogger('LLM');
 
 export type { LlmRuntimeConfig, AgentTool, LlmProvider };
 
@@ -61,9 +65,7 @@ LlmProviderRegistry.register({
       const resp = await nvidiaList(cfg);
       if (resp.length > 0) return resp;
     } catch (err) {
-      // NVIDIA list failed, falling back to OpenAI-compatible
-      const errorMsg = err instanceof Error ? err.message : String(err);
-      console.warn(`[LLM] NVIDIA listModels fallback: ${errorMsg}`);
+      logger.warn('NVIDIA listModels fallback', { error: toErrorMessage(err) });
     }
     return openaiList(cfg);
   },

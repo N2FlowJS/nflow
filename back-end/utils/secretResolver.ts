@@ -18,3 +18,6 @@ export const resolveSecrets = (data: Record<string, any>): Record<string, any> =
   }
   return resolved;
 };
+
+export const resolveSecretString = (value: string): string =>
+  value.replace(/\{\{\s*([^{}]+?)\s*\}\}/g, (m, n) => process.env[String(n).trim()] ?? m);

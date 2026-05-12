@@ -29,7 +29,7 @@ const formatValidationMessage = (
     defaultMessage: String(issue.message ?? ''),
   };
 
-  return template.replace(/\{(label|type|nodeId|field|level|ruleKey|defaultMessage)\}/g, (_, key) => values[key] || '');
+  return template.replace(/\{(label|type|nodeId|field|level|ruleKey|defaultMessage)\}/g, (_, k) => values[k] || '');
 };
 
 export const validateFlowGraph = (
@@ -37,27 +37,17 @@ export const validateFlowGraph = (
   edges: Edge[],
   options?: ValidateFlowOptions,
 ): FlowValidationIssue[] => {
-  const issues: FlowValidationIssue[] = [];
   const locale = options?.locale || 'en';
-  const nodeMap = new Map(nodes.map((node) => [node.id, node as CustomNodeType]));
-
-  // Basic structural validation
-  edges.forEach((edge) => {
-    if (!nodeMap.has(edge.source) || !nodeMap.has(edge.target)) {
-      issues.push({
-        level: 'error',
-        message: `Edge ${edge.id} references a missing node.`,
-      });
-    }
-  });
-
+  const nodeMap = new Map(nodes.map((n) => [n.id, n as CustomNodeType]));
   const context: ValidationContext = { nodes, edges, nodeMap };
 
-  // Node-specific validation rules
+  const issues: FlowValidationIssue[] = edges
+    .filter((e) => !nodeMap.has(e.source) || !nodeMap.has(e.target))
+    .map((e) => ({ level: 'error', message: `Edge ${e.id} references missing node.` }));
+
   nodes.forEach((rawNode) => {
     const node = rawNode as CustomNodeType;
-    const ruleConfigs = getNodeValidationRuleConfigs(node.data.type);
-    ruleConfigs.forEach((ruleConfig) => {
+    getNodeValidationRuleConfigs(node.data.type).forEach((ruleConfig) => {
       const validator = validatorsByRuleKey[ruleConfig.key];
       if (!validator) return;
 
@@ -65,22 +55,18 @@ export const validateFlowGraph = (
         ...issue,
         level: ruleConfig.level || issue.level,
         message: (() => {
-          const template =
-            (locale === 'vi' ? ruleConfig.messageVi : ruleConfig.messageEn) ||
-            ruleConfig.message;
-          if (!template) return issue.message;
-          return formatValidationMessage(template, node, issue, ruleConfig.key);
+          const tmpl = (locale === 'vi' ? ruleConfig.messageVi : ruleConfig.messageEn) || ruleConfig.message;
+          return tmpl ? formatValidationMessage(tmpl, node, issue, ruleConfig.key) : issue.message;
         })(),
       }));
-
       issues.push(...nodeIssues);
     });
   });
 
-  // Graph connectivity validation
-  issues.push(...validateNodeConnectivity(nodes, edges));
-  issues.push(...validateToolConnectivity(nodes, edges));
-  issues.push(...validateAgentConnectivity(nodes, edges));
-
-  return issues;
+  return [
+    ...issues,
+    ...validateNodeConnectivity(nodes, edges),
+    ...validateToolConnectivity(nodes, edges),
+    ...validateAgentConnectivity(nodes, edges),
+  ];
 };

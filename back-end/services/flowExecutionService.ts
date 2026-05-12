@@ -10,6 +10,7 @@ import { ToolDefinition, executeToolNode } from '../tools';
 import { AgentTool } from '../llm';
 import { resolveSecrets } from '../utils/secretResolver';
 import { withTimeout } from '../utils/common';
+import { resolveSecretString } from '../utils/secretResolver';
 
 const MAX_CONCURRENCY = Math.max(1, Number(process.env.EXECUTOR_CONCURRENCY || 4));
 const MAX_FLOW_NODES = Number(process.env.MAX_FLOW_NODES || 500);
@@ -162,7 +163,7 @@ export async function executeFlowOnServer({
         params: resolveSecrets(node.data?.params || {}),
         configSchema: node.data?.configSchema?.map((field: any) => ({
           ...field,
-          value: typeof field.value === 'string' ? resolveSecrets({ v: field.value }).v : field.value
+          value: typeof field.value === 'string' ? resolveSecretString(field.value) : field.value,
         }))
       }
     };

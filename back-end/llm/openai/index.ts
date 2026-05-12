@@ -1,6 +1,6 @@
 import OpenAI from 'openai';
 import type { LlmRuntimeConfig, AgentTool } from '../types';
-import { trimTrailingSlash, normalizeApiKey, toOpenAiToolDeclarations, clampToolResult, parseToolArgs } from '../utils';
+import { trimTrailingSlash, normalizeApiKey, toOpenAiToolDeclarations, clampToolResult } from '../utils';
 
 export const listModels = async (
   cfg: LlmRuntimeConfig,
