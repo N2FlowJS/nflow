@@ -28,21 +28,12 @@ export class LogSanitizer {
    */
   static sanitize(message: string | any): string {
     if (!message) return '';
-
     let text = typeof message === 'string' ? message : JSON.stringify(message);
 
-    // Apply all sanitization patterns
-    for (const pattern of this.SECRET_PATTERNS) {
-      text = text.replace(pattern, (match) => {
-        // Keep first and last character for debugging
-        if (match.length > 4) {
-          return match[0] + '***' + match[match.length - 1];
-        }
-        return '***';
-      });
-    }
-
-    return text;
+    return this.SECRET_PATTERNS.reduce((acc, pattern) => 
+      acc.replace(pattern, (m) => m.length > 4 ? m[0] + '***' + m[m.length - 1] : '***'), 
+      text
+    );
   }
 
   /**

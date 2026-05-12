@@ -6,38 +6,25 @@ const logger = createLogger('FlowStorage');
 
 type FlowRow = { id: string; name: string; createdAt: Date; updatedAt: Date };
 
-function mapFlowRow(flow: FlowRow) {
-  return {
-    id: flow.id,
-    name: flow.name,
-    updatedAt: flow.updatedAt.getTime(),
-    createdAt: flow.createdAt.getTime(),
-    nodeCount: 0,
-    edgeCount: 0,
-  };
-}
+const mapFlowRow = (f: FlowRow) => ({
+  id: f.id,
+  name: f.name,
+  updatedAt: f.updatedAt.getTime(),
+  createdAt: f.createdAt.getTime(),
+  nodeCount: 0,
+  edgeCount: 0,
+});
 
-function parseFlowData(raw: string): any {
+const parseFlowData = (raw: string): any => {
   const parsed = parseJsonSafely(raw);
   if (!parsed || typeof parsed !== 'object') throw new Error('Corrupted flow data');
   return parsed;
-}
+};
 
 export class FlowStorageService {
-  static requireUserId(userId?: string) {
-    if (!userId) {
-      throw new Error('User ID is required');
-    }
-
-    return userId;
-  }
-
-  /**
-   * Initialize storage (no-op for Prisma - database is already initialized)
-   */
-  static async ensureDir() {
-    // Database already initialized during migration
-    return;
+  private static requireUserId(u?: string): string {
+    if (!u) throw new Error('User ID is required');
+    return u;
   }
 
   /**
@@ -46,53 +33,38 @@ export class FlowStorageService {
   static async listFlowsForUser(userId: string) {
     const flows = await prisma.flow.findMany({
       where: { userId },
-      select: {
-        id: true,
-        name: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-      orderBy: {
-        updatedAt: 'desc',
-      },
+      select: { id: true, name: true, createdAt: true, updatedAt: true },
+      orderBy: { updatedAt: 'desc' },
     });
-
     return flows.map(mapFlowRow);
   }
 
-  static async listFlowsScoped(userId?: string) {
-    const ownerId = this.requireUserId(userId);
-    return this.listFlowsForUser(ownerId);
+  static async listFlowsScoped(u?: string) {
+    return this.listFlowsForUser(this.requireUserId(u));
   }
+
 
   /**
    * Get a specific flow by ID
    */
   static async getFlow(id: string, userId?: string) {
-    const flow = await prisma.flow.findUnique({
-      where: { id },
-    });
-
-    if (!flow) {
-      throw new Error(`Flow ${id} not found`);
-    }
-
+    const flow = await prisma.flow.findUnique({ where: { id } });
     const ownerId = this.requireUserId(userId);
-    if (flow.userId !== ownerId) {
+
+    if (!flow || flow.userId !== ownerId) {
       throw new Error(`Flow ${id} not found`);
     }
 
     const data = parseFlowData(flow.data);
-    
     return {
-      id: flow.id,
-      name: flow.name,
+      ...flow,
       data,
       updatedAt: flow.updatedAt.getTime(),
       createdAt: flow.createdAt.getTime(),
       versions: data.versions || [],
     };
   }
+
 
   /**
    * Save or update a flow

@@ -4,6 +4,7 @@ import type { CustomNodeType } from '@n2flow/types';
 import { validatorsByRuleKey } from './ruleRegistry';
 import type { FlowValidationIssue, ValidationContext } from './types';
 import { validateNodeConnectivity, validateToolConnectivity } from './utils';
+import { formatValidationMessage } from '../utils/common';
 
 export type { FlowValidationIssue } from './types';
 
@@ -11,25 +12,6 @@ export type ValidationLocale = 'en' | 'vi';
 
 type ValidateFlowOptions = {
   locale?: ValidationLocale;
-};
-
-const formatValidationMessage = (
-  template: string,
-  node: CustomNodeType,
-  issue: FlowValidationIssue,
-  ruleKey: string,
-): string => {
-  const values: Record<string, string> = {
-    label: String(node.data.label ?? ''),
-    type: String(node.data.type ?? ''),
-    nodeId: String(node.id ?? ''),
-    field: String(issue.fieldName ?? ''),
-    level: String(issue.level ?? ''),
-    ruleKey,
-    defaultMessage: String(issue.message ?? ''),
-  };
-
-  return template.replace(/\{(label|type|nodeId|field|level|ruleKey|defaultMessage)\}/g, (_, k) => values[k] || '');
 };
 
 export const validateFlowGraph = (
@@ -56,7 +38,18 @@ export const validateFlowGraph = (
         level: ruleConfig.level || issue.level,
         message: (() => {
           const tmpl = (locale === 'vi' ? ruleConfig.messageVi : ruleConfig.messageEn) || ruleConfig.message;
-          return tmpl ? formatValidationMessage(tmpl, node, issue, ruleConfig.key) : issue.message;
+          if (!tmpl) return issue.message;
+
+          const values: Record<string, string> = {
+            label: String(node.data.label ?? ''),
+            type: String(node.data.type ?? ''),
+            nodeId: String(node.id ?? ''),
+            field: String(issue.fieldName ?? ''),
+            level: String(issue.level ?? ''),
+            ruleKey: ruleConfig.key,
+            defaultMessage: String(issue.message ?? ''),
+          };
+          return formatValidationMessage(tmpl, values);
         })(),
       }));
       issues.push(...nodeIssues);

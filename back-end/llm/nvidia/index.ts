@@ -1,12 +1,11 @@
 import type { LlmRuntimeConfig, AgentTool } from "../types";
 import {
   trimTrailingSlash,
-  normalizeApiKey,
   hasTemplatePlaceholder,
   toOpenAiToolDeclarations,
   clampToolResult,
 } from "../utils";
-import { maskApiKey, toErrorMessage, withTimeout } from "../../utils/common";
+import { maskApiKey, normalizeApiKey, toErrorMessage, withTimeout } from "../../utils/common";
 import { createLogger } from "../../utils/logger";
 import OpenAI from "openai";
 

@@ -37,3 +37,31 @@ export function extractErrorMessage(error: unknown): string {
   }
   return compact;
 }
+
+export function maskSecretValue(v: string | unknown): string {
+  const s = String(v || '').trim();
+  if (!s) return '[empty]';
+  return s.length <= 8 ? `${s.slice(0, 2)}***` : `${s.slice(0, 4)}***${s.slice(-4)}`;
+}
+
+export function looksLikeSecret(v: string | unknown): boolean {
+  const s = String(v || '').trim();
+  if (!s) return false;
+  const isKey = /^(?:Bearer\s+)?(?:nvapi-|sk-|pk-|ghp_|glpat-|AIza|xoxb-|ya29\.)/i.test(s);
+  return isKey || s.length >= 32;
+}
+
+/**
+ * Summarizes the output of a node for display.
+ */
+export function getOutputSummary(output: unknown): string {
+  if (typeof output === 'string') {
+    return `${output.slice(0, 80)}${output.length > 80 ? '...' : ''}`;
+  }
+
+  if (output === undefined || output === null) {
+    return 'No result';
+  }
+
+  return 'Result available';
+}

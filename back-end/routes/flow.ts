@@ -6,21 +6,10 @@ import { LogSanitizer } from '../middleware/logSanitizer';
 import { AuthRequest } from '../middleware/auth';
 import { toErrorMessage } from '../utils/common';
 import { createLogger } from '../utils/logger';
+import { successResponse, errorResponse } from '../utils/apiResponse';
 
 const router = Router();
 const logger = createLogger('Flow');
-
-function requireFlowUser(req: AuthRequest, res: Response): string | null {
-  if (!req.userId) {
-    res.status(401).json({
-      ok: false,
-      error: 'Authentication required.',
-    });
-    return null;
-  }
-
-  return req.userId;
-}
 
 // Execution endpoints
 router.post('/flow/execute', async (req: AuthRequest, res: Response) => {
@@ -42,17 +31,15 @@ router.post('/flow/execute', async (req: AuthRequest, res: Response) => {
       logger.info('Flow executed', { userId: req.userId });
     }
 
-    res.json({ ok: true, ...result });
+    res.json(successResponse(result));
   } catch (err) {
     const errorMsg = toErrorMessage(err, 'Flow execution failed');
     const sanitized = LogSanitizer.sanitize(errorMsg);
     logger.error('Execute error', err, { userId: req.userId });
-    res.status(500).json({
-      ok: false,
-      error: sanitized,
-    });
+    res.status(500).json(errorResponse(sanitized));
   }
 });
+
 
 router.post('/flow/execute/stream', async (req: AuthRequest, res: Response) => {
   try {
@@ -124,8 +111,8 @@ router.post('/flow/execute/stream', async (req: AuthRequest, res: Response) => {
 // Storage endpoints
 router.get('/flows', async (req: AuthRequest, res: Response) => {
   try {
-    const userId = requireFlowUser(req, res);
-    if (!userId) return;
+    const userId = req.userId;
+    if (!userId) return res.status(401).json(errorResponse('Unauthorized'));
 
     // Parse pagination parameters
     const limit = Math.min(Math.max(parseInt(String(req.query.limit)) || 20, 1), 100);
@@ -135,37 +122,34 @@ router.get('/flows', async (req: AuthRequest, res: Response) => {
     const total = allFlows.length;
     const flows = allFlows.slice(offset, offset + limit);
     
-    res.json({
-      flows,
-      pagination: {
-        limit,
-        offset,
-        total,
-        hasMore: offset + limit < total,
-      },
-    });
+    res.json(successResponse(flows, {
+      limit,
+      offset,
+      total,
+      hasMore: offset + limit < total,
+    }));
   } catch (err) {
     logger.error('List flows error', err);
-    res.status(500).json({ error: 'Failed to list flows' });
+    res.status(500).json(errorResponse('Failed to list flows'));
   }
 });
 
 router.get('/flows/:id', async (req: AuthRequest, res: Response) => {
   try {
-    const userId = requireFlowUser(req, res);
-    if (!userId) return;
+    const userId = req.userId;
+    if (!userId) return res.status(401).json(errorResponse('Unauthorized'));
 
     const data = await FlowStorageService.getFlow(String(req.params.id), userId);
-    res.json(data);
+    res.json(successResponse(data));
   } catch (err) {
-    res.status(404).json({ error: 'Flow not found' });
+    res.status(404).json(errorResponse('Flow not found'));
   }
 });
 
 router.post('/flows', async (req: AuthRequest, res: Response) => {
   try {
-    const userId = requireFlowUser(req, res);
-    if (!userId) return;
+    const userId = req.userId;
+    if (!userId) return res.status(401).json(errorResponse('Unauthorized'));
 
     // Validate request payload
     const validatedRequest = RequestValidator.validateFlowSave(req.body);
@@ -174,47 +158,48 @@ router.post('/flows', async (req: AuthRequest, res: Response) => {
       ...validatedRequest,
       userId, // Add user context
     });
-    res.json({ ok: true, id });
+    res.json(successResponse({ id }));
   } catch (err) {
     const errorMsg = toErrorMessage(err, 'Failed to save flow');
     const sanitized = LogSanitizer.sanitize(errorMsg);
     logger.error('Save flow error', err, { userId: req.userId });
-    res.status(400).json({ error: sanitized });
+    res.status(400).json(errorResponse(sanitized));
   }
 });
 
 router.delete('/flows/:id', async (req: AuthRequest, res: Response) => {
   try {
-    const userId = requireFlowUser(req, res);
-    if (!userId) return;
+    const userId = req.userId;
+    if (!userId) return res.status(401).json(errorResponse('Unauthorized'));
 
     await FlowStorageService.deleteFlow(String(req.params.id), userId);
-    res.json({ ok: true });
+    res.json(successResponse({ ok: true }));
   } catch (err) {
     const errorMsg = toErrorMessage(err, 'Failed to delete flow');
     const sanitized = LogSanitizer.sanitize(errorMsg);
     logger.error('Delete flow error', err, { userId: req.userId });
-    res.status(500).json({ error: sanitized });
+    res.status(500).json(errorResponse(sanitized));
   }
 });
+
 
 // Version history endpoints
 router.get('/flows/:id/versions', async (req: AuthRequest, res: Response) => {
   try {
-    const userId = requireFlowUser(req, res);
-    if (!userId) return;
+    const userId = req.userId;
+    if (!userId) return res.status(401).json(errorResponse('Unauthorized'));
 
     const versions = await FlowStorageService.getFlowVersions(String(req.params.id), userId);
-    res.json(versions || []);
+    res.json(successResponse(versions || []));
   } catch (err) {
-    res.status(404).json({ error: 'Flow not found' });
+    res.status(404).json(errorResponse('Flow not found'));
   }
 });
 
 router.get('/flows/:id/versions/:versionId', async (req: AuthRequest, res: Response) => {
   try {
-    const userId = requireFlowUser(req, res);
-    if (!userId) return;
+    const userId = req.userId;
+    if (!userId) return res.status(401).json(errorResponse('Unauthorized'));
 
     const flow = await FlowStorageService.getFlowVersion(
       String(req.params.id),
@@ -222,32 +207,33 @@ router.get('/flows/:id/versions/:versionId', async (req: AuthRequest, res: Respo
       userId,
     );
     if (!flow) {
-      res.status(404).json({ error: 'Version not found' });
+      res.status(404).json(errorResponse('Version not found'));
       return;
     }
-    res.json(flow);
+    res.json(successResponse(flow));
   } catch (err) {
-    res.status(500).json({ error: 'Failed to retrieve version' });
+    res.status(500).json(errorResponse('Failed to retrieve version'));
   }
 });
 
 router.post('/flows/:id/versions/:versionId/restore', async (req: AuthRequest, res: Response) => {
   try {
-    const userId = requireFlowUser(req, res);
-    if (!userId) return;
+    const userId = req.userId;
+    if (!userId) return res.status(401).json(errorResponse('Unauthorized'));
 
     const flow = await FlowStorageService.restoreFlowVersion(
       String(req.params.id),
       String(req.params.versionId),
       userId
     );
-    res.json({ ok: true, flow });
+    res.json(successResponse({ flow }));
   } catch (err) {
     const errorMsg = toErrorMessage(err, 'Failed to restore version');
     const sanitized = LogSanitizer.sanitize(errorMsg);
     logger.error('Restore version error', err, { userId: req.userId });
-    res.status(400).json({ error: sanitized });
+    res.status(400).json(errorResponse(sanitized));
   }
 });
+
 
 export default router;

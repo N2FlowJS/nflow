@@ -2,16 +2,23 @@ import type { NodeValidator } from '../types';
 import { validateRequiredParams, validateSingleParam } from '../utils';
 
 export const validateMssqlNode: NodeValidator = (n) =>
-  validateRequiredParams(n, ['server', 'user', 'database', 'query'], (f) => `MSSQL "${n.data.label}" missing ${f}.`);
-
-export const validateElasticsearchNode: NodeValidator = (n) =>
-  validateSingleParam(n, 'endpoint', 'error', `Elasticsearch "${n.data.label}" missing endpoint URL.`);
+  validateRequiredParams(n, ['server', 'user', 'database', 'query'], (f) => {
+    const labels: Record<string, string> = { server: 'Server Host', user: 'DB User', database: 'Database', query: 'Query' };
+    return `MSSQL "${n.data.label}" missing ${labels[f] || f}.`;
+  });
 
 export const validateGitLabNode: NodeValidator = (n) =>
-  validateRequiredParams(n, ['baseUrl', 'projectId', 'mergeRequestIid'], (f) => `GitLab "${n.data.label}" missing ${f}.`);
+  validateRequiredParams(n, ['baseUrl', 'projectId', 'mergeRequestIid'], (f) => {
+    const labels: Record<string, string> = { baseUrl: 'API Base URL', projectId: 'Project ID', mergeRequestIid: 'Merge Request IID' };
+    return `GitLab "${n.data.label}" missing ${labels[f] || f}.`;
+  });
 
 export const validateGitHubNode: NodeValidator = (n) =>
-  validateRequiredParams(n, ['baseUrl', 'repoFullName', 'pullRequestNumber'], (f) => `GitHub "${n.data.label}" missing ${f}.`);
+  validateRequiredParams(n, ['baseUrl', 'repoFullName', 'pullRequestNumber'], (f) => {
+    const labels: Record<string, string> = { baseUrl: 'API Base URL', repoFullName: 'Repository', pullRequestNumber: 'Pull Request #' };
+    return `GitHub "${n.data.label}" missing ${labels[f] || f}.`;
+  });
+
 
 export const validateHttpRequestNode: NodeValidator = (n) =>
   validateSingleParam(n, 'url', 'error', `HTTP Request "${n.data.label}" missing url.`);

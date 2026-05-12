@@ -18,6 +18,13 @@ export const interpolate = (template: string, values: Record<string, string>) =>
     return value === undefined || value === null ? `{${key}}` : String(value);
   });
 
+export const formatValidationMessage = (
+  template: string,
+  values: Record<string, string>,
+): string => {
+  return template.replace(/\{(label|type|nodeId|field|level|ruleKey|defaultMessage)\}/g, (_, k) => values[k] || '');
+};
+
 export const resolveVariablePlaceholders = (
   value: unknown,
   globalVariables: GlobalVariable[] = [],
@@ -73,6 +80,13 @@ export const maskApiKey = (apiKey: string): string => {
   if (!apiKey) return 'missing';
   if (apiKey.length <= 8) return `${apiKey.slice(0, 2)}***`;
   return `${apiKey.slice(0, 4)}***${apiKey.slice(-4)}`;
+};
+
+/** Normalize an API key by trimming and removing Bearer prefix. */
+export const normalizeApiKey = (apiKey: unknown): string => {
+  const raw = String(apiKey || '').trim();
+  if (!raw) return '';
+  return raw.replace(/^Bearer\s+/i, '').trim();
 };
 
 /** Race a promise against a timeout that rejects with the given message. */

@@ -2,9 +2,7 @@ import { FlowRuntimeContext, NodeRegistry, NodeHandler } from './registry';
 import {
   currentTimeHandler,
   chatInputHandler,
-  chatOutputHandler,
   textInputHandler,
-  variableHandler,
   waitHandler,
 } from './standard';
 import { promptTemplateHandler } from './templates';
@@ -19,21 +17,15 @@ export { NodeExecutionError };
 NodeRegistry.register('CurrentTime', currentTimeHandler);
 NodeRegistry.register('ChatInput', chatInputHandler);
 NodeRegistry.register('TextInput', textInputHandler);
-NodeRegistry.register('ChatOutput', chatOutputHandler);
-NodeRegistry.register('VariableComponent', variableHandler);
+NodeRegistry.register('ChatOutput', chatInputHandler);
+NodeRegistry.register('VariableComponent', textInputHandler);
 NodeRegistry.register('WaitComponent', waitHandler);
 
 // Templates
 NodeRegistry.register('Prompt Template', promptTemplateHandler);
-NodeRegistry.register('GitLabMRReviewTemplate', promptTemplateHandler);
-NodeRegistry.register('GitLabMRCommentTemplate', promptTemplateHandler);
 
 // LLM
-NodeRegistry.register('LanguageModelComponent', llmConfigHandler);
 NodeRegistry.register('ChatModelComponent', llmConfigHandler);
-NodeRegistry.register('OllamaChatModelComponent', llmConfigHandler);
-NodeRegistry.register('VLLMChatModelComponent', llmConfigHandler);
-NodeRegistry.register('NvidiaNimChatModelComponent', llmConfigHandler);
 NodeRegistry.register('Agent', agentHandler);
 
 export const executeNode = async (ctx: FlowRuntimeContext): Promise<unknown> => {

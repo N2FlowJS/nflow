@@ -78,29 +78,24 @@ export const useCyberNode = (id: string, data: CustomNodeType['data']) => {
     };
   }, []);
 
-  const updateNodeData = useCallback((newData: Partial<CyberNodeTransientData>) => {
-    setNodes((nds) => nds.map((node) => {
-      if (node.id === id) {
-        return { ...node, data: { ...node.data, ...newData } };
-      }
-      return node;
-    }));
+  const updateNodeData = useCallback((newData: Partial<any>) => {
+    setNodes((nds) => nds.map((n) => (n.id === id ? { ...n, data: { ...n.data, ...newData } } : n)));
   }, [id, setNodes]);
 
-  const handleParamChange = useCallback((name: string, value: string | number | boolean) => {
+  const handleParamChange = useCallback((name: string, value: any) => {
+    let updatedSchema = setNodeFieldValueInSchema(data.configSchema, name, value);
+    
     if (data.type === 'Agent' && name === 'agentTemplate') {
       const templateName = String(value || '');
-      let updatedSchema = setNodeFieldValueInSchema(data.configSchema, 'agentTemplate', templateName);
       const templateInstruction = getAgentInstructionByTemplate(templateName);
       if (templateName !== AGENT_TEMPLATE_CUSTOM && templateInstruction) {
         updatedSchema = setNodeFieldValueInSchema(updatedSchema, 'instruction', templateInstruction);
       }
-      updateNodeData({ configSchema: updatedSchema });
-      return;
     }
-    const updatedSchema = setNodeFieldValueInSchema(data.configSchema, name, value);
+    
     updateNodeData({ configSchema: updatedSchema });
   }, [data.type, data.configSchema, updateNodeData]);
+
 
   const onRun = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();

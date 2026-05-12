@@ -1,15 +1,17 @@
-import { getNodeFieldValue } from '../utils/common';
+import { getNodeFieldValue, interpolate } from '../utils/common';
 import { NodeHandler } from './registry';
 
 export const promptTemplateHandler: NodeHandler = async (ctx) => {
-  let tpl = String(getNodeFieldValue(ctx.node, 'template') || '');
-  tpl = tpl.replace(
-    /\{\s*([a-zA-Z0-9_]+)\s*\}/g,
-    (_m, variableName) => {
-      const val = ctx.inputs[variableName]?.[0];
-      if (val === undefined || val === null) return `{${variableName}}`;
-      return typeof val === 'string' ? val : JSON.stringify(val);
-    },
-  );
-  return tpl;
+  const tpl = String(getNodeFieldValue(ctx.node, 'template') || '');
+  
+  // Convert ctx.inputs to a flat map of strings for interpolate
+  const values: Record<string, string> = {};
+  for (const [key, valArray] of Object.entries(ctx.inputs)) {
+    const val = valArray?.[0];
+    if (val !== undefined && val !== null) {
+      values[key] = typeof val === 'string' ? val : JSON.stringify(val);
+    }
+  }
+
+  return interpolate(tpl, values);
 };

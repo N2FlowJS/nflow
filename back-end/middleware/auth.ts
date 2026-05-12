@@ -73,11 +73,11 @@ export const authMiddleware = async (
   res: Response,
   next: NextFunction,
 ): Promise<void> => {
-  const authResult = applyAuthContext(req);
-  if (!authResult.ok) {
-    res.status(authResult.status).json({
+  const result = applyAuthContext(req);
+  if (!result.ok) {
+    res.status(result.status).json({
       ok: false,
-      error: authResult.error,
+      error: result.error,
     });
     return;
   }

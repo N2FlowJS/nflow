@@ -124,45 +124,49 @@ const PRIMARY_SOURCE_BADGE_RIGHT_CLASS =
 const PRIMARY_SOURCE_BADGE_BOTTOM_CLASS =
   "left-1/2 -translate-x-1/2 -bottom-6 text-cyber-primary border-cyber-primary/60 bg-black/70";
 const AS_TOOL_LABEL_CENTER_CLASS =
-  "absolute -top-6 left-1/2 -translate-x-1/2 flex flex-col items-center text-amber-500 opacity-0 group-hover:opacity-100 transition-opacity";
+  "absolute -top-6 left-1/2 -translate-x-1/2 flex flex-col items-center text-amber-500 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap";
 const AS_TOOL_LABEL_75_CLASS =
-  "absolute -top-6 left-3/4 -translate-x-1/2 flex flex-col items-center text-amber-500 opacity-0 group-hover:opacity-100 transition-opacity";
+  "absolute -top-6 left-3/4 -translate-x-1/2 flex flex-col items-center text-amber-500 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap";
 const AS_TOOL_BADGE_CENTER_CLASS =
   "left-1/2 -translate-x-1/2 -top-6 text-amber-300 border-amber-500/60 bg-black/70";
 const AS_TOOL_BADGE_75_CLASS =
   "left-[75%] -translate-x-1/2 -top-6 text-amber-300 border-amber-500/60 bg-black/70";
 
+
 // --- Helpers ---
+const createHandle = (
+  type: "input" | "source",
+  portType: NodeSourceHandleConfig["portType"],
+  position: "left" | "right" | "top" | "bottom",
+  extra: Partial<NodeSourceHandleConfig> = {}
+): any => ({
+  portType,
+  position,
+  ...(type === "source" ? {
+    badgeParamKey: "output_type",
+    badgeFallback: portType,
+    badgeClassName: position === "bottom" ? PRIMARY_SOURCE_BADGE_BOTTOM_CLASS : PRIMARY_SOURCE_BADGE_RIGHT_CLASS,
+  } : {}),
+  ...extra,
+});
+
 const createPrimarySourceHandle = (
   portType: NodeSourceHandleConfig["portType"] = "text",
   position: "right" | "bottom" = "right",
-): NodeSourceHandleConfig => ({
-  portType,
-  position,
-  badgeParamKey: "output_type",
-  badgeFallback: portType,
-  badgeClassName:
-    position === "bottom"
-      ? PRIMARY_SOURCE_BADGE_BOTTOM_CLASS
-      : PRIMARY_SOURCE_BADGE_RIGHT_CLASS,
-});
+) => createHandle("source", portType, position);
 
 const createAsToolSourceHandle = (
   offsetPercent?: number,
-): NodeSourceHandleConfig => ({
+): NodeSourceHandleConfig => createHandle("source", "tool", "top", {
   id: "as_tool",
-  portType: "tool",
-  position: "top",
   offsetPercent,
   borderClass: "!border-amber-500",
   hoverBorderClass: "hover:!border-amber-400 transition-colors",
   labelText: "AS_TOOL",
-  labelClassName:
-    offsetPercent === 75 ? AS_TOOL_LABEL_75_CLASS : AS_TOOL_LABEL_CENTER_CLASS,
+  labelClassName: offsetPercent === 75 ? AS_TOOL_LABEL_75_CLASS : AS_TOOL_LABEL_CENTER_CLASS,
   badgeParamKey: "as_tool_output_type",
   badgeFallback: "tool",
-  badgeClassName:
-    offsetPercent === 75 ? AS_TOOL_BADGE_75_CLASS : AS_TOOL_BADGE_CENTER_CLASS,
+  badgeClassName: offsetPercent === 75 ? AS_TOOL_BADGE_75_CLASS : AS_TOOL_BADGE_CENTER_CLASS,
 });
 
 const commonModelFields = (sourceType: NodeSourceHandleConfig["portType"] = "chat_model"): RegistryConfigSchema => [
@@ -180,57 +184,31 @@ const commonModelFields = (sourceType: NodeSourceHandleConfig["portType"] = "cha
 ];
 
 const chatModelFields = (extraFields: RegistryConfigField[] = []): RegistryConfigSchema => [
-  ...commonModelFields("chat_model"),
+  {
+    label: "Provider",
+    name: "provider",
+    type: "select",
+    options: ["Google", "OpenAI", "Anthropic", "NVIDIA", "Ollama", "vLLM"],
+    sourceHandles: [createPrimarySourceHandle("chat_model", "bottom")],
+  },
+  ...commonModelFields("chat_model").filter(f => f.name !== 'model'),
+  {
+    label: "Model Name",
+    name: "model",
+    type: "text",
+  },
   ...extraFields,
   { label: "Stream", name: "stream", type: "boolean" },
 ];
 
-const embeddingModelFields = (sourceType: NodeSourceHandleConfig["portType"] = "embedding_model"): RegistryConfigSchema => [
-  { label: "Base URL (Optional)", name: "baseUrl", type: "text" },
-  { label: "API Key (Optional)", name: "apiKey", type: "text" },
-  {
-    label: "Embedding Model",
-    name: "model",
-    type: "text",
-    sourceHandles: [createPrimarySourceHandle(sourceType, "bottom")],
-  },
-];
-
 // --- Schemas ---
-const languageModelSchema: RegistryConfigSchema = [
-  {
-    label: "Model Type",
-    name: "modelType",
-    type: "select",
-    options: ["Chat", "Embedding"],
-    sourceHandles: [createPrimarySourceHandle("text", "bottom")],
-  },
-  { label: "Base URL (Optional)", name: "baseUrl", type: "text" },
-  { label: "API Key (Optional)", name: "apiKey", type: "text" },
-  {
-    label: "Model Name",
-    name: "model",
-    type: "select",
-    options: [
-      "gemini-2.0-flash",
-      "gemini-3-flash-preview",
-      "text-embedding-004",
-      "gpt-4o",
-      "claude-3.5-sonnet",
-    ],
-  },
-  { label: "Temperature", name: "temp", type: "number" },
-  { label: "Max Tokens", name: "max_tokens", type: "number" },
-  { label: "Top P", name: "top_p", type: "number" },
-  { label: "Top K", name: "top_k", type: "number" },
-];
 
 const embeddingModelSchema: RegistryConfigSchema = [
   {
     label: "Provider",
     name: "provider",
     type: "select",
-    options: ["Google", "OpenAI"],
+    options: ["Google", "OpenAI", "Ollama", "vLLM"],
     sourceHandles: [createPrimarySourceHandle("embedding_model", "bottom")],
   },
   { label: "Base URL (Optional)", name: "baseUrl", type: "text" },
@@ -238,43 +216,17 @@ const embeddingModelSchema: RegistryConfigSchema = [
   {
     label: "Embedding Model",
     name: "model",
-    type: "select",
-    options: ["text-embedding-004", "text-embedding-3-large"],
+    type: "text",
   },
 ];
-
-const localEmbeddingSchema = embeddingModelFields();
 
 const promptTemplateSchema: RegistryConfigSchema = [
   {
     label: "Template",
     name: "template",
     type: "textarea",
-    inputHandles: [
-      {
-        portType: "text",
-        position: "left",
-      },
-    ],
+    inputHandles: [createHandle("input", "text", "left")],
     sourceHandles: [createPrimarySourceHandle("text", "right")],
-  },
-];
-
-const gitLabReviewTemplateSchema: RegistryConfigSchema = [
-  {
-    label: "Template",
-    name: "template",
-    type: "textarea",
-    inputHandles: [
-      {
-        portType: "text",
-        position: "left",
-      },
-    ],
-    sourceHandles: [
-      createPrimarySourceHandle("text", "right"),
-      createAsToolSourceHandle(),
-    ],
   },
 ];
 
@@ -294,7 +246,7 @@ const gitApiSchema = (p: 'GitLab' | 'GitHub'): RegistryConfigSchema => [
     type: "select",
     options: p === 'GitLab' ? ["get_changes", "get_notes", "get_discussions", "post_note"] : ["get_files", "get_comments", "post_comment"],
   },
-  { label: p === 'GitLab' ? "Note Body Template" : "Comment Body Template", name: "noteBody", type: "textarea" },
+  { label: "Content Template", name: "noteBody", type: "textarea" },
 ];
 
 const gitLabMergeRequestSchema = gitApiSchema('GitLab');
@@ -306,109 +258,23 @@ const nodeRegistry: Record<string, NodeRegistryEntry> = {
     category: "llm",
     icon: "BrainCircuit",
     configSchema: withDefaultValues(
-      [
-        {
-          label: "Provider",
-          name: "provider",
-          type: "select",
-          options: ["Google", "OpenAI", "Anthropic", "NVIDIA"],
-          sourceHandles: [createPrimarySourceHandle("chat_model", "bottom")],
-        },
-        { label: "Base URL (Optional)", name: "baseUrl", type: "text" },
-        { label: "API Key (Optional)", name: "apiKey", type: "text" },
-        {
-          label: "Model Name",
-          name: "model",
-          type: "select",
-          options: [
-            "gemini-2.0-flash",
-            "gemini-3-flash-preview",
-            "gpt-4o",
-            "claude-3.5-sonnet",
-          ],
-        },
-        { label: "Temperature", name: "temperature", type: "number" },
-        { label: "Max Tokens", name: "max_tokens", type: "number" },
-        { label: "Top P", name: "top_p", type: "number" },
+      chatModelFields([
+        { label: "Top K", name: "top_k", type: "number" },
         { label: "Presence Penalty", name: "presence_penalty", type: "number" },
-        {
-          label: "Frequency Penalty",
-          name: "frequency_penalty",
-          type: "number",
-        },
-        { label: "Stream", name: "stream", type: "boolean" },
-      ],
+        { label: "Frequency Penalty", name: "frequency_penalty", type: "number" },
+      ]),
       {
         provider: "Google",
         model: "gemini-2.0-flash",
         temperature: 0.7,
         max_tokens: 2048,
         top_p: 0.95,
+        top_k: 40,
         presence_penalty: 0,
         frequency_penalty: 0,
         stream: false,
         apiKey: "",
         baseUrl: "",
-      },
-    ),
-  },
-
-  OllamaChatModelComponent: {
-    category: "llm",
-    icon: "BrainCircuit",
-    configSchema: withDefaultValues(
-      chatModelFields([{ label: "Top K", name: "top_k", type: "number" }]),
-      {
-        provider: "Ollama",
-        model: "llama3.1:8b",
-        temperature: 0.7,
-        max_tokens: 2048,
-        top_p: 0.9,
-        top_k: 40,
-        stream: false,
-        apiKey: "",
-        baseUrl: "http://localhost:11434",
-      },
-    ),
-  },
-  VLLMChatModelComponent: {
-    category: "llm",
-    icon: "BrainCircuit",
-    configSchema: withDefaultValues(
-      chatModelFields([
-        { label: "Presence Penalty", name: "presence_penalty", type: "number" },
-        { label: "Frequency Penalty", name: "frequency_penalty", type: "number" },
-      ]),
-      {
-        provider: "vLLM",
-        model: "meta-llama/Meta-Llama-3-8B-Instruct",
-        temperature: 0.7,
-        max_tokens: 2048,
-        top_p: 0.95,
-        presence_penalty: 0,
-        frequency_penalty: 0,
-        stream: false,
-        apiKey: "",
-        baseUrl: "http://localhost:8000/v1",
-      },
-    ),
-  },
-
-  NvidiaNimChatModelComponent: {
-    category: "llm",
-    icon: "BrainCircuit",
-    configSchema: withDefaultValues(
-      chatModelFields([{ label: "Top K", name: "top_k", type: "number" }]),
-      {
-        provider: "NVIDIA",
-        model: "stepfun-ai/step-3.5-flash",
-        temperature: 1,
-        max_tokens: 16384,
-        top_p: 0.9,
-        top_k: 0,
-        stream: false,
-        apiKey: "",
-        baseUrl: "https://integrate.api.nvidia.com/v1",
       },
     ),
   },
@@ -498,33 +364,6 @@ const nodeRegistry: Record<string, NodeRegistryEntry> = {
       baseUrl: "",
     }),
   },
-  OllamaEmbeddingModelComponent: {
-    category: "llm",
-    icon: "Cpu",
-    configSchema: withDefaultValues(localEmbeddingSchema, {
-      provider: "Ollama",
-      model: "nomic-embed-text",
-      apiKey: "",
-      baseUrl: "http://localhost:11434",
-    }),
-  },
-  VLLMEmbeddingModelComponent: {
-    category: "llm",
-    icon: "Cpu",
-    configSchema: withDefaultValues(localEmbeddingSchema, {
-      provider: "vLLM",
-      model: "BAAI/bge-small-en-v1.5",
-      apiKey: "",
-      baseUrl: "http://localhost:8000/v1",
-    }),
-  },
-  PromptTemplate: {
-    category: "template",
-    icon: "Terminal",
-    configSchema: withDefaultValues(promptTemplateSchema, {
-      template: "Hello {name}",
-    }),
-  },
   "Prompt Template": {
     category: "template",
     icon: "Terminal",
@@ -540,38 +379,6 @@ const nodeRegistry: Record<string, NodeRegistryEntry> = {
       },
     ],
   },
-  GitLabMRReviewTemplate: {
-    category: "template",
-    icon: "Terminal",
-    configSchema: withDefaultValues(gitLabReviewTemplateSchema, {
-      template:
-        "You are a senior reviewer. Review this GitLab merge request change-set and return: 1) Critical issues, 2) Security risks, 3) Performance concerns, 4) Suggested fixes with concrete code-level guidance. Context: {changes}",
-    }),
-    validationRules: [
-      {
-        key: "prompt-template-not-empty",
-        level: "warning",
-        messageEn: 'Review template "{label}" is empty.',
-        messageVi: 'Template review "{label}" đang để trống.',
-      },
-    ],
-  },
-  GitLabMRCommentTemplate: {
-    category: "template",
-    icon: "Terminal",
-    configSchema: withDefaultValues(gitLabReviewTemplateSchema, {
-      template:
-        "Write a concise GitLab MR comment in Vietnamese. Include: summary, blocking issues, and actionable next steps. Source: {review}",
-    }),
-    validationRules: [
-      {
-        key: "prompt-template-not-empty",
-        level: "warning",
-        messageEn: 'Comment template "{label}" is empty.',
-        messageVi: 'Template comment "{label}" đang để trống.',
-      },
-    ],
-  },
   Agent: {
     category: "agent",
     icon: "Bot",
@@ -583,21 +390,15 @@ const nodeRegistry: Record<string, NodeRegistryEntry> = {
           type: "select",
           options: AGENT_TEMPLATE_OPTIONS,
           inputHandles: [
-            {
+            createHandle("input", "chat_model", "top", {
               id: "agent_llm",
-              portType: "chat_model",
-              position: "top",
               offsetPercent: 25,
               borderClass: "!border-purple-500",
-              hoverBorderClass: "",
-            },
-            {
+            }),
+            createHandle("input", "tool", "bottom", {
               id: "tools",
-              portType: "tool",
-              position: "bottom",
               borderClass: "!border-amber-500",
-              hoverBorderClass: "",
-            },
+            }),
           ],
           sourceHandles: [createAsToolSourceHandle(75)],
         },
@@ -606,38 +407,25 @@ const nodeRegistry: Record<string, NodeRegistryEntry> = {
           name: "instruction",
           type: "textarea",
           inputHandles: [
-            {
+            createHandle("input", "text", "left", {
               id: "system_prompt",
-              portType: "text",
-              position: "left",
               offsetPercent: 28,
               borderClass: "!border-slate-500",
-              hoverBorderClass: "",
-            },
-            {
+            }),
+            createHandle("input", "text", "left", {
               id: "input_value",
-              portType: "text",
-              position: "left",
               offsetPercent: 72,
               borderClass: "!border-green-500",
-              hoverBorderClass: "",
-            },
+            }),
           ],
           sourceHandles: [
-            {
+            createHandle("source", "text", "right", {
               id: "response",
-              portType: "text",
-              position: "right",
               borderClass: "!border-cyan-500",
               badgeParamKey: "response_output_type",
-              badgeFallback: "text",
-              badgeClassName:
-                "-right-1.5 top-1/2 -translate-y-1/2 text-cyan-300 border-cyan-500/60 bg-black/70",
-              shouldShow: (data) =>
-                !String(
-                  getNodeFieldValue(data, "agentTemplate") || "",
-                ).includes("Search"),
-            },
+              badgeClassName: "-right-1.5 top-1/2 -translate-y-1/2 text-cyan-300 border-cyan-500/60 bg-black/70",
+              shouldShow: (data) => !String(getNodeFieldValue(data, "agentTemplate") || "").includes("Search"),
+            }),
           ],
         },
         {
@@ -663,14 +451,12 @@ const nodeRegistry: Record<string, NodeRegistryEntry> = {
         name: "endpoint",
         type: "text",
         inputHandles: [
-          {
+          createHandle("input", "embedding_model", "top", {
             id: "embedding_model",
-            portType: "embedding_model",
-            position: "top",
             offsetPercent: 25,
             borderClass: "!border-blue-500",
             hoverBorderClass: "hover:!border-blue-400 transition-colors",
-          },
+          }),
         ],
         sourceHandles: [createAsToolSourceHandle(75)],
       },
@@ -678,12 +464,7 @@ const nodeRegistry: Record<string, NodeRegistryEntry> = {
         label: "Index Name",
         name: "index",
         type: "text",
-        inputHandles: [
-          {
-            portType: "text",
-            position: "left",
-          },
-        ],
+        inputHandles: [createHandle("input", "text", "left")],
         sourceHandles: [createPrimarySourceHandle("text", "right")],
       },
       { label: "Vector Field", name: "vectorField", type: "text" },
@@ -725,37 +506,22 @@ const nodeRegistry: Record<string, NodeRegistryEntry> = {
         label: "Condition (JS expression)",
         name: "condition",
         type: "text",
-        inputHandles: [
-          {
-            portType: "text",
-            position: "left",
-          },
-        ],
+        inputHandles: [createHandle("input", "text", "left")],
         sourceHandles: [
-          {
+          createHandle("source", "boolean_route", "right", {
             id: "true",
-            portType: "boolean_route",
-            position: "right",
             offsetPercent: 25,
             borderClass: "!border-green-500",
             hoverBorderClass: "hover:!border-green-400 transition-colors",
-            badgeParamKey: "true_output_type",
-            badgeFallback: "boolean_route",
-            badgeClassName:
-              "-right-1.5 top-[25%] -translate-y-1/2 text-green-300 border-green-500/60 bg-black/70",
-          },
-          {
+            badgeClassName: "-right-1.5 top-[25%] -translate-y-1/2 text-green-300 border-green-500/60 bg-black/70",
+          }),
+          createHandle("source", "boolean_route", "right", {
             id: "false",
-            portType: "boolean_route",
-            position: "right",
             offsetPercent: 75,
             borderClass: "!border-red-500",
             hoverBorderClass: "hover:!border-red-400 transition-colors",
-            badgeParamKey: "false_output_type",
-            badgeFallback: "boolean_route",
-            badgeClassName:
-              "-right-1.5 top-[75%] -translate-y-1/2 text-red-300 border-red-500/60 bg-black/70",
-          },
+            badgeClassName: "-right-1.5 top-[75%] -translate-y-1/2 text-red-300 border-red-500/60 bg-black/70",
+          }),
           createAsToolSourceHandle(),
         ],
       },

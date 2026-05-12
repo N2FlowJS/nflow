@@ -5,6 +5,7 @@ import { Settings, X, Hash, Type, List, FileText, ToggleLeft, Link, Eye, EyeOff 
 import { getNodeFieldValue } from '../../../back-end/node-registry';
 import NumberInput from '../ui/NumberInput';
 import { API_BASE } from '../../lib/api';
+import { maskSecretValue, looksLikeSecret } from '../../lib/utils';
 import type { GlobalVariable } from '../../types/editor';
 
 type ConfigField = NonNullable<NodeData['configSchema']>[number];
@@ -41,20 +42,6 @@ function toGlobalVariablePlaceholder(name: string): string {
 function getSelectedGlobalVariableName(value: string): string {
   const match = value.match(/^\{\{\s*([^{}]+?)\s*\}\}$/);
   return match?.[1] || '';
-}
-
-function maskSecretValue(value: string): string {
-  const trimmed = String(value || '').trim();
-  if (!trimmed) return '[empty]';
-  if (trimmed.length <= 8) return `${trimmed.slice(0, 2)}***`;
-  return `${trimmed.slice(0, 4)}***${trimmed.slice(-4)}`;
-}
-
-function looksLikeSecret(value: string): boolean {
-  const trimmed = String(value || '').trim();
-  if (!trimmed) return false;
-  return /^(?:Bearer\s+)?(?:nvapi-|sk-|pk-|ghp_|glpat-|AIza|xoxb-|ya29\.)/i.test(trimmed)
-    || /^[A-Za-z0-9_\-]{24,}$/.test(trimmed);
 }
 
 interface NodeConfigModalProps {

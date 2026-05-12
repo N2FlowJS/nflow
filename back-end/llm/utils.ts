@@ -1,11 +1,5 @@
-import { trimTrailingSlash, parseJsonSafely } from '../utils/common';
+import { trimTrailingSlash, parseJsonSafely, normalizeApiKey } from '../utils/common';
 export { trimTrailingSlash };
-
-export const normalizeApiKey = (apiKey: unknown): string => {
-  const raw = String(apiKey || '').trim();
-  if (!raw) return '';
-  return raw.replace(/^Bearer\s+/i, '').trim();
-};
 
 export const hasTemplatePlaceholder = (value: unknown): boolean =>
   typeof value === 'string' && /\{\{\s*[^{}]+\s*\}\}/.test(value);

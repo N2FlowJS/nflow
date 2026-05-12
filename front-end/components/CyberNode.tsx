@@ -23,19 +23,7 @@ import { NodeHandles } from './node-parts/NodeHandles';
 
 // Hook
 import { useCyberNode } from '../hooks/useCyberNode';
-import { extractErrorMessage } from '../lib/utils';
-
-function getOutputSummary(output: unknown): string {
-  if (typeof output === 'string') {
-    return `${output.slice(0, 80)}${output.length > 80 ? '...' : ''}`;
-  }
-
-  if (output === undefined || output === null) {
-    return 'No result';
-  }
-
-  return 'Result available';
-}
+import { extractErrorMessage, getOutputSummary } from '../lib/utils';
 
 const PreviewButton: React.FC<{ output: unknown }> = ({ output }) => {
   const onOpen = (e: React.MouseEvent) => {
@@ -126,21 +114,12 @@ const CyberNode = ({ id, data, selected }: NodeProps<CustomNodeType>) => {
   }, [isPromptTemplate, id, promptVariablesKey, updateNodeInternals]);
 
   const isCompatibleHandle = (kind: 'source' | 'target', portType: PortDataType) => {
-    if (!hasActiveConnection) return false;
-    if (activeNodeId === id) return false;
+    if (!hasActiveConnection || activeNodeId === id) return false;
 
-    // If dragging from source, highlight compatible targets
-    if (activeHandleType === 'source' && kind === 'target') {
-      return portType === 'any' || activePortType === 'any' || activePortType === portType;
-    }
-
-    // If dragging from target, highlight compatible sources
-    if (activeHandleType === 'target' && kind === 'source') {
-      return portType === 'any' || activePortType === 'any' || activePortType === portType;
-    }
-
-    return false;
+    // Check compatibility based on drag direction
+    return portType === 'any' || activePortType === 'any' || activePortType === portType;
   };
+
 
   const getHandleClass = (kind: 'source' | 'target', portType: PortDataType, baseClass: string) => {
     const bClass = kind === 'source' ? getSourceHandleClass(portType, baseClass) : baseClass;
@@ -151,17 +130,18 @@ const CyberNode = ({ id, data, selected }: NodeProps<CustomNodeType>) => {
   };
 
   const colorByPortType: Record<PortDataType, string> = {
-    any: '!border-cyber-muted',
-    text: '!border-green-500',
-    chat_model: '!border-purple-500',
-    embedding_model: '!border-blue-500',
-    tool: '!border-amber-500',
-    boolean_route: '!border-pink-500',
+    any: 'border-cyber-muted',
+    text: 'border-green-500',
+    chat_model: 'border-purple-500',
+    embedding_model: 'border-blue-500',
+    tool: 'border-amber-500',
+    boolean_route: 'border-pink-500',
   };
 
   const getSourceHandleClass = (sourceType: PortDataType, baseClass: string) => {
-    return `${baseClass} ${colorByPortType[sourceType]}`;
+    return `${baseClass} !${colorByPortType[sourceType]}`;
   };
+
 
   const handleBaseClasses = "transition-opacity duration-300 opacity-0 group-hover:opacity-100";
 

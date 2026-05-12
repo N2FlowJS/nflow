@@ -681,9 +681,7 @@ const Flow = () => {
             edge.target === params.target && edge.targetHandle === "agent_llm",
         );
         if (hasExistingAgentModel) {
-          const err =
-            "Cổng LLM_LINK chỉ nhận 1 Chat Model. Hãy xóa kết nối cũ trước.";
-          pushValidationError(err);
+          pushValidationError("Cổng LLM_LINK chỉ nhận 1 Chat Model. Hãy xóa kết nối cũ trước.");
           return;
         }
       }
@@ -695,9 +693,7 @@ const Flow = () => {
             edge.targetHandle === "embedding_model",
         );
         if (hasExistingEmbeddingModel) {
-          const err =
-            "Cổng EMBEDDING chỉ nhận 1 Embedding Model. Hãy xóa kết nối cũ trước.";
-          pushValidationError(err);
+          pushValidationError("Cổng EMBEDDING chỉ nhận 1 Embedding Model. Hãy xóa kết nối cũ trước.");
           return;
         }
       }
@@ -706,10 +702,10 @@ const Flow = () => {
         params.targetHandle === "tools" &&
         params.sourceHandle !== "as_tool"
       ) {
-        const err = "Cổng TOOL_BUS chỉ nhận kết nối từ handle AS_TOOL.";
-        pushValidationError(err);
+        pushValidationError("Cổng TOOL_BUS chỉ nhận kết nối từ handle AS_TOOL.");
         return;
       }
+
 
       takeSnapshot();
       setEdges((eds) => {
@@ -1759,16 +1755,15 @@ const Flow = () => {
   );
 
   const onClear = useCallback(() => {
-    if (
-      window.confirm(
-        "Are you sure you want to clear the entire canvas? This action cannot be undone.",
-      )
-    ) {
+    if (window.confirm("Are you sure you want to clear the entire canvas? This action cannot be undone.")) {
       takeSnapshot();
       setNodes([]);
       setEdges([]);
+      setCurrentFlowId(null);
+      setCurrentFlowName("Untitled Flow");
     }
   }, [setNodes, setEdges, takeSnapshot]);
+
 
   const onSelectAll = useCallback(() => {
     setNodes((nds) => nds.map((n) => ({ ...n, selected: true })));

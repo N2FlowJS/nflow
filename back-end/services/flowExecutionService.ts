@@ -19,20 +19,20 @@ const NODE_EXECUTION_TIMEOUT_MS = Number(process.env.NODE_EXECUTION_TIMEOUT_MS |
 
 type EventHandler = (event: FlowRuntimeEvent) => void;
 
-const makeEvents = (
+function makeEvents(
   isSilent: boolean,
   handler?: EventHandler,
-) => {
+) {
   const events: FlowRuntimeEvent[] = [];
-  const h = typeof handler === 'function' ? handler : undefined;
   const emit = (event: FlowRuntimeEvent) => {
     if (!isSilent || event.type === 'result' || event.type === 'error') {
-      if (!h) events.push(event);
-      try { h?.(event); } catch {}
+      if (!handler) events.push(event);
+      try { handler?.(event); } catch {}
     }
   };
   return { events, emit };
-};
+}
+
 
 export async function executeFlowOnServer({
   nodes = [],
