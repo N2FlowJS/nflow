@@ -8,15 +8,13 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import {
   AUTH_STATE_CHANGED_EVENT,
   bootstrapAuthSession,
-  getAuthToken,
+  getStoredAuthSession,
   type AuthStateChangeDetail,
 } from './lib/api';
 
 export default function App() {
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(
-    () => !!getAuthToken(),
-  );
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -42,7 +40,7 @@ export default function App() {
   useEffect(() => {
     const handleAuthStateChanged = (event: Event) => {
       const detail = (event as CustomEvent<AuthStateChangeDetail>).detail;
-      setIsAuthenticated(detail?.authenticated ?? !!getAuthToken());
+      setIsAuthenticated(detail?.authenticated ?? getStoredAuthSession().authenticated);
       setIsCheckingAuth(false);
     };
 

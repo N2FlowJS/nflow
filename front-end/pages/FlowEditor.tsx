@@ -65,6 +65,7 @@ import {
   createNodeDataByType,
   setNodeFieldValueInSchema
 } from "../../back-end/node-registry";
+import nodeRegistry from "../../back-end/node-registry";
 import {
   inferSourcePortType,
   inferTargetPortType,
@@ -100,6 +101,12 @@ const INITIAL_PLAYGROUND_MESSAGES: PlaygroundMessage[] = [
     text: "Protocol initialized. Ready to test the workflow. How can I assist?",
   },
 ];
+
+const prettifyNodeLabel = (typeName: string) => {
+  const withoutComp = typeName.replace(/Component$/, "").replace(/_/g, " ");
+  const spaced = withoutComp.replace(/([a-z0-9])([A-Z])/g, "$1 $2");
+  return spaced.replace(/\b([a-z])/g, (s) => s.toUpperCase());
+};
 
 const VariablesPanel: React.FC<{
   isOpen: boolean;
@@ -299,6 +306,9 @@ const Flow = () => {
   const [showCommandPalette, setShowCommandPalette] = useState(false);
   const [commandQuery, setCommandQuery] = useState("");
   const [commandIndex, setCommandIndex] = useState(0);
+  const [pendingNodeInsertPosition, setPendingNodeInsertPosition] = useState<
+    { x: number; y: number } | null
+  >(null);
   const [executionLogs, setExecutionLogs] = useState<LogEntry[]>([]);
   const [isLogsOpen, setIsLogsOpen] = useState(false);
   const [savedFlows, setSavedFlows] = useState<SavedFlow[]>([]);
@@ -1828,7 +1838,25 @@ const Flow = () => {
   }, []);
 
   const commandActions = useMemo<CommandAction[]>(
-    () => [
+    () => {
+      const nodeActions: CommandAction[] = Object.keys(nodeRegistry)
+        .sort((left, right) => prettifyNodeLabel(left).localeCompare(prettifyNodeLabel(right)))
+        .map((type) => {
+          const label = prettifyNodeLabel(type);
+          return {
+            id: `add-node-${type}`,
+            label: `Add ${label}`,
+            group: "Nodes",
+            shortcut: "-",
+            keywords: `add node create ${type} ${label.toLowerCase()}`,
+            run: () => {
+              onAddNode(type, label, pendingNodeInsertPosition ?? undefined);
+              setPendingNodeInsertPosition(null);
+            },
+          };
+        });
+
+      return [
       {
         id: "save",
         label: "Save Flow",
@@ -2094,7 +2122,9 @@ const Flow = () => {
         keywords: "shortcuts help",
         run: () => setShowShortcutHelpExclusive((prev) => !prev),
       },
-    ],
+      ...nodeActions,
+    ];
+    },
     [
       currentFlowName,
       onSave,
@@ -2111,6 +2141,8 @@ const Flow = () => {
       onExport,
       onDownloadImage,
       onClear,
+      onAddNode,
+      pendingNodeInsertPosition,
     ],
   );
 
@@ -2133,12 +2165,19 @@ const Flow = () => {
 
   useEffect(() => {
     if (!showCommandPalette) return;
-    setCommandQuery("");
     setCommandIndex(0);
     setTimeout(() => {
       commandInputRef.current?.focus();
-      commandInputRef.current?.select();
+      if (!commandQuery) {
+        commandInputRef.current?.select();
+      }
     }, 0);
+  }, [showCommandPalette, commandQuery]);
+
+  useEffect(() => {
+    if (!showCommandPalette) {
+      setPendingNodeInsertPosition(null);
+    }
   }, [showCommandPalette]);
 
   useEffect(() => {
@@ -2611,11 +2650,12 @@ const Flow = () => {
               }
             },
             onAddNode: (pos) => {
-              // Trigger command palette or sidebar node adding at this position
-              // For now let's just log or implement a simple node add
               if (reactFlowInstance) {
                 const project = reactFlowInstance.screenToFlowPosition(pos);
-                onAddNode("ChatModelComponent", "Chat Model", project);
+                setPendingNodeInsertPosition(project);
+                setCommandQuery("add node ");
+                setCommandIndex(0);
+                setShowCommandPalette(true);
               }
             },
             onAddNote: (pos) => {

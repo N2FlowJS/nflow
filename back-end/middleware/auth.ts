@@ -23,10 +23,20 @@ export function isAuthEnforced(): boolean {
   return process.env.ENABLE_AUTH === 'true' || process.env.NODE_ENV === 'production';
 }
 
-function applyAuthContext(req: AuthRequest): { ok: true } | { ok: false; status: number; error: string } {
+function extractBearerToken(req: AuthRequest): string | null {
   const authHeader = req.headers.authorization;
-  if (authHeader && authHeader.startsWith('Bearer ')) {
-    const token = authHeader.substring(7).trim();
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return null;
+  }
+
+  const token = authHeader.substring(7).trim();
+  return token || null;
+}
+
+function applyAuthContext(req: AuthRequest): { ok: true } | { ok: false; status: number; error: string } {
+  const bearerToken = extractBearerToken(req);
+  if (bearerToken) {
+    const token = bearerToken;
     const payload = AuthService.verifyToken(token);
     if (!payload?.userId) {
       return {
@@ -84,12 +94,6 @@ export const authMiddleware = async (
 };
 
 function extractApiKey(req: AuthRequest): string | null {
-  // Try Authorization header first (Bearer token)
-  const authHeader = req.headers.authorization;
-  if (authHeader && authHeader.startsWith("Bearer ")) {
-    return authHeader.substring(7).trim();
-  }
-
   // Try X-API-Key header
   const apiKeyHeader = req.headers["x-api-key"];
   if (typeof apiKeyHeader === "string") {

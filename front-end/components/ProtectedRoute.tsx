@@ -1,6 +1,6 @@
 import React from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
-import { clearAuthData } from '../lib/api';
+import { Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { getAuthToken, getCurrentUser, logoutAuthSession } from '../lib/api';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -23,10 +23,7 @@ export function ProtectedRoute({
     );
   }
 
-  const token = localStorage.getItem('authToken');
-  const authenticated = Boolean(isAuthenticated || token);
-
-  if (!authenticated) {
+  if (!isAuthenticated) {
     // Redirect to login, but save the location they were trying to access
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
@@ -36,17 +33,18 @@ export function ProtectedRoute({
 }
 
 export function useAuthToken(): string | null {
-  return localStorage.getItem('authToken');
+  return getAuthToken();
 }
 
 export function useAuthUser() {
-  const userStr = localStorage.getItem('user');
-  return userStr ? JSON.parse(userStr) : null;
+  return getCurrentUser();
 }
 
 export function useLogout() {
-  return () => {
-    clearAuthData();
-    window.location.href = '/login';
+  const navigate = useNavigate();
+
+  return async () => {
+    await logoutAuthSession();
+    navigate('/login', { replace: true });
   };
 }

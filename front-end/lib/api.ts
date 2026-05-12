@@ -22,6 +22,20 @@ export interface AuthSessionResult {
   user?: unknown;
 }
 
+function readStoredUser(): unknown {
+  const userStr = localStorage.getItem('user');
+  if (!userStr) {
+    return undefined;
+  }
+
+  try {
+    return JSON.parse(userStr);
+  } catch {
+    localStorage.removeItem('user');
+    return undefined;
+  }
+}
+
 let bootstrapAuthSessionPromise: Promise<AuthSessionResult> | null = null;
 
 function notifyAuthStateChanged(detail: AuthStateChangeDetail): void {
@@ -30,6 +44,18 @@ function notifyAuthStateChanged(detail: AuthStateChangeDetail): void {
 
 export function getAuthToken(): string | null {
   return localStorage.getItem('authToken');
+}
+
+export function getStoredAuthSession(): AuthSessionResult {
+  const token = getAuthToken();
+  if (!token) {
+    return { authenticated: false };
+  }
+
+  return {
+    authenticated: true,
+    user: readStoredUser(),
+  };
 }
 
 export function clearAuthData(): void {
@@ -92,6 +118,18 @@ export async function bootstrapAuthSession(): Promise<AuthSessionResult> {
   }
 }
 
+export async function logoutAuthSession(): Promise<void> {
+  try {
+    await fetchWithAuth('/api/auth/logout', {
+      method: 'POST',
+    });
+  } catch {
+    // Ignore transport errors and still clear local session state.
+  } finally {
+    clearAuthData();
+  }
+}
+
 /**
  * Authenticated fetch wrapper that includes JWT token and parses JSON
  */
@@ -147,6 +185,5 @@ export function isAuthenticated(): boolean {
  * Get the current user from localStorage
  */
 export function getCurrentUser() {
-  const userStr = localStorage.getItem('user');
-  return userStr ? JSON.parse(userStr) : null;
+  return readStoredUser() ?? null;
 }

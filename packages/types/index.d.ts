@@ -11,7 +11,7 @@ export type NodeData = {
   configSchema?: {
     label: string;
     name: string;
-    type: 'text' | 'number' | 'select' | 'textarea' | 'boolean';
+    type: 'text' | 'password' | 'number' | 'select' | 'textarea' | 'boolean';
     options?: string[];
     value?: string | number | boolean;
     hidden?: boolean;

@@ -1,46 +1,90 @@
 # N2FLOW
 
-## Run
+N2FLOW is a flow editor for building and running AI workflows with LLM, tool, and agent nodes.
 
-1. Start frontend:
+## Project Structure
+
+- `front-end/`: Vite + React flow editor UI.
+- `back-end/`: Express API, flow execution runtime, Prisma storage, tool adapters.
+- `packages/types/`: shared flow/node typings.
+
+## Prerequisites
+
+- Node.js 20+
+- npm
+- A configured database for Prisma in `back-end/prisma/schema.prisma`
+
+## Install
+
+```bash
+npm run install:all
+```
+
+## Run In Development
+
+Start both applications:
 
 ```bash
 npm run dev
 ```
 
-2. Start MSSQL backend API (new terminal):
+Or start each side separately:
 
 ```bash
-npm run dev:server
+npm run dev:backend
+npm run dev:frontend
 ```
 
-SQL API runs at `http://localhost:8787`.
+Default local URLs:
 
-## Flow Runtime (server-only)
+- Frontend: `http://localhost:5173`
+- Backend API: `http://localhost:8787`
 
-- Flow execution now runs on server runtime only.
-- Realtime event stream endpoint: `POST /api/flow/execute/stream` (NDJSON events).
-- Batch endpoint remains available: `POST /api/flow/execute`.
-- Server runtime centralizes provider calls for easier maintenance and API key handling.
-- Server runtime source is now TypeScript under `server/` and runs via `tsx`.
-- Installed provider SDKs:
-	- `@google/genai`
-	- `openai`
-	- `ollama`
+## Build And Type Check
 
-### Runtime checklist (stability + UX/perf)
+```bash
+npm run build
+npm run type-check
+```
 
-- [x] NDJSON streaming endpoint for real-time execution events.
-- [x] Client-disconnect-aware cancellation in server executor.
-- [x] Stream heartbeat (`ping`) events to keep long-running connections alive.
-- [x] Frontend request cancellation for overlapping manual runs.
-- [x] Live-mode overlap guard (skip tick when previous silent run is still active).
-- [x] Configurable runtime base URL via `VITE_RUNTIME_URL` (fallback `http://localhost:8787`).
+## Database Commands
 
-## MSSQLPyODBCComponent (real execution)
+```bash
+npm run db:generate
+npm run db:migrate
+npm run db:push
+npm run db:reset
+npm run db:studio
+```
 
-- Set node params in Flow Editor:
-	- `Server Host`, `Port`, `DB User`, `DB Password`, `Database`
-	- `Query Template` (supports placeholders like `{query}` when used as tool)
-	- `Max Rows` to limit response size (default `200`)
-- When connected to Agent `tools`, the node executes real SQL through backend API.
+## Flow Runtime
+
+Main endpoints:
+
+- `POST /api/flow/execute`: run a flow and receive a batch result.
+- `POST /api/flow/execute/stream`: run a flow and receive NDJSON events.
+- `GET /api/flows`: list saved flows for the authenticated user.
+- `POST /api/flows`: save a flow.
+
+Streaming execution includes heartbeat `ping` events and stops when the client disconnects.
+
+## Global Variables And Secret Placeholders
+
+Node configuration fields can reference placeholders in the form `{{NAME}}`.
+
+Resolution order:
+
+1. Global variables sent with the flow request.
+2. Server environment variables.
+
+Execution validation now fails early when:
+
+- a referenced global variable exists but has an empty value
+- a placeholder cannot be resolved from either global variables or server env
+
+This prevents provider-specific runtime failures caused by unresolved secrets.
+
+## Notes
+
+- The editor command palette can now add nodes at the exact canvas position chosen from the context menu.
+- MSSQL password fields are treated as secret inputs in the UI and shared config schema.

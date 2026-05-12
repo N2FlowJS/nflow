@@ -477,7 +477,7 @@ const nodeRegistry: Record<string, NodeRegistryEntry> = {
         },
         { label: "Port", name: "port", type: "number" },
         { label: "DB User", name: "user", type: "text" },
-        { label: "DB Password", name: "password", type: "text" },
+        { label: "DB Password", name: "password", type: "password" },
         { label: "Database", name: "database", type: "text" },
         { label: "Query Template", name: "query", type: "textarea" },
         {

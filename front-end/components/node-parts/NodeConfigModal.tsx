@@ -174,7 +174,12 @@ export const NodeConfigModal = ({
 
   if (!isOpen) return null;
 
-  const isPasswordField = (field: ConfigField) => field.name.toLowerCase().includes('key') || field.name.toLowerCase().includes('token') || field.name.toLowerCase().includes('secret');
+  const isPasswordField = (field: ConfigField) =>
+    field.type === 'password' ||
+    field.name.toLowerCase().includes('password') ||
+    field.name.toLowerCase().includes('key') ||
+    field.name.toLowerCase().includes('token') ||
+    field.name.toLowerCase().includes('secret');
 
   return (
     <Panel position="top-right" className="m-4 w-[min(640px,95%)] z-50">
@@ -367,7 +372,7 @@ export const NodeConfigModal = ({
                         </div>
                         {!selectedVariableValue && (
                           <div className="text-amber-400">
-                            Selected Global Variable has an empty value. The placeholder will resolve to an empty API key.
+                            Selected Global Variable has an empty value. The placeholder will resolve to an empty value.
                           </div>
                         )}
                         {selectedVariableNameLooksSecret && (

@@ -67,6 +67,8 @@ export interface FlowSaveRequest {
   };
 }
 
+const PLACEHOLDER_REGEX = /\{\{\s*([^{}]+?)\s*\}\}/g;
+
 /**
  * Validation utility to safely parse and validate requests
  */
@@ -110,6 +112,19 @@ export class RequestValidator {
     }
     if (obj.apiKey !== undefined && typeof obj.apiKey !== 'string') {
       throw new Error('apiKey must be a string');
+    }
+    if (obj.globalVariables !== undefined && !Array.isArray(obj.globalVariables)) {
+      throw new Error('globalVariables must be an array');
+    }
+
+    const globalVariableErrors = this.validateGlobalVariables(obj.globalVariables || []);
+    if (globalVariableErrors.length > 0) {
+      throw new Error(`Invalid globalVariables: ${globalVariableErrors.join('; ')}`);
+    }
+
+    const placeholderErrors = this.validateResolvablePlaceholders(obj.nodes, obj.globalVariables || []);
+    if (placeholderErrors.length > 0) {
+      throw new Error(`Invalid placeholders: ${placeholderErrors.join('; ')}`);
     }
 
     return {
@@ -196,6 +211,32 @@ export class RequestValidator {
     };
   }
 
+  static validateGlobalVariables(vars: any[]): string[] {
+    const errors: string[] = [];
+    const names = new Set<string>();
+
+    for (const [index, variable] of vars.entries()) {
+      if (!variable || typeof variable !== 'object') {
+        errors.push(`Global variable ${index}: must be an object`);
+        continue;
+      }
+
+      const name = typeof variable.name === 'string' ? variable.name.trim() : '';
+      if (!name) {
+        errors.push(`Global variable ${index}: name is required and must be a string`);
+        continue;
+      }
+
+      if (names.has(name)) {
+        errors.push(`Duplicate global variable name: ${name}`);
+      } else {
+        names.add(name);
+      }
+    }
+
+    return errors;
+  }
+
   static validateNodes(nodes: any[]): string[] {
     const errors: string[] = [];
 
@@ -253,6 +294,60 @@ export class RequestValidator {
     }
 
     return errors;
+  }
+
+  static validateResolvablePlaceholders(nodes: any[], vars: any[]): string[] {
+    const errors: string[] = [];
+    const variableMap = new Map<string, string>();
+
+    for (const variable of vars) {
+      if (!variable || typeof variable !== 'object' || typeof variable.name !== 'string') {
+        continue;
+      }
+      variableMap.set(variable.name.trim(), String(variable.value ?? ''));
+    }
+
+    const visit = (value: unknown, path: string) => {
+      if (typeof value === 'string') {
+        const matches = value.matchAll(PLACEHOLDER_REGEX);
+        for (const match of matches) {
+          const placeholderName = String(match[1] || '').trim();
+          if (!placeholderName) {
+            continue;
+          }
+
+          if (variableMap.has(placeholderName)) {
+            if (!variableMap.get(placeholderName)?.trim()) {
+              errors.push(`${path}: global variable "${placeholderName}" is empty`);
+            }
+            continue;
+          }
+
+          if (process.env[placeholderName] === undefined) {
+            errors.push(`${path}: placeholder "{{${placeholderName}}}" could not be resolved`);
+          }
+        }
+        return;
+      }
+
+      if (Array.isArray(value)) {
+        value.forEach((entry, index) => visit(entry, `${path}[${index}]`));
+        return;
+      }
+
+      if (value && typeof value === 'object') {
+        for (const [key, nestedValue] of Object.entries(value)) {
+          visit(nestedValue, `${path}.${key}`);
+        }
+      }
+    };
+
+    nodes.forEach((node, index) => {
+      visit(node?.data?.params, `nodes[${index}].data.params`);
+      visit(node?.data?.configSchema, `nodes[${index}].data.configSchema`);
+    });
+
+    return Array.from(new Set(errors));
   }
 }
 
