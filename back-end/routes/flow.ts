@@ -4,8 +4,11 @@ import { FlowStorageService } from '../services/flowStorageService';
 import { RequestValidator, TypeConverters } from '../middleware/validation';
 import { LogSanitizer } from '../middleware/logSanitizer';
 import { AuthRequest } from '../middleware/auth';
+import { toErrorMessage } from '../utils/common';
+import { createLogger } from '../utils/logger';
 
 const router = Router();
+const logger = createLogger('Flow');
 
 function requireFlowUser(req: AuthRequest, res: Response): string | null {
   if (!req.userId) {
@@ -36,14 +39,14 @@ router.post('/flow/execute', async (req: AuthRequest, res: Response) => {
 
     // Log execution with user context
     if (req.userId) {
-      console.log(`[Audit] User ${req.userId} executed flow`);
+      logger.info('Flow executed', { userId: req.userId });
     }
 
     res.json({ ok: true, ...result });
   } catch (err) {
-    const errorMsg = err instanceof Error ? err.message : 'Flow execution failed';
+    const errorMsg = toErrorMessage(err, 'Flow execution failed');
     const sanitized = LogSanitizer.sanitize(errorMsg);
-    console.error('[Flow Execute Error]', sanitized, { userId: req.userId });
+    logger.error('Execute error', err, { userId: req.userId });
     res.status(500).json({
       ok: false,
       error: sanitized,
@@ -91,14 +94,13 @@ router.post('/flow/execute/stream', async (req: AuthRequest, res: Response) => {
         globalVariables: TypeConverters.toGlobalVariables(validatedRequest.globalVariables || []),
       });
       
-      // Log execution with user context
       if (req.userId) {
-        console.log(`[Audit] User ${req.userId} executed flow (streaming)`);
+        logger.info('Flow executed (streaming)', { userId: req.userId });
       }
       writeEvent({ type: 'done', output: result.output });
     } catch (err) {
       if (!clientDisconnected) {
-        const errorMsg = err instanceof Error ? err.message : 'Flow execution failed';
+        const errorMsg = toErrorMessage(err, 'Flow execution failed');
         writeEvent({
           type: 'error',
           message: LogSanitizer.sanitizeError(errorMsg),
@@ -111,9 +113,9 @@ router.post('/flow/execute/stream', async (req: AuthRequest, res: Response) => {
       }
     }
   } catch (err) {
-    const errorMsg = err instanceof Error ? err.message : 'Invalid request';
+    const errorMsg = toErrorMessage(err, 'Invalid request');
     const sanitized = LogSanitizer.sanitize(errorMsg);
-    console.error('[Flow Execute Stream Error]', sanitized);
+    logger.error('Execute stream error', err);
     res.status(400).json({ error: sanitized });
   }
 });
@@ -143,8 +145,8 @@ router.get('/flows', async (req: AuthRequest, res: Response) => {
       },
     });
   } catch (err) {
-    const errorMsg = err instanceof Error ? err.message : String(err);
-    console.error('List flows error:', LogSanitizer.sanitize(errorMsg));
+    const errorMsg = toErrorMessage(err);
+    logger.error('List flows error', err);
     res.status(500).json({ error: 'Failed to list flows' });
   }
 });
@@ -175,9 +177,9 @@ router.post('/flows', async (req: AuthRequest, res: Response) => {
     });
     res.json({ ok: true, id });
   } catch (err) {
-    const errorMsg = err instanceof Error ? err.message : 'Failed to save flow';
+    const errorMsg = toErrorMessage(err, 'Failed to save flow');
     const sanitized = LogSanitizer.sanitize(errorMsg);
-    console.error('Save flow error:', sanitized, { userId: req.userId });
+    logger.error('Save flow error', err, { userId: req.userId });
     res.status(400).json({ error: sanitized });
   }
 });
@@ -190,9 +192,9 @@ router.delete('/flows/:id', async (req: AuthRequest, res: Response) => {
     await FlowStorageService.deleteFlow(String(req.params.id), userId);
     res.json({ ok: true });
   } catch (err) {
-    const errorMsg = err instanceof Error ? err.message : 'Failed to delete flow';
+    const errorMsg = toErrorMessage(err, 'Failed to delete flow');
     const sanitized = LogSanitizer.sanitize(errorMsg);
-    console.error('Delete flow error:', sanitized, { userId: req.userId });
+    logger.error('Delete flow error', err, { userId: req.userId });
     res.status(500).json({ error: sanitized });
   }
 });
@@ -242,9 +244,9 @@ router.post('/flows/:id/versions/:versionId/restore', async (req: AuthRequest, r
     );
     res.json({ ok: true, flow });
   } catch (err) {
-    const errorMsg = err instanceof Error ? err.message : 'Failed to restore version';
+    const errorMsg = toErrorMessage(err, 'Failed to restore version');
     const sanitized = LogSanitizer.sanitize(errorMsg);
-    console.error('Restore version error:', sanitized, { userId: req.userId });
+    logger.error('Restore version error', err, { userId: req.userId });
     res.status(400).json({ error: sanitized });
   }
 });

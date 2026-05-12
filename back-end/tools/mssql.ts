@@ -96,40 +96,28 @@ export const mssqlHandler: ToolHandler = async (node, args) => {
     }
   });
 
-  const body = {
-    server: getNodeFieldValue(node, 'server') || getNodeFieldValue(node, 'host') || '',
+  const cfg = {
+    server: String(getNodeFieldValue(node, 'server') || getNodeFieldValue(node, 'host') || ''),
     port: Number(getNodeFieldValue(node, 'port') || 1433),
-    user: getNodeFieldValue(node, 'user') || '',
-    password: getNodeFieldValue(node, 'password') || '',
-    database: getNodeFieldValue(node, 'database') || '',
+    user: String(getNodeFieldValue(node, 'user') || ''),
+    password: String(getNodeFieldValue(node, 'password') || ''),
+    database: String(getNodeFieldValue(node, 'database') || ''),
     encrypt: String(getNodeFieldValue(node, 'encrypt') ?? 'false') === 'true',
     trustServerCertificate: String(getNodeFieldValue(node, 'trustServerCertificate') ?? 'true') === 'true',
     timeoutMs: Number(getNodeFieldValue(node, 'timeoutMs') || 30000),
     maxRows: Number(getNodeFieldValue(node, 'maxRows') || 200),
   };
 
-  if (!body.server || !body.user || !body.database) {
+  if (!cfg.server || !cfg.user || !cfg.database) {
     return 'Error: Missing DB config (server/user/database).';
   }
 
   try {
-    const payload = await runMssqlQuery({
-      server: String(body.server),
-      port: Number(body.port),
-      user: String(body.user),
-      password: String(body.password),
-      database: String(body.database),
-      encrypt: Boolean(body.encrypt),
-      trustServerCertificate: Boolean(body.trustServerCertificate),
-      timeoutMs: Number(body.timeoutMs),
-      maxRows: Number(body.maxRows),
-      query: safeQuery,
-      params,
-    });
+    const payload = await runMssqlQuery({ ...cfg, query: safeQuery, params });
     return JSON.stringify({
       rowCount: payload?.rowCount || 0,
       totalRowCount: payload?.totalRowCount || payload?.rowCount || 0,
-      maxRows: payload?.maxRows || body.maxRows,
+      maxRows: payload?.maxRows || cfg.maxRows,
       durationMs: payload?.durationMs,
       rows: Array.isArray(payload?.rows) ? payload.rows : [],
     });

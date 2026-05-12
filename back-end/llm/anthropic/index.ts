@@ -1,5 +1,5 @@
 import type { LlmRuntimeConfig, AgentTool } from '../types';
-import { parseToolArgs, clampToolResult } from '../utils';
+import { parseToolArgs, clampToolResult, toAnthropicToolDeclarations } from '../utils';
 import * as AnthropicModule from '@anthropic-ai/sdk';
 
 export const runAnthropicChat = async (
@@ -56,11 +56,7 @@ export const runAnthropicChat = async (
             temperature: cfg.temperature,
             top_p: cfg.top_p,
             top_k: cfg.top_k,
-            tools: availableTools.length > 0 ? availableTools.map(t => ({
-              name: t.name,
-              description: t.description,
-              input_schema: t.parameters,
-            })) : undefined,
+            tools: availableTools.length > 0 ? toAnthropicToolDeclarations(availableTools) : undefined,
             stream: stream,
           });
 
@@ -105,11 +101,7 @@ export const runAnthropicChat = async (
         temperature: cfg.temperature,
         top_p: cfg.top_p,
         top_k: cfg.top_k,
-        tools: availableTools.length > 0 ? availableTools.map(t => ({
-          name: t.name,
-          description: t.description,
-          input_schema: t.parameters,
-        })) : undefined,
+        tools: availableTools.length > 0 ? toAnthropicToolDeclarations(availableTools) : undefined,
         stream: stream,
       }),
     });

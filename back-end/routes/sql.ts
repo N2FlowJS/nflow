@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import sql from 'mssql';
+import { toErrorMessage } from '../utils/common';
 
 const router = Router();
 
@@ -61,7 +62,7 @@ router.post('/sql/query', async (req: Request, res: Response) => {
     });
   } catch (err) {
     res.status(500).json({
-      error: err instanceof Error ? err.message : 'SQL execution failed',
+      error: toErrorMessage(err, 'SQL execution failed'),
     });
   } finally {
     if (pool) {

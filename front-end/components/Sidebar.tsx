@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
 import * as Icons from "lucide-react";
 import nodeRegistry from "../../back-end/node-registry";
+import { prettifyLabel } from "../lib/utils";
 
 type NodeTemplate = {
   label: string;
@@ -9,12 +10,6 @@ type NodeTemplate = {
   color: string;
   category?: string;
   bundle?: string;
-};
-
-const prettifyLabel = (typeName: string) => {
-  const withoutComp = typeName.replace(/Component$/, "").replace(/_/g, " ");
-  const spaced = withoutComp.replace(/([a-z0-9])([A-Z])/g, "$1 $2");
-  return spaced.replace(/\b([a-z])/g, (s) => s.toUpperCase());
 };
 
 const CATEGORY_COLOR: Record<string, string> = {

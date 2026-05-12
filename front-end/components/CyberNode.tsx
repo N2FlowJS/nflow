@@ -23,43 +23,7 @@ import { NodeHandles } from './node-parts/NodeHandles';
 
 // Hook
 import { useCyberNode } from '../hooks/useCyberNode';
-
-function stringifyUnknown(value: unknown): string {
-  if (typeof value === 'string') {
-    return value;
-  }
-
-  try {
-    return JSON.stringify(value);
-  } catch {
-    return String(value);
-  }
-}
-
-function extractErrorText(error: unknown): string {
-  if (!error) {
-    return '';
-  }
-
-  const compact = stringifyUnknown(error).replace(/\s+/g, ' ').trim();
-  const jsonStart = compact.indexOf('{"error"');
-
-  if (jsonStart >= 0) {
-    try {
-      const payload = JSON.parse(compact.slice(jsonStart)) as {
-        error?: { message?: unknown };
-      };
-      const message = payload.error?.message;
-      if (typeof message === 'string' && message.trim()) {
-        return message.trim();
-      }
-    } catch {
-      // Ignore malformed embedded JSON and fall back to the compact text.
-    }
-  }
-
-  return compact;
-}
+import { extractErrorMessage } from '../lib/utils';
 
 function getOutputSummary(output: unknown): string {
   if (typeof output === 'string') {
@@ -244,7 +208,7 @@ const CyberNode = ({ id, data, selected }: NodeProps<CustomNodeType>) => {
     );
   };
 
-  const errorText = extractErrorText(data.errorMessage);
+  const errorText = extractErrorMessage(data.errorMessage);
 
   const isLongError = errorText.length > 240;
   const displayedErrorText = showFullError || !isLongError ? errorText : `${errorText.slice(0, 240)}...`;

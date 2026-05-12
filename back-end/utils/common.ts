@@ -63,3 +63,21 @@ export const serializeToolResult = (value: unknown): string => {
     }, 2);
   }
 };
+
+/** Extract a plain error message string from any caught value. */
+export const toErrorMessage = (err: unknown, fallback = 'An unexpected error occurred'): string =>
+  err instanceof Error ? err.message : (typeof err === 'string' ? err : fallback);
+
+/** Mask an API key for safe logging. */
+export const maskApiKey = (apiKey: string): string => {
+  if (!apiKey) return 'missing';
+  if (apiKey.length <= 8) return `${apiKey.slice(0, 2)}***`;
+  return `${apiKey.slice(0, 4)}***${apiKey.slice(-4)}`;
+};
+
+/** Race a promise against a timeout that rejects with the given message. */
+export const withTimeout = <T>(operation: Promise<T>, ms: number, message: string): Promise<T> =>
+  Promise.race([
+    operation,
+    new Promise<T>((_, reject) => setTimeout(() => reject(new Error(message)), ms)),
+  ]);

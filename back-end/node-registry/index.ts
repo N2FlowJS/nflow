@@ -288,17 +288,7 @@ const gitHubMergeRequestSchema: RegistryConfigSchema = [
 ];
 
 const nodeRegistry: Record<string, NodeRegistryEntry> = {
-  LanguageModelComponent: {
-    category: "llm",
-    icon: "BrainCircuit",
-    configSchema: withDefaultValues(languageModelSchema, {
-      modelType: "Chat",
-      model: "gemini-3-flash-preview",
-      temp: 0.7,
-      apiKey: "",
-      baseUrl: "",
-    }),
-  },
+  
   ChatModelComponent: {
     category: "llm",
     icon: "BrainCircuit",

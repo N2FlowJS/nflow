@@ -1,6 +1,5 @@
 import { GoogleGenAI } from '@google/genai';
 import type { LlmRuntimeConfig, AgentTool } from '../types';
-import { parseToolArgs, clampToolResult } from '../utils';
 
 export const listModels = async (
   cfg: LlmRuntimeConfig,
@@ -38,26 +37,11 @@ export const runGoogleChat = async (
   const stream = cfg.stream === true && typeof onStream === 'function';
 
   // Prefer provider agent APIs when available (lets SDK manage tool calls)
-  const exec = executeToolByName || (async () => '');
   const toolsDecl = availableTools.length > 0 ? availableTools.map(t => ({ name: t.name, description: t.description, parameters: t.parameters })) : undefined;
-  const toolsWithImpl = (availableTools || []).length > 0 ? (availableTools as AgentTool[]).map(t => ({
-    name: t.name,
-    description: t.description,
-    parameters: t.parameters,
-    run: async (rawArgs: unknown) => {
-      try {
-        const parsed = parseToolArgs(rawArgs);
-        const res = await exec(t.name, parsed);
-        return clampToolResult(String(res ?? ''));
-      } catch (e) {
-        return `Error executing tool ${t.name}: ${String(e)}`;
-      }
-    },
-  })) : undefined;
 
   try {
     if (ai.agents && typeof ai.agents.run === 'function') {
-      const agentResp = await ai.agents.run({ model: modelName, input: userPrompt, tools: toolsWithImpl || toolsDecl, temperature: cfg.temperature, max_output_tokens: cfg.max_tokens });
+      const agentResp = await ai.agents.run({ model: modelName, input: userPrompt, tools: toolsDecl, temperature: cfg.temperature, max_output_tokens: cfg.max_tokens });
       const text = agentResp?.output_text || agentResp?.text || (Array.isArray(agentResp?.output) && (agentResp.output[0]?.content?.[0]?.text || agentResp.output[0]?.text)) || '';
       if (text) return String(text);
     }

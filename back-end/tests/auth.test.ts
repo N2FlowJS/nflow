@@ -17,6 +17,10 @@ vi.mock('../lib/prisma', () => ({
 const { AuthService } = await import('../services/authService');
 const { default: authRoute } = await import('../routes/auth');
 
+async function readJson<T>(response: Response): Promise<T> {
+  return await response.json() as T;
+}
+
 function createTestApp() {
   const app = express();
   app.use(express.json());
@@ -86,7 +90,7 @@ describe('auth route flows', () => {
         }),
       });
 
-      const payload = await response.json();
+      const payload = await readJson<any>(response);
 
       expect(response.status).toBe(200);
       expect(payload.ok).toBe(true);
@@ -121,7 +125,7 @@ describe('auth route flows', () => {
         },
       });
 
-      const payload = await response.json();
+      const payload = await readJson<any>(response);
 
       expect(response.status).toBe(401);
       expect(payload).toMatchObject({
@@ -142,12 +146,41 @@ describe('auth route flows', () => {
         },
       });
 
-      const payload = await response.json();
+      const payload = await readJson<any>(response);
 
       expect(response.status).toBe(200);
       expect(payload).toMatchObject({
         ok: true,
         message: 'Logged out successfully',
+      });
+    });
+  });
+
+  it('rejects expired JWT tokens on logout', async () => {
+    const expiredToken = jwt.sign(
+      {
+        userId: 'user-1',
+        email: 'user@example.com',
+        username: 'tester',
+      },
+      process.env.JWT_SECRET || 'default-secret-key',
+      { expiresIn: -1 },
+    );
+
+    await withTestServer(async (baseUrl) => {
+      const response = await fetch(`${baseUrl}/api/auth/logout`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${expiredToken}`,
+        },
+      });
+
+      const payload = await readJson<any>(response);
+
+      expect(response.status).toBe(401);
+      expect(payload).toMatchObject({
+        ok: false,
+        error: 'Invalid or expired token.',
       });
     });
   });

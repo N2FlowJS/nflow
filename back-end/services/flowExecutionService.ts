@@ -9,6 +9,12 @@ import { executeNode, FlowRuntimeContext, NodeExecutionError } from '../nodes';
 import { ToolDefinition, executeToolNode } from '../tools';
 import { AgentTool } from '../llm';
 import { resolveSecrets } from '../utils/secretResolver';
+import { withTimeout } from '../utils/common';
+
+const MAX_CONCURRENCY = Math.max(1, Number(process.env.EXECUTOR_CONCURRENCY || 4));
+const MAX_FLOW_NODES = Number(process.env.MAX_FLOW_NODES || 500);
+const GLOBAL_FLOW_TIMEOUT = Number(process.env.GLOBAL_FLOW_TIMEOUT || 300000); // 5 minutes
+const NODE_EXECUTION_TIMEOUT_MS = Number(process.env.NODE_EXECUTION_TIMEOUT_MS || 180000);
 
 type EventHandler = (event: FlowRuntimeEvent) => void;
 
@@ -16,26 +22,12 @@ const makeEvents = (
   isSilent: boolean,
   handler?: EventHandler,
 ) => {
-  if (typeof handler === 'function') {
-    const h = handler as EventHandler;
-    const emit = (event: FlowRuntimeEvent) => {
-      if (!isSilent || event.type === 'result' || event.type === 'error') {
-        try {
-          h(event);
-        } catch {}
-      }
-    };
-    return { events: [] as FlowRuntimeEvent[], emit };
-  }
-
   const events: FlowRuntimeEvent[] = [];
+  const h = typeof handler === 'function' ? handler : undefined;
   const emit = (event: FlowRuntimeEvent) => {
     if (!isSilent || event.type === 'result' || event.type === 'error') {
-      events.push(event);
-      try {
-        const h = handler as EventHandler | undefined;
-        if (typeof h === 'function') h(event);
-      } catch {}
+      if (!h) events.push(event);
+      try { h?.(event); } catch {}
     }
   };
   return { events, emit };
@@ -124,13 +116,6 @@ export async function executeFlowOnServer({
     if (!levels[d]) levels[d] = [];
     levels[d].push(id);
   });
-
-  const MAX_CONCURRENCY = Math.max(1, Number(process.env.EXECUTOR_CONCURRENCY || 4));
-  const MAX_FLOW_NODES = Number(process.env.MAX_FLOW_NODES || 500);
-  const GLOBAL_FLOW_TIMEOUT = Number(process.env.GLOBAL_FLOW_TIMEOUT || 300000); // 5 minutes
-  const NODE_EXECUTION_TIMEOUT_MS = Number(
-    process.env.NODE_EXECUTION_TIMEOUT_MS || 180000,
-  );
 
   const nodeResults = new Map<string, unknown>();
   let finalOutput = '';
@@ -227,18 +212,11 @@ export async function executeFlowOnServer({
         onEvent
       };
 
-      result = await Promise.race([
+      result = await withTimeout(
         executeNode(ctx),
-        new Promise<never>((_, reject) => {
-          setTimeout(() => {
-            reject(
-              new Error(
-                `Node execution timed out after ${Math.round(NODE_EXECUTION_TIMEOUT_MS / 1000)}s.`,
-              ),
-            );
-          }, NODE_EXECUTION_TIMEOUT_MS);
-        }),
-      ]);
+        NODE_EXECUTION_TIMEOUT_MS,
+        `Node execution timed out after ${Math.round(NODE_EXECUTION_TIMEOUT_MS / 1000)}s.`,
+      );
       if (node.data.type === 'ChatOutput') {
         finalOutput = String(result || '');
       }

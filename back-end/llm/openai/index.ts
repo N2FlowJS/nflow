@@ -44,34 +44,6 @@ export const runOpenAICompatibleChat = async (
   const exec = executeToolByName || (async () => '');
   const stream = cfg.stream === true && typeof onStream === 'function';
 
-  // Log the provider and model being used for debugging
-  if (cfg.provider === 'NVIDIA') {
-    const actualBase = trimTrailingSlash(cfg.baseUrl || 'http://localhost:8000/v1');
-    const normalizedBase = actualBase.includes('nvidia.com') && !actualBase.endsWith('/v1') 
-      ? `${actualBase}/v1` 
-      : actualBase;
-    console.debug(`[NVIDIA OpenAI Chat] Provider: ${cfg.provider}, Model: ${cfg.model}, Base: ${normalizedBase}, Stream: ${stream}`);
-  }
-
-  const toolsWithImpl = (availableTools || []).length > 0 ? (availableTools as AgentTool[]).map(t => ({
-    type: 'function',
-    function: {
-      name: t.name,
-      description: t.description,
-      parameters: t.parameters,
-    },
-    // SDKs that support agent execution may call this `run` implementation when executing tools locally
-    run: async (rawArgs: unknown) => {
-      try {
-        const parsed = parseToolArgs(rawArgs);
-        const result = await exec(t.name, parsed);
-        return clampToolResult(String(result ?? ''));
-      } catch (e) {
-        return `Error executing tool ${t.name}: ${String(e)}`;
-      }
-    },
-  })) : undefined;
-
   const messages: any[] = [];
   if (systemPrompt) messages.push({ role: 'system', content: systemPrompt });
   messages.push({ role: 'user', content: userPrompt });
@@ -82,7 +54,7 @@ export const runOpenAICompatibleChat = async (
       const agentResp = await client.agents.run({
         model: String(cfg.model),
         input: userPrompt,
-        tools: toolsWithImpl || tools as any,
+        tools: tools as any,
         temperature: cfg.temperature,
         max_output_tokens: cfg.max_tokens,
         top_p: cfg.top_p,

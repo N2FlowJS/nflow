@@ -1,5 +1,6 @@
 import { ToolHandler } from './registry';
-import { getNodeFieldValue, trimTrailingSlash, interpolate, serializeToolResult } from '../utils/common';
+import { getNodeFieldValue, trimTrailingSlash, interpolate } from '../utils/common';
+import { fetchToolJson } from './utils';
 
 export const githubHandler: ToolHandler = async (node, args) => {
   const baseUrl = trimTrailingSlash(getNodeFieldValue(node, 'baseUrl') || 'https://api.github.com');
@@ -25,43 +26,14 @@ export const githubHandler: ToolHandler = async (node, args) => {
   }
 
   try {
-    const request = async (url: string, method: string = 'GET', body?: unknown) => {
-      const response = await fetch(url, {
-        method,
-        headers: {
-          ...headers,
-          ...(body ? { 'Content-Type': 'application/json' } : {}),
-        },
-        body: body ? JSON.stringify(body) : undefined,
-      });
-
-      if (!response.ok) {
-        const text = await response.text().catch(() => '');
-        return `Error GitHub ${response.status}: ${text || response.statusText}`;
-      }
-
-      const data = await response.json().catch(() => null);
-      return serializeToolResult(data);
-    };
-
-    if (action === 'get_files') {
-      return await request(`${prPath}/files`);
-    }
-
-    if (action === 'get_reviews') {
-      return await request(`${prPath}/reviews`);
-    }
-
-    if (action === 'get_comments') {
-      return await request(`${issuesPath}/comments`);
-    }
-
+    if (action === 'get_files')    return await fetchToolJson(`${prPath}/files`, headers, 'GitHub');
+    if (action === 'get_reviews')  return await fetchToolJson(`${prPath}/reviews`, headers, 'GitHub');
+    if (action === 'get_comments') return await fetchToolJson(`${issuesPath}/comments`, headers, 'GitHub');
     if (action === 'post_comment') {
       if (!noteBody.trim()) return 'Error: Comment body is empty.';
-      return await request(`${issuesPath}/comments`, 'POST', { body: noteBody });
+      return await fetchToolJson(`${issuesPath}/comments`, headers, 'GitHub', 'POST', { body: noteBody });
     }
-
-    return await request(`${prPath}/files`);
+    return await fetchToolJson(`${prPath}/files`, headers, 'GitHub');
   } catch (e) {
     return `Error calling GitHub API: ${String(e)}`;
   }

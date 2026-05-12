@@ -1,5 +1,9 @@
 import { Router, Request, Response } from 'express';
 import { ToolRegistry } from '../tools';
+import { createLogger } from '../utils/logger';
+import { toErrorMessage } from '../utils/common';
+
+const logger = createLogger('Tools');
 
 const router = Router();
 
@@ -17,7 +21,7 @@ router.get('/tools', (req: Request, res: Response) => {
       })),
     });
   } catch (err) {
-    console.error('Failed to list tools:', err);
+    logger.error('Failed to list tools', { error: toErrorMessage(err) });
     res.status(500).json({ error: 'Failed to list tools' });
   }
 });
@@ -43,7 +47,7 @@ router.get('/tools/:toolId', (req: Request, res: Response) => {
       requiredParams: getRequiredParamsForTool(toolId),
     });
   } catch (err) {
-    console.error('Failed to get tool details:', err);
+    logger.error('Failed to get tool details', { error: toErrorMessage(err) });
     res.status(500).json({ error: 'Failed to get tool details' });
   }
 });

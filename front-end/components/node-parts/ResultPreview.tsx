@@ -1,4 +1,5 @@
 import React from "react";
+import { stringifyUnknown } from '../../lib/utils';
 
 interface ResultPreviewProps {
   output: unknown;
@@ -36,20 +37,8 @@ function parseRows(output: unknown): PreviewRow[] {
   return [];
 }
 
-function stringifyOutput(output: unknown): string {
-  if (typeof output === 'string') {
-    return output;
-  }
-
-  try {
-    return JSON.stringify(output, null, 2);
-  } catch {
-    return String(output);
-  }
-}
-
 function getRowText(row: PreviewRow, key: string): string {
-  return stringifyOutput(row[key]);
+  return stringifyUnknown(row[key]);
 }
 
 function hasRowValue(row: PreviewRow, key: string): boolean {
@@ -186,7 +175,7 @@ export const ResultPreview = ({ output }: ResultPreviewProps) => {
                           ? getRowText(item, 'text')
                           : item.content
                             ? getRowText(item, 'content')
-                            : stringifyOutput(item)}
+                            : stringifyUnknown(item)}
                     </div>
                   </div>
                 ))}
@@ -196,7 +185,7 @@ export const ResultPreview = ({ output }: ResultPreviewProps) => {
         }
 
         // 4. Fallback
-        const text = stringifyOutput(output);
+        const text = stringifyUnknown(output);
         return (
           <div className="whitespace-pre-wrap line-clamp-[12] break-all leading-normal">
             {text}

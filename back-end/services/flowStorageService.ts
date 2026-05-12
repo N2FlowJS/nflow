@@ -1,4 +1,27 @@
 import prisma from "../lib/prisma";
+import { parseJsonSafely } from '../utils/common';
+import { createLogger } from '../utils/logger';
+
+const logger = createLogger('FlowStorage');
+
+type FlowRow = { id: string; name: string; createdAt: Date; updatedAt: Date };
+
+function mapFlowRow(flow: FlowRow) {
+  return {
+    id: flow.id,
+    name: flow.name,
+    updatedAt: flow.updatedAt.getTime(),
+    createdAt: flow.createdAt.getTime(),
+    nodeCount: 0,
+    edgeCount: 0,
+  };
+}
+
+function parseFlowData(raw: string): any {
+  const parsed = parseJsonSafely(raw);
+  if (!parsed || typeof parsed !== 'object') throw new Error('Corrupted flow data');
+  return parsed;
+}
 
 export class FlowStorageService {
   static requireUserId(userId?: string) {
@@ -34,41 +57,7 @@ export class FlowStorageService {
       },
     });
 
-    return flows.map((flow: any) => ({
-      id: flow.id,
-      name: flow.name,
-      updatedAt: flow.updatedAt.getTime(),
-      createdAt: flow.createdAt.getTime(),
-      nodeCount: 0,
-      edgeCount: 0,
-    }));
-  }
-
-  /**
-   * List all flows (for backwards compatibility)
-   */
-  static async listFlows() {
-    const flows = await prisma.flow.findMany({
-      select: {
-        id: true,
-        name: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-      orderBy: {
-        updatedAt: 'desc',
-      },
-    });
-
-    // Calculate node and edge counts from data
-    return flows.map((flow: any) => ({
-      id: flow.id,
-      name: flow.name,
-      updatedAt: flow.updatedAt.getTime(),
-      createdAt: flow.createdAt.getTime(),
-      nodeCount: 0,
-      edgeCount: 0,
-    }));
+    return flows.map(mapFlowRow);
   }
 
   static async listFlowsScoped(userId?: string) {
@@ -93,8 +82,7 @@ export class FlowStorageService {
       throw new Error(`Flow ${id} not found`);
     }
 
-    // Parse the JSON data
-    const data = JSON.parse(flow.data);
+    const data = parseFlowData(flow.data);
     
     return {
       id: flow.id,
@@ -151,7 +139,7 @@ export class FlowStorageService {
     // Prepare versions
     let versions = [];
     if (existingFlow) {
-      const existingData = JSON.parse(existingFlow.data);
+      const existingData = parseFlowData(existingFlow.data);
       if (!isAutoSave) {
         // Create new version only if NOT auto-save
         const newVersion = {
@@ -213,7 +201,7 @@ export class FlowStorageService {
       });
 
       if (!flow) {
-        console.warn(`Flow ${id} not found`);
+        logger.warn(`Flow ${id} not found`);
         return;
       }
 
@@ -227,10 +215,10 @@ export class FlowStorageService {
       });
 
       if (userId) {
-        console.log(`[Audit] User ${userId} deleted flow ${id}`);
+        logger.info(`[Audit] User ${userId} deleted flow ${id}`);
       }
     } catch (err) {
-      console.error(`Failed to delete flow ${id}:`, err);
+      logger.error(`Failed to delete flow ${id}`, err);
       if (err instanceof Error && err.message.includes('Forbidden')) {
         throw err;
       }
@@ -291,7 +279,7 @@ export class FlowStorageService {
       throw new Error('Forbidden: User does not own this flow');
     }
 
-    const data = JSON.parse(flow.data);
+    const data = parseFlowData(flow.data);
     const versions = data.versions || [];
     const version = versions.find((v: any) => v.id === versionId);
 
@@ -325,12 +313,12 @@ export class FlowStorageService {
     });
 
     if (userId) {
-      console.log(`[Audit] User ${userId} restored flow ${id} to version ${versionId}`);
+      logger.info(`[Audit] User ${userId} restored flow ${id} to version ${versionId}`);
     }
 
     return {
       id,
-      name: flow.name,
+      name: flow!.name,
       data,
       updatedAt: timestamp,
       versions: data.versions,

@@ -148,31 +148,13 @@ export class RequestValidator {
       throw new Error('Flow name is required and must be a string');
     }
 
-    // Handle nested structure: data: { nodes, edges, globalVariables, ... }
-    // or flat structure: { nodes, edges, globalVariables, ... }
-    let nodes = obj.nodes;
-    let edges = obj.edges;
-    let globalVariables = obj.globalVariables;
-    let metadata = obj.metadata;
-    let viewport = obj.viewport;
-    
-    if (!Array.isArray(nodes) && obj.data && typeof obj.data === 'object') {
-      // Try to extract from nested data structure
-      nodes = obj.data.nodes;
-      edges = obj.data.edges;
-    }
-
-    if (globalVariables === undefined && obj.data && typeof obj.data === 'object') {
-      globalVariables = obj.data.globalVariables;
-    }
-
-    if (metadata === undefined && obj.data && typeof obj.data === 'object') {
-      metadata = obj.data.metadata;
-    }
-
-    if (viewport === undefined && obj.data && typeof obj.data === 'object') {
-      viewport = obj.data.viewport;
-    }
+    // Support both flat { nodes, edges } and nested { data: { nodes, edges } } shapes
+    const nested = (!Array.isArray(obj.nodes) && obj.data && typeof obj.data === 'object') ? obj.data : obj;
+    const nodes          = Array.isArray(obj.nodes)          ? obj.nodes          : nested.nodes;
+    const edges          = Array.isArray(obj.edges)          ? obj.edges          : nested.edges;
+    const globalVariables = obj.globalVariables              ?? nested.globalVariables;
+    const metadata        = obj.metadata                     ?? nested.metadata;
+    const viewport        = obj.viewport                     ?? nested.viewport;
 
     if (!Array.isArray(nodes)) {
       throw new Error('nodes must be an array');

@@ -1,29 +1,11 @@
 import type { LlmRuntimeConfig, AgentTool } from '../types';
-import { trimTrailingSlash, normalizeApiKey, hasTemplatePlaceholder, toOpenAiToolDeclarations, clampToolResult, parseToolArgs } from '../utils';
+import { trimTrailingSlash, normalizeApiKey, hasTemplatePlaceholder, toOpenAiToolDeclarations, clampToolResult } from '../utils';
+import { maskApiKey, toErrorMessage, withTimeout } from '../../utils/common';
+import { createLogger } from '../../utils/logger';
 import OpenAI from 'openai';
 
+const logger = createLogger('NVIDIA');
 const NVIDIA_CHAT_TIMEOUT_MS = Number(process.env.NVIDIA_CHAT_TIMEOUT_MS || 120000);
-
-function maskApiKey(apiKey: string): string {
-  if (!apiKey) return 'missing';
-  if (apiKey.length <= 8) return `${apiKey.slice(0, 2)}***`;
-  return `${apiKey.slice(0, 4)}***${apiKey.slice(-4)}`;
-}
-
-async function withNvidiaTimeout<T>(operation: Promise<T>): Promise<T> {
-  return Promise.race<T>([
-    operation,
-    new Promise<T>((_, reject) => {
-      setTimeout(() => {
-        reject(
-          new Error(
-            `NVIDIA chat request timed out after ${Math.round(NVIDIA_CHAT_TIMEOUT_MS / 1000)}s.`,
-          ),
-        );
-      }, NVIDIA_CHAT_TIMEOUT_MS);
-    }),
-  ]);
-}
 
 type NvidiaChatStepResult = {
   fullContent: string;
@@ -35,25 +17,22 @@ export const listModels = async (
 ): Promise<Array<{ id: string; name?: string; description?: string }>> => {
   let baseUrl = trimTrailingSlash(cfg.baseUrl || '');
   if (!baseUrl) {
-    console.warn('[NVIDIA] No baseUrl provided');
+    logger.warn('No baseUrl provided');
     return [];
   }
 
-  // NVIDIA NIM requires /v1 in the base URL for OpenAI-compatible endpoints
   if (baseUrl.includes('nvidia.com') && !baseUrl.endsWith('/v1')) {
     baseUrl = `${baseUrl}/v1`;
   }
 
-  console.debug(`[NVIDIA] Listing models from ${baseUrl}`);
+  logger.debug(`Listing models from ${baseUrl}`);
 
   try {
     const normalizedApiKey = normalizeApiKey(cfg.apiKey);
     const client = new OpenAI({
       baseURL: baseUrl,
       apiKey: normalizedApiKey || 'not-required',
-      defaultHeaders: {
-        'User-Agent': 'N2Flow-Client/1.0',
-      },
+      defaultHeaders: { 'User-Agent': 'N2Flow-Client/1.0' },
     }) as any;
 
     if (client.models && typeof client.models.list === 'function') {
@@ -66,13 +45,12 @@ export const listModels = async (
       }));
 
       if (models.length > 0) {
-        console.log(`[NVIDIA] Successfully fetched ${models.length} models from OpenAI-compatible API`);
+        logger.info(`Fetched ${models.length} models`);
         return models;
       }
     }
   } catch (err) {
-    const errorMsg = err instanceof Error ? err.message : String(err);
-    console.warn(`[NVIDIA] Failed to fetch models via OpenAI SDK: ${errorMsg}`);
+    logger.warn('Failed to fetch models via OpenAI SDK', { error: toErrorMessage(err) });
   }
 
   return [];
@@ -117,26 +95,6 @@ export const runNvidiaChat = async (
   const exec = executeToolByName || (async () => '');
   const stream = cfg.stream === true && typeof onStream === 'function';
 
-  console.debug(`[NVIDIA Chat] Provider: ${cfg.provider}, Model: ${cfg.model}, Base: ${baseUrl}, Stream: ${stream}`);
-
-  const toolsWithImpl = (availableTools || []).length > 0 ? (availableTools as AgentTool[]).map(t => ({
-    type: 'function',
-    function: {
-      name: t.name,
-      description: t.description,
-      parameters: t.parameters,
-    },
-    run: async (rawArgs: unknown) => {
-      try {
-        const parsed = parseToolArgs(rawArgs);
-        const result = await exec(t.name, parsed);
-        return clampToolResult(String(result ?? ''));
-      } catch (e) {
-        return `Error executing tool ${t.name}: ${String(e)}`;
-      }
-    },
-  })) : undefined;
-
   const messages: any[] = [];
   if (systemPrompt) messages.push({ role: 'system', content: systemPrompt });
   messages.push({ role: 'user', content: userPrompt });
@@ -144,7 +102,7 @@ export const runNvidiaChat = async (
   for (let step = 0; step < 8; step += 1) {
     let stepResult: NvidiaChatStepResult;
     try {
-      stepResult = await withNvidiaTimeout<NvidiaChatStepResult>(
+      stepResult = await withTimeout<NvidiaChatStepResult>(
         (async () => {
           const completion = await client.chat.completions.create({
             model: String(cfg.model),
@@ -191,6 +149,8 @@ export const runNvidiaChat = async (
             toolCalls: Array.isArray(message.tool_calls) ? message.tool_calls : [],
           };
         })(),
+        NVIDIA_CHAT_TIMEOUT_MS,
+        `NVIDIA chat request timed out after ${Math.round(NVIDIA_CHAT_TIMEOUT_MS / 1000)}s.`,
       );
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);

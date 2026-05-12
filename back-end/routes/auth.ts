@@ -2,8 +2,11 @@ import { Router, Request, Response } from 'express';
 import { AuthService } from '../services/authService';
 import { AuthRequest } from '../middleware/auth';
 import { authMiddleware } from '../middleware/auth';
+import { toErrorMessage } from '../utils/common';
+import { createLogger } from '../utils/logger';
 
 const router = Router();
+const logger = createLogger('Auth');
 
 /**
  * Register new user
@@ -29,8 +32,8 @@ router.post('/register', async (req: Request, res: Response) => {
 
     res.json(result);
   } catch (err) {
-    const errorMsg = err instanceof Error ? err.message : 'Registration failed';
-    console.error('[Auth Register] Error:', errorMsg);
+    const errorMsg = toErrorMessage(err, 'Registration failed');
+    logger.error('Register error', err);
     res.status(500).json({ ok: false, error: errorMsg });
   }
 });
@@ -59,8 +62,8 @@ router.post('/login', async (req: Request, res: Response) => {
 
     res.json(result);
   } catch (err) {
-    const errorMsg = err instanceof Error ? err.message : 'Login failed';
-    console.error('[Auth Login] Error:', errorMsg);
+    const errorMsg = toErrorMessage(err, 'Login failed');
+    logger.error('Login error', err);
     res.status(500).json({ ok: false, error: errorMsg });
   }
 });
@@ -83,8 +86,8 @@ router.get('/profile', authMiddleware, async (req: AuthRequest, res: Response) =
 
     res.json({ ok: true, user });
   } catch (err) {
-    const errorMsg = err instanceof Error ? err.message : 'Failed to get profile';
-    console.error('[Auth Profile] Error:', errorMsg);
+    const errorMsg = toErrorMessage(err, 'Failed to get profile');
+    logger.error('Profile error', err);
     res.status(500).json({ ok: false, error: errorMsg });
   }
 });

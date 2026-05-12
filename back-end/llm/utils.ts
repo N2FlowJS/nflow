@@ -1,4 +1,5 @@
-export const trimTrailingSlash = (url: unknown) => String(url || '').replace(/\/+$/, '');
+import { trimTrailingSlash, parseJsonSafely } from '../utils/common';
+export { trimTrailingSlash };
 
 export const normalizeApiKey = (apiKey: unknown): string => {
   const raw = String(apiKey || '').trim();
@@ -86,17 +87,14 @@ export const tryFetchModelsFromBase = async (baseUrl: string, apiKey?: string) =
 // Additional helpers used by runtime adapters
 import type { AgentTool } from './types';
 
+const toStringRecord = (obj: object): Record<string, string> =>
+  Object.fromEntries(Object.entries(obj).map(([k, v]) => [k, String(v ?? '')]));
+
 export const parseToolArgs = (rawArgs: unknown): Record<string, string> => {
-  if (rawArgs && typeof rawArgs === 'object') {
-    return Object.fromEntries(Object.entries(rawArgs).map(([key, value]) => [key, String(value ?? '')]));
-  }
+  if (rawArgs && typeof rawArgs === 'object') return toStringRecord(rawArgs);
   if (typeof rawArgs !== 'string') return {};
-  try {
-    const parsed = JSON.parse(rawArgs as string) as Record<string, unknown>;
-    return Object.fromEntries(Object.entries(parsed).map(([key, value]) => [key, String(value ?? '')]));
-  } catch {
-    return {};
-  }
+  const parsed = parseJsonSafely(rawArgs);
+  return parsed && typeof parsed === 'object' ? toStringRecord(parsed as object) : {};
 };
 
 export const MAX_TOOL_RESULT_CHARS = 12000;
@@ -141,6 +139,13 @@ export const toOpenAiToolDeclarations = (tools: AgentTool[]) =>
       description: t.description,
       parameters: t.parameters,
     },
+  }));
+
+export const toAnthropicToolDeclarations = (tools: AgentTool[]) =>
+  tools.map(t => ({
+    name: t.name,
+    description: t.description,
+    input_schema: t.parameters,
   }));
 
 export default {

@@ -1,5 +1,6 @@
 import { FlowNode } from '../flowTypes';
 import { ExecutionOptions, ToolDefinition, ToolHandler, ToolRegistry } from './registry';
+import { parseJsonSafely } from '../utils/common';
 import { mssqlHandler } from './mssql';
 import { elasticsearchHandler } from './elasticsearch';
 import { githubHandler } from './github';
@@ -17,7 +18,7 @@ export { ToolRegistry } from './registry';
 // Register tool handlers
 ToolRegistry.register('MSSQLPyODBCComponent', { 
   handler: mssqlHandler, 
-  resultParser: (r) => { try { return JSON.parse(r); } catch { return r; } } 
+  resultParser: (r) => parseJsonSafely(r) ?? r,
 });
 ToolRegistry.register('elasticsearch_search', { 
   handler: elasticsearchHandler, 

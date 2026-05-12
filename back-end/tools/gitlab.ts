@@ -1,5 +1,6 @@
 import { ToolHandler } from './registry';
-import { getNodeFieldValue, trimTrailingSlash, interpolate, serializeToolResult } from '../utils/common';
+import { getNodeFieldValue, trimTrailingSlash, interpolate } from '../utils/common';
+import { fetchToolJson } from './utils';
 
 export const gitlabHandler: ToolHandler = async (node, args) => {
   const baseUrl = trimTrailingSlash(getNodeFieldValue(node, 'baseUrl') || 'https://gitlab.com/api/v4');
@@ -21,39 +22,13 @@ export const gitlabHandler: ToolHandler = async (node, args) => {
   if (privateToken) headers['PRIVATE-TOKEN'] = privateToken;
 
   try {
-    const request = async (url: string, method: string = 'GET', body?: unknown) => {
-      const response = await fetch(url, {
-        method,
-        headers: {
-          ...headers,
-          ...(body ? { 'Content-Type': 'application/json' } : {}),
-        },
-        body: body ? JSON.stringify(body) : undefined,
-      });
-
-      if (!response.ok) {
-        const text = await response.text().catch(() => '');
-        return `Error GitLab ${response.status}: ${text || response.statusText}`;
-      }
-
-      const data = await response.json().catch(() => null);
-      return serializeToolResult(data);
-    };
-
-    if (action === 'get_notes') {
-      return await request(`${mrPath}/notes?per_page=100`);
-    }
-
-    if (action === 'get_discussions') {
-      return await request(`${mrPath}/discussions?per_page=100`);
-    }
-
+    if (action === 'get_notes')       return await fetchToolJson(`${mrPath}/notes?per_page=100`, headers, 'GitLab');
+    if (action === 'get_discussions') return await fetchToolJson(`${mrPath}/discussions?per_page=100`, headers, 'GitLab');
     if (action === 'post_note') {
       if (!noteBody.trim()) return 'Error: Note body is empty.';
-      return await request(`${mrPath}/notes`, 'POST', { body: noteBody });
+      return await fetchToolJson(`${mrPath}/notes`, headers, 'GitLab', 'POST', { body: noteBody });
     }
-
-    return await request(`${mrPath}/changes`);
+    return await fetchToolJson(`${mrPath}/changes`, headers, 'GitLab');
   } catch (e) {
     return `Error calling GitLab API: ${String(e)}`;
   }

@@ -102,11 +102,7 @@ const INITIAL_PLAYGROUND_MESSAGES: PlaygroundMessage[] = [
   },
 ];
 
-const prettifyNodeLabel = (typeName: string) => {
-  const withoutComp = typeName.replace(/Component$/, "").replace(/_/g, " ");
-  const spaced = withoutComp.replace(/([a-z0-9])([A-Z])/g, "$1 $2");
-  return spaced.replace(/\b([a-z])/g, (s) => s.toUpperCase());
-};
+import { prettifyLabel } from "../lib/utils";
 
 const VariablesPanel: React.FC<{
   isOpen: boolean;
@@ -1840,9 +1836,9 @@ const Flow = () => {
   const commandActions = useMemo<CommandAction[]>(
     () => {
       const nodeActions: CommandAction[] = Object.keys(nodeRegistry)
-        .sort((left, right) => prettifyNodeLabel(left).localeCompare(prettifyNodeLabel(right)))
+        .sort((left, right) => prettifyLabel(left).localeCompare(prettifyLabel(right)))
         .map((type) => {
-          const label = prettifyNodeLabel(type);
+          const label = prettifyLabel(type);
           return {
             id: `add-node-${type}`,
             label: `Add ${label}`,
