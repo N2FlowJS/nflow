@@ -1,4 +1,6 @@
 import React, { useEffect, useRef } from 'react';
+import { X } from 'lucide-react';
+import { Button } from './ui';
 
 interface ModalProps {
   isOpen: boolean;
@@ -34,16 +36,17 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
 
       <div className="relative z-10 w-[min(95%,900px)] max-h-[90vh] overflow-auto bg-cyber-panel/95 border-2 border-white/5 rounded-lg shadow-2xl">
-        <div className="flex items-center justify-between px-4 py-3 border-b border-white/5">
-          <div className="text-sm font-medium text-gray-200">{title || 'Preview'}</div>
-          <button
-            type="button"
+        <div className="flex items-center justify-between px-4 py-3 border-b border-white/5 bg-gradient-to-r from-white/5 to-transparent">
+          <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-cyber-primary">{title || 'Preview'}</div>
+          <Button
+        
+            variant="ghost"
             onClick={onClose}
             aria-label="Close"
-            className="text-gray-400 hover:text-gray-200"
+            className="p-1 h-auto text-gray-400 hover:text-white"
           >
-            ✕
-          </button>
+            <X size={16} />
+          </Button>
         </div>
 
         <div className="p-4 text-sm text-gray-300">{children}</div>

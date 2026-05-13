@@ -17,8 +17,13 @@ export function ProtectedRoute({
 
   if (isCheckingAuth) {
     return (
-      <div className="min-h-screen bg-slate-950 text-slate-200 flex items-center justify-center">
-        <div className="text-sm uppercase tracking-[0.3em] text-cyan-400">Checking Session...</div>
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-2 border-cyber-primary/20 border-t-cyber-primary rounded-full animate-spin" />
+          <div className="text-[10px] uppercase font-bold tracking-[0.3em] text-cyber-primary animate-pulse">
+            Authenticating Session
+          </div>
+        </div>
       </div>
     );
   }

@@ -1,5 +1,6 @@
 import React from "react";
 import { stringifyUnknown } from '../../lib/utils';
+import { CyberBadge } from "../shared/CyberUI";
 
 interface ResultPreviewProps {
   output: unknown;
@@ -52,10 +53,10 @@ export const ResultPreview = ({ output }: ResultPreviewProps) => {
   const rows = parseRows(output);
 
   return (
-    <div className="p-2 max-h-[180px] overflow-auto text-[10px] font-mono text-gray-300 custom-scrollbar">
+    <div className="p-0 max-h-[160px] overflow-auto text-[10px] font-mono custom-scrollbar">
       {(() => {
         if (!output)
-          return <span className="italic text-gray-600">Empty response</span>;
+          return <div className="p-2 italic text-gray-600 uppercase tracking-widest text-[9px]">Empty_Result</div>;
 
         // 0. Detect Image URL
         if (
@@ -65,11 +66,11 @@ export const ResultPreview = ({ output }: ResultPreviewProps) => {
             output.match(/\.(jpeg|jpg|gif|png)$/) !== null)
         ) {
           return (
-            <div className="relative group">
+            <div className="relative group p-1">
               <img
                 src={output}
                 alt="Generated"
-                className="w-full h-auto rounded border border-white/10 hover:border-cyber-primary/50 transition-colors shadow-lg cursor-pointer"
+                className="w-full h-auto rounded border border-white/10 hover:border-cyber-primary/50 transition-all cursor-zoom-in"
                 onClick={() => window.open(output, "_blank")}
               />
               <div className="absolute inset-0 bg-cyber-primary/10 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity" />
@@ -80,10 +81,13 @@ export const ResultPreview = ({ output }: ResultPreviewProps) => {
         // 1. Detect Boolean
         if (typeof output === "boolean") {
           return (
-            <div
-              className={`text-center py-2 font-bold ${output ? "text-green-400" : "text-red-400"}`}
-            >
-              {output ? "TRUE" : "FALSE"}
+            <div className="flex items-center justify-center py-4 bg-black/20">
+              <CyberBadge 
+                label={output ? "TRUE" : "FALSE"} 
+                variant={output ? "success" : "error"}
+                size="sm"
+                className="px-4 py-1.5"
+              />
             </div>
           );
         }
@@ -102,44 +106,46 @@ export const ResultPreview = ({ output }: ResultPreviewProps) => {
             .slice(0, 4);
           if (cols.length > 0) {
             return (
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr className="border-b border-white/10 text-gray-500 text-[9px]">
-                    {cols.map((c) => (
-                      <th
-                        key={c}
-                        className="text-left px-1 py-0.5 font-bold uppercase"
-                      >
-                        {c}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {rows.slice(0, 5).map((r, i) => (
-                    <tr
-                      key={i}
-                      className="border-b border-white/5 last:border-0 hover:bg-white/5 transition-colors"
-                    >
+              <div className="bg-black/20">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="border-b border-white/10 bg-black/40 text-gray-500 text-[9px]">
                       {cols.map((c) => (
-                        <td key={c} className="px-1 py-1 truncate max-w-[80px]">
-                          {String(r[c] ?? "")}
-                        </td>
+                        <th
+                          key={c}
+                          className="text-left px-2 py-1.5 font-bold uppercase tracking-tighter"
+                        >
+                          {c}
+                        </th>
                       ))}
                     </tr>
-                  ))}
-                  {rows.length > 5 && (
-                    <tr>
-                      <td
-                        colSpan={cols.length}
-                        className="text-center py-1 opacity-40 text-[9px]"
+                  </thead>
+                  <tbody>
+                    {rows.slice(0, 5).map((r, i) => (
+                      <tr
+                        key={i}
+                        className="border-b border-white/5 last:border-0 hover:bg-cyber-primary/5 transition-colors"
                       >
-                        + {rows.length - 5} more rows
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+                        {cols.map((c) => (
+                          <td key={c} className="px-2 py-1.5 truncate max-w-[80px] text-white/80">
+                            {String(r[c] ?? "")}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                    {rows.length > 5 && (
+                      <tr>
+                        <td
+                          colSpan={cols.length}
+                          className="text-center py-1.5 opacity-40 text-[8px] font-bold uppercase tracking-widest bg-black/40"
+                        >
+                          + {rows.length - 5} MORE_ENTRIES
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
             );
           }
         }

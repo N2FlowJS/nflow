@@ -9,11 +9,13 @@ import {
   Search, 
   ShieldCheck,
   Check,
-  X
+  X,
+  History,
+  Lock
 } from 'lucide-react';
-import { Modal } from '../components/Modal';
 import { apiService } from '../lib/apiService';
-import { Input, Button } from '../components/ui';
+import { Input } from '../components/ui';
+import { CyberPanel, CyberAction, CyberBadge, StatusBadge } from '../components/shared/CyberUI';
 
 interface Secret {
   id: string;
@@ -44,6 +46,7 @@ const SecretManager: React.FC = () => {
   });
   const [showSecretValue, setShowSecretValue] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   // Load secrets on mount
   useEffect(() => {
@@ -92,7 +95,7 @@ const SecretManager: React.FC = () => {
 
   const handleSaveSecret = async () => {
     try {
-      if (!formData.name.trim() || !formData.key.trim()) {
+      if (!formData.name.trim() || (!isEditing && !formData.key.trim())) {
         setError('Secret name and value are required');
         return;
       }
@@ -190,206 +193,233 @@ const SecretManager: React.FC = () => {
     }
   };
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  };
+  const filteredSecrets = secrets.filter(s => 
+    s.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    s.label?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
-    <div className="p-6 max-w-7xl mx-auto min-h-screen bg-black/20">
-      <div className="flex justify-between items-end mb-8">
-        <div>
-          <h1 className="text-3xl font-bold mb-2 text-white flex items-center gap-3">
-            <ShieldCheck className="text-cyber-primary" size={32} />
-            Manage Secrets
-          </h1>
-          <p className="text-slate-400">Store and manage your API keys and sensitive credentials securely</p>
-        </div>
-        <Button
-          variant="primary"
-          onClick={handleOpenModal}
-          className="shadow-[0_0_20px_rgba(0,240,255,0.15)]"
-        >
-          <Plus size={16} className="mr-2" /> Add New Secret
-        </Button>
-      </div>
-
-      {error && (
-        <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 text-red-400 rounded-lg flex items-center gap-3">
-          <div className="h-2 w-2 rounded-full bg-red-500 animate-pulse" />
-          {error}
-        </div>
-      )}
-
-      {loading ? (
-        <div className="text-center py-8 text-slate-500">Loading secrets...</div>
-      ) : secrets.length === 0 ? (
-        <div className="text-center py-8 text-slate-500">No secrets yet. Create one to get started.</div>
-      ) : (
-        <div className="overflow-x-auto border border-slate-700 rounded-xl bg-slate-800/30 backdrop-blur-sm shadow-xl">
-          <table className="w-full">
-            <thead>
-              <tr className="bg-slate-900/50 border-b border-slate-700">
-                <th className="px-6 py-4 text-left text-xs uppercase tracking-wider text-slate-400 font-semibold">Name</th>
-                <th className="px-6 py-4 text-left text-xs uppercase tracking-wider text-slate-400 font-semibold">Label</th>
-                <th className="px-6 py-4 text-left text-xs uppercase tracking-wider text-slate-400 font-semibold">Value Preview</th>
-                <th className="px-6 py-4 text-left text-xs uppercase tracking-wider text-slate-400 font-semibold">Last Used</th>
-                <th className="px-6 py-4 text-left text-xs uppercase tracking-wider text-slate-400 font-semibold">Created</th>
-                <th className="px-6 py-4 text-right text-xs uppercase tracking-wider text-slate-400 font-semibold">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-800">
-              {secrets.map((secret) => (
-                <tr key={secret.id} className="hover:bg-cyan-500/5 transition-colors">
-                  <td className="px-6 py-4 font-medium text-slate-200">{secret.name}</td>
-                  <td className="px-6 py-4 text-sm text-slate-400">{secret.label || '-'}</td>
-                  <td className="px-6 py-4 font-mono text-sm text-cyan-400/80">{secret.key}</td>
-                  <td className="px-6 py-4 text-sm text-slate-400">
-                    {secret.lastUsedAt ? formatDate(secret.lastUsedAt) : '-'}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-slate-400">{formatDate(secret.createdAt)}</td>
-                  <td className="px-6 py-4 text-right space-x-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleRevealSecret(secret.id)}
-                      title="Reveal the full secret value"
-                      className="border-white/10 hover:border-cyber-primary/50"
-                    >
-                      <Eye size={12} className="mr-1" /> View
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant={copiedId === secret.id ? "primary" : "outline"}
-                      onClick={() => handleCopyToClipboard(secret.id)}
-                      className={copiedId === secret.id ? "" : "border-white/10 hover:border-cyber-primary/50"}
-                      title="Copy to clipboard"
-                    >
-                      {copiedId === secret.id ? <Check size={12} className="mr-1" /> : <Copy size={12} className="mr-1" />}
-                      {copiedId === secret.id ? 'Copied' : 'Copy'}
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleRegenerateSecret(secret.id)}
-                      className="text-amber-400 border-amber-500/20 hover:bg-amber-500/10 hover:border-amber-500/50"
-                      title="Generate a new value"
-                    >
-                      <RefreshCw size={12} className="mr-1" /> Regen
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleEditSecret(secret)}
-                      className="text-cyan-400 border-cyan-500/20 hover:bg-cyan-500/10 hover:border-cyan-500/50"
-                    >
-                      <Edit2 size={12} className="mr-1" /> Edit
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="danger"
-                      onClick={() => handleDeleteSecret(secret.id)}
-                    >
-                      <Trash2 size={12} className="mr-1" /> Delete
-                    </Button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {showSecretValue && (
-        <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-md flex items-center justify-center z-50 p-4">
-          <div className="bg-slate-800 border border-slate-700/50 rounded-xl shadow-2xl p-6 max-w-2xl w-full">
-            <h2 className="text-xl font-bold mb-4 text-white">Secret Value</h2>
-            <p className="text-sm text-slate-400 mb-4">
-              This value will auto-hide in 30 seconds for security. Copy it quickly if needed.
+    <div className="min-h-screen bg-cyber-panel p-6 font-sans selection:bg-cyber-primary/30">
+      <div className="max-w-6xl mx-auto space-y-8">
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-white/5">
+          <div className="space-y-2">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 bg-cyber-primary/10 rounded-xl border border-cyber-primary/30 text-cyber-primary shadow-[0_0_15px_rgba(34,211,238,0.2)]">
+                <ShieldCheck size={28} />
+              </div>
+              <h1 className="text-3xl font-black uppercase tracking-tighter text-white">
+                Secret <span className="text-cyber-primary">Vault</span>
+              </h1>
+            </div>
+            <p className="text-gray-500 text-sm font-medium ml-1">
+              Store and manage your API keys and sensitive credentials securely.
             </p>
-            <div className="bg-slate-950 p-4 rounded border border-slate-700 font-mono text-cyan-400 break-all mb-6">
-              {showSecretValue}
+          </div>
+
+          <div className="flex items-center gap-3">
+            <div className="w-64">
+              <Input
+                icon={Search}
+                placeholder="Find a secret..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="bg-black/40 border-white/10"
+              />
             </div>
-            <div className="flex gap-2 justify-end">
-              <Button
-                variant="primary"
-                onClick={() => {
-                  navigator.clipboard.writeText(showSecretValue);
-                  alert('Copied to clipboard!');
-                }}
-              >
-                <Copy size={14} className="mr-2" /> Copy to Clipboard
-              </Button>
-              <Button
-                variant="ghost"
-                onClick={() => setShowSecretValue(null)}
-              >
-                Close
-              </Button>
-            </div>
+            <CyberAction
+              icon={Plus}
+              label="New Secret"
+              onClick={handleOpenModal}
+              className="bg-cyber-primary text-black hover:bg-cyber-primary/80 border-transparent px-4 py-2.5"
+            />
           </div>
         </div>
-      )}
 
-      {showModal && (
-        <Modal 
-          isOpen={showModal} 
-          onClose={handleCloseModal}
-          title={isEditing ? 'Edit Secret' : 'Create New Secret'}
-        >
-          <div className="space-y-4">
-            <Input
-              label="Secret Name"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              placeholder="e.g., OPENAI_API_KEY"
-              disabled={isEditing}
-              helperText={isEditing ? 'Secret name cannot be changed' : 'Used to reference this secret in flows'}
-            />
-
-            <Input
-              label="Label (Optional)"
-              value={formData.label}
-              onChange={(e) => setFormData({ ...formData, label: e.target.value })}
-              placeholder="e.g., OpenAI API Key for Chat"
-              helperText="A human-readable description of this secret"
-            />
-
-            <div className="space-y-1">
-              <label className="block text-sm font-medium text-slate-300">Secret Value</label>
-              <textarea
-                value={formData.key}
-                onChange={(e) => setFormData({ ...formData, key: e.target.value })}
-                placeholder={isEditing ? 'Leave empty to keep current value' : 'Paste your API key or secret here'}
-                className="w-full px-3 py-2 bg-slate-900/50 border border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500/50 font-mono text-sm text-slate-200 placeholder:text-slate-600"
-                rows={4}
-              />
-              <p className="text-xs text-slate-500">
-                Stored encrypted. {isEditing ? 'Leave empty to keep the current value.' : 'Never shown again after creation.'}
-              </p>
-            </div>
-
-            <div className="flex gap-3 justify-end pt-4">
-              <Button
-                variant="ghost"
-                onClick={handleCloseModal}
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="primary"
-                onClick={handleSaveSecret}
-                loading={loading}
-              >
-                {isEditing ? 'Update Secret' : 'Create Secret'}
-              </Button>
-            </div>
+        {error && (
+          <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-3 text-red-400 animate-in fade-in slide-in-from-top-2">
+            <X size={18} />
+            <span className="text-sm font-bold uppercase tracking-wide">{error}</span>
           </div>
-        </Modal>
-      )}
+        )}
+
+        {/* Secrets Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {loading ? (
+            Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="h-48 bg-white/5 border border-white/5 rounded-2xl animate-pulse" />
+            ))
+          ) : filteredSecrets.length === 0 ? (
+            <div className="col-span-full py-20 flex flex-col items-center justify-center border-2 border-dashed border-white/5 rounded-3xl bg-black/20">
+              <div className="p-5 bg-white/5 rounded-full mb-4 text-gray-600">
+                <Lock size={40} />
+              </div>
+              <p className="text-gray-500 font-bold uppercase tracking-widest text-sm">Vault Empty</p>
+              <p className="text-gray-600 text-xs mt-1">No secrets matched your search.</p>
+            </div>
+          ) : (
+            filteredSecrets.map((secret) => (
+              <CyberPanel
+                key={secret.id}
+                title={secret.name}
+                icon={ShieldCheck}
+                className="hover:border-cyber-primary/40 transition-all duration-300 group shadow-lg"
+                actions={
+                  <div className="flex items-center gap-1">
+                    <CyberAction
+                      icon={Edit2}
+                      label="Edit"
+                      showLabel={false}
+                      onClick={() => handleEditSecret(secret)}
+                      className="w-8 h-8 p-0"
+                    />
+                    <CyberAction
+                      icon={Trash2}
+                      label="Delete"
+                      showLabel={false}
+                      onClick={() => handleDeleteSecret(secret.id)}
+                      className="w-8 h-8 p-0 hover:border-red-500/50 hover:bg-red-500/10 text-red-400"
+                    />
+                  </div>
+                }
+              >
+                <div className="p-5 space-y-5">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between text-[10px] uppercase font-black tracking-widest text-gray-500">
+                      <span>Access Key</span>
+                      <StatusBadge label="Encrypted" status="online" />
+                    </div>
+                    <div className="flex items-center gap-2 p-3 bg-black/60 rounded-xl border border-white/5 font-mono text-sm group-hover:border-cyber-primary/20 transition-colors relative overflow-hidden">
+                      <Lock size={14} className="text-cyber-primary/50" />
+                      <span className="flex-1 truncate">
+                        {showSecretValue === secret.id ? secret.key : secret.key}
+                      </span>
+                      <button 
+                        onClick={() => handleCopyToClipboard(secret.id)}
+                        className="text-gray-500 hover:text-cyber-primary transition-colors"
+                      >
+                        {copiedId === secret.id ? <Check size={14} /> : <Copy size={14} />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-2 border-t border-white/5">
+                    <div className="flex flex-col">
+                      <span className="text-[9px] text-gray-600 font-bold uppercase tracking-tighter">Created</span>
+                      <span className="text-[10px] font-mono text-white/60">
+                        {new Date(secret.createdAt).toLocaleDateString()}
+                      </span>
+                    </div>
+                    <div className="flex flex-col items-end">
+                      <span className="text-[9px] text-gray-600 font-bold uppercase tracking-tighter">Last Usage</span>
+                      <span className="text-[10px] font-mono text-white/60 flex items-center gap-1">
+                        <History size={10} />
+                        {secret.lastUsedAt ? new Date(secret.lastUsedAt).toLocaleDateString() : 'Never'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {secret.label && (
+                    <div className="flex flex-wrap gap-1.5 mt-2">
+                      {secret.label.split(',').map(tag => (
+                        <CyberBadge key={tag} label={tag.trim()} variant="info" />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </CyberPanel>
+            ))
+          )}
+        </div>
+
+        {/* View Modal */}
+        {showSecretValue && (
+          <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-in fade-in duration-200">
+            <CyberPanel
+              title="Decrypted Secret"
+              icon={Eye}
+              className="w-full max-w-md border-cyber-primary/50 shadow-[0_0_50px_rgba(0,240,255,0.2)]"
+              onClose={() => setShowSecretValue(null)}
+            >
+              <div className="p-6 space-y-4">
+                <p className="text-xs text-gray-400 font-medium"> This value is shown temporarily for security. It will auto-hide in 30 seconds.</p>
+                <div className="p-4 bg-black rounded-xl border border-cyber-primary/30 font-mono text-sm text-cyber-primary break-all shadow-inner">
+                  {showSecretValue}
+                </div>
+                <CyberAction
+                  icon={Copy}
+                  label="Copy to Clipboard"
+                  onClick={() => {
+                    navigator.clipboard.writeText(showSecretValue);
+                    setShowSecretValue(null);
+                  }}
+                  className="w-full justify-center bg-cyber-primary text-black border-transparent"
+                />
+              </div>
+            </CyberPanel>
+          </div>
+        )}
+
+        {/* Create/Edit Modal */}
+        {showModal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+            <CyberPanel
+              title={isEditing ? 'Modify Secret' : 'Register New Secret'}
+              icon={ShieldCheck}
+              className="w-full max-w-lg shadow-[0_0_50px_rgba(0,0,0,0.5)] border-cyber-primary/30"
+              onClose={handleCloseModal}
+              actions={
+                <CyberAction
+                  icon={Check}
+                  label={isEditing ? 'Update' : 'Create'}
+                  onClick={handleSaveSecret}
+                  className="bg-cyber-primary text-black border-transparent"
+                />
+              }
+            >
+              <div className="p-6 space-y-6">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-cyber-primary/70 ml-1">Secret Name</label>
+                  <Input
+                    placeholder="e.g. OPENAI_API_KEY"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-cyber-primary/70 ml-1">Key Value</label>
+                  <div className="relative">
+                    <textarea
+                      placeholder={isEditing ? "••••••••••••••••" : "Paste raw secret value here"}
+                      value={formData.key}
+                      onChange={(e) => setFormData({ ...formData, key: e.target.value })}
+                      className="w-full px-4 py-3 bg-black/60 border border-white/10 rounded-xl focus:outline-none focus:border-cyber-primary/50 text-xs text-white font-mono min-h-[100px] resize-none pr-10"
+                    />
+                    <Lock size={16} className="absolute right-3 top-3 text-white/10" />
+                  </div>
+                  {isEditing && (
+                    <p className="text-[9px] text-yellow-500/70 font-bold uppercase tracking-wider ml-1">
+                      Leave blank to keep existing value
+                    </p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-cyber-primary/70 ml-1">Description (Optional)</label>
+                  <Input
+                    placeholder="e.g. Production API key for OpenAI"
+                    value={formData.label}
+                    onChange={(e) => setFormData({ ...formData, label: e.target.value })}
+                  />
+                </div>
+              </div>
+            </CyberPanel>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
-
 
 export default SecretManager;

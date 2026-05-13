@@ -1,43 +1,43 @@
 import React from 'react';
-import { CheckCircle2, AlertCircle } from 'lucide-react';
 import { NodeIcon } from './NodeIcon';
 import { getNodeFieldValue } from '../../../back-end/node-registry';
+import { StatusIndicator, CyberBadge } from '../shared/CyberUI';
 
 interface NodeHeaderProps {
   data: any;
   selected?: boolean;
-  isAgent: boolean;
-  isLLM: boolean;
 }
 
-export const NodeHeader = ({ data, selected, isAgent, isLLM }: NodeHeaderProps) => {
+export const NodeHeader = ({ data, selected }: NodeHeaderProps) => {
+  const modelType = (getNodeFieldValue(data, 'modelType') as string) || (data.type.includes('Embedding') ? 'Embedding' : 'Chat');
+  const typeLabel = data.type.replace(/Component|Model/g, '');
+
   return (
-    <div className="flex items-center gap-3 p-3 border-b border-white/5">
-      <div className={`p-2 rounded-lg bg-white/5 ${selected ? 'text-cyber-primary' : 'text-gray-400'}`}>
-        <NodeIcon name={data.registryEntry?.icon} size={20} />
+    <div className="flex items-center gap-2.5 p-2.5 border-b border-white/5 bg-gradient-to-r from-white/[0.02] to-transparent">
+      <div className={`shrink-0 p-1.5 rounded-lg border transition-colors ${
+        selected ? 'bg-cyber-primary/10 border-cyber-primary/30 text-cyber-primary shadow-[0_0_10px_rgba(34,211,238,0.1)]' : 'bg-white/5 border-white/5 text-gray-400'
+      }`}>
+        <NodeIcon name={data.registryEntry?.icon} size={16} />
       </div>
-      <div className="flex flex-col flex-1 overflow-hidden">
-        <span className="text-sm font-bold text-gray-100 truncate">{data.label}</span>
-        <span className="text-[9px] uppercase tracking-wider text-gray-500 font-mono flex items-center gap-1">
-          {data.type.replace(/Component|Model/g, '')}
-          {isLLM && (
-            <>
-              <span className="w-1 h-1 rounded-full bg-gray-500"></span>
-              {(() => {
-                const modelType = (getNodeFieldValue(data, 'modelType') as string) || (data.type.includes('Embedding') ? 'Embedding' : 'Chat');
-                return (
-                  <span className={modelType === 'Embedding' ? 'text-blue-400' : 'text-purple-400'}>
-                    {modelType}
-                  </span>
-                );
-              })()}
-            </>
+      
+      <div className="flex flex-col flex-1 min-w-0">
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-xs font-bold text-white/90 truncate leading-none">{data.label}</span>
+          <StatusIndicator status={data.status || 'idle'} size={6} />
+        </div>
+        
+        <div className="flex items-center gap-1.5 mt-1">
+          <span className="text-[8px] font-black uppercase tracking-widest text-gray-500 font-mono">
+            {typeLabel}
+          </span>
+          {data.type.includes('LLM') && (
+            <CyberBadge 
+              label={modelType} 
+              variant={modelType === 'Embedding' ? 'info' : 'purple'} 
+            />
           )}
-        </span>
+        </div>
       </div>
-      {data.status === 'success' && <CheckCircle2 size={16} className="text-green-500" />}
-      {data.status === 'running' && <div className="w-2 h-2 rounded-full bg-yellow-400 animate-ping" />}
-      {data.status === 'error' && <AlertCircle size={16} className="text-red-500" />}
     </div>
   );
 };

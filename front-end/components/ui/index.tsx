@@ -108,18 +108,11 @@ export const Button = ({
   className = '',
   loading,
   variant = 'primary',
-  size = 'md',
   ...props
 }: React.ButtonHTMLAttributes<HTMLButtonElement> & {
   loading?: boolean;
   variant?: 'primary' | 'ghost' | 'outline' | 'danger';
-  size?: 'sm' | 'md' | 'lg';
 }) => {
-  const sizes = {
-    sm: 'px-2 py-1 text-[10px]',
-    md: 'px-4 py-2 text-xs',
-    lg: 'px-6 py-3 text-sm font-bold',
-  };
 
   const variants = {
     primary: 'bg-cyber-primary text-black hover:bg-cyber-primary/90 font-bold shadow-[0_0_15px_rgba(0,240,255,0.2)]',
@@ -130,7 +123,7 @@ export const Button = ({
 
   return (
     <button
-      className={`rounded-lg transition-all disabled:opacity-50 flex items-center justify-center gap-2 ${sizes[size]} ${variants[variant]} ${className}`}
+      className={`rounded-lg transition-all disabled:opacity-50 flex items-center justify-center gap-2 ${variants[variant]} ${className}`}
       disabled={loading || props.disabled}
       {...props}
     >

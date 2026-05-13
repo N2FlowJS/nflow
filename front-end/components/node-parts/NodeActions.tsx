@@ -1,6 +1,6 @@
 import React from "react";
 import { Play, Settings, Info, Trash2 } from "lucide-react";
-import { Button } from "../ui";
+import { CyberAction } from "../shared/CyberUI";
 
 interface NodeActionsProps {
   onRun: (e: React.MouseEvent) => void;
@@ -20,56 +20,54 @@ export const NodeActions = ({
   isDataOpen,
 }: NodeActionsProps) => {
   return (
-    <div className="absolute -top-11 left-0 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity z-10 bg-black/40 backdrop-blur-md p-1 rounded-xl border border-white/10 shadow-2xl">
-      <Button
-        size="sm"
-        variant="outline"
-        onClick={(e) => {
-          e.stopPropagation();
-          onRun(e);
+    <div className="absolute -top-12 left-0 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200 z-10 bg-black/60 backdrop-blur-md p-1 rounded-lg border border-white/10 shadow-2xl scale-90 origin-bottom-left group-hover:scale-100">
+      <CyberAction
+        icon={Play}
+        label="Run"
+        showLabel={false}
+        onClick={() => {
+          const event = new MouseEvent('click') as unknown as React.MouseEvent;
+          onRun(event);
         }}
-        className="w-8 h-8 p-0 border-yellow-500/30 text-yellow-500 hover:bg-yellow-500 hover:text-black rounded-lg transition-all"
+        className="w-8 h-8 p-0 bg-transparent border-transparent hover:border-yellow-500/50 hover:bg-yellow-500/10"
+        colorClass="text-yellow-500"
         title="Run Node"
-      >
-        <Play size={14} fill="currentColor" />
-      </Button>
-      <Button
-        size="sm"
-        variant={isConfigOpen ? "primary" : "outline"}
-        onClick={(e) => {
-          e.stopPropagation();
-          onOpenConfig();
-        }}
-        className={`w-8 h-8 p-0 ${!isConfigOpen ? "border-cyber-primary/30 text-cyber-primary hover:bg-cyber-primary hover:text-black" : "text-black"} rounded-lg transition-all`}
+      />
+      
+      <CyberAction
+        icon={Settings}
+        label="Settings"
+        showLabel={false}
+        onClick={onOpenConfig}
+        className={`w-8 h-8 p-0 ${isConfigOpen ? 'bg-cyber-primary text-black border-cyber-primary' : 'bg-transparent border-transparent hover:border-cyber-primary/50'}`}
+        colorClass={isConfigOpen ? "text-black" : "text-cyber-primary"}
         title="Node Settings"
-      >
-        <Settings size={14} />
-      </Button>
-      <Button
-        size="sm"
-        variant={isDataOpen ? "primary" : "outline"}
-        onClick={(e) => {
-          e.stopPropagation();
-          onOpenData();
-        }}
-        className={`w-8 h-8 p-0 ${!isDataOpen ? "border-cyan-500/30 text-cyan-400 hover:bg-cyan-500 hover:text-black" : "text-black bg-cyan-500 border-cyan-500"} rounded-lg transition-all`}
+      />
+
+      <CyberAction
+        icon={Info}
+        label="Data"
+        showLabel={false}
+        onClick={onOpenData}
+        className={`w-8 h-8 p-0 ${isDataOpen ? 'bg-cyan-500 text-black border-cyan-500' : 'bg-transparent border-transparent hover:border-cyan-500/50'}`}
+        colorClass={isDataOpen ? "text-black" : "text-cyan-400"}
         title="Execution Data"
-      >
-        <Info size={14} />
-      </Button>
-      <div className="w-px h-4 bg-white/10 my-auto mx-0.5" />
-      <Button
-        size="sm"
-        variant="danger"
-        onClick={(e) => {
-          e.stopPropagation();
-          onDelete(e);
+      />
+
+      <div className="w-px h-3 bg-white/10 mx-0.5" />
+
+      <CyberAction
+        icon={Trash2}
+        label="Delete"
+        showLabel={false}
+        onClick={() => {
+          const event = new MouseEvent('click') as unknown as React.MouseEvent;
+          onDelete(event);
         }}
-        className="w-8 h-8 p-0 border-transparent hover:bg-red-500 hover:text-white rounded-lg transition-all text-red-400"
+        className="w-8 h-8 p-0 bg-transparent border-transparent hover:bg-red-500/20"
+        colorClass="text-red-400"
         title="Delete Node"
-      >
-        <Trash2 size={14} />
-      </Button>
+      />
     </div>
   );
 };

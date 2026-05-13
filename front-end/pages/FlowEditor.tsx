@@ -11,6 +11,7 @@ import {
   Node,
   NodeChange,
   NodeTypes,
+  Panel,
   ReactFlow,
   ReactFlowInstance,
   ReactFlowProvider,
@@ -24,7 +25,8 @@ import {
   History,
   Plus,
   Trash2,
-  X
+  X,
+  Settings2
 } from "lucide-react";
 import React, {
   useCallback,
@@ -50,6 +52,7 @@ import GlobalPreview from "../components/GlobalPreview";
 import { NodeConfigModal } from "../components/node-parts/NodeConfigModal";
 import Playground from "../components/Playground";
 import { Sidebar } from "../components/Sidebar";
+import { CyberPanel, CyberAction } from "../components/shared/CyberUI";
 import { initialEdges, initialNodes } from "../data";
 import {
   AGENT_TEMPLATE_CUSTOM,
@@ -114,75 +117,43 @@ const VariablesPanel: React.FC<{
 }> = React.memo(({ isOpen, onClose, variables, onVariablesChange }) => {
   if (!isOpen) return null;
 
-  const handleAdd = () => {
-    onVariablesChange([
-      ...variables,
-      { id: `var-${Date.now()}`, name: "newVariable", value: "" },
-    ]);
-  };
-
-  const handleUpdate = (id: string, field: "name" | "value", value: string) => {
-    onVariablesChange(
-      variables.map((v) => (v.id === id ? { ...v, [field]: value } : v)),
-    );
-  };
-
-  const handleDelete = (id: string) => {
-    onVariablesChange(variables.filter((v) => v.id !== id));
-  };
-
   return (
-    <div className="absolute top-20 right-4 bg-cyber-panel border border-cyber-border rounded-lg shadow-lg z-10 w-96 p-4">
-      <div className="flex justify-between items-center mb-4">
-        <div className="flex items-center gap-2">
-          <DollarSign size={18} className="text-cyber-primary" />
-          <h3 className="text-lg font-bold">Global Variables</h3>
-        </div>
-        <button onClick={onClose} className="text-gray-400 hover:text-white">
-          <X size={18} />
-        </button>
-      </div>
-      <div className="space-y-2 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
-        {variables.map((variable) => (
-          <div key={variable.id} className="flex items-center gap-2">
-            <Input
-              value={variable.name}
-              onChange={(e) =>
-                handleUpdate(variable.id, "name", e.target.value)
-              }
-              className="w-1/3"
-              placeholder="Name"
-            />
-            <Input
-              value={variable.value}
-              onChange={(e) =>
-                handleUpdate(variable.id, "value", e.target.value)
-              }
-              className="w-2/3"
-              placeholder="Value"
-            />
-            <Button
-              variant="outline"
-              onClick={() => handleDelete(variable.id)}
-              className="p-1 px-1.5 h-8 text-red-500 border-red-500/30 hover:bg-red-500/20 hover:text-red-400"
-            >
-              <Trash2 size={14} />
-            </Button>
-          </div>
-        ))}
-        {variables.length === 0 && (
-          <div className="text-center py-8 text-gray-500 italic text-sm border border-dashed border-white/10 rounded-lg">
-            No variables defined yet.
-          </div>
-        )}
-      </div>
-      <Button
-        onClick={handleAdd}
-        className="mt-4 w-full"
+    <Panel position="top-right" className="m-4 w-[320px] z-50 animate-in fade-in slide-in-from-right-2 duration-200">
+      <CyberPanel
+        title="ENV_VARIABLES"
+        icon={DollarSign}
+        onClose={onClose}
+        className="border-cyber-primary/20 bg-black/80 backdrop-blur-xl"
+        maxHeight="80vh"
+        actions={<CyberAction icon={Plus} onClick={() => onVariablesChange([...variables, { id: `v-${Date.now()}`, name: "KEY", value: "" }])} />}
       >
-        <Plus size={16} className="mr-2" /> Add Variable
-      </Button>
-    </div>
+        <div className="p-2 space-y-1.5 scrollbar-hide overflow-y-auto max-h-[60vh]">
+          {variables.length === 0 ? (
+            <div className="text-center py-8 opacity-20 text-[10px] uppercase font-black tracking-widest">No_Data</div>
+          ) : (
+            variables.map((v) => (
+              <div key={v.id} className="flex items-center gap-1 group/v">
+                <input
+                  value={v.name}
+                  onChange={(e) => onVariablesChange(variables.map(x => x.id === v.id ? { ...x, name: e.target.value } : x))}
+                  className="w-24 bg-black/40 border border-white/5 rounded px-2 py-1 text-[10px] font-mono text-cyber-primary focus:outline-none focus:border-cyber-primary/40"
+                  placeholder="KEY"
+                />
+                <input
+                  value={v.value}
+                  onChange={(e) => onVariablesChange(variables.map(x => x.id === v.id ? { ...x, value: e.target.value } : x))}
+                  className="flex-1 bg-black/40 border border-white/5 rounded px-2 py-1 text-[10px] font-mono text-white/50 focus:outline-none focus:border-cyber-primary/40"
+                  placeholder="VALUE"
+                />
+                <button onClick={() => onVariablesChange(variables.filter(x => x.id !== v.id))} className="p-1 opacity-10 group-hover/v:opacity-100 hover:text-red-500 transition-all">
+                  <Trash2 size={10} />
+                </button>
+              </div>
+            ))
+          )}
+        </div>
+      </CyberPanel>
+    </Panel>
   );
 });
 
@@ -196,61 +167,40 @@ const VersionHistoryPanel: React.FC<{
   if (!isOpen) return null;
 
   return (
-    <div className="absolute top-20 right-4 bg-cyber-panel border border-cyber-border rounded-lg shadow-lg z-10 w-96 p-4">
-      <div className="flex justify-between items-center mb-4">
-        <div className="flex items-center gap-2">
-          <History size={18} className="text-cyber-primary" />
-          <h3 className="text-lg font-bold">Version History</h3>
-        </div>
-        <button onClick={onClose} className="text-gray-400 hover:text-white">
-          <X size={18} />
-        </button>
-      </div>
-      <div className="space-y-2 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
-        {versions.map((version) => (
-          <div
-            key={version.id}
-            className="p-3 bg-white/5 border border-white/10 rounded-lg hover:border-cyber-primary/50 cursor-pointer transition-all group"
-            onClick={() => {
-              if (
-                confirm(
-                  `Are you sure you want to load version "${version.label || version.id}"? This will overwrite your current unsaved changes.`,
-                )
-              ) {
-                if (isRestoring) return;
-                onLoadVersion(version);
-              }
-            }}
-          >
-            <div className="flex justify-between items-start mb-1">
-              <span className="font-bold text-sm text-gray-200 group-hover:text-cyber-primary">
-                {version.label || "Untitled Version"}
-              </span>
-              <span className="text-[10px] text-gray-500 font-mono">
-                {new Date(version.timestamp).toLocaleTimeString()}
-              </span>
-            </div>
-            <div className="text-[10px] text-gray-500">
-              {new Date(version.timestamp).toLocaleDateString()} •{" "}
-              {version.data.nodes?.length || 0} nodes
-            </div>
-            {isRestoring && (
-              <div className="mt-2 text-[10px] text-cyber-primary uppercase tracking-wider">
-                Restoring...
+    <Panel position="top-right" className="m-4 w-[320px] z-50 animate-in fade-in slide-in-from-right-2 duration-200">
+      <CyberPanel
+        title="TIMELINE"
+        icon={History}
+        onClose={onClose}
+        className="border-cyber-primary/20 bg-black/80 backdrop-blur-xl"
+        maxHeight="80vh"
+      >
+        <div className="p-2 space-y-1 scrollbar-hide overflow-y-auto max-h-[60vh]">
+          {versions.length === 0 ? (
+            <div className="text-center py-8 opacity-20 text-[10px] uppercase font-black tracking-widest">No_Artifacts</div>
+          ) : (
+            versions.map((v) => (
+              <div
+                key={v.id}
+                className="group p-2 bg-black/40 border border-white/5 rounded hover:border-cyber-primary/40 cursor-pointer transition-all"
+                onClick={() => confirm(`RESTORE: ${v.label || v.id}?`) && !isRestoring && onLoadVersion(v)}
+              >
+                <div className="flex justify-between items-start mb-1">
+                  <span className="text-[10px] font-bold uppercase text-white/50 group-hover:text-cyber-primary truncate pr-2">
+                    {v.label || "Auto_Backup"}
+                  </span>
+                  <span className="text-[9px] font-mono text-white/20">{v.data.nodes?.length || 0}N</span>
+                </div>
+                <div className="flex justify-between items-center text-[8px] font-mono opacity-30">
+                  <span>{new Date(v.timestamp).toLocaleDateString()}</span>
+                  <span>{new Date(v.timestamp).toLocaleTimeString()}</span>
+                </div>
               </div>
-            )}
-          </div>
-        ))}
-        {versions.length === 0 && (
-          <div className="text-center py-8 text-gray-500 italic text-sm border border-dashed border-white/10 rounded-lg">
-            No versions recorded yet.
-          </div>
-        )}
-      </div>
-      <div className="mt-4 text-[10px] text-gray-500 italic text-center">
-        Versions are automatically created every time you save.
-      </div>
-    </div>
+            ))
+          )}
+        </div>
+      </CyberPanel>
+    </Panel>
   );
 });
 
@@ -2356,17 +2306,11 @@ const Flow = () => {
         onValidateFlow={onValidateFlow}
         setIsPlaygroundOpen={setIsPlaygroundOpen}
         setIsFlowManagerOpen={setIsFlowManagerOpen}
-        setIsToolsMenuOpen={setIsToolsMenuOpen}
-        isToolsMenuOpen={isToolsMenuOpen}
         setIsVariablesPanelOpen={setIsVariablesPanelOpen}
-        isVariablesPanelOpen={isVariablesPanelOpen}
         setIsVersionHistoryOpen={setIsVersionHistoryOpen}
-        isVersionHistoryOpen={isVersionHistoryOpen}
         validationLocale={validationLocale}
         setValidationLocale={setValidationLocale}
-        showShortcutHelp={showShortcutHelp}
         setShowShortcutHelp={setShowShortcutHelpExclusive}
-        showCommandPalette={showCommandPalette}
         setShowCommandPalette={setShowCommandPalette}
         importInputRef={importInputRef}
         onImport={onImport}
@@ -2391,7 +2335,7 @@ const Flow = () => {
         isOnline={isOnline}
       />
 
-      <div className="flex-1 min-h-0 min-w-0 flex overflow-hidden">
+      <div className="flex-1 min-h-0 min-w-0 flex overflow-hidden relative">
         <Sidebar onAddNode={onAddNode} />
 
         {/* React Flow Canvas */}
@@ -2417,47 +2361,48 @@ const Flow = () => {
             autoPanOnNodeDrag={true}
             autoPanOnConnect={true}
             className="bg-cyber-dark"
-            minZoom={0.2}
-            maxZoom={2}
+            minZoom={0.1}
+            maxZoom={4}
             defaultEdgeOptions={{
               type: "cyberEdge",
               animated: true,
-              style: { stroke: "#4b5563", strokeWidth: 1.5 },
+              style: { stroke: "rgba(0, 240, 255, 0.2)", strokeWidth: 1 },
             }}
           >
             <Background
-              variant={BackgroundVariant.Lines}
-              gap={32}
-              size={1}
-              color="#1a1a1a"
-              className="bg-cyber-dark"
+              variant={BackgroundVariant.Dots}
+              gap={24}
+              size={0.5}
+              color="#111"
+              className="bg-black"
             />
 
             <Controls
-              position="top-left"
-              className="!bg-cyber-panel !border-cyber-border !rounded-lg overflow-hidden !m-6 shadow-2xl"
+              position="top-right"
+              className="!bg-black/40 !backdrop-blur-md !border-white/5 !rounded-lg !m-4 !shadow-none opacity-20 hover:opacity-100 transition-all duration-500 scale-75 origin-top-right"
             />
 
             {showMinimap && (
               <MiniMap
+                nodeStrokeWidth={3}
                 nodeColor={(n) => {
-                  if (n.type === "cyberGroup")
-                    return "rgba(255, 255, 255, 0.1)";
+                  if (n.type === "cyberGroup") return "rgba(255, 255, 255, 0.02)";
                   const node = n as CustomNodeType;
                   const type = node.data.type || "";
                   if (type === "Agent") return "#7000ff";
-                  if (type === "LanguageModelComponent") return "#a855f7";
+                  if (type.includes("LLM") || type.includes("LanguageModel")) return "#a855f7";
                   if (type.includes("Tool")) return "#f59e0b";
                   return "#00f0ff";
                 }}
                 maskColor="rgba(0, 0, 0, 0.8)"
-                className="!bg-cyber-panel/50 !border-cyber-border !rounded-xl !bottom-8 !right-8 shadow-2xl"
+                className="!bg-black/40 !backdrop-blur-md !border-white/5 !rounded-lg !bottom-4 !right-4 !shadow-none !w-[140px] !h-[100px] opacity-40 hover:opacity-100 transition-opacity"
               />
             )}
 
             <ValidationPanel
               flowIssues={flowIssues}
               focusIssueNode={focusIssueNode}
+              onClose={() => setFlowIssues([])}
             />
 
             <ShortcutHelp
@@ -2465,7 +2410,6 @@ const Flow = () => {
               setShowShortcutHelp={setShowShortcutHelpExclusive}
             />
           </ReactFlow>
-
 
           <CanvasSearch
             isOpen={isCanvasSearchOpen}
@@ -2480,8 +2424,6 @@ const Flow = () => {
             data={(currentConfigNode?.data as CustomNodeType['data'] | undefined) || { label: '', type: '', configSchema: [] }}
             updateNodeData={updateNodeDataById}
             handleParamChange={handleConfigParamChange}
-            highlightedField={highlightedConfigField}
-            configFieldRefs={configFieldRefs}
             globalVariables={globalVariables}
           />
         </div>
@@ -2490,6 +2432,7 @@ const Flow = () => {
           isLogsOpen={isLogsOpen}
           setIsLogsOpen={setIsLogsOpenExclusive}
           executionLogs={executionLogs}
+          onClear={() => setExecutionLogs([])}
         />
       </div>
 

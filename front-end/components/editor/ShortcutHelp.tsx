@@ -1,5 +1,7 @@
 import React from "react";
 import { Panel } from "@xyflow/react";
+import { CyberBadge, CyberListItem, CyberPanel } from "../shared/CyberUI";
+import { Keyboard } from "lucide-react";
 
 interface ShortcutHelpProps {
   showShortcutHelp: boolean;
@@ -12,51 +14,42 @@ const ShortcutHelp: React.FC<ShortcutHelpProps> = ({
 }) => {
   if (!showShortcutHelp) return null;
 
+  const shortcuts = [
+    { label: "Save", key: "Ctrl/Cmd+S" },
+    { label: "Run Flow", key: "Ctrl/Cmd+Enter" },
+    { label: "Smart Layout", key: "Ctrl+Shift+L" },
+    { label: "Minimap", key: "Ctrl+Shift+M" },
+    { label: "Command Palette", key: "Ctrl/Cmd+K" },
+    { label: "Copy / Paste", key: "Ctrl+C / V" },
+    { label: "Undo / Redo", key: "Ctrl+Z / Y" },
+    { label: "Delete", key: "Del / BS" },
+  ];
+
   return (
-    <Panel position="bottom-left" className="m-4 max-w-[360px] m-b-16 z-50">
-      <div className="bg-cyber-panel/95 border border-cyber-border rounded-xl shadow-2xl overflow-hidden">
-        <div className="px-3 py-2 border-b border-white/10 flex items-center justify-between bg-black/30">
-          <span className="text-[10px] font-mono uppercase tracking-widest text-cyber-primary">
-            Keyboard Shortcuts
-          </span>
-          <button
-            onClick={() => setShowShortcutHelp(false)}
-            className="text-[10px] text-gray-400 hover:text-white"
-          >
-            ESC
-          </button>
+    <Panel position="bottom-left" className="m-4 z-40 animate-in slide-in-from-bottom-4 duration-300">
+      <CyberPanel
+        title="SHORTCUTS"
+        icon={Keyboard}
+        onClose={() => setShowShortcutHelp(false)}
+        className="w-72 border-cyber-primary/20 bg-black/80 backdrop-blur-xl"
+      >
+        <div className="p-2 space-y-0.5">
+          {shortcuts.map((s, idx) => (
+            <CyberListItem
+              key={idx}
+              className="items-center justify-between rounded px-3 py-1.5 hover:bg-white/5"
+              action={<CyberBadge label={s.key} size="sm" />}
+            >
+              <span className="text-[9px] text-white/40 uppercase font-black tracking-wider group-hover:text-white/60 transition-colors">
+                {s.label}
+              </span>
+            </CyberListItem>
+          ))}
         </div>
-        <div className="p-3 grid grid-cols-2 gap-x-4 gap-y-1 text-[11px]">
-          <span className="text-gray-300">Save</span>
-          <span className="text-cyber-primary">Ctrl/Cmd+S</span>
-          <span className="text-gray-300">Validate</span>
-          <span className="text-cyber-primary">Ctrl/Cmd+Shift+K</span>
-          <span className="text-gray-300">Deploy</span>
-          <span className="text-cyber-primary">Ctrl/Cmd+Enter</span>
-          <span className="text-gray-300">Smart Layout</span>
-          <span className="text-cyber-primary">Ctrl/Cmd+Shift+L</span>
-          <span className="text-gray-300">Group/Ungroup</span>
-          <span className="text-cyber-primary">Ctrl/Cmd+Shift+G/U</span>
-          <span className="text-gray-300">Minimap/Fit</span>
-          <span className="text-cyber-primary">Ctrl/Cmd+Shift+M/F</span>
-          <span className="text-gray-300">Export/Import</span>
-          <span className="text-cyber-primary">Ctrl/Cmd+Shift+E/I</span>
-          <span className="text-gray-300">Copy/Paste</span>
-          <span className="text-cyber-primary">Ctrl+C/V</span>
-          <span className="text-gray-300">Duplicate</span>
-          <span className="text-cyber-primary">Ctrl+D</span>
-          <span className="text-gray-300">Delete</span>
-          <span className="text-cyber-primary">Del/BS</span>
-          <span className="text-gray-300">Undo/Redo</span>
-          <span className="text-cyber-primary">Ctrl+Z/Y</span>
-          <span className="text-gray-300">Toggle Help</span>
-          <span className="text-cyber-primary">Ctrl/Cmd+Shift+/</span>
-          <span className="text-gray-300">Command Palette</span>
-          <span className="text-cyber-primary">Ctrl/Cmd+K</span>
-        </div>
-      </div>
+      </CyberPanel>
     </Panel>
   );
 };
 
 export default ShortcutHelp;
+

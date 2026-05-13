@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Panel } from '@xyflow/react';
 import { ResultPreview } from './node-parts/ResultPreview';
+import { CyberPanel } from './shared/CyberUI';
+import { Eye } from 'lucide-react';
 
 type PreviewDetail = { output?: unknown; title?: string };
 
@@ -33,16 +35,19 @@ const GlobalPreview: React.FC = () => {
   if (!isOpen) return null;
 
   return (
-    <Panel position="top-right" className="m-4 w-[min(420px,95%)] z-50">
-      <div className="bg-cyber-panel/95 border border-cyber-border rounded-xl shadow-2xl overflow-hidden">
-        <div className="px-3 py-2 border-b border-white/10 flex items-center justify-between bg-black/30">
-          <span className="text-[10px] font-mono uppercase tracking-widest text-cyber-primary">{title}</span>
-          <button onClick={() => setIsOpen(false)} className="text-[10px] text-gray-400 hover:text-white">ESC</button>
+    <Panel position="top-right" className="m-4 w-[min(480px,95%)] z-50 animate-in fade-in slide-in-from-right-4 duration-300">
+      <CyberPanel
+        title={title.toUpperCase()}
+        icon={Eye}
+        onClose={() => setIsOpen(false)}
+        className="shadow-[0_0_50px_rgba(0,0,0,0.5)] border-cyber-primary/20"
+      >
+        <div className="p-1 max-h-[70vh] overflow-auto scrollbar-hide">
+          <div className="bg-black/20 rounded-lg p-2">
+            <ResultPreview output={content} />
+          </div>
         </div>
-        <div className="p-3 max-h-[60vh] overflow-auto">
-          <ResultPreview output={content} />
-        </div>
-      </div>
+      </CyberPanel>
     </Panel>
   );
 };

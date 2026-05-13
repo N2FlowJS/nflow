@@ -1,5 +1,7 @@
 import React from "react";
 import { CommandAction } from "../../types/editor";
+import { CyberPanel } from "../shared/CyberUI";
+import { Command } from "lucide-react";
 
 interface CommandPaletteProps {
   showCommandPalette: boolean;
@@ -25,62 +27,97 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({
   if (!showCommandPalette) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-[1px] flex items-start justify-center pt-[12vh] px-4">
-      <div className="w-full max-w-[680px] bg-cyber-panel/95 border border-cyber-border rounded-2xl shadow-2xl overflow-hidden">
-        <div className="px-4 py-3 border-b border-white/10 flex items-center gap-3">
-          <span className="text-xs font-mono uppercase tracking-widest text-cyber-primary">
-            Command Palette
-          </span>
-          <span className="text-[10px] text-gray-400">
-            Enter to run · Esc to close
-          </span>
-        </div>
-        <div className="p-3 border-b border-white/10">
-          <input
-            ref={commandInputRef}
-            value={commandQuery}
-            onChange={(e) => {
-              setCommandQuery(e.target.value);
-              setCommandIndex(0);
-            }}
-            placeholder="Type a command: save, validate, layout, export..."
-            className="w-full bg-black/30 border border-white/10 rounded-lg px-3 py-2 text-sm outline-none focus:border-cyber-primary/50"
-          />
-        </div>
-        <div className="max-h-[420px] overflow-y-auto p-2 space-y-1">
-          {filteredCommands.length === 0 ? (
-            <div className="px-3 py-6 text-center text-sm text-gray-400">
-              No command found.
-            </div>
-          ) : (
-            filteredCommands.map((command, idx) => (
-              <button
-                key={command.id}
-                onClick={() => {
-                  command.run();
-                  setShowCommandPalette(false);
+    <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-md flex items-start justify-center pt-[12vh] px-4 animate-in fade-in duration-300">
+      <div className="w-full max-w-[600px] pointer-events-auto">
+        <CyberPanel
+          title="Neural Command Interface"
+          icon={Command}
+          onClose={() => setShowCommandPalette(false)}
+          className="shadow-[0_0_100px_rgba(0,0,0,0.8)] border-cyber-primary/20"
+          actions={
+            <span className="text-[9px] text-white/20 font-mono uppercase tracking-[0.2em]">
+              Exec: Enter
+            </span>
+          }
+        >
+          <div className="flex flex-col h-full">
+            <div className="p-4 bg-black/40 border-b border-white/5">
+              <input
+                ref={commandInputRef}
+                value={commandQuery}
+                onChange={(e) => {
+                  setCommandQuery(e.target.value);
+                  setCommandIndex(0);
                 }}
-                className={`w-full text-left px-3 py-2 rounded-lg border transition-colors ${
-                  idx === commandIndex
-                    ? "bg-cyber-primary/20 border-cyber-primary/40"
-                    : "bg-white/5 border-white/10 hover:bg-white/10"
-                }`}
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <div>
-                    <div className="text-sm text-white">{command.label}</div>
-                    <div className="text-[10px] uppercase tracking-wider text-cyber-muted">
-                      {command.group}
-                    </div>
-                  </div>
-                  <div className="text-[10px] font-mono text-cyber-primary/90">
-                    {command.shortcut}
-                  </div>
+                placeholder="Initialize instruction: save, layout, export..."
+                className="w-full bg-black/60 border border-cyber-primary/20 rounded-xl px-5 py-4 text-lg text-white placeholder:text-white/10 focus:outline-none focus:border-cyber-primary focus:shadow-[0_0_15px_rgba(0,240,255,0.2)] transition-all font-sans"
+                autoFocus
+                onKeyDown={(e) => {
+                   if (e.key === 'Escape') setShowCommandPalette(false);
+                }}
+              />
+            </div>
+            
+            <div className="flex-1 overflow-y-auto max-h-[400px] p-2 space-y-1 bg-black/20 scrollbar-hide">
+              {filteredCommands.length === 0 ? (
+                <div className="py-20 flex flex-col items-center justify-center opacity-10 gap-2">
+                  <Command size={48} />
+                  <span className="text-xs font-black uppercase tracking-[0.3em]">Command_Not_Found</span>
                 </div>
-              </button>
-            ))
-          )}
-        </div>
+              ) : (
+                filteredCommands.map((command, idx) => {
+                  const isActive = idx === commandIndex;
+                  return (
+                    <button
+                      key={command.id}
+                      onClick={() => {
+                        command.run();
+                        setShowCommandPalette(false);
+                      }}
+                      className={`w-full text-left px-5 py-3 rounded-xl transition-all flex items-center justify-between gap-4 border ${
+                        isActive
+                          ? "bg-cyber-primary/10 border-cyber-primary/40 shadow-[inset_0_0_15px_rgba(0,240,255,0.05)] scale-[1.01]"
+                          : "bg-transparent border-transparent hover:bg-white/5"
+                      }`}
+                    >
+                      <div className="flex flex-col min-w-0">
+                        <div className={`text-sm font-black tracking-wide transition-colors ${isActive ? "text-cyber-primary" : "text-white/60"}`}>
+                          {command.label}
+                        </div>
+                        <div className="text-[9px] uppercase tracking-[0.15em] text-white/20 font-black">
+                          {command.group}
+                        </div>
+                      </div>
+                      {command.shortcut && (
+                        <div className={`text-[10px] font-mono px-2 py-1 rounded-lg border transition-all ${
+                          isActive 
+                            ? "bg-cyber-primary text-black border-cyber-primary font-black shadow-[0_0_10px_rgba(0,240,255,0.5)]" 
+                            : "bg-black/40 text-white/20 border-white/5"
+                        }`}>
+                          {command.shortcut}
+                        </div>
+                      )}
+                    </button>
+                  );
+                })
+              )}
+            </div>
+            
+            <div className="p-3 bg-black/60 border-t border-white/5 flex justify-between items-center px-6">
+              <div className="flex gap-4">
+                <div className="flex items-center gap-2 opacity-30">
+                  <span className="text-[9px] font-mono bg-white/10 px-1 rounded">↑↓</span>
+                  <span className="text-[8px] font-black uppercase tracking-tighter">Navigate</span>
+                </div>
+                <div className="flex items-center gap-2 opacity-30">
+                  <span className="text-[9px] font-mono bg-white/10 px-1 rounded">ESC</span>
+                  <span className="text-[8px] font-black uppercase tracking-tighter">Close</span>
+                </div>
+              </div>
+              <span className="text-[8px] text-white/10 font-black uppercase tracking-[0.3em]">Interface V2.4.0</span>
+            </div>
+          </div>
+        </CyberPanel>
       </div>
     </div>
   );
