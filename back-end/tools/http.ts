@@ -1,10 +1,10 @@
 import { ToolHandler } from './registry';
-import { getNodeFieldValue } from '../utils/common';
-import { isInternalUrl } from './utils';
+import { isInternalUrl, extractNodeConfig } from './utils';
 
 export const httpHandler: ToolHandler = async (node, args) => {
-  const method = String(getNodeFieldValue(node, 'method') || 'GET');
-  let url = String(getNodeFieldValue(node, 'url') || args.query || '');
+  const config = extractNodeConfig(node, ['method', 'url']);
+  const method = String(config.method || 'GET');
+  let url = String(config.url || args.query || '');
   if (typeof url === 'string' && url.includes('{query}')) {
     url = url.replace('{query}', encodeURIComponent(args.query || ''));
   }

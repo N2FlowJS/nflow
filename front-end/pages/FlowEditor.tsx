@@ -85,6 +85,7 @@ import {
 } from "../types/editor";
 import { API_BASE, fetchWithAuth } from "../lib/api";
 import { apiService } from "../lib/apiService";
+import { Button, Input } from "../components/ui";
 
 const nodeTypes: NodeTypes = {
   cyberNode: CyberNode as any,
@@ -144,30 +145,29 @@ const VariablesPanel: React.FC<{
       <div className="space-y-2 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
         {variables.map((variable) => (
           <div key={variable.id} className="flex items-center gap-2">
-            <input
-              type="text"
+            <Input
               value={variable.name}
               onChange={(e) =>
                 handleUpdate(variable.id, "name", e.target.value)
               }
-              className="bg-white/5 border border-white/10 rounded px-2 py-1 text-sm w-1/3 focus:border-cyber-primary outline-none"
-              placeholder="Name, eg NVIDIA_API_KEY"
+              className="w-1/3"
+              placeholder="Name"
             />
-            <input
-              type="text"
+            <Input
               value={variable.value}
               onChange={(e) =>
                 handleUpdate(variable.id, "value", e.target.value)
               }
-              className="bg-white/5 border border-white/10 rounded px-2 py-1 text-sm w-2/3 focus:border-cyber-primary outline-none"
-              placeholder="Secret value used at runtime"
+              className="w-2/3"
+              placeholder="Value"
             />
-            <button
+            <Button
+              variant="outline"
               onClick={() => handleDelete(variable.id)}
-              className="p-1 text-red-500 hover:text-red-400 hover:bg-red-500/10 rounded"
+              className="p-1 px-1.5 h-8 text-red-500 border-red-500/30 hover:bg-red-500/20 hover:text-red-400"
             >
-              <Trash2 size={16} />
-            </button>
+              <Trash2 size={14} />
+            </Button>
           </div>
         ))}
         {variables.length === 0 && (
@@ -176,13 +176,12 @@ const VariablesPanel: React.FC<{
           </div>
         )}
       </div>
-      <button
+      <Button
         onClick={handleAdd}
-        className="mt-4 w-full bg-cyber-primary/10 text-cyber-primary border border-cyber-primary/30 py-2 rounded hover:bg-cyber-primary/20 transition-colors flex items-center justify-center gap-2 font-bold text-sm"
+        className="mt-4 w-full"
       >
-        <Plus size={16} />
-        Add Variable
-      </button>
+        <Plus size={16} className="mr-2" /> Add Variable
+      </Button>
     </div>
   );
 });

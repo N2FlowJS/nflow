@@ -1,9 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Panel } from '@xyflow/react';
 import type { CustomNodeType, NodeData } from '@n2flow/types';
-import { Settings, X, Hash, Type, List, FileText, ToggleLeft, Link, Eye, EyeOff } from 'lucide-react';
+import { Settings, X, Hash, Type, List, FileText, ToggleLeft, Link, Eye, EyeOff, Search } from 'lucide-react';
 import { getNodeFieldValue } from '../../../back-end/node-registry';
 import NumberInput from '../ui/NumberInput';
+import { Input, Button, TextArea, Select } from '../ui';
 import { apiService } from '../../lib/apiService';
 import { maskSecretValue, looksLikeSecret } from '../../lib/utils';
 import type { GlobalVariable } from '../../types/editor';
@@ -181,14 +182,11 @@ export const NodeConfigModal = ({
           </button>
         </div>
 
-        <div className="p-4 space-y-4 max-h-[75vh] overflow-y-auto">
+        <div className="p-4 space-y-4 max-h-[75vh] overflow-y-auto custom-scrollbar">
           <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <FileText size={12} className="text-gray-500" />
-              <label className="text-[10px] text-gray-400 uppercase tracking-wider">Description</label>
-            </div>
-            <textarea
-              className="nodrag nowheel w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2.5 text-[12px] text-white placeholder-gray-600 focus:border-cyber-primary/50 focus:ring-1 focus:ring-cyber-primary/20 outline-none min-h-[80px] resize-none transition-all"
+            <TextArea
+              label="Description"
+              className="nodrag nowheel"
               value={data.description || ''}
               onFocus={() => window.dispatchEvent(new CustomEvent('takeSnapshot'))}
               onChange={(e) => updateNodeData({ description: e.target.value })}
@@ -219,70 +217,74 @@ export const NodeConfigModal = ({
                     {field.label}
                   </label>
                   {field.name === 'model' && canFetchModels && (
-                    <button
-                      type="button"
+                    <Button
+                      size="sm"
+                      variant="outline"
                       onClick={() => tryFetchModels(baseVal, apiKeyVal)}
-                      disabled={modelsLoading}
-                      className="text-[10px] px-3 py-1 bg-cyber-primary/10 hover:bg-cyber-primary/20 border border-cyber-primary/30 text-cyber-primary rounded-md transition-colors disabled:opacity-50"
+                      loading={modelsLoading}
+                      className="text-[10px] min-h-0 py-1"
                     >
-                      {modelsLoading ? 'Loading...' : 'Fetch Models'}
-                    </button>
+                      Fetch Models
+                    </Button>
                   )}
                 </div>
 
                 {field.name === 'model' && canFetchModels ? (
                   <div>
                     {models.length > 0 ? (
-                      <select
-                        ref={(el) => { configFieldRefs.current[field.name] = el; }}
-                        className="nodrag w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2.5 text-[12px] text-white focus:border-cyber-primary/50 focus:ring-1 focus:ring-cyber-primary/20 outline-none transition-all cursor-pointer"
+                      <Select
+                        ref={(el) => { if (el) configFieldRefs.current[field.name] = el; }}
+                        className="nodrag"
                         onFocus={() => window.dispatchEvent(new CustomEvent('takeSnapshot'))}
                         value={String(getNodeFieldValue(data, field.name) ?? '')}
                         onChange={(e) => handleParamChange(field.name, e.target.value)}
+                        icon={Search}
                       >
                         <option value="" className="text-gray-500">-- Select Model --</option>
                         {models.map((m, index) => (
-                          <option key={`${m}-${index}`} value={m} className="text-white">
+                          <option key={`${m}-${index}`} value={m} className="bg-slate-900">
                             {m}
                           </option>
                         ))}
-                      </select>
+                      </Select>
                     ) : (
                       <div className="space-y-2">
-                        <input
-                          ref={(el) => { configFieldRefs.current[field.name] = el; }}
-                          type="text"
-                          className="nodrag w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2.5 text-[12px] text-white focus:border-cyber-primary/50 focus:ring-1 focus:ring-cyber-primary/20 outline-none transition-all"
+                        <Input
+                          ref={(el) => { if (el) configFieldRefs.current[field.name] = el; }}
+                          className="nodrag"
                           onFocus={() => window.dispatchEvent(new CustomEvent('takeSnapshot'))}
                           value={String(getNodeFieldValue(data, field.name) ?? '')}
                           onChange={(e) => handleParamChange(field.name, e.target.value)}
                           placeholder="Enter model name..."
                         />
-                        {modelsError && <div className="text-[10px] text-amber-400">{modelsError}</div>}
+                        {modelsError && <div className="text-[10px] text-amber-400 font-mono flex items-center gap-1">
+                          <span className="w-1 h-1 rounded-full bg-amber-500 animate-pulse" />
+                          {modelsError}
+                        </div>}
                       </div>
                     )}
                   </div>
                 ) : field.type === 'select' ? (
-                  <div className="relative">
-                    <select
-                      ref={(el) => { configFieldRefs.current[field.name] = el; }}
-                      className="nodrag w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2.5 text-[12px] text-white focus:border-cyber-primary/50 focus:ring-1 focus:ring-cyber-primary/20 outline-none transition-all cursor-pointer appearance-none"
-                      onFocus={() => window.dispatchEvent(new CustomEvent('takeSnapshot'))}
-                      value={String(getNodeFieldValue(data, field.name) ?? '')}
-                      onChange={(e) => handleParamChange(field.name, e.target.value)}
-                    >
-                      {field.options?.map((opt) => <option key={opt} value={opt} className="text-white">{opt}</option>)}
-                    </select>
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                      <List size={14} className="text-gray-500" />
-                    </div>
-                  </div>
-                ) : field.type === 'textarea' ? (
-                  <textarea
-                    ref={(el) => { configFieldRefs.current[field.name] = el; }}
-                    className="nodrag nowheel w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2.5 text-[12px] text-white placeholder-gray-600 focus:border-cyber-primary/50 focus:ring-1 focus:ring-cyber-primary/20 outline-none min-h-[100px] resize-none transition-all"
+                  <Select
+                    ref={(el) => { if (el) configFieldRefs.current[field.name] = el; }}
+                    className="nodrag"
                     onFocus={() => window.dispatchEvent(new CustomEvent('takeSnapshot'))}
-                      value={String(getNodeFieldValue(data, field.name) ?? '')}
+                    value={String(getNodeFieldValue(data, field.name) ?? '')}
+                    onChange={(e) => handleParamChange(field.name, e.target.value)}
+                    icon={List}
+                  >
+                    {field.options?.map((opt) => (
+                      <option key={opt} value={opt} className="bg-slate-900">
+                        {opt}
+                      </option>
+                    ))}
+                  </Select>
+                ) : field.type === 'textarea' ? (
+                  <TextArea
+                    ref={(el) => { if (el) configFieldRefs.current[field.name] = el; }}
+                    className="nodrag nowheel"
+                    onFocus={() => window.dispatchEvent(new CustomEvent('takeSnapshot'))}
+                    value={String(getNodeFieldValue(data, field.name) ?? '')}
                     onChange={(e) => handleParamChange(field.name, e.target.value)}
                   />
                 ) : field.type === 'number' ? (

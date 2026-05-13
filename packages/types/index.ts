@@ -151,6 +151,39 @@ export interface FlowRuntimeEvent {
   executionId?: string;
 }
 
+/**
+ * Regular expression for placeholders like {{variable}}
+ */
+export const PLACEHOLDER_REGEX = /\{\{\s*([^{}]+?)\s*\}\}/g;
+
+/**
+ * Common Logic for Placeholder Validation (Server & Client)
+ */
+export const validatePlaceholdersInString = (
+  value: string, 
+  availableNames: Set<string>,
+  checkEnv = false
+): string | null => {
+  const matches = value.matchAll(PLACEHOLDER_REGEX);
+
+  for (const match of matches) {
+    const placeholderName = String(match[1] || '').trim();
+    if (!placeholderName) continue;
+
+    const exists = availableNames.has(placeholderName);
+    if (!exists) {
+      if (checkEnv) {
+         // This check is specific to server environment
+         // We use any type to avoid global process type issues in pure TS
+         const env = (typeof process !== 'undefined' ? process.env : {}) as any;
+         if (env[placeholderName] !== undefined) continue;
+      }
+      return `Placeholder "{{${placeholderName}}}" could not be resolved`;
+    }
+  }
+  return null;
+};
+
 export const Utils = {
   /** Mask a sensitive string (API Key, Secret) */
   maskString: (v: string | unknown) => {

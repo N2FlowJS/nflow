@@ -1,14 +1,24 @@
 import { ToolHandler } from './registry';
-import { getNodeFieldValue, trimTrailingSlash, interpolate } from '../utils/common';
-import { fetchToolJson } from './utils';
+import { trimTrailingSlash, interpolate } from '../utils/common';
+import { fetchToolJson, extractNodeConfig } from './utils';
 
 export const gitlabHandler: ToolHandler = async (node, args) => {
-  const baseUrl = trimTrailingSlash(getNodeFieldValue(node, 'baseUrl') || 'https://gitlab.com/api/v4');
-  const projectIdRaw = String(getNodeFieldValue(node, 'projectId') || args.projectId || '').trim();
-  const mergeRequestIid = String(getNodeFieldValue(node, 'mergeRequestIid') || args.mergeRequestIid || args.iid || '').trim();
-  const action = String(getNodeFieldValue(node, 'action') || 'get_changes').trim();
-  const privateToken = String(getNodeFieldValue(node, 'privateToken') || args.privateToken || '').trim();
-  const noteBodyTemplate = String(getNodeFieldValue(node, 'noteBody') || 'Review from n2flow agent: {query}');
+  const config = extractNodeConfig(node, [
+    'baseUrl',
+    'projectId',
+    'mergeRequestIid',
+    'action',
+    'privateToken',
+    'noteBody'
+  ]);
+
+  const baseUrl = trimTrailingSlash(config.baseUrl || 'https://gitlab.com/api/v4');
+  const projectIdRaw = String(config.projectId || args.projectId || '').trim();
+  const mergeRequestIid = String(config.mergeRequestIid || args.mergeRequestIid || args.iid || '').trim();
+  const action = String(config.action || 'get_changes').trim();
+  const privateToken = String(config.privateToken || args.privateToken || '').trim();
+
+  const noteBodyTemplate = String(config.noteBody || 'Review from n2flow agent: {query}');
   const noteBody = interpolate(noteBodyTemplate, args);
 
   if (!projectIdRaw) return 'Error: GitLab projectId is required.';

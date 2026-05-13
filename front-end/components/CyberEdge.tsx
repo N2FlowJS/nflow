@@ -54,12 +54,10 @@ export default function CyberEdge({
       <BaseEdge path={edgePath} markerEnd={markerEnd} style={edgeStyle} />
       <EdgeLabelRenderer>
         <div
+          className="nodrag nopan group flex items-center gap-1 absolute pointer-events-auto"
           style={{
-            position: 'absolute',
             transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
-            pointerEvents: 'all',
           }}
-          className="nodrag nopan group flex items-center gap-1"
         >
           {label && (
             <div 

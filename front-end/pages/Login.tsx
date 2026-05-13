@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Lock, Mail, User, Eye, EyeOff } from 'lucide-react';
-import { API_BASE, bootstrapAuthSession, setAuthSession } from '../lib/api';
+import { bootstrapAuthSession, setAuthSession } from '../lib/api';
+import { apiService } from '../lib/apiService';
+import { Input, Button } from '../components/ui';
 
 interface AuthFormData {
   email: string;
@@ -79,13 +81,7 @@ export default function Login() {
             password: formData.password,
           };
 
-      const response = await fetch(`${API_BASE}${endpoint}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-
-      const result = await response.json();
+      const result = await apiService.post(endpoint, payload);
 
       if (!result.ok) {
         setError(result.error || 'Authentication failed');
@@ -149,114 +145,70 @@ export default function Login() {
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Email Field */}
-            <div>
-              <label className="block text-sm font-medium text-slate-200 mb-2">
-                Email
-              </label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-3 w-5 h-5 text-slate-500" />
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  placeholder="your@email.com"
-                  className="w-full bg-slate-900/50 border border-slate-600 rounded-lg pl-10 pr-4 py-2.5 text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 transition"
-                  required
-                />
-              </div>
-            </div>
+            <Input
+              label="Email"
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              placeholder="your@email.com"
+              icon={Mail}
+              required
+            />
 
-            {/* Username Field (Register only) */}
             {!isLogin && (
-              <div>
-                <label className="block text-sm font-medium text-slate-200 mb-2">
-                  Username
-                </label>
-                <div className="relative">
-                  <User className="absolute left-3 top-3 w-5 h-5 text-slate-500" />
-                  <input
-                    type="text"
-                    name="username"
-                    value={formData.username}
-                    onChange={handleChange}
-                    placeholder="username"
-                    className="w-full bg-slate-900/50 border border-slate-600 rounded-lg pl-10 pr-4 py-2.5 text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 transition"
-                  />
-                </div>
-              </div>
+              <Input
+                label="Username"
+                type="text"
+                name="username"
+                value={formData.username}
+                onChange={handleChange}
+                placeholder="username"
+                icon={User}
+              />
             )}
 
-            {/* Password Field */}
-            <div>
-              <label className="block text-sm font-medium text-slate-200 mb-2">
-                Password
-              </label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-3 w-5 h-5 text-slate-500" />
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  placeholder="••••••••"
-                  className="w-full bg-slate-900/50 border border-slate-600 rounded-lg pl-10 pr-10 py-2.5 text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 transition"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-3 text-slate-500 hover:text-slate-300 transition"
-                >
-                  {showPassword ? (
-                    <EyeOff className="w-5 h-5" />
-                  ) : (
-                    <Eye className="w-5 h-5" />
-                  )}
-                </button>
-              </div>
-              {!isLogin && (
-                <p className="text-xs text-slate-500 mt-1">
-                  Minimum 8 characters
-                </p>
-              )}
+            <div className="relative">
+              <Input
+                label="Password"
+                type={showPassword ? 'text' : 'password'}
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                placeholder="••••••••"
+                icon={Lock}
+                required
+                className="pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-[32px] text-slate-500 hover:text-slate-300 transition"
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
             </div>
 
-            {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-2.5 rounded-lg transition mt-6"
-            >
-              {loading ? (
-                <span className="flex items-center justify-center">
-                  <span className="animate-spin mr-2">⏳</span>
-                  {isLogin ? 'Signing in...' : 'Creating account...'}
-                </span>
-              ) : isLogin ? (
-                'Sign In'
-              ) : (
-                'Create Account'
-              )}
-            </button>
+            <Button type="submit" loading={loading} className="mt-6">
+              {isLogin ? 'Sign In' : 'Create Account'}
+            </Button>
           </form>
 
           {/* Toggle Form */}
           <div className="mt-6 text-center">
             <p className="text-slate-400 text-sm">
               {isLogin ? "Don't have an account?" : 'Already have an account?'}
-              <button
-                type="button"
+              <Button
+                variant="ghost"
+                className="ml-1"
                 onClick={() => {
                   setIsLogin(!isLogin);
                   setError('');
                   setFormData({ email: '', password: '', username: '' });
                 }}
-                className="text-cyan-400 hover:text-cyan-300 font-semibold ml-1 transition"
               >
                 {isLogin ? 'Sign Up' : 'Sign In'}
-              </button>
+              </Button>
             </p>
           </div>
 

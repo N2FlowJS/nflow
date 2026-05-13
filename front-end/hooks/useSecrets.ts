@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { fetchWithAuth } from '../lib/api';
+import { apiService } from '../lib/apiService';
 
 export interface Secret {
   id: string;
@@ -19,7 +19,7 @@ export const useSecrets = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetchWithAuth('/api/secrets');
+      const response = await apiService.get('/api/secrets');
       if (response.ok) {
         setSecrets(response.secrets || []);
       } else {
@@ -34,7 +34,7 @@ export const useSecrets = () => {
 
   const getSecretValue = async (secretId: string): Promise<string | null> => {
     try {
-      const response = await fetchWithAuth(`/api/secrets/${secretId}`);
+      const response = await apiService.get(`/api/secrets/${secretId}`);
       if (response.ok) {
         return response.secret?.key || null;
       }

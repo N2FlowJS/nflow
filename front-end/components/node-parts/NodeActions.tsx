@@ -1,5 +1,6 @@
 import React from "react";
 import { Play, Settings, Info, Trash2 } from "lucide-react";
+import { Button } from "../ui";
 
 interface NodeActionsProps {
   onRun: (e: React.MouseEvent) => void;
@@ -19,43 +20,56 @@ export const NodeActions = ({
   isDataOpen,
 }: NodeActionsProps) => {
   return (
-    <div className="absolute -top-10 left-0 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-      <button
+    <div className="absolute -top-11 left-0 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity z-10 bg-black/40 backdrop-blur-md p-1 rounded-xl border border-white/10 shadow-2xl">
+      <Button
+        size="sm"
+        variant="outline"
         onClick={(e) => {
           e.stopPropagation();
           onRun(e);
         }}
-        className="p-2 bg-black/60 border border-yellow-500/50 rounded-lg hover:bg-yellow-500 hover:text-black transition-all"
+        className="w-8 h-8 p-0 border-yellow-500/30 text-yellow-500 hover:bg-yellow-500 hover:text-black rounded-lg transition-all"
+        title="Run Node"
       >
         <Play size={14} fill="currentColor" />
-      </button>
-      <button
+      </Button>
+      <Button
+        size="sm"
+        variant={isConfigOpen ? "primary" : "outline"}
         onClick={(e) => {
           e.stopPropagation();
           onOpenConfig();
         }}
-        className={`p-2 bg-black/60 border border-cyber-primary/50 rounded-lg hover:bg-cyber-primary hover:text-black transition-all ${isConfigOpen ? "bg-cyber-primary" : "text-cyber-primary"}`}
+        className={`w-8 h-8 p-0 ${!isConfigOpen ? "border-cyber-primary/30 text-cyber-primary hover:bg-cyber-primary hover:text-black" : "text-black"} rounded-lg transition-all`}
+        title="Node Settings"
       >
         <Settings size={14} />
-      </button>
-      <button
+      </Button>
+      <Button
+        size="sm"
+        variant={isDataOpen ? "primary" : "outline"}
         onClick={(e) => {
           e.stopPropagation();
           onOpenData();
         }}
-        className={`p-2 bg-black/60 border border-cyan-500/50 rounded-lg hover:bg-cyan-500 hover:text-black transition-all ${isDataOpen ? "bg-cyan-500 text-black" : "text-cyan-400"}`}
+        className={`w-8 h-8 p-0 ${!isDataOpen ? "border-cyan-500/30 text-cyan-400 hover:bg-cyan-500 hover:text-black" : "text-black bg-cyan-500 border-cyan-500"} rounded-lg transition-all`}
+        title="Execution Data"
       >
         <Info size={14} />
-      </button>
-      <button
+      </Button>
+      <div className="w-px h-4 bg-white/10 my-auto mx-0.5" />
+      <Button
+        size="sm"
+        variant="danger"
         onClick={(e) => {
           e.stopPropagation();
           onDelete(e);
         }}
-        className="p-2 bg-black/60 border border-red-500/50 rounded-lg hover:bg-red-500 hover:text-white transition-all text-red-400"
+        className="w-8 h-8 p-0 border-transparent hover:bg-red-500 hover:text-white rounded-lg transition-all text-red-400"
+        title="Delete Node"
       >
         <Trash2 size={14} />
-      </button>
+      </Button>
     </div>
   );
 };

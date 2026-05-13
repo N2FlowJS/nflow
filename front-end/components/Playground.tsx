@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import { Send, Terminal, User, Bot, Sparkles, AlertCircle, X, Trash2 } from 'lucide-react';
 import Markdown from 'react-markdown';
 import { extractErrorMessage } from '../lib/utils';
+import { Button, Input } from './ui';
 
 type PlaygroundMessage = {
   role: string;
@@ -167,23 +168,27 @@ export default function Playground({
 
       {/* Input */}
       <div className="px-4 py-3 border-t border-cyber-border bg-black/20">
-        <div className="relative">
-          <input
+        <div className="flex gap-2">
+          <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }
+              if (e.key === 'Enter' && !e.shiftKey) { 
+                e.preventDefault(); 
+                handleSend(); 
+              }
             }}
             placeholder="Send a test message…"
-            className="w-full bg-cyber-dark border border-white/10 rounded-xl px-4 py-2.5 text-xs focus:border-cyber-primary outline-none transition-all pr-10"
+            className="flex-1"
           />
-          <button
+          <Button
             onClick={handleSend}
             disabled={!input.trim() || isTyping}
-            className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 bg-cyber-primary text-black rounded-lg hover:scale-110 active:scale-95 transition-all disabled:opacity-40 disabled:hover:scale-100"
+            className="px-3"
+            title="Send message"
           >
-            <Send size={13} />
-          </button>
+            <Send size={14} />
+          </Button>
         </div>
       </div>
     </div>

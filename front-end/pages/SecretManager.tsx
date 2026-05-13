@@ -1,6 +1,19 @@
 import React, { useState, useEffect } from 'react';
+import { 
+  Eye, 
+  Copy, 
+  RefreshCw, 
+  Edit2, 
+  Trash2, 
+  Plus, 
+  Search, 
+  ShieldCheck,
+  Check,
+  X
+} from 'lucide-react';
 import { Modal } from '../components/Modal';
 import { apiService } from '../lib/apiService';
+import { Input, Button } from '../components/ui';
 
 interface Secret {
   id: string;
@@ -183,88 +196,102 @@ const SecretManager: React.FC = () => {
   };
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2">Manage Secrets</h1>
-        <p className="text-gray-600">Store and manage your API keys and sensitive credentials securely</p>
+    <div className="p-6 max-w-7xl mx-auto min-h-screen bg-black/20">
+      <div className="flex justify-between items-end mb-8">
+        <div>
+          <h1 className="text-3xl font-bold mb-2 text-white flex items-center gap-3">
+            <ShieldCheck className="text-cyber-primary" size={32} />
+            Manage Secrets
+          </h1>
+          <p className="text-slate-400">Store and manage your API keys and sensitive credentials securely</p>
+        </div>
+        <Button
+          variant="primary"
+          onClick={handleOpenModal}
+          className="shadow-[0_0_20px_rgba(0,240,255,0.15)]"
+        >
+          <Plus size={16} className="mr-2" /> Add New Secret
+        </Button>
       </div>
 
       {error && (
-        <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+        <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 text-red-400 rounded-lg flex items-center gap-3">
+          <div className="h-2 w-2 rounded-full bg-red-500 animate-pulse" />
           {error}
         </div>
       )}
 
-      <button
-        onClick={handleOpenModal}
-        className="mb-6 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
-      >
-        + Add New Secret
-      </button>
-
       {loading ? (
-        <div className="text-center py-8 text-gray-500">Loading secrets...</div>
+        <div className="text-center py-8 text-slate-500">Loading secrets...</div>
       ) : secrets.length === 0 ? (
-        <div className="text-center py-8 text-gray-500">No secrets yet. Create one to get started.</div>
+        <div className="text-center py-8 text-slate-500">No secrets yet. Create one to get started.</div>
       ) : (
-        <div className="overflow-x-auto border rounded-lg">
+        <div className="overflow-x-auto border border-slate-700 rounded-xl bg-slate-800/30 backdrop-blur-sm shadow-xl">
           <table className="w-full">
             <thead>
-              <tr className="bg-gray-100 border-b">
-                <th className="px-4 py-3 text-left">Name</th>
-                <th className="px-4 py-3 text-left">Label</th>
-                <th className="px-4 py-3 text-left">Value Preview</th>
-                <th className="px-4 py-3 text-left">Last Used</th>
-                <th className="px-4 py-3 text-left">Created</th>
-                <th className="px-4 py-3 text-right">Actions</th>
+              <tr className="bg-slate-900/50 border-b border-slate-700">
+                <th className="px-6 py-4 text-left text-xs uppercase tracking-wider text-slate-400 font-semibold">Name</th>
+                <th className="px-6 py-4 text-left text-xs uppercase tracking-wider text-slate-400 font-semibold">Label</th>
+                <th className="px-6 py-4 text-left text-xs uppercase tracking-wider text-slate-400 font-semibold">Value Preview</th>
+                <th className="px-6 py-4 text-left text-xs uppercase tracking-wider text-slate-400 font-semibold">Last Used</th>
+                <th className="px-6 py-4 text-left text-xs uppercase tracking-wider text-slate-400 font-semibold">Created</th>
+                <th className="px-6 py-4 text-right text-xs uppercase tracking-wider text-slate-400 font-semibold">Actions</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-slate-800">
               {secrets.map((secret) => (
-                <tr key={secret.id} className="border-b hover:bg-gray-50">
-                  <td className="px-4 py-3 font-medium">{secret.name}</td>
-                  <td className="px-4 py-3 text-sm text-gray-600">{secret.label || '-'}</td>
-                  <td className="px-4 py-3 font-mono text-sm">{secret.key}</td>
-                  <td className="px-4 py-3 text-sm text-gray-600">
+                <tr key={secret.id} className="hover:bg-cyan-500/5 transition-colors">
+                  <td className="px-6 py-4 font-medium text-slate-200">{secret.name}</td>
+                  <td className="px-6 py-4 text-sm text-slate-400">{secret.label || '-'}</td>
+                  <td className="px-6 py-4 font-mono text-sm text-cyan-400/80">{secret.key}</td>
+                  <td className="px-6 py-4 text-sm text-slate-400">
                     {secret.lastUsedAt ? formatDate(secret.lastUsedAt) : '-'}
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-600">{formatDate(secret.createdAt)}</td>
-                  <td className="px-4 py-3 text-right space-x-2">
-                    <button
+                  <td className="px-6 py-4 text-sm text-slate-400">{formatDate(secret.createdAt)}</td>
+                  <td className="px-6 py-4 text-right space-x-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
                       onClick={() => handleRevealSecret(secret.id)}
-                      className="text-xs px-2 py-1 bg-gray-200 rounded hover:bg-gray-300 transition"
                       title="Reveal the full secret value"
+                      className="border-white/10 hover:border-cyber-primary/50"
                     >
-                      👁️ View
-                    </button>
-                    <button
+                      <Eye size={12} className="mr-1" /> View
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={copiedId === secret.id ? "primary" : "outline"}
                       onClick={() => handleCopyToClipboard(secret.id)}
-                      className={`text-xs px-2 py-1 rounded transition ${
-                        copiedId === secret.id ? 'bg-green-200' : 'bg-gray-200 hover:bg-gray-300'
-                      }`}
+                      className={copiedId === secret.id ? "" : "border-white/10 hover:border-cyber-primary/50"}
                       title="Copy to clipboard"
                     >
-                      {copiedId === secret.id ? '✓ Copied' : '📋 Copy'}
-                    </button>
-                    <button
+                      {copiedId === secret.id ? <Check size={12} className="mr-1" /> : <Copy size={12} className="mr-1" />}
+                      {copiedId === secret.id ? 'Copied' : 'Copy'}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
                       onClick={() => handleRegenerateSecret(secret.id)}
-                      className="text-xs px-2 py-1 bg-yellow-200 rounded hover:bg-yellow-300 transition"
+                      className="text-amber-400 border-amber-500/20 hover:bg-amber-500/10 hover:border-amber-500/50"
                       title="Generate a new value"
                     >
-                      🔄 Regen
-                    </button>
-                    <button
+                      <RefreshCw size={12} className="mr-1" /> Regen
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
                       onClick={() => handleEditSecret(secret)}
-                      className="text-xs px-2 py-1 bg-blue-200 rounded hover:bg-blue-300 transition"
+                      className="text-cyan-400 border-cyan-500/20 hover:bg-cyan-500/10 hover:border-cyan-500/50"
                     >
-                      ✏️ Edit
-                    </button>
-                    <button
+                      <Edit2 size={12} className="mr-1" /> Edit
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="danger"
                       onClick={() => handleDeleteSecret(secret.id)}
-                      className="text-xs px-2 py-1 bg-red-200 rounded hover:bg-red-300 transition"
                     >
-                      🗑️ Delete
-                    </button>
+                      <Trash2 size={12} className="mr-1" /> Delete
+                    </Button>
                   </td>
                 </tr>
               ))}
@@ -274,98 +301,95 @@ const SecretManager: React.FC = () => {
       )}
 
       {showSecretValue && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-lg p-6 max-w-2xl w-full">
-            <h2 className="text-xl font-bold mb-4">Secret Value</h2>
-            <p className="text-sm text-gray-600 mb-4">
+        <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-md flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-800 border border-slate-700/50 rounded-xl shadow-2xl p-6 max-w-2xl w-full">
+            <h2 className="text-xl font-bold mb-4 text-white">Secret Value</h2>
+            <p className="text-sm text-slate-400 mb-4">
               This value will auto-hide in 30 seconds for security. Copy it quickly if needed.
             </p>
-            <div className="bg-gray-100 p-4 rounded border border-gray-300 mb-4 break-all font-mono">
+            <div className="bg-slate-950 p-4 rounded border border-slate-700 font-mono text-cyan-400 break-all mb-6">
               {showSecretValue}
             </div>
             <div className="flex gap-2 justify-end">
-              <button
+              <Button
+                variant="primary"
                 onClick={() => {
                   navigator.clipboard.writeText(showSecretValue);
                   alert('Copied to clipboard!');
                 }}
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
               >
-                Copy to Clipboard
-              </button>
-              <button
+                <Copy size={14} className="mr-2" /> Copy to Clipboard
+              </Button>
+              <Button
+                variant="ghost"
                 onClick={() => setShowSecretValue(null)}
-                className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 transition"
               >
                 Close
-              </button>
+              </Button>
             </div>
           </div>
         </div>
       )}
 
-      <Modal isOpen={showModal} onClose={handleCloseModal}>
-        <h2 className="text-2xl font-bold mb-4">{isEditing ? 'Edit Secret' : 'Create New Secret'}</h2>
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">Secret Name</label>
-            <input
-              type="text"
+      {showModal && (
+        <Modal 
+          isOpen={showModal} 
+          onClose={handleCloseModal}
+          title={isEditing ? 'Edit Secret' : 'Create New Secret'}
+        >
+          <div className="space-y-4">
+            <Input
+              label="Secret Name"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               placeholder="e.g., OPENAI_API_KEY"
-              className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-              disabled={isEditing} // Don't allow name changes on edit
+              disabled={isEditing}
+              helperText={isEditing ? 'Secret name cannot be changed' : 'Used to reference this secret in flows'}
             />
-            <p className="text-xs text-gray-500 mt-1">
-              {isEditing ? 'Secret name cannot be changed' : 'Used to reference this secret in flows'}
-            </p>
-          </div>
 
-          <div>
-            <label className="block text-sm font-medium mb-1">Label (Optional)</label>
-            <input
-              type="text"
+            <Input
+              label="Label (Optional)"
               value={formData.label}
               onChange={(e) => setFormData({ ...formData, label: e.target.value })}
-              placeholder="e.g., OpenAI API Key for Chat  "
-              className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="e.g., OpenAI API Key for Chat"
+              helperText="A human-readable description of this secret"
             />
-            <p className="text-xs text-gray-500 mt-1">A human-readable description of this secret</p>
-          </div>
 
-          <div>
-            <label className="block text-sm font-medium mb-1">Secret Value</label>
-            <textarea
-              value={formData.key}
-              onChange={(e) => setFormData({ ...formData, key: e.target.value })}
-              placeholder={isEditing ? 'Leave empty to keep current value' : 'Paste your API key or secret here'}
-              className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
-              rows={4}
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              Stored encrypted. {isEditing ? 'Leave empty to keep the current value.' : 'Never shown again after creation.'}
-            </p>
-          </div>
+            <div className="space-y-1">
+              <label className="block text-sm font-medium text-slate-300">Secret Value</label>
+              <textarea
+                value={formData.key}
+                onChange={(e) => setFormData({ ...formData, key: e.target.value })}
+                placeholder={isEditing ? 'Leave empty to keep current value' : 'Paste your API key or secret here'}
+                className="w-full px-3 py-2 bg-slate-900/50 border border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500/50 font-mono text-sm text-slate-200 placeholder:text-slate-600"
+                rows={4}
+              />
+              <p className="text-xs text-slate-500">
+                Stored encrypted. {isEditing ? 'Leave empty to keep the current value.' : 'Never shown again after creation.'}
+              </p>
+            </div>
 
-          <div className="flex gap-2 justify-end pt-4">
-            <button
-              onClick={handleCloseModal}
-              className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 transition"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleSaveSecret}
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
-            >
-              {isEditing ? 'Update Secret' : 'Create Secret'}
-            </button>
+            <div className="flex gap-3 justify-end pt-4">
+              <Button
+                variant="ghost"
+                onClick={handleCloseModal}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="primary"
+                onClick={handleSaveSecret}
+                loading={loading}
+              >
+                {isEditing ? 'Update Secret' : 'Create Secret'}
+              </Button>
+            </div>
           </div>
-        </div>
-      </Modal>
+        </Modal>
+      )}
     </div>
   );
 };
+
 
 export default SecretManager;

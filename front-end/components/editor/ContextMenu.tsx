@@ -14,6 +14,7 @@ import {
   Ungroup,
   Maximize2
 } from 'lucide-react';
+import { Button } from '../ui';
 
 export type ContextMenuProps = {
   x: number;
@@ -95,7 +96,9 @@ const ContextMenu = ({ x, y, node, onClose, actions }: ContextMenuProps) => {
   }, [x, y, showLayoutSubmenu]);
 
   const MenuItem = ({ icon: Icon, label, onClick, danger = false, disabled = false, title, noClose = false }: any) => (
-    <button
+    <Button
+      variant={danger ? "danger" : "ghost"}
+      size="sm"
       onClick={(e) => {
         e.stopPropagation();
         if (!disabled) {
@@ -105,14 +108,11 @@ const ContextMenu = ({ x, y, node, onClose, actions }: ContextMenuProps) => {
       }}
       disabled={disabled}
       title={title}
-      className={`w-full flex items-center gap-2 px-3 py-2 text-xs font-medium transition-colors
-        ${danger ? 'text-red-400 hover:bg-red-500/10' : 'text-gray-300 hover:bg-white/5'}
-        ${disabled ? 'opacity-30 cursor-not-allowed' : 'cursor-pointer'}
-      `}
+      className="w-full justify-start rounded-none px-3 py-2 bg-transparent border-none font-medium text-gray-300 hover:bg-white/5"
     >
       <Icon size={14} className={danger ? 'text-red-500' : 'text-cyber-primary'} />
       <span className="flex-1 text-left">{label}</span>
-    </button>
+    </Button>
   );
 
 

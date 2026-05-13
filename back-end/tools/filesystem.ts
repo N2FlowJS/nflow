@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { ToolHandler } from './registry';
-import { getNodeFieldValue } from '../utils/common';
+import { extractNodeConfig } from './utils';
 
 const WORKSPACE_ROOT = path.resolve(process.cwd(), 'storage');
 
@@ -14,9 +14,10 @@ const safeResolve = (userPath: string): string => {
 };
 
 export const filesystemHandler: ToolHandler = async (node, args) => {
-  const action = String(getNodeFieldValue(node, 'action') || 'Read').toLowerCase();
-  const rawPath = String(getNodeFieldValue(node, 'path') || args.path || './output.txt');
-  const content = String(args.query || args.content || getNodeFieldValue(node, 'content') || '').replace('{query}', args.query || '');
+  const config = extractNodeConfig(node, ['action', 'path', 'content']);
+  const action = String(config.action || 'Read').toLowerCase();
+  const rawPath = String(config.path || args.path || './output.txt');
+  const content = String(args.query || args.content || config.content || '').replace('{query}', args.query || '');
 
   try {
     const finalPath = safeResolve(rawPath);

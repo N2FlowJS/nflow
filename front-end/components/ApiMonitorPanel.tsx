@@ -1,6 +1,7 @@
 import React from 'react';
 import { useApiMonitor, ApiActivity } from '../hooks/useApiMonitor';
-import { Activity, Clock, Terminal, ChevronDown, ChevronUp, X, Filter, Trash2 } from 'lucide-react';
+import { Activity, Clock, Terminal, ChevronDown, ChevronUp, X, Filter, Trash2, Search } from 'lucide-react';
+import { Button, Input } from './ui';
 
 export const ApiMonitorPanel: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   const { activities, clear } = useApiMonitor(100);
@@ -22,30 +23,37 @@ export const ApiMonitorPanel: React.FC<{ onClose: () => void }> = ({ onClose }) 
           <span className="text-[10px] bg-white/10 px-1.5 py-0.5 rounded text-gray-400">{activities.length}</span>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={(e) => { e.stopPropagation(); clear(); }} className="p-1 hover:bg-white/10 rounded">
-            <Trash2 size={14} className="text-gray-400" />
-          </button>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={(e) => { e.stopPropagation(); clear(); }}
+            className="p-1 min-h-0 text-gray-400 hover:text-red-400"
+          >
+            <Trash2 size={14} />
+          </Button>
           {isExpanded ? <ChevronDown size={18} /> : <ChevronUp size={18} />}
-          <button onClick={(e) => { e.stopPropagation(); onClose(); }} className="p-1 hover:bg-white/10 rounded">
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={(e) => { e.stopPropagation(); onClose(); }}
+            className="p-1 min-h-0 text-gray-400 hover:text-white"
+          >
             <X size={14} />
-          </button>
+          </Button>
         </div>
       </div>
 
       {isExpanded && (
         <div className="flex flex-col h-[352px]">
           {/* Toolbar */}
-          <div className="p-2 border-b border-white/5 flex gap-2">
-              <div className="relative flex-1">
-                <Filter size={12} className="absolute left-2 top-2.5 text-gray-500" />
-                <input 
-                  type="text" 
-                  placeholder="Filter requests..." 
-                  className="w-full bg-black/20 border border-white/10 rounded px-7 py-1.5 text-xs outline-none focus:border-cyber-primary/40"
-                  value={filter}
-                  onChange={e => setFilter(e.target.value)}
-                />
-              </div>
+          <div className="p-2 border-b border-white/5 bg-black/20">
+            <Input 
+              icon={Search}
+              placeholder="Filter requests..." 
+              value={filter}
+              onChange={e => setFilter(e.target.value)}
+              className="bg-black/40 border-white/5"
+            />
           </div>
 
           {/* List */}

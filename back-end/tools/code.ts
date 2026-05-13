@@ -1,6 +1,7 @@
 import { Script, createContext } from 'node:vm';
 import { ToolHandler, ExecutionOptions } from './registry';
-import { getNodeFieldValue, serializeToolResult } from '../utils/common';
+import { serializeToolResult } from '../utils/common';
+import { extractNodeConfig } from './utils';
 
 const executeJsTool = (code: string, input: string, args: Record<string, string>, options: ExecutionOptions): string => {
   if (!code.trim()) {
@@ -44,7 +45,8 @@ ${code}
 };
 
 export const codeExecutionHandler: ToolHandler = async (node, args, options) => {
-  const code = String(getNodeFieldValue(node, 'code') || '');
+  const config = extractNodeConfig(node, ['code']);
+  const code = String(config.code || '');
   const input = String(args.query || args.input || '');
   return executeJsTool(code, input, args, options);
 };

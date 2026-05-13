@@ -1,6 +1,6 @@
 import sql from 'mssql';
 import { ToolHandler } from './registry';
-import { getNodeFieldValue } from '../utils/common';
+import { extractNodeConfig } from './utils';
 
 const runMssqlQuery = async (config: {
   server: string;
@@ -59,7 +59,21 @@ const runMssqlQuery = async (config: {
 };
 
 export const mssqlHandler: ToolHandler = async (node, args) => {
-  const queryTemplate = String(getNodeFieldValue(node, 'query') || args.query || '');
+  const configValues = extractNodeConfig(node, [
+    'query',
+    'server',
+    'host',
+    'port',
+    'user',
+    'password',
+    'database',
+    'encrypt',
+    'trustServerCertificate',
+    'timeoutMs',
+    'maxRows'
+  ]);
+
+  const queryTemplate = String(configValues.query || args.query || '');
   if (!queryTemplate) return 'Error: SQL query is empty.';
 
   // Extract parameter names from template
@@ -97,15 +111,15 @@ export const mssqlHandler: ToolHandler = async (node, args) => {
   });
 
   const cfg = {
-    server: String(getNodeFieldValue(node, 'server') || getNodeFieldValue(node, 'host') || ''),
-    port: Number(getNodeFieldValue(node, 'port') || 1433),
-    user: String(getNodeFieldValue(node, 'user') || ''),
-    password: String(getNodeFieldValue(node, 'password') || ''),
-    database: String(getNodeFieldValue(node, 'database') || ''),
-    encrypt: String(getNodeFieldValue(node, 'encrypt') ?? 'false') === 'true',
-    trustServerCertificate: String(getNodeFieldValue(node, 'trustServerCertificate') ?? 'true') === 'true',
-    timeoutMs: Number(getNodeFieldValue(node, 'timeoutMs') || 30000),
-    maxRows: Number(getNodeFieldValue(node, 'maxRows') || 200),
+    server: String(configValues.server || configValues.host || ''),
+    port: Number(configValues.port || 1433),
+    user: String(configValues.user || ''),
+    password: String(configValues.password || ''),
+    database: String(configValues.database || ''),
+    encrypt: String(configValues.encrypt ?? 'false') === 'true',
+    trustServerCertificate: String(configValues.trustServerCertificate ?? 'true') === 'true',
+    timeoutMs: Number(configValues.timeoutMs) || 30000,
+    maxRows: Number(configValues.maxRows) || 200,
   };
 
   if (!cfg.server || !cfg.user || !cfg.database) {

@@ -6,6 +6,7 @@
  */
 
 import type { FlowNode, FlowEdge, NodeData, GlobalVariable as FlowGlobalVariable } from '../flowTypes';
+import { validatePlaceholdersInString } from '@n2flow/types';
 
 export interface NodePosition {
   x: number;
@@ -67,26 +68,14 @@ export interface FlowSaveRequest {
   };
 }
 
-export const PLACEHOLDER_REGEX = /\{\{\s*([^{}]+?)\s*\}\}/g;
-
 /**
  * Validates if a string contains placeholders that can be resolved either by 
  * global variables or by server environment variables.
  * Returns null if valid, or an error message if missing.
  */
 export const validatePlaceholder = (value: string, globalVariables: GlobalVariable[] = []): string | null => {
-  const matches = value.matchAll(PLACEHOLDER_REGEX);
   const variableNames = new Set(globalVariables.map(v => v.name.trim()));
-
-  for (const match of matches) {
-    const placeholderName = String(match[1] || '').trim();
-    if (!placeholderName) continue;
-
-    if (!variableNames.has(placeholderName) && process.env[placeholderName] === undefined) {
-      return `Placeholder "{{${placeholderName}}}" could not be resolved`;
-    }
-  }
-  return null;
+  return validatePlaceholdersInString(value, variableNames, true);
 };
 
 /**

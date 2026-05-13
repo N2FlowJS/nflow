@@ -2,6 +2,7 @@ import React, { useMemo, useState } from "react";
 import * as Icons from "lucide-react";
 import nodeRegistry from "../../back-end/node-registry";
 import { prettifyLabel } from "../lib/utils";
+import { Input, Button } from "./ui";
 
 type NodeTemplate = {
   label: string;
@@ -111,13 +112,9 @@ export function Sidebar({
           Node Library
         </h3>
 
-        <div className="relative mb-3">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Icons.Search size={12} className="text-gray-500" />
-          </div>
-          <input
-            type="text"
-            className="w-full bg-black/50 border border-white/10 rounded-lg pl-8 pr-3 py-2 text-[11px] text-white focus:border-cyber-primary outline-none transition-colors"
+        <div className="mb-3">
+          <Input
+            icon={Icons.Search}
             placeholder="Search nodes..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -163,30 +160,26 @@ export function Sidebar({
 
         {!searchTerm && (
           <div className="flex gap-1 mb-3 flex-wrap">
-            <button
+            <Button
+              size="sm"
+              variant={activeCategory === null ? "primary" : "ghost"}
               onClick={() => setActiveCategory(null)}
-              className={`px-2 py-1 text-[9px] font-bold uppercase rounded-md transition-colors ${
-                activeCategory === null
-                  ? "bg-cyber-primary text-black"
-                  : "bg-white/5 text-gray-400 hover:bg-white/10"
-              }`}
+              className="px-2 py-1 text-[9px] min-h-0 uppercase tracking-wider"
             >
               All
-            </button>
+            </Button>
             {categories.map((cat) => (
-              <button
+              <Button
                 key={cat}
+                size="sm"
+                variant={activeCategory === cat ? "primary" : "ghost"}
                 onClick={() =>
                   setActiveCategory(cat === activeCategory ? null : cat)
                 }
-                className={`px-2 py-1 text-[9px] font-bold uppercase rounded-md transition-colors ${
-                  activeCategory === cat
-                    ? "bg-cyber-primary text-black"
-                    : "bg-white/5 text-gray-400 hover:bg-white/10"
-                }`}
+                className="px-2 py-1 text-[9px] min-h-0 uppercase tracking-wider"
               >
                 {cat}
-              </button>
+              </Button>
             ))}
           </div>
         )}

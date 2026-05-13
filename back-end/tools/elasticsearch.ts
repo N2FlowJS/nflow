@@ -1,8 +1,8 @@
 import { Client as ElasticClient } from '@elastic/elasticsearch';
 import { ToolHandler } from './registry';
-import { getNodeFieldValue, trimTrailingSlash } from '../utils/common';
+import { trimTrailingSlash } from '../utils/common';
 import { embedText } from '../llm';
-import { isInternalUrl } from './utils';
+import { isInternalUrl, extractNodeConfig } from './utils';
 
 const compactElasticSource = (source: unknown, vectorField: string): Record<string, unknown> => {
   if (!source || typeof source !== 'object' || Array.isArray(source)) {
@@ -49,10 +49,11 @@ const compactElasticSource = (source: unknown, vectorField: string): Record<stri
 
 export const elasticsearchHandler: ToolHandler = async (node, args, options) => {
   const { toolDef, log } = options;
-  const endpoint = String(getNodeFieldValue(node, 'endpoint') || '');
-  const index = String(getNodeFieldValue(node, 'index') || '');
-  const vectorField = String(getNodeFieldValue(node, 'vectorField') || 'embedding');
-  const esApiKey = String(getNodeFieldValue(node, 'apiKey') || '');
+  const config = extractNodeConfig(node, ['endpoint', 'index', 'vectorField', 'apiKey']);
+  const endpoint = String(config.endpoint || '');
+  const index = String(config.index || '');
+  const vectorField = String(config.vectorField || 'embedding');
+  const esApiKey = String(config.apiKey || '');
   if (!endpoint) return 'Error: Elasticsearch endpoint URL is not configured.';
 
   if (isInternalUrl(endpoint)) {

@@ -39,7 +39,7 @@ function makeEvents(
       timestamp: Date.now(),
     } as FlowRuntimeEvent;
     
-    if (!isSilent || event.type === 'result' || event.type === 'error' || event.type === 'done') {
+    if (!isSilent || event.type === 'node_end' || event.type === 'node_error' || event.type === 'checkpoint') {
       if (!handler) events.push(event);
       try { handler?.(event); } catch {}
     }

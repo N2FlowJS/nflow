@@ -1,6 +1,5 @@
 import { ToolHandler } from './registry';
-import { getNodeFieldValue } from '../utils/common';
-import { fetchToolJson } from './utils';
+import { fetchToolJson, extractNodeConfig } from './utils';
 
 const runSerperSearch = async (apiKey: string, query: string) => {
   if (!apiKey) return 'Error: Serper API Key is missing.';
@@ -33,7 +32,8 @@ const runSerperSearch = async (apiKey: string, query: string) => {
 };
 
 export const serperHandler: ToolHandler = async (node, args) => {
-  const serperApiKey = String(getNodeFieldValue(node, 'apiKey') || '');
-  const query = String(args.query || getNodeFieldValue(node, 'query') || '').replace('{query}', args.query || '');
+  const config = extractNodeConfig(node, ['apiKey', 'query']);
+  const serperApiKey = String(config.apiKey || '');
+  const query = String(args.query || config.query || '').replace('{query}', args.query || '');
   return await runSerperSearch(serperApiKey, query);
 };

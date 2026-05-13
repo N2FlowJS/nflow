@@ -1,14 +1,24 @@
 import { ToolHandler } from './registry';
-import { getNodeFieldValue, trimTrailingSlash, interpolate } from '../utils/common';
-import { fetchToolJson } from './utils';
+import { trimTrailingSlash, interpolate } from '../utils/common';
+import { fetchToolJson, extractNodeConfig } from './utils';
 
 export const githubHandler: ToolHandler = async (node, args) => {
-  const baseUrl = trimTrailingSlash(getNodeFieldValue(node, 'baseUrl') || 'https://api.github.com');
-  const repoFullName = String(getNodeFieldValue(node, 'repoFullName') || args.repoFullName || '').trim();
-  const pullRequestNumber = String(getNodeFieldValue(node, 'pullRequestNumber') || args.pullRequestNumber || args.pr || '').trim();
-  const action = String(getNodeFieldValue(node, 'action') || 'get_files').trim();
-  const githubToken = String(getNodeFieldValue(node, 'githubToken') || args.githubToken || '').trim();
-  const noteBodyTemplate = String(getNodeFieldValue(node, 'noteBody') || 'Review from n2flow agent: {query}');
+  const config = extractNodeConfig(node, [
+    'baseUrl', 
+    'repoFullName', 
+    'pullRequestNumber', 
+    'action', 
+    'githubToken', 
+    'noteBody'
+  ]);
+
+  const baseUrl = trimTrailingSlash(config.baseUrl || 'https://api.github.com');
+  const repoFullName = String(config.repoFullName || args.repoFullName || '').trim();
+  const pullRequestNumber = String(config.pullRequestNumber || args.pullRequestNumber || args.pr || '').trim();
+  const action = String(config.action || 'get_files').trim();
+  const githubToken = String(config.githubToken || args.githubToken || '').trim();
+  
+  const noteBodyTemplate = String(config.noteBody || 'Review from n2flow agent: {query}');
   const noteBody = interpolate(noteBodyTemplate, args);
 
   if (!repoFullName) return 'Error: GitHub repository (owner/repo) is required.';
