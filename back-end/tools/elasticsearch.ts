@@ -2,6 +2,7 @@ import { Client as ElasticClient } from '@elastic/elasticsearch';
 import { ToolHandler } from './registry';
 import { getNodeFieldValue, trimTrailingSlash } from '../utils/common';
 import { embedText } from '../llm';
+import { isInternalUrl } from './utils';
 
 const compactElasticSource = (source: unknown, vectorField: string): Record<string, unknown> => {
   if (!source || typeof source !== 'object' || Array.isArray(source)) {
@@ -53,6 +54,10 @@ export const elasticsearchHandler: ToolHandler = async (node, args, options) => 
   const vectorField = String(getNodeFieldValue(node, 'vectorField') || 'embedding');
   const esApiKey = String(getNodeFieldValue(node, 'apiKey') || '');
   if (!endpoint) return 'Error: Elasticsearch endpoint URL is not configured.';
+
+  if (isInternalUrl(endpoint)) {
+    return `Security Error: Access to internal Elasticsearch endpoint ${endpoint} is restricted.`;
+  }
 
   const esClient = new ElasticClient({
     node: trimTrailingSlash(endpoint),

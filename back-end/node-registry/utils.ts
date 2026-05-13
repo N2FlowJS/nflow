@@ -7,14 +7,9 @@ import {
   normalizeNodeWithRegistry,
 } from "./index";
 import type { FlowNode as CustomNodeType } from "../flowTypes";
+import type { PortDataType } from "@n2flow/types";
 
-export type PortDataType =
-  | "text"
-  | "chat_model"
-  | "embedding_model"
-  | "tool"
-  | "boolean_route"
-  | "any";
+export type { PortDataType };
 
 export const PORT_TYPE_OPTIONS: PortDataType[] = [
   "any",

@@ -5,7 +5,13 @@ import {
   DEFAULT_AGENT_TEMPLATE,
 } from "../agent-templates";
 import type { FlowNode as CustomNodeType } from "../flowTypes";
-import type { NodeData } from "@n2flow/types";
+import type { 
+  NodeData, 
+  PortDataType, 
+  HandleConfig as NodeHandleConfig,
+  NodeValidationRuleKey,
+  NodeValidationRuleConfig
+} from "@n2flow/types";
 
 type ConfigSchema = NonNullable<NodeData["configSchema"]>;
 export type NodeHandleContextData = {
@@ -28,50 +34,9 @@ function isRegistryAwareNode(node: unknown): node is RegistryAwareNode {
   );
 }
 
-export type NodeInputHandleConfig = {
-  id?: string;
-  portType:
-    | "text"
-    | "chat_model"
-    | "embedding_model"
-    | "tool"
-    | "boolean_route"
-    | "any";
-  position: "left" | "right" | "top" | "bottom";
-  offsetPercent?: number;
-  borderClass?: string;
-  hoverBorderClass?: string;
-  labelText?: string;
-  labelClassName?: string;
-  shouldShow?: (data: NodeHandleContextData) => boolean;
-};
+export type NodeInputHandleConfig = NodeHandleConfig;
 
-export type NodeSourceHandleConfig = {
-  id?: string;
-  portType:
-    | "text"
-    | "chat_model"
-    | "embedding_model"
-    | "tool"
-    | "boolean_route"
-    | "any";
-  position: "left" | "right" | "top" | "bottom";
-  offsetPercent?: number;
-  borderClass?: string;
-  hoverBorderClass?: string;
-  labelText?: string;
-  labelClassName?: string;
-  badgeParamKey?: string;
-  badgeFallback?:
-    | "text"
-    | "chat_model"
-    | "embedding_model"
-    | "tool"
-    | "boolean_route"
-    | "any";
-  badgeClassName?: string;
-  shouldShow?: (data: NodeHandleContextData) => boolean;
-};
+export type NodeSourceHandleConfig = NodeHandleConfig;
 
 type RegistryConfigField = ConfigSchema[number] & {
   inputHandles?: NodeInputHandleConfig[];
@@ -80,25 +45,7 @@ type RegistryConfigField = ConfigSchema[number] & {
 };
 type RegistryConfigSchema = RegistryConfigField[];
 
-export type NodeValidationRuleKey =
-  | "agent-llm-link"
-  | "prompt-template-not-empty"
-  | "mssql-required"
-  | "elasticsearch-endpoint-required"
-  | "gitlab-required"
-  | "http-url-required"
-  | "code-required"
-  | "condition-required"
-  | "serper-api-key-required"
-  | "github-required";
-
-export type NodeValidationRuleConfig = {
-  key: NodeValidationRuleKey;
-  level?: "error" | "warning";
-  message?: string;
-  messageEn?: string;
-  messageVi?: string;
-};
+export type { NodeValidationRuleKey, NodeValidationRuleConfig };
 
 export type NodeCategory =
   | "llm"

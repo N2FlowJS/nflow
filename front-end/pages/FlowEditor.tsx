@@ -411,7 +411,7 @@ const Flow = () => {
   useEffect(() => {
     const checkStatus = async () => {
       try {
-        const response = await apiService.get('/health');
+        const response = await apiService.get('/api/health');
         setIsOnline(response.ok);
       } catch {
         setIsOnline(false);
@@ -424,7 +424,7 @@ const Flow = () => {
 
   const fetchFlows = useCallback(async () => {
     try {
-      const response = await apiService.get('/flows');
+      const response = await apiService.get('/api/flows');
       if (response.ok) {
         const flows = Array.isArray(response.data) ? response.data : [];
         setSavedFlows(flows);
@@ -440,7 +440,7 @@ const Flow = () => {
     const loadFlow = async () => {
       if (id && id !== "new") {
         try {
-          const response = await apiService.get(`/flows/${id}`);
+          const response = await apiService.get(`/api/flows/${id}`);
           if (response.ok && response.data) {
             const flow = response.data;
             if (flow && flow.data) {
@@ -449,7 +449,7 @@ const Flow = () => {
               setGlobalVariables(flow.data.globalVariables || []);
               
               // Load versions sequentially
-              const versionsResp = await apiService.get(`/flows/${id}/versions`);
+              const versionsResp = await apiService.get(`/api/flows/${id}/versions`);
               if (versionsResp.ok) {
                 setFlowVersions(versionsResp.data || []);
               }
@@ -1481,7 +1481,7 @@ const Flow = () => {
         };
 
         try {
-          const response = await apiService.post(`/flows`, {
+          const response = await apiService.post(`/api/flows`, {
             ...newFlow,
             versionLabel,
             isAutoSave
@@ -1492,7 +1492,7 @@ const Flow = () => {
             fetchFlows();
 
             // Reload flow to get updated versions
-            const updatedResponse = await apiService.get(`/flows/${newFlow.id}/versions`);
+            const updatedResponse = await apiService.get(`/api/flows/${newFlow.id}/versions`);
             if (updatedResponse.ok) {
               setFlowVersions(updatedResponse.data || []);
             }

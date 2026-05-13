@@ -4,6 +4,33 @@ export { trimTrailingSlash };
 export const hasTemplatePlaceholder = (value: unknown): boolean =>
   typeof value === 'string' && /\{\{\s*[^{}]+\s*\}\}/.test(value);
 
+export const ensureOpenAiBaseUrl = (url: string | undefined, provider: string): string => {
+  let base = trimTrailingSlash(url || '');
+  if (!base) {
+    if (provider === 'Ollama') return 'http://localhost:11434/v1';
+    return 'http://localhost:8000/v1';
+  }
+
+  // NVIDIA NIM and some other providers require /v1 suffix for OpenAI compatibility
+  if ((provider === 'NVIDIA' || provider === 'OpenAI') && !base.endsWith('/v1')) {
+    if (base.includes('nvidia.com') || base.includes('localhost') || base.includes('127.0.0.1')) {
+      base = `${base}/v1`;
+    }
+  }
+  return base;
+};
+
+export const validateLlmConfig = (cfg: { apiKey?: string; provider?: string }, logPrefix: string) => {
+  if (hasTemplatePlaceholder(cfg.apiKey)) {
+    throw new Error(`${logPrefix} API key placeholder was not resolved. Check the selected Global Variable name.`);
+  }
+  const normalized = normalizeApiKey(cfg.apiKey);
+  if (!normalized && cfg.provider !== 'Ollama') {
+    throw new Error(`Missing ${logPrefix} API key. Enter a value or select a Global Variable.`);
+  }
+  return normalized;
+};
+
 export const normalizeModelsJson = (payload: any): Array<{ id: string; name?: string; description?: string }> => {
   if (!payload) return [];
 

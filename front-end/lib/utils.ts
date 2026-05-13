@@ -20,20 +20,11 @@ export function stringifyUnknown(value: unknown): string {
  */
 export function extractErrorMessage(error: unknown): string {
   if (!error) return '';
-  const compact = stringifyUnknown(error)
-    .replace(/\s+/g, ' ')
-    .trim()
+  const message = Utils.toErrorMessage(error);
+  return message
     .replace(/^Node\s*\[[^\]]+\]\s*failed:\s*/i, '')
-    .replace(/^Error:\s*/i, '');
-  const jsonStart = compact.indexOf('{"error"');
-  if (jsonStart >= 0) {
-    try {
-      const payload = JSON.parse(compact.slice(jsonStart)) as { error?: { message?: unknown } };
-      const message = payload.error?.message;
-      if (typeof message === 'string' && message.trim()) return message.trim();
-    } catch { /* fall through */ }
-  }
-  return compact;
+    .replace(/^Error:\s*/i, '')
+    .trim();
 }
 
 export function maskSecretValue(v: string | unknown): string {
@@ -43,10 +34,7 @@ export function maskSecretValue(v: string | unknown): string {
 }
 
 export function looksLikeSecret(v: string | unknown): boolean {
-  const s = String(v || '').trim();
-  if (!s) return false;
-  const isKey = /^(?:Bearer\s+)?(?:nvapi-|sk-|pk-|ghp_|glpat-|AIza|xoxb-|ya29\.)/i.test(s);
-  return isKey || s.length >= 32;
+  return Utils.looksLikeSecret(v);
 }
 
 /**

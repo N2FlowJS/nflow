@@ -1,3 +1,4 @@
+import { Utils } from '@n2flow/types';
 import type {
   ExecuteFlowInput,
   ExecuteFlowResult,
@@ -30,15 +31,20 @@ function makeEvents(
   isSilent: boolean,
   handler?: EventHandler,
 ) {
+  const executionId = Utils.generateId('exec');
   const events: FlowRuntimeEvent[] = [];
   const emit = (partialEvent: PartialRuntimeEvent) => {
-    const event: FlowRuntimeEvent = { ...partialEvent, timestamp: Date.now() } as FlowRuntimeEvent;
+    const event: FlowRuntimeEvent = { 
+      ...partialEvent, 
+      timestamp: Date.now(),
+    } as FlowRuntimeEvent;
+    
     if (!isSilent || event.type === 'result' || event.type === 'error' || event.type === 'done') {
       if (!handler) events.push(event);
       try { handler?.(event); } catch {}
     }
   };
-  return { events, emit };
+  return { events, emit, executionId };
 }
 
 
@@ -52,12 +58,12 @@ export async function executeFlowOnServer({
   shouldStop,
   globalVariables = [],
 }: ExecuteFlowInput): Promise<ExecuteFlowResult> {
-  const { events, emit } = makeEvents(isSilent, onEvent);
+  const { events, emit, executionId } = makeEvents(isSilent, onEvent);
   const log = (message: string) => emit({ type: 'log', message });
   let hasError = false;
   const isStopped = () => shouldStop?.() === true || hasError;
 
-  log('[Server] Initializing flow execution...');
+  log(`[Server] Initializing flow execution [${executionId}]...`);
 
   const nodeById = new Map(nodes.map((n) => [n.id, n]));
   const nonGroupCount = nodes.filter((n) => n.type !== 'cyberGroup').length;

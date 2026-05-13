@@ -5,6 +5,7 @@ import FlowEditor from './pages/FlowEditor';
 import Login from './pages/Login';
 import SecretManager from './pages/SecretManager';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { ApiMonitorPanel } from './components/ApiMonitorPanel';
 import {
   AUTH_STATE_CHANGED_EVENT,
   bootstrapAuthSession,
@@ -15,6 +16,18 @@ import {
 export default function App() {
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [showMonitor, setShowMonitor] = useState(false);
+
+  useEffect(() => {
+    // Keyboard shortcut to toggle monitor (Ctrl+M)
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.key === 'm') {
+        setShowMonitor(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
@@ -105,6 +118,7 @@ export default function App() {
         {/* Catch all - redirect to home or login */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      {showMonitor && <ApiMonitorPanel onClose={() => setShowMonitor(false)} />}
     </BrowserRouter>
   );
 }

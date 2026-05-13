@@ -1,20 +1,23 @@
 import OpenAI from 'openai';
 import type { LlmRuntimeConfig, AgentTool } from '../types';
-import { trimTrailingSlash, toOpenAiToolDeclarations, clampToolResult, createChatOrchestrator, tryFetchModelsFromBase } from '../utils';
-import { normalizeApiKey } from '@/utils/common';
+import { 
+  ensureOpenAiBaseUrl, 
+  validateLlmConfig,
+  toOpenAiToolDeclarations, 
+  clampToolResult, 
+  createChatOrchestrator, 
+  tryFetchModelsFromBase 
+} from '../utils';
+import { maskApiKey, withTimeout } from '@/utils/common';
 
 export const listModels = async (
   cfg: LlmRuntimeConfig,
 ): Promise<Array<{ id: string; name?: string; description?: string }>> => {
-  let base = trimTrailingSlash(cfg.baseUrl || 'http://localhost:8000/v1');
-  
-  // NVIDIA NIM requires /v1 in the base URL for OpenAI-compatible endpoints
-  if (cfg.provider === 'NVIDIA' && base.includes('nvidia.com') && !base.endsWith('/v1')) {
-    base = `${base}/v1`;
-  }
+  const base = ensureOpenAiBaseUrl(cfg.baseUrl, cfg.provider || 'OpenAI');
+  const apiKey = validateLlmConfig(cfg, cfg.provider || 'OpenAI');
 
   try {
-    const client = new OpenAI({ baseURL: base, apiKey: normalizeApiKey(cfg.apiKey) || 'not-required' }) as any;
+    const client = new OpenAI({ baseURL: base, apiKey: apiKey || 'not-required' }) as any;
     if (client.models && typeof client.models.list === 'function') {
       const resp = await client.models.list();
       const data = Array.isArray(resp?.data) ? resp.data : resp?.models || [];
@@ -26,20 +29,15 @@ export const listModels = async (
     }
   } catch (err) {
     // fallback to generic fetch for non-openai compliant but open-ai shaped APIs
-    return tryFetchModelsFromBase(base, normalizeApiKey(cfg.apiKey));
+    return tryFetchModelsFromBase(base, apiKey);
   }
   return [];
 };
 
 export const getOpenAIClient = (cfg: LlmRuntimeConfig) => {
-  let baseURL = trimTrailingSlash(cfg.baseUrl || 'http://localhost:8000/v1');
-  
-  // NVIDIA NIM requires /v1 in the base URL for OpenAI-compatible endpoints
-  if (cfg.provider === 'NVIDIA' && baseURL.includes('nvidia.com') && !baseURL.endsWith('/v1')) {
-    baseURL = `${baseURL}/v1`;
-  }
-  
-  return new OpenAI({ baseURL, apiKey: normalizeApiKey(cfg.apiKey) || 'not-required' });
+  const baseURL = ensureOpenAiBaseUrl(cfg.baseUrl, cfg.provider || 'OpenAI');
+  const apiKey = validateLlmConfig(cfg, cfg.provider || 'OpenAI');
+  return new OpenAI({ baseURL, apiKey: apiKey || 'not-required' });
 };
 
 export const runOpenAICompatibleChat = async (
@@ -51,46 +49,44 @@ export const runOpenAICompatibleChat = async (
   log: (msg: string) => void,
   onStream?: (chunk: string) => void,
 ) => {
-  const client = getOpenAIClient(cfg) as any;
+  const base = ensureOpenAiBaseUrl(cfg.baseUrl, cfg.provider || 'OpenAI');
+  const apiKey = validateLlmConfig(cfg, cfg.provider || 'OpenAI');
+  
+  log(`[${cfg.provider || 'LLM'}] Runtime: model=${cfg.model}, base=${base}, key=${maskApiKey(apiKey)}`);
+
+  const client = new OpenAI({ baseURL: base, apiKey: apiKey || 'not-required' });
   const tools = availableTools.length > 0 ? toOpenAiToolDeclarations(availableTools) : undefined;
   const stream = cfg.stream === true && typeof onStream === 'function';
+  const timeoutMs = Number(process.env.LLM_CHAT_TIMEOUT_MS || 120000);
 
   const messages: any[] = [];
   if (systemPrompt) messages.push({ role: 'system', content: systemPrompt });
   messages.push({ role: 'user', content: userPrompt });
 
-  // 1. Try SDK-managed agent/run APIs (Speculative)
-  try {
-    if (client.agents && typeof client.agents.run === 'function') {
-      const agentResp = await client.agents.run({
-        model: String(cfg.model),
-        input: userPrompt,
-        tools: tools as any,
-        temperature: cfg.temperature,
-        max_output_tokens: cfg.max_tokens,
-        top_p: cfg.top_p,
-        top_k: cfg.top_k,
-      });
-      const text = agentResp?.output_text || agentResp?.message?.content || (Array.isArray(agentResp?.output) && (agentResp.output[0]?.content?.[0]?.text || agentResp.output[0]?.text)) || (agentResp?.choices?.[0]?.message?.content) || '';
-      if (text) return String(text);
-    }
-  } catch (e) { /* ignore */ }
-
-  // 2. Use Orchestrator for manual loop
+  // Use Orchestrator for manual loop
   return createChatOrchestrator({
     log,
     executeToolByName,
     onStep: async () => {
-      const completion = await client.chat.completions.create({
-        model: String(cfg.model),
-        messages,
-        tools: tools as any,
-        temperature: cfg.temperature,
-        max_tokens: cfg.max_tokens,
-        top_p: cfg.top_p,
-        presence_penalty: cfg.presence_penalty,
-        frequency_penalty: cfg.frequency_penalty,
-        stream,
+      const completion = await withTimeout<any>(
+        client.chat.completions.create({
+          model: String(cfg.model),
+          messages,
+          tools: tools as any,
+          temperature: cfg.temperature,
+          max_tokens: cfg.max_tokens,
+          top_p: cfg.top_p,
+          presence_penalty: cfg.presence_penalty,
+          frequency_penalty: cfg.frequency_penalty,
+          stream,
+        }),
+        timeoutMs,
+        `Request timed out after ${Math.round(timeoutMs / 1000)}s.`
+      ).catch(err => {
+        const msg = err instanceof Error ? err.message : String(err);
+        if (/\b401\b/.test(msg)) throw new Error(`Unauthorized (401). Check API key for ${cfg.provider}.`);
+        if (/\b404\b/.test(msg)) throw new Error(`Model "${cfg.model}" not found (404) at ${base}.`);
+        throw err;
       });
 
       let fullContent = '';

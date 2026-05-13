@@ -1,26 +1,25 @@
 import { ToolHandler } from './registry';
 import { getNodeFieldValue } from '../utils/common';
+import { fetchToolJson } from './utils';
 
 const runSerperSearch = async (apiKey: string, query: string) => {
   if (!apiKey) return 'Error: Serper API Key is missing.';
   if (!query) return 'Error: Search query is empty.';
 
   try {
-    const response = await fetch('https://google.serper.dev/search', {
-      method: 'POST',
-      headers: {
-        'X-API-KEY': apiKey,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ q: query }),
-    });
+    const rawResult = await fetchToolJson(
+      'https://google.serper.dev/search',
+      { 'X-API-KEY': apiKey },
+      'Serper',
+      'POST',
+      { q: query }
+    );
 
-    if (!response.ok) {
-      const errorText = await response.text().catch(() => '');
-      return `Error Serper ${response.status}: ${errorText || response.statusText}`;
+    if (rawResult.startsWith('Error') || rawResult.startsWith('Security Error')) {
+      return rawResult;
     }
 
-    const data: any = await response.json();
+    const data = JSON.parse(rawResult);
     const organic = (data.organic || []).slice(0, 5).map((item: any) => ({
       title: item.title,
       link: item.link,

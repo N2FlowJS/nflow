@@ -4,7 +4,7 @@ import type { CustomNodeType, NodeData } from '@n2flow/types';
 import { Settings, X, Hash, Type, List, FileText, ToggleLeft, Link, Eye, EyeOff } from 'lucide-react';
 import { getNodeFieldValue } from '../../../back-end/node-registry';
 import NumberInput from '../ui/NumberInput';
-import { API_BASE } from '../../lib/api';
+import { apiService } from '../../lib/apiService';
 import { maskSecretValue, looksLikeSecret } from '../../lib/utils';
 import type { GlobalVariable } from '../../types/editor';
 
@@ -126,15 +126,10 @@ export const NodeConfigModal = ({
     setModels([]);
     
     try {
-      const response = await fetch(`${API_BASE}/api/llm/models`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ baseUrl, apiKey: apiKey || '', provider: 'NVIDIA' }),
+      const resData = await apiService.post<ModelListResponse>('/api/llm/models', {
+        baseUrl, apiKey: apiKey || '', provider: 'NVIDIA'
       });
 
-      if (!response.ok) throw new Error(`Server returned ${response.status}`);
-
-      const resData = await response.json() as ModelListResponse;
       if (resData.ok && Array.isArray(resData.models)) {
         setModels(getUniqueModelLabels(resData.models));
         lastFetchKeyRef.current = fetchKey;
