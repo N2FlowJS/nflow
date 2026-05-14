@@ -59,7 +59,7 @@ const LogViewer: React.FC<LogViewerProps> = ({
       }`}
     >
       <CyberPanel
-        title="CONSOLE"
+        title="Logs"
         icon={Terminal}
         className={`h-full border-x-0 border-b-0 rounded-none bg-black/90 backdrop-blur-2xl transition-all ${!isLogsOpen ? 'opacity-0' : 'opacity-100'}`}
         maxHeight="100%"
@@ -75,7 +75,7 @@ const LogViewer: React.FC<LogViewerProps> = ({
       >
         <div className="p-2 font-mono text-[9px] space-y-0.5 h-full overflow-y-auto scrollbar-hide">
           {executionLogs.length === 0 ? (
-            <CyberEmptyState label="Void_Protocol_Active" className="h-full text-white/5" />
+            <CyberEmptyState label="No logs yet" className="h-full text-white/5 tracking-[0.18em]" />
           ) : (
             executionLogs.map((log) => {
               const styles = LOG_TYPE_STYLES[log.type] || LOG_TYPE_STYLES.default;

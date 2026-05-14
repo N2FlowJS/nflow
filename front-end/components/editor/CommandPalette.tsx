@@ -31,18 +31,18 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({
     <CyberOverlay className="z-[100] items-start pt-[12vh] animate-in fade-in duration-300">
       <div className="w-full max-w-[600px] pointer-events-auto">
         <CyberPanel
-          title="COMMANDS"
+          title="Commands"
           icon={Command}
           onClose={() => setShowCommandPalette(false)}
-          className="border-cyber-primary/20 bg-black/80 shadow-[0_0_100px_rgba(0,0,0,0.8)] backdrop-blur-xl"
+          className="border-cyber-primary/20 bg-black/80 shadow-[0_0_80px_rgba(0,0,0,0.7)] backdrop-blur-xl"
           actions={
             <CyberMetaText className="px-0 text-[9px] text-white/20 tracking-[0.2em]">
-              Exec: Enter
+              Enter
             </CyberMetaText>
           }
         >
           <div className="flex flex-col h-full">
-            <CyberPanelSection className="border-b border-white/5 p-4">
+            <CyberPanelSection className="border-b border-white/5 p-3">
               <Input
                 ref={commandInputRef}
                 value={commandQuery}
@@ -51,8 +51,8 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({
                   setCommandIndex(0);
                 }}
                 icon={Command}
-                placeholder="Initialize instruction: save, layout, export..."
-                className="!rounded-xl !border-cyber-primary/20 !bg-black/60 !py-4 !pl-12 !pr-5 !text-lg placeholder:!text-white/10 focus:!border-cyber-primary focus:!shadow-[0_0_15px_rgba(0,240,255,0.2)]"
+                placeholder="Search commands"
+                className="!rounded-xl !border-cyber-primary/20 !bg-black/60 !py-3 !pl-11 !pr-4 !text-base placeholder:!text-white/15 focus:!border-cyber-primary focus:!shadow-[0_0_15px_rgba(0,240,255,0.2)]"
                 autoFocus
                 onKeyDown={(e) => {
                    if (e.key === 'Escape') setShowCommandPalette(false);
@@ -60,11 +60,11 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({
               />
             </CyberPanelSection>
             
-            <div className="flex-1 overflow-y-auto max-h-[400px] p-2 space-y-1 bg-black/20 scrollbar-hide">
+            <div className="flex-1 overflow-y-auto max-h-[360px] p-2 space-y-1 bg-black/20 scrollbar-hide">
               {filteredCommands.length === 0 ? (
-                <div className="py-20 flex flex-col items-center justify-center gap-2 opacity-20">
-                  <Command size={48} />
-                  <CyberEmptyState label="Command_Not_Found" className="text-[9px] tracking-[0.35em]" />
+                <div className="py-14 flex flex-col items-center justify-center gap-2 opacity-20">
+                  <Command size={40} />
+                  <CyberEmptyState label="No commands found" className="text-[9px] tracking-[0.2em]" />
                 </div>
               ) : (
                 filteredCommands.map((command, idx) => {
@@ -77,9 +77,9 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({
                         setShowCommandPalette(false);
                       }}
                       accentClassName={isActive ? "bg-cyber-primary" : "bg-white/10"}
-                      className={`items-center justify-between gap-4 rounded-xl border px-5 py-3 text-left transition-all active:scale-[0.99] ${
+                      className={`items-center justify-between gap-3 rounded-xl border px-4 py-2.5 text-left transition-all active:scale-[0.99] ${
                         isActive
-                          ? "bg-cyber-primary/10 border-cyber-primary/40 shadow-[inset_0_0_15px_rgba(0,240,255,0.05)] scale-[1.01]"
+                          ? "bg-cyber-primary/10 border-cyber-primary/40 shadow-[inset_0_0_15px_rgba(0,240,255,0.05)]"
                           : "bg-transparent border-transparent hover:bg-white/5"
                       }`}
                       action={command.shortcut ? (
@@ -91,7 +91,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({
                       ) : undefined}
                     >
                       <div className="flex min-w-0 flex-col">
-                        <div className={`text-sm font-black tracking-wide transition-colors ${isActive ? "text-cyber-primary" : "text-white/60"}`}>
+                        <div className={`text-[13px] font-black tracking-wide transition-colors ${isActive ? "text-cyber-primary" : "text-white/60"}`}>
                           {command.label}
                         </div>
                         <CyberMetaText className="px-0 text-[9px] tracking-[0.15em]">
@@ -104,8 +104,8 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({
               )}
             </div>
             <CyberPanelFooter>
-              <CyberMetaText className="px-0 text-white/15 tracking-[0.2em]">Navigate: Up/Down</CyberMetaText>
-              <CyberMetaText className="px-0 text-white/15 tracking-[0.2em]">Close: Esc</CyberMetaText>
+              <CyberMetaText className="px-0 text-white/15 tracking-[0.2em]">Up/Down to move</CyberMetaText>
+              <CyberMetaText className="px-0 text-white/15 tracking-[0.2em]">Esc to close</CyberMetaText>
             </CyberPanelFooter>
           </div>
         </CyberPanel>

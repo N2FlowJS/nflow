@@ -90,30 +90,30 @@ const ContextMenu = ({ x, y, node, onClose, actions }: ContextMenuProps) => {
         {node ? (
           <>
             <div className="px-3 py-1 mb-1 border-b border-white/5 opacity-20">
-              <div className="text-[8px] uppercase font-black truncate tracking-[0.2em] italic">
-                Node_Ref_{node.id.slice(0, 8)}
+              <div className="text-[8px] uppercase font-black truncate tracking-[0.18em]">
+                Node {node.id.slice(0, 8)}
               </div>
             </div>
-            {!isGroup && <CyberMenuItem icon={Play} label="Execute_Sequence" onClick={handleMenuAction(actions.onRun)} />}
-            <CyberMenuItem icon={Maximize2} label="Focus_Target" onClick={handleMenuAction(actions.onFocus)} />
-            <CyberMenuItem icon={Settings} label="Configure_IO" onClick={handleMenuAction(actions.onOpenConfig)} />
+            {!isGroup && <CyberMenuItem icon={Play} label="Run node" onClick={handleMenuAction(actions.onRun)} />}
+            <CyberMenuItem icon={Maximize2} label="Focus" onClick={handleMenuAction(actions.onFocus)} />
+            <CyberMenuItem icon={Settings} label="Settings" onClick={handleMenuAction(actions.onOpenConfig)} />
             
             <div className="h-px bg-white/5 my-1 mx-2" />
             
-            {isGroup && <CyberMenuItem icon={Ungroup} label="Decluster_Group" onClick={handleMenuAction(actions.onUngroup)} />}
-            <CyberMenuItem icon={Copy} label="Clone_Data" onClick={handleMenuAction(actions.onCopy)} />
-            <CyberMenuItem icon={Zap} label="Replicate" onClick={handleMenuAction(actions.onDuplicate)} />
+            {isGroup && <CyberMenuItem icon={Ungroup} label="Ungroup" onClick={handleMenuAction(actions.onUngroup)} />}
+            <CyberMenuItem icon={Copy} label="Copy" onClick={handleMenuAction(actions.onCopy)} />
+            <CyberMenuItem icon={Zap} label="Duplicate" onClick={handleMenuAction(actions.onDuplicate)} />
             
             <div className="h-px bg-white/5 my-1 mx-2" />
-            <CyberMenuItem icon={Trash2} label="Purge_Object" onClick={handleMenuAction(actions.onDelete)} danger />
+            <CyberMenuItem icon={Trash2} label="Delete" onClick={handleMenuAction(actions.onDelete)} danger />
           </>
         ) : (
           <>
-            <CyberMenuItem icon={PlusCircle} label="Inject_Node" onClick={handleMenuAction(() => actions.onAddNode?.({ x, y }))} />
-            <CyberMenuItem icon={StickyNote} label="Add_Data_Note" onClick={handleMenuAction(() => actions.onAddNote?.({ x, y }))} />
+            <CyberMenuItem icon={PlusCircle} label="Add node" onClick={handleMenuAction(() => actions.onAddNode?.({ x, y }))} />
+            <CyberMenuItem icon={StickyNote} label="Add note" onClick={handleMenuAction(() => actions.onAddNote?.({ x, y }))} />
             <div className="h-px bg-white/5 my-1 mx-2" />
-            <CyberMenuItem icon={Maximize2} label="Select_All_Units" onClick={handleMenuAction(actions.onSelectAll)} />
-            <CyberMenuItem icon={ClipboardPaste} label="Paste_Buffer" onClick={handleMenuAction(() => actions.onPaste?.({ x, y }))} />
+            <CyberMenuItem icon={Maximize2} label="Select all" onClick={handleMenuAction(actions.onSelectAll)} />
+            <CyberMenuItem icon={ClipboardPaste} label="Paste" onClick={handleMenuAction(() => actions.onPaste?.({ x, y }))} />
             <div className="h-px bg-white/5 my-1 mx-2" />
             
             <div 
@@ -123,7 +123,7 @@ const ContextMenu = ({ x, y, node, onClose, actions }: ContextMenuProps) => {
             >
               <CyberMenuItem
                 icon={Layout}
-                label="Auto_Layout"
+                label="Layout"
                 onClick={(e) => e.stopPropagation()}
                 active={showLayoutSubmenu}
               />

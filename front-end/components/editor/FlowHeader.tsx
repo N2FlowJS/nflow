@@ -67,35 +67,35 @@ const FlowHeader: React.FC<EditorContextProps> = memo((props) => {
 
   const menuItems: DropdownItem[] = useMemo(() => [
     {
-      id: "SYSTEM_NODES",
-      label: "System",
+      id: "WORKSPACE",
+      label: "Workspace",
       icon: Activity,
       children: [
-        { id: "FLOWS_LIBRARY", label: "Library", icon: FolderOpen },
-        { id: "VARIABLES", label: "Heap", icon: DollarSign },
-        { id: "HISTORY", label: "Temporal", icon: History },
-        { id: "PLAYGROUND", label: "Terminal", icon: Terminal },
+        { id: "FLOWS_LIBRARY", label: "Flows", icon: FolderOpen },
+        { id: "VARIABLES", label: "Variables", icon: DollarSign },
+        { id: "HISTORY", label: "History", icon: History },
+        { id: "PLAYGROUND", label: "Playground", icon: Terminal },
         { id: "SHORTCUTS", label: "Shortcuts", icon: Keyboard },
       ]
     },
     {
-      id: "OPERATIONS",
-      label: "Ops",
+      id: "EDIT",
+      label: "Edit",
       icon: Zap,
       children: [
-        { id: "CHECK_FLOW", label: "Validate", icon: AlertTriangle, colorClass: "text-orange-400" },
-        { id: "COPY", label: "Clone", icon: Copy },
-        { id: "PASTE", label: "Inject", icon: ClipboardPaste },
-        { id: "UNDO", label: "Revert", icon: Undo2 },
-        { id: "CLEAR_CANVAS", label: "Purge All", icon: Trash2, colorClass: "text-red-400" },
+        { id: "CHECK_FLOW", label: "Validate", icon: AlertTriangle },
+        { id: "COPY", label: "Copy", icon: Copy },
+        { id: "PASTE", label: "Paste", icon: ClipboardPaste },
+        { id: "UNDO", label: "Undo", icon: Undo2 },
+        { id: "CLEAR_CANVAS", label: "Clear canvas", icon: Trash2, tone: "danger" },
       ]
     },
     {
-      id: "LAYOUT_ENGINES",
+      id: "LAYOUT",
       label: "Layout",
       icon: LayoutGrid,
       children: [
-        { id: "SMART", label: "Smart", icon: Wand2 },
+        { id: "SMART", label: "Auto", icon: Wand2 },
         { id: "LAYERED", label: "Layered", icon: LayoutGrid },
         { id: "RADIAL", label: "Radial", icon: MapIcon },
         { id: "TREE", label: "Tree", icon: Layers },
@@ -131,7 +131,7 @@ const FlowHeader: React.FC<EditorContextProps> = memo((props) => {
             triggerIcon={item.icon}
             items={item.children || []}
             onSelect={handleAction}
-            title={item.label.toUpperCase()}
+            title={item.label}
           />
         ))}
 

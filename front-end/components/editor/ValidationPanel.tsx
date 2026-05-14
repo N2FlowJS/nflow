@@ -24,20 +24,20 @@ const ValidationPanel: React.FC<ValidationPanelProps> = ({
   return (
     <Panel position="top-left" className="m-4 z-50 animate-in fade-in slide-in-from-left-2 duration-200">
       <CyberPanel
-        title="VALIDATION"
+        title="Validation"
         icon={hasError ? AlertTriangle : ShieldCheck}
-        className="w-[300px]"
+        className="w-[280px]"
         maxHeight="60vh"
         onClose={onClose}
         actions={
           <div className="flex items-center gap-1 font-mono text-[9px] opacity-40">
-            <span className={errors.length > 0 ? "text-red-400 opacity-100" : ""}>{errors.length}E</span>
+            <span className={errors.length > 0 ? "text-red-400 opacity-100" : ""}>{errors.length} error</span>
             <span>/</span>
-            <span className={warnings.length > 0 ? "text-amber-400 opacity-100" : ""}>{warnings.length}W</span>
+            <span className={warnings.length > 0 ? "text-amber-400 opacity-100" : ""}>{warnings.length} warning</span>
           </div>
         }
       >
-        <div className="p-2 space-y-1.5 overflow-y-auto scrollbar-hide">
+        <div className="p-2 space-y-1 overflow-y-auto scrollbar-hide">
           {flowIssues.slice(0, 10).map((issue, idx) => (
             <CyberListItem
               key={`${issue.level}-${idx}`}
@@ -49,15 +49,15 @@ const ValidationPanel: React.FC<ValidationPanelProps> = ({
               action={
                 issue.nodeId ? (
                   <CyberBadge
-                    label="LOCATE"
+                    label="Go to"
                     className="self-start"
                   />
                 ) : undefined
               }
             >
               <div className="flex items-center justify-between pointer-events-none">
-                <span className={`text-[8px] font-bold uppercase tracking-tighter ${issue.level === "error" ? "text-red-400" : "text-amber-400"}`}>
-                  {issue.level} {issue.nodeId ? `:: ${issue.nodeId.slice(-4)}` : ""}
+                <span className={`text-[8px] font-bold uppercase tracking-[0.18em] ${issue.level === "error" ? "text-red-400" : "text-amber-400"}`}>
+                  {issue.level} {issue.nodeId ? `- ${issue.nodeId.slice(-4)}` : ""}
                 </span>
               </div>
               <div className="text-[10px] leading-tight text-white/60 font-medium">
@@ -66,8 +66,8 @@ const ValidationPanel: React.FC<ValidationPanelProps> = ({
             </CyberListItem>
           ))}
           {flowIssues.length > 10 && (
-            <div className="text-center py-2 text-[8px] text-white/20 font-black uppercase tracking-widest">
-              + {flowIssues.length - 10} Signals Hidden
+            <div className="text-center py-2 text-[8px] text-white/20 font-black uppercase tracking-[0.18em]">
+              + {flowIssues.length - 10} more issues
             </div>
           )}
         </div>
