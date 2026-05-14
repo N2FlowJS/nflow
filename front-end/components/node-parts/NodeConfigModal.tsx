@@ -13,11 +13,11 @@ import {
 } from "lucide-react";
 import { getNodeFieldValue } from "../../../back-end/node-registry";
 import NumberInput from "../ui/NumberInput";
-import { Input, TextArea, Select } from "../ui";
+import { Input, TextArea, Select } from "../ui/index";
 import { apiService } from "../../lib/apiService";
 import { maskSecretValue } from "../../lib/utils";
 import type { GlobalVariable } from "../../types/editor";
-import { CyberAction, CyberPanel } from "../shared/CyberUI";
+import { CyberAction, CyberBadge, CyberFieldShell, CyberMetaText, CyberPanel, CyberToggleSwitch } from "../shared/CyberUI";
 
 type ConfigField = NonNullable<NodeData["configSchema"]>[number];
 
@@ -45,50 +45,7 @@ const FieldIcon = memo(({ type }: { type: ConfigField["type"] }) => {
       return <Type {...props} />;
   }
 });
-
-const ToggleSwitch = memo(
-  ({ checked, onChange }: { checked: boolean; onChange: (val: boolean) => void }) => (
-    <button
-      type="button"
-      onClick={() => onChange(!checked)}
-      className={`nodrag h-4 w-8 rounded-full transition-all flex items-center px-0.5 ${checked ? "bg-cyber-primary" : "bg-white/10"}`}
-    >
-      <div
-        className={`h-3 w-3 rounded-full bg-white transition-transform ${checked ? "translate-x-4" : "translate-x-0"}`}
-      />
-    </button>
-  )
-);
-
-const FIELD_INPUT_CLASS = "!h-7 !py-0 !text-[10px] !bg-black/40";
-const TEXTAREA_FIELD_CLASS = "!min-h-[50px] !py-1 !text-[10px] !bg-black/40";
-const VARIABLE_SELECT_CLASS = "!h-5 !py-0 !text-[8px] !bg-black/60 !border-cyber-primary/10";
-const FIELD_LABEL_CLASS = "flex items-center justify-between text-[9px] font-bold uppercase tracking-tighter text-white/30 group-focus-within/f:text-cyber-primary transition-colors";
-
-const ConfigFieldShell = memo(
-  ({
-    type,
-    label,
-    action,
-    children,
-  }: {
-    type: ConfigField["type"];
-    label: string;
-    action?: React.ReactNode;
-    children: React.ReactNode;
-  }) => (
-    <div className="space-y-1 group/f px-0.5">
-      <div className={FIELD_LABEL_CLASS}>
-        <div className="flex items-center gap-1">
-          <FieldIcon type={type} />
-          {label}
-        </div>
-        {action}
-      </div>
-      {children}
-    </div>
-  )
-);
+const DESCRIPTION_FIELD_CLASS = "!min-h-[32px] !text-white/50 placeholder:!text-white/20";
 
 export const NodeConfigModal = ({
   isOpen,
@@ -165,17 +122,17 @@ export const NodeConfigModal = ({
         title="NODE_CONFIG"
         icon={Settings}
         onClose={onClose}
-        className="border-cyber-primary/20 bg-black/80 backdrop-blur-xl"
         maxHeight="90vh"
         actions={
-          <span className="text-[9px] font-mono opacity-30 uppercase">
+          <CyberMetaText className="px-0 text-[9px] opacity-30">
             {data.type}
-          </span>
+          </CyberMetaText>
         }
       >
         <div className="p-2 space-y-2.5">
-          <textarea
-            className="w-full bg-black/40 border border-white/5 rounded px-2 py-1 text-[10px] text-white/50 focus:outline-none focus:border-cyber-primary/20 resize-none min-h-[32px]"
+          <TextArea
+            variant="micro"
+            className={DESCRIPTION_FIELD_CLASS}
             value={data.description || ""}
             onChange={(e) => updateNodeData({ description: e.target.value })}
             placeholder="Description..."
@@ -201,10 +158,12 @@ export const NodeConfigModal = ({
                   handleParamChange(f.name, value);
 
                 return (
-                  <ConfigFieldShell
+                  <CyberFieldShell
                     key={f.name}
-                    type={f.type}
                     label={f.label}
+                    leading={<FieldIcon type={f.type} />}
+                    headerClassName="group-focus-within/f:text-cyber-primary"
+                    className="group/f"
                     action={canScanModels ? (
                       <CyberAction
                         onClick={tryFetchModels}
@@ -217,7 +176,7 @@ export const NodeConfigModal = ({
                     {canScanModels ? (
                       models.length > 0 ? (
                         <Select
-                          className={FIELD_INPUT_CLASS}
+                          variant="dense"
                           value={val}
                           onChange={(e) => onValueChange(e.target.value)}
                         >
@@ -230,7 +189,7 @@ export const NodeConfigModal = ({
                         </Select>
                       ) : (
                         <Input
-                          className={FIELD_INPUT_CLASS}
+                          variant="dense"
                           value={val}
                           onChange={(e) => onValueChange(e.target.value)}
                           placeholder="Model ID..."
@@ -238,7 +197,7 @@ export const NodeConfigModal = ({
                       )
                     ) : f.type === "select" ? (
                       <Select
-                        className={FIELD_INPUT_CLASS}
+                        variant="dense"
                         value={val}
                         onChange={(e) => onValueChange(e.target.value)}
                       >
@@ -250,7 +209,7 @@ export const NodeConfigModal = ({
                       </Select>
                     ) : f.type === "textarea" ? (
                       <TextArea
-                        className={TEXTAREA_FIELD_CLASS}
+                        variant="dense"
                         value={val}
                         onChange={(e) => onValueChange(e.target.value)}
                       />
@@ -258,14 +217,12 @@ export const NodeConfigModal = ({
                       <NumberInput
                         value={val}
                         onChange={onValueChange}
-                        className={FIELD_INPUT_CLASS}
+                        variant="dense"
                       />
                     ) : f.type === "boolean" ? (
                       <div className="flex items-center justify-between p-1.5 bg-black/20 rounded border border-white/5">
-                        <span className="text-[8px] opacity-20 font-black">
-                          {val === "true" ? "ON" : "OFF"}
-                        </span>
-                        <ToggleSwitch
+                        <CyberBadge label={val === "true" ? "On" : "Off"} variant={val === "true" ? "success" : "info"} />
+                        <CyberToggleSwitch
                           checked={val === "true"}
                           onChange={onValueChange}
                         />
@@ -274,7 +231,8 @@ export const NodeConfigModal = ({
                       <div className="space-y-1">
                         {f.name !== "apiKey" && globalVariables.length > 0 && (
                           <Select
-                            className={VARIABLE_SELECT_CLASS}
+                            variant="micro"
+                            className="!bg-black/60 !border-cyber-primary/10"
                             value={varMatch || ""}
                             onChange={(e) =>
                               e.target.value && onValueChange(`{{${e.target.value}}}`)
@@ -291,40 +249,37 @@ export const NodeConfigModal = ({
                         <div className="relative">
                           <Input
                             type={showPassword[f.name] ? "text" : "password"}
-                            className={`${FIELD_INPUT_CLASS} !pr-7`}
+                            variant="dense"
+                            className="!pr-7"
                             value={val}
                             onChange={(e) => onValueChange(e.target.value)}
                           />
-                          <button
-                            className="absolute right-2 top-1/2 -translate-y-1/2 opacity-20 hover:opacity-100"
+                          <CyberAction
                             onClick={() =>
                               setShowPassword((p) => ({
                                 ...p,
                                 [f.name]: !p[f.name],
                               }))
                             }
-                          >
-                            {showPassword[f.name] ? (
-                              <EyeOff size={10} />
-                            ) : (
-                              <Eye size={10} />
-                            )}
-                          </button>
+                            icon={showPassword[f.name] ? EyeOff : Eye}
+                            showLabel={false}
+                            className="absolute right-1 top-1/2 h-5 w-5 -translate-y-1/2 justify-center border-none bg-transparent opacity-30 hover:opacity-100"
+                          />
                         </div>
                         {variable && (
-                          <div className="text-[8px] font-mono text-white/20 truncate px-1">
+                          <CyberMetaText>
                             {maskSecretValue(variable.value)}
-                          </div>
+                          </CyberMetaText>
                         )}
                       </div>
                     ) : (
                       <Input
-                        className={FIELD_INPUT_CLASS}
+                        variant="dense"
                         value={val}
                         onChange={(e) => onValueChange(e.target.value)}
                       />
                     )}
-                  </ConfigFieldShell>
+                  </CyberFieldShell>
                 );
               })}
           </div>

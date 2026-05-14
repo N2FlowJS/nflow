@@ -22,7 +22,7 @@ import {
 } from "lucide-react";
 import LayoutDropdown, { DropdownItem } from "./LayoutDropdown";
 import { EditorContextProps } from "../../types/editor-ui";
-import { CyberAction } from "../shared/CyberUI";
+import { CyberAction, CyberToolbar, CyberToolbarDivider, StatusIndicator } from "../shared/CyberUI";
 
 
 const FlowHeader: React.FC<EditorContextProps> = memo((props) => {
@@ -113,10 +113,9 @@ const FlowHeader: React.FC<EditorContextProps> = memo((props) => {
   ], []);
 
   return (
-    <div className="fixed top-2 left-1/2 -translate-x-1/2 z-[100] flex items-center gap-1 p-1 bg-black/40 backdrop-blur-md border border-white/5 rounded-full shadow-2xl">
-      {/* Brand / Status */}
+    <CyberToolbar className="fixed top-2 left-1/2 z-[100] -translate-x-1/2">
       <div className="flex items-center gap-2 px-3 py-1 border-r border-white/5 group">
-        <div className="w-1.5 h-1.5 rounded-full bg-cyber-primary animate-pulse shadow-[0_0_8px_rgba(0,240,255,0.4)]" />
+        <StatusIndicator status="running" size={6} />
         <input
           value={currentFlowName}
           onChange={(e) => setCurrentFlowName(e.target.value)}
@@ -136,7 +135,7 @@ const FlowHeader: React.FC<EditorContextProps> = memo((props) => {
           />
         ))}
 
-        <div className="w-px h-4 bg-white/5 mx-0.5" />
+        <CyberToolbarDivider className="mx-0.5" />
         
         <CyberAction 
           icon={Save} 
@@ -151,7 +150,7 @@ const FlowHeader: React.FC<EditorContextProps> = memo((props) => {
           className="h-7 w-7 !rounded-full bg-cyber-primary/10 text-cyber-primary border-none hover:bg-cyber-primary hover:text-black transition-all"
         />
       </div>
-    </div>
+    </CyberToolbar>
   );
 }); 
          

@@ -2,7 +2,7 @@ import React from 'react';
 import { createPortal } from 'react-dom';
 import { Copy, Info } from 'lucide-react';
 import type { CustomNodeType } from '@n2flow/types';
-import { CyberAction, CyberEmptyState, CyberPanel, CyberSectionLabel } from '../shared/CyberUI';
+import { CyberAction, CyberEmptyState, CyberMetaText, CyberOverlay, CyberPanel, CyberSectionLabel } from '../shared/CyberUI';
 
 interface NodeDataModalProps {
   isOpen: boolean;
@@ -22,21 +22,17 @@ export const NodeDataModal = ({
   if (!isOpen) return null;
 
   return createPortal(
-    <div
-      className="fixed inset-0 z-[1190] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
-      onMouseDown={onClose}
-    >
+    <CyberOverlay className="z-[1190] bg-black/60 backdrop-blur-sm" onMouseDown={onClose}>
       <div className="w-full max-w-[720px] pointer-events-auto" onMouseDown={(e) => e.stopPropagation()}>
         <CyberPanel
           title="EXECUTION_DATA"
           icon={Info}
           onClose={onClose}
-          className="border-cyber-primary/20 bg-black/80 backdrop-blur-xl"
           maxHeight="86vh"
           actions={
-            <span className="text-[9px] text-white/30 font-mono uppercase tracking-tighter">
+            <CyberMetaText className="px-0 text-[9px] text-white/30 tracking-tighter">
               {data.label}
-            </span>
+            </CyberMetaText>
           }
         >
           <div className="p-4 space-y-4">
@@ -80,7 +76,7 @@ export const NodeDataModal = ({
           </div>
         </CyberPanel>
       </div>
-    </div>,
+    </CyberOverlay>,
     document.body
   );
 };

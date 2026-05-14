@@ -1,7 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useReactFlow, Node } from '@xyflow/react';
 import { Search, X, ChevronUp, ChevronDown } from 'lucide-react';
-import { CyberPanel } from '../shared/CyberUI';
+import { CyberAction, CyberMetaText, CyberPanel, CyberPanelFooter, CyberPanelSection } from '../shared/CyberUI';
+import { Input } from '../ui/index';
+
+const ACTIVE_NODE_CLASS = ' outline outline-4 outline-cyber-primary shadow-[0_0_30px_rgba(0,240,255,0.8)]';
 
 interface CanvasSearchProps {
   isOpen: boolean;
@@ -37,6 +40,15 @@ export default function CanvasSearch({ isOpen, onClose, nodes, setNodes }: Canva
     });
   }, [nodes, searchTerm]);
 
+  const moveMatchIndex = React.useCallback((direction: 1 | -1) => {
+    setCurrentIndex((prev) => {
+      if (matchingNodes.length === 0) return 0;
+      return direction < 0
+        ? (prev > 0 ? prev - 1 : Math.max(0, matchingNodes.length - 1))
+        : (prev < matchingNodes.length - 1 ? prev + 1 : 0);
+    });
+  }, [matchingNodes.length]);
+
   useEffect(() => {
     if (isOpen) {
       setTimeout(() => inputRef.current?.focus(), 50);
@@ -46,7 +58,7 @@ export default function CanvasSearch({ isOpen, onClose, nodes, setNodes }: Canva
       setNodes((nds) =>
         nds.map((n) => ({
           ...n,
-          className: n.className?.replace(' outline outline-4 outline-cyber-primary shadow-[0_0_30px_rgba(0,240,255,0.8)]', ''),
+          className: n.className?.replace(ACTIVE_NODE_CLASS, ''),
         }))
       );
     }
@@ -63,11 +75,11 @@ export default function CanvasSearch({ isOpen, onClose, nodes, setNodes }: Canva
     if (targetNode) {
       setNodes((nds) =>
         nds.map((n) => {
-          const baseClass = n.className?.replace(' outline outline-4 outline-cyber-primary shadow-[0_0_30px_rgba(0,240,255,0.8)]', '') || '';
+          const baseClass = n.className?.replace(ACTIVE_NODE_CLASS, '') || '';
           if (n.id === targetNode.id) {
             return {
               ...n,
-              className: `${baseClass} outline outline-4 outline-cyber-primary shadow-[0_0_30px_rgba(0,240,255,0.8)]`,
+              className: `${baseClass}${ACTIVE_NODE_CLASS}`,
             };
           }
           return { ...n, className: baseClass };
@@ -86,17 +98,13 @@ export default function CanvasSearch({ isOpen, onClose, nodes, setNodes }: Canva
     if (e.key === 'Escape') {
       onClose();
     } else if (e.key === 'Enter') {
-      if (e.shiftKey) {
-        setCurrentIndex((prev) => (prev > 0 ? prev - 1 : Math.max(0, matchingNodes.length - 1)));
-      } else {
-        setCurrentIndex((prev) => (prev < matchingNodes.length - 1 ? prev + 1 : 0));
-      }
+      moveMatchIndex(e.shiftKey ? -1 : 1);
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
-      setCurrentIndex((prev) => (prev > 0 ? prev - 1 : Math.max(0, matchingNodes.length - 1)));
+      moveMatchIndex(-1);
     } else if (e.key === 'ArrowDown') {
       e.preventDefault();
-      setCurrentIndex((prev) => (prev < matchingNodes.length - 1 ? prev + 1 : 0));
+      moveMatchIndex(1);
     }
   };
 
@@ -109,55 +117,55 @@ export default function CanvasSearch({ isOpen, onClose, nodes, setNodes }: Canva
         className="w-80"
         actions={
           searchTerm && (
-            <span className="text-[9px] font-mono text-white/40 tracking-widest uppercase">
+            <CyberMetaText className="px-0 text-[9px] text-white/40 tracking-widest">
               {matchingNodes.length > 0 ? currentIndex + 1 : 0}/{matchingNodes.length}
-            </span>
+            </CyberMetaText>
           )
         }
       >
-        <div className="p-3 bg-black/40 flex flex-col gap-2">
-          <div className="relative group">
-            <input
-              ref={inputRef}
-              type="text"
-              placeholder="Find node or data..."
-              className="w-full bg-black/60 border border-white/10 rounded-lg pl-3 pr-8 py-2 text-sm text-white focus:outline-none focus:border-cyber-primary/40 transition-all font-sans"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              onKeyDown={handleKeyDown}
-            />
-            {searchTerm && (
+        <CyberPanelSection className="flex flex-col gap-2 p-3">
+          <Input
+            ref={inputRef}
+            type="text"
+            icon={Search}
+            placeholder="Find node or data..."
+            className="!bg-black/60 !text-sm !border-white/10"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            onKeyDown={handleKeyDown}
+            endAdornment={searchTerm ? (
               <button 
                 onClick={() => setSearchTerm('')}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-white/20 hover:text-white"
+                className="text-white/20 hover:text-white"
+                type="button"
               >
-                <X />
+                <X size={16} />
               </button>
-            )}
-          </div>
+            ) : undefined}
+          />
           
-          <div className="flex items-center justify-between border-t border-white/5 pt-2">
+          <CyberPanelFooter className="bg-transparent px-0 pb-0 pt-2">
             <div className="flex gap-1">
-              <button
-                onClick={() => setCurrentIndex((prev) => (prev > 0 ? prev - 1 : Math.max(0, matchingNodes.length - 1)))}
+              <CyberAction
+                icon={ChevronUp}
+                showLabel={false}
+                onClick={() => moveMatchIndex(-1)}
                 disabled={matchingNodes.length === 0}
-                className="p-1 px-2 bg-white/5 hover:bg-white/10 rounded border border-white/5 text-cyber-primary disabled:opacity-10 transition-all"
-              >
-                <ChevronUp size={16} />
-              </button>
-              <button
-                onClick={() => setCurrentIndex((prev) => (prev < matchingNodes.length - 1 ? prev + 1 : 0))}
+                className="h-7 w-8 justify-center border-white/5 bg-white/5 px-2"
+              />
+              <CyberAction
+                icon={ChevronDown}
+                showLabel={false}
+                onClick={() => moveMatchIndex(1)}
                 disabled={matchingNodes.length === 0}
-                className="p-1 px-2 bg-white/5 hover:bg-white/10 rounded border border-white/5 text-cyber-primary disabled:opacity-10 transition-all"
-              >
-                <ChevronDown size={16} />
-              </button>
+                className="h-7 w-8 justify-center border-white/5 bg-white/5 px-2"
+              />
             </div>
-            <span className="text-[8px] text-white/20 font-mono uppercase tracking-[0.2em]">
+            <CyberMetaText className="px-0 tracking-[0.2em]">
               {searchTerm && matchingNodes.length === 0 ? 'Not Found' : 'Nav Controls'}
-            </span>
-          </div>
-        </div>
+            </CyberMetaText>
+          </CyberPanelFooter>
+        </CyberPanelSection>
       </CyberPanel>
     </div>
   );

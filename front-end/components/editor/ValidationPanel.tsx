@@ -26,7 +26,7 @@ const ValidationPanel: React.FC<ValidationPanelProps> = ({
       <CyberPanel
         title="VALIDATION"
         icon={hasError ? AlertTriangle : ShieldCheck}
-        className="w-[300px] border-cyber-primary/20 bg-black/80 backdrop-blur-xl"
+        className="w-[300px]"
         maxHeight="60vh"
         onClose={onClose}
         actions={

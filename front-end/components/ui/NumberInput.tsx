@@ -11,6 +11,7 @@ interface NumberInputProps {
   name?: string;
   onFocus?: () => void;
   inputRef?: (el: HTMLInputElement | null) => void;
+  variant?: 'default' | 'dense';
 }
 
 const NumberInput: React.FC<NumberInputProps> = ({
@@ -23,6 +24,7 @@ const NumberInput: React.FC<NumberInputProps> = ({
   name,
   onFocus,
   inputRef,
+  variant = 'default',
 }) => {
   const [internal, setInternal] = useState<string>(() => (value ?? '').toString());
   const ref = useRef<HTMLInputElement | null>(null);
@@ -103,7 +105,7 @@ const NumberInput: React.FC<NumberInputProps> = ({
         min={min}
         max={max}
         step={step}
-        className={`${className ?? ''} no-native-spinner themed-number pr-10`}
+        className={`${variant === 'dense' ? 'h-7 rounded-lg bg-black/40 px-3 py-0 text-[10px] border border-white/10 focus:border-cyber-primary/50' : ''} ${className ?? ''} no-native-spinner themed-number pr-10 text-white focus:outline-none transition-all`}
       />
 
       <div className="absolute inset-y-0 right-1 flex flex-col items-center justify-center gap-[4px] z-10 pl-2 bg-transparent rounded-r-sm">

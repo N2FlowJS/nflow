@@ -31,7 +31,7 @@ const ShortcutHelp: React.FC<ShortcutHelpProps> = ({
         title="SHORTCUTS"
         icon={Keyboard}
         onClose={() => setShowShortcutHelp(false)}
-        className="w-72 border-cyber-primary/20 bg-black/80 backdrop-blur-xl"
+        className="w-72"
       >
         <div className="p-2 space-y-0.5">
           {shortcuts.map((s, idx) => (

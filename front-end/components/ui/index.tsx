@@ -1,14 +1,45 @@
 import React from 'react';
 
+type ControlVariant = 'default' | 'dense' | 'micro';
+
+const inputVariantClasses: Record<ControlVariant, string> = {
+  default: 'rounded-lg px-3 py-1.5 text-xs',
+  dense: 'rounded-lg px-3 py-0 text-[10px] h-7',
+  micro: 'rounded px-2 py-0 text-[8px] h-5',
+};
+
+const textAreaVariantClasses: Record<ControlVariant, string> = {
+  default: 'rounded-lg px-3 py-2 text-xs min-h-[100px]',
+  dense: 'rounded px-2 py-1 text-[10px] min-h-[50px]',
+  micro: 'rounded px-2 py-1 text-[8px] min-h-[32px]',
+};
+
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
   icon?: React.ElementType;
   error?: string;
   helperText?: string;
+  variant?: ControlVariant;
+  endAdornment?: React.ReactNode;
+}
+
+interface TextAreaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
+  label?: string;
+  error?: string;
+  helperText?: string;
+  variant?: ControlVariant;
+}
+
+interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
+  label?: string;
+  error?: string;
+  helperText?: string;
+  icon?: React.ElementType;
+  variant?: ControlVariant;
 }
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ label, icon: Icon, error, helperText, className = '', ...props }, ref) => {
+  ({ label, icon: Icon, error, helperText, className = '', variant = 'default', endAdornment, ...props }, ref) => {
     return (
       <div className="space-y-1.5 w-full">
         {label && (
@@ -26,11 +57,16 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             ref={ref}
             className={`w-full bg-black/40 border ${
               error ? 'border-red-500/50' : 'border-white/10'
-            } rounded-lg ${
-              Icon ? 'pl-9' : 'pl-3'
-            } pr-3 py-1.5 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-cyber-primary/50 transition-all ${className}`}
+            } ${inputVariantClasses[variant]} ${
+              Icon ? 'pl-9' : variant === 'micro' ? 'pl-2' : 'pl-3'
+            } ${endAdornment ? (variant === 'micro' ? 'pr-7' : 'pr-10') : variant === 'micro' ? 'pr-2' : 'pr-3'} text-white placeholder-gray-600 focus:outline-none focus:border-cyber-primary/50 transition-all ${className}`}
             {...props}
           />
+          {endAdornment && (
+            <div className="absolute right-2 top-1/2 -translate-y-1/2">
+              {endAdornment}
+            </div>
+          )}
         </div>
         {error && <p className="text-[10px] text-red-400">{error}</p>}
         {!error && helperText && <p className="text-[10px] text-gray-500">{helperText}</p>}
@@ -41,8 +77,8 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
 
 Input.displayName = 'Input';
 
-export const TextArea = React.forwardRef<HTMLTextAreaElement, React.TextareaHTMLAttributes<HTMLTextAreaElement> & { label?: string; error?: string; helperText?: string }>(
-  ({ label, error, helperText, className = '', ...props }, ref) => {
+export const TextArea = React.forwardRef<HTMLTextAreaElement, TextAreaProps>(
+  ({ label, error, helperText, className = '', variant = 'default', ...props }, ref) => {
     return (
       <div className="space-y-1.5 w-full">
         {label && (
@@ -54,7 +90,7 @@ export const TextArea = React.forwardRef<HTMLTextAreaElement, React.TextareaHTML
           ref={ref}
           className={`w-full bg-black/40 border ${
             error ? 'border-red-500/50' : 'border-white/10'
-          } rounded-lg px-3 py-2 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-cyber-primary/50 transition-all min-h-[100px] ${className}`}
+          } ${textAreaVariantClasses[variant]} text-white placeholder-gray-600 focus:outline-none focus:border-cyber-primary/50 transition-all ${className}`}
           {...props}
         />
         {error && <p className="text-[10px] text-red-400">{error}</p>}
@@ -65,8 +101,8 @@ export const TextArea = React.forwardRef<HTMLTextAreaElement, React.TextareaHTML
 );
 TextArea.displayName = 'TextArea';
 
-export const Select = React.forwardRef<HTMLSelectElement, React.SelectHTMLAttributes<HTMLSelectElement> & { label?: string; error?: string; helperText?: string; icon?: React.ElementType }>(
-  ({ label, error, helperText, icon: Icon, className = '', children, ...props }, ref) => {
+export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
+  ({ label, error, helperText, icon: Icon, className = '', children, variant = 'default', ...props }, ref) => {
     return (
       <div className="space-y-1.5 w-full">
         {label && (
@@ -84,7 +120,7 @@ export const Select = React.forwardRef<HTMLSelectElement, React.SelectHTMLAttrib
             ref={ref}
             className={`w-full bg-black/40 border ${
               error ? 'border-red-500/50' : 'border-white/10'
-            } rounded-lg ${Icon ? 'pl-9' : 'pl-3'} pr-10 py-1.5 text-xs text-white appearance-none focus:outline-none focus:border-cyber-primary/50 transition-all cursor-pointer ${className}`}
+            } ${inputVariantClasses[variant]} ${Icon ? 'pl-9' : variant === 'micro' ? 'pl-2' : 'pl-3'} ${variant === 'micro' ? 'pr-7' : 'pr-10'} text-white appearance-none focus:outline-none focus:border-cyber-primary/50 transition-all cursor-pointer ${className}`}
             {...props}
           >
             {children}

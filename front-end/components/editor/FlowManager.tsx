@@ -1,7 +1,7 @@
 import React from "react";
 import { Trash2, FolderOpen, Plus } from "lucide-react";
 import { SavedFlow } from "../../types/editor";
-import { CyberAction, CyberEmptyState, CyberListItem, CyberPanel } from "../shared/CyberUI";
+import { CyberAction, CyberEmptyState, CyberListItem, CyberOverlay, CyberPanel } from "../shared/CyberUI";
 
 interface FlowManagerProps {
   isFlowManagerOpen: boolean;
@@ -23,7 +23,7 @@ const FlowManager: React.FC<FlowManagerProps> = ({
   if (!isFlowManagerOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] bg-black/40 backdrop-blur-md flex items-center justify-center p-4">
+    <CyberOverlay className="z-[100]">
       <CyberPanel
         title="ARCHIVE"
         icon={FolderOpen}
@@ -79,7 +79,7 @@ const FlowManager: React.FC<FlowManagerProps> = ({
           )}
         </div>
       </CyberPanel>
-    </div>
+    </CyberOverlay>
   );
 };
 
