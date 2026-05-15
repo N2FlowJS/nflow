@@ -30,7 +30,7 @@ export interface EditorContextProps extends CommonActions, PanelStates {
   isSaving: boolean;
   onSave: (name: string, versionLabel?: string, isAutoSave?: boolean) => void;
   onRunAll: () => void;
-  onValidateFlow: () => void;
+  onValidateFlow: (openDock?: boolean) => boolean;
   validationLocale: ValidationLocale;
   setValidationLocale: React.Dispatch<React.SetStateAction<ValidationLocale>>;
   importInputRef: React.RefObject<HTMLInputElement>;

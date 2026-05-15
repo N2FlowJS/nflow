@@ -27,6 +27,7 @@ interface LogViewerProps {
   setIsLogsOpen: React.Dispatch<React.SetStateAction<boolean>>;
   executionLogs: LogEntry[];
   onClear?: () => void;
+  mode?: "floating" | "dock";
 }
 
 const LogViewer: React.FC<LogViewerProps> = ({
@@ -34,8 +35,10 @@ const LogViewer: React.FC<LogViewerProps> = ({
   setIsLogsOpen,
   executionLogs,
   onClear,
+  mode = "floating",
 }) => {
   const { setCenter, getNodes, setNodes } = useReactFlow();
+  const isDock = mode === "dock";
 
   const zoomToNode = (nodeId?: string) => {
     if (!nodeId) return;
@@ -54,14 +57,14 @@ const LogViewer: React.FC<LogViewerProps> = ({
 
   return (
     <div
-      className={`fixed bottom-0 left-12 right-0 z-30 transition-all duration-300 ease-in-out ${
+      className={isDock ? "h-full w-full" : `fixed bottom-0 left-12 right-0 z-30 transition-all duration-300 ease-in-out ${
         isLogsOpen ? "h-[30vh]" : "h-6 pointer-events-none"
       }`}
     >
       <CyberPanel
         title="Logs"
         icon={Terminal}
-        className={`h-full border-x-0 border-b-0 rounded-none bg-black/90 backdrop-blur-2xl transition-all ${!isLogsOpen ? 'opacity-0' : 'opacity-100'}`}
+        className={`h-full ${isDock ? "rounded-none border-y-0 border-r-0" : "border-x-0 border-b-0 rounded-none bg-black/90 backdrop-blur-2xl transition-all"} ${!isDock && !isLogsOpen ? 'opacity-0' : 'opacity-100'}`}
         maxHeight="100%"
         onClose={() => setIsLogsOpen(false)}
         actions={

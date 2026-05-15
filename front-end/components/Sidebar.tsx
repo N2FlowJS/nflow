@@ -140,11 +140,11 @@ export function Sidebar({
   }, [nodeTemplates, favorites]);
 
   return (
-    <div className="w-14 hover:w-60 border-r border-cyber-border bg-black/60 backdrop-blur-xl transition-all duration-300 ease-in-out flex flex-col z-10 overflow-hidden group/sidebar">
-      <div className="p-3 flex flex-col gap-3 min-w-[240px]">
+    <div className="w-9 hover:w-60 border-r border-cyber-border bg-black/60 backdrop-blur-xl transition-all duration-300 ease-in-out flex flex-col z-10 overflow-hidden group/sidebar">
+      <div className="flex flex-1 flex-col gap-3 min-w-[240px]">
        
 
-        <div className="group-hover/sidebar:block hidden animate-in fade-in duration-500">
+        <div className="p-4 group-hover/sidebar:block hidden animate-in fade-in duration-500">
           <Input
             icon={Icons.Search}
             placeholder="Search..."
@@ -154,7 +154,7 @@ export function Sidebar({
           />
         </div>
 
-        <div className="space-y-4 overflow-y-auto custom-scrollbar flex-1 -mx-1 px-1 h-full">
+        <div className="space-y-4 overflow-y-auto custom-scrollbar flex-1 h-full">
           {favoriteNodes.length > 0 && !searchTerm && (
             <div className={`space-y-1.5 ${!searchTerm ? 'block' : 'hidden'}`}>
               <CyberSectionLabel

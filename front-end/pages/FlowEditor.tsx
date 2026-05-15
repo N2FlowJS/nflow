@@ -21,9 +21,14 @@ import {
 } from "@xyflow/react";
 import { toPng } from "html-to-image";
 import {
+  AlertTriangle,
   DollarSign,
+  FolderOpen,
   History,
+  Keyboard,
+  MessageSquare,
   Plus,
+  Terminal,
   Trash2,
   X,
   Settings2
@@ -43,6 +48,7 @@ import CyberNoteNode from "../components/CyberNoteNode";
 import CanvasSearch from "../components/editor/CanvasSearch";
 import CommandPalette from "../components/editor/CommandPalette";
 import ContextMenu from "../components/editor/ContextMenu";
+import EditorDock, { type EditorDockTab } from "../components/editor/EditorDock";
 import FlowHeader from "../components/editor/FlowHeader";
 import FlowManager from "../components/editor/FlowManager";
 import LogViewer from "../components/editor/LogViewer";
@@ -107,6 +113,15 @@ const INITIAL_PLAYGROUND_MESSAGES: PlaygroundMessage[] = [
   },
 ];
 
+type DockTabId =
+  | "playground"
+  | "logs"
+  | "validation"
+  | "shortcuts"
+  | "flows"
+  | "variables"
+  | "history";
+
 import { prettifyLabel } from "../lib/utils";
 
 const VariablesPanel: React.FC<{
@@ -114,45 +129,53 @@ const VariablesPanel: React.FC<{
   onClose: () => void;
   variables: GlobalVariable[];
   onVariablesChange: (variables: GlobalVariable[]) => void;
-}> = React.memo(({ isOpen, onClose, variables, onVariablesChange }) => {
+  mode?: "floating" | "dock";
+}> = React.memo(({ isOpen, onClose, variables, onVariablesChange, mode = "floating" }) => {
   if (!isOpen) return null;
+  const isDock = mode === "dock";
+
+  const content = (
+    <CyberPanel
+      title="Variables"
+      icon={DollarSign}
+      onClose={onClose}
+      className={isDock ? "h-full rounded-none border-y-0 border-r-0 border-cyber-primary/20 bg-black/80 backdrop-blur-xl" : "border-cyber-primary/20 bg-black/80 backdrop-blur-xl"}
+      maxHeight={isDock ? "100%" : "80vh"}
+      actions={<CyberAction icon={Plus} onClick={() => onVariablesChange([...variables, { id: `v-${Date.now()}`, name: "KEY", value: "" }])} />}
+    >
+      <div className={`p-2 space-y-1.5 scrollbar-hide overflow-y-auto ${isDock ? "h-full" : "max-h-[60vh]"}`}>
+        {variables.length === 0 ? (
+          <div className="text-center py-8 opacity-20 text-[10px] font-black uppercase tracking-[0.18em]">No variables</div>
+        ) : (
+          variables.map((v) => (
+            <div key={v.id} className="flex items-center gap-1 group/v">
+              <input
+                value={v.name}
+                onChange={(e) => onVariablesChange(variables.map(x => x.id === v.id ? { ...x, name: e.target.value } : x))}
+                className="w-24 bg-black/40 border border-white/5 rounded px-2 py-1 text-[10px] font-mono text-cyber-primary focus:outline-none focus:border-cyber-primary/40"
+                placeholder="KEY"
+              />
+              <input
+                value={v.value}
+                onChange={(e) => onVariablesChange(variables.map(x => x.id === v.id ? { ...x, value: e.target.value } : x))}
+                className="flex-1 bg-black/40 border border-white/5 rounded px-2 py-1 text-[10px] font-mono text-white/50 focus:outline-none focus:border-cyber-primary/40"
+                placeholder="VALUE"
+              />
+              <button onClick={() => onVariablesChange(variables.filter(x => x.id !== v.id))} className="p-1 opacity-10 group-hover/v:opacity-100 hover:text-red-500 transition-all">
+                <Trash2 size={10} />
+              </button>
+            </div>
+          ))
+        )}
+      </div>
+    </CyberPanel>
+  );
+
+  if (isDock) return <div className="h-full w-full">{content}</div>;
 
   return (
     <Panel position="top-right" className="m-4 w-[320px] z-50 animate-in fade-in slide-in-from-right-2 duration-200">
-      <CyberPanel
-        title="ENV_VARIABLES"
-        icon={DollarSign}
-        onClose={onClose}
-        className="border-cyber-primary/20 bg-black/80 backdrop-blur-xl"
-        maxHeight="80vh"
-        actions={<CyberAction icon={Plus} onClick={() => onVariablesChange([...variables, { id: `v-${Date.now()}`, name: "KEY", value: "" }])} />}
-      >
-        <div className="p-2 space-y-1.5 scrollbar-hide overflow-y-auto max-h-[60vh]">
-          {variables.length === 0 ? (
-            <div className="text-center py-8 opacity-20 text-[10px] uppercase font-black tracking-widest">No_Data</div>
-          ) : (
-            variables.map((v) => (
-              <div key={v.id} className="flex items-center gap-1 group/v">
-                <input
-                  value={v.name}
-                  onChange={(e) => onVariablesChange(variables.map(x => x.id === v.id ? { ...x, name: e.target.value } : x))}
-                  className="w-24 bg-black/40 border border-white/5 rounded px-2 py-1 text-[10px] font-mono text-cyber-primary focus:outline-none focus:border-cyber-primary/40"
-                  placeholder="KEY"
-                />
-                <input
-                  value={v.value}
-                  onChange={(e) => onVariablesChange(variables.map(x => x.id === v.id ? { ...x, value: e.target.value } : x))}
-                  className="flex-1 bg-black/40 border border-white/5 rounded px-2 py-1 text-[10px] font-mono text-white/50 focus:outline-none focus:border-cyber-primary/40"
-                  placeholder="VALUE"
-                />
-                <button onClick={() => onVariablesChange(variables.filter(x => x.id !== v.id))} className="p-1 opacity-10 group-hover/v:opacity-100 hover:text-red-500 transition-all">
-                  <Trash2 size={10} />
-                </button>
-              </div>
-            ))
-          )}
-        </div>
-      </CyberPanel>
+      {content}
     </Panel>
   );
 });
@@ -163,43 +186,51 @@ const VersionHistoryPanel: React.FC<{
   versions: FlowVersion[];
   onLoadVersion: (version: FlowVersion) => void;
   isRestoring?: boolean;
-}> = React.memo(({ isOpen, onClose, versions, onLoadVersion, isRestoring = false }) => {
+  mode?: "floating" | "dock";
+}> = React.memo(({ isOpen, onClose, versions, onLoadVersion, isRestoring = false, mode = "floating" }) => {
   if (!isOpen) return null;
+  const isDock = mode === "dock";
+
+  const content = (
+    <CyberPanel
+      title="History"
+      icon={History}
+      onClose={onClose}
+      className={isDock ? "h-full rounded-none border-y-0 border-r-0 border-cyber-primary/20 bg-black/80 backdrop-blur-xl" : "border-cyber-primary/20 bg-black/80 backdrop-blur-xl"}
+      maxHeight={isDock ? "100%" : "80vh"}
+    >
+      <div className={`p-2 space-y-1 scrollbar-hide overflow-y-auto ${isDock ? "h-full" : "max-h-[60vh]"}`}>
+        {versions.length === 0 ? (
+          <div className="text-center py-8 opacity-20 text-[10px] font-black uppercase tracking-[0.18em]">No saved versions</div>
+        ) : (
+          versions.map((v) => (
+            <div
+              key={v.id}
+              className="group p-2 bg-black/40 border border-white/5 rounded hover:border-cyber-primary/40 cursor-pointer transition-all"
+              onClick={() => confirm(`Restore \"${v.label || v.id}\"?`) && !isRestoring && onLoadVersion(v)}
+            >
+              <div className="flex justify-between items-start mb-1">
+                <span className="text-[10px] font-bold text-white/50 group-hover:text-cyber-primary truncate pr-2">
+                  {v.label || "Auto backup"}
+                </span>
+                <span className="text-[9px] font-mono text-white/20">{v.data?.nodes?.length || 0}N</span>
+              </div>
+              <div className="flex justify-between items-center text-[8px] font-mono opacity-30">
+                <span>{new Date(v.timestamp).toLocaleDateString()}</span>
+                <span>{new Date(v.timestamp).toLocaleTimeString()}</span>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    </CyberPanel>
+  );
+
+  if (isDock) return <div className="h-full w-full">{content}</div>;
 
   return (
     <Panel position="top-right" className="m-4 w-[320px] z-50 animate-in fade-in slide-in-from-right-2 duration-200">
-      <CyberPanel
-        title="TIMELINE"
-        icon={History}
-        onClose={onClose}
-        className="border-cyber-primary/20 bg-black/80 backdrop-blur-xl"
-        maxHeight="80vh"
-      >
-        <div className="p-2 space-y-1 scrollbar-hide overflow-y-auto max-h-[60vh]">
-          {versions.length === 0 ? (
-            <div className="text-center py-8 opacity-20 text-[10px] uppercase font-black tracking-widest">No_Artifacts</div>
-          ) : (
-            versions.map((v) => (
-              <div
-                key={v.id}
-                className="group p-2 bg-black/40 border border-white/5 rounded hover:border-cyber-primary/40 cursor-pointer transition-all"
-                onClick={() => confirm(`RESTORE: ${v.label || v.id}?`) && !isRestoring && onLoadVersion(v)}
-              >
-                <div className="flex justify-between items-start mb-1">
-                  <span className="text-[10px] font-bold uppercase text-white/50 group-hover:text-cyber-primary truncate pr-2">
-                    {v.label || "Auto_Backup"}
-                  </span>
-                  <span className="text-[9px] font-mono text-white/20">{v.data.nodes?.length || 0}N</span>
-                </div>
-                <div className="flex justify-between items-center text-[8px] font-mono opacity-30">
-                  <span>{new Date(v.timestamp).toLocaleDateString()}</span>
-                  <span>{new Date(v.timestamp).toLocaleTimeString()}</span>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-      </CyberPanel>
+      {content}
     </Panel>
   );
 });
@@ -211,7 +242,7 @@ const Flow = () => {
 
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
-  const [isPlaygroundOpen, setIsPlaygroundOpen] = useState(false);
+  const [activeDockTab, setActiveDockTab] = useState<DockTabId | null>(null);
   const [reactFlowInstance, setReactFlowInstance] =
     useState<ReactFlowInstance | null>(null);
   const [playgroundMessages, setPlaygroundMessages] = useState<
@@ -226,9 +257,6 @@ const Flow = () => {
   const [currentFlowName, setCurrentFlowName] =
     useState<string>("Untitled Flow");
   const [isLiveMode, setIsLiveMode] = useState(false);
-  const [isFlowManagerOpen, setIsFlowManagerOpen] = useState(false);
-  const [isVariablesPanelOpen, setIsVariablesPanelOpen] = useState(false);
-  const [isVersionHistoryOpen, setIsVersionHistoryOpen] = useState(false);
   const [isCanvasSearchOpen, setIsCanvasSearchOpen] = useState(false);
   const [globalVariables, setGlobalVariables] = useState<GlobalVariable[]>([]);
   const [flowVersions, setFlowVersions] = useState<FlowVersion[]>([]);
@@ -248,7 +276,6 @@ const Flow = () => {
         : "en",
   );
   const [isToolsMenuOpen, setIsToolsMenuOpen] = useState(false);
-  const [showShortcutHelp, setShowShortcutHelp] = useState(false);
   const [showCommandPalette, setShowCommandPalette] = useState(false);
   const [commandQuery, setCommandQuery] = useState("");
   const [commandIndex, setCommandIndex] = useState(0);
@@ -256,9 +283,15 @@ const Flow = () => {
     { x: number; y: number } | null
   >(null);
   const [executionLogs, setExecutionLogs] = useState<LogEntry[]>([]);
-  const [isLogsOpen, setIsLogsOpen] = useState(false);
   const [savedFlows, setSavedFlows] = useState<SavedFlow[]>([]);
   const [isSaving, setIsSaving] = useState(false);
+
+  const isPlaygroundOpen = activeDockTab === "playground";
+  const isFlowManagerOpen = activeDockTab === "flows";
+  const isVariablesPanelOpen = activeDockTab === "variables";
+  const isVersionHistoryOpen = activeDockTab === "history";
+  const showShortcutHelp = activeDockTab === "shortcuts";
+  const isLogsOpen = activeDockTab === "logs";
 
   // Global Node Config (single panel)
   const [isNodeConfigOpen, setIsNodeConfigOpen] = useState(false);
@@ -331,28 +364,39 @@ const Flow = () => {
     }));
   };
 
-  // Exclusive setters: ensure only one of Keyboard Shortcuts or System Logs is visible at a time
-  const setShowShortcutHelpExclusive: React.Dispatch<
-    React.SetStateAction<boolean>
-  > = (v) => {
-    setShowShortcutHelp((prev) => {
-      const next =
-        typeof v === "function" ? (v as (p: boolean) => boolean)(prev) : v;
-      if (next) setIsLogsOpen(false);
-      return next;
-    });
-  };
+  const setDockTabOpen = useCallback(
+    (tab: DockTabId, value: React.SetStateAction<boolean>) => {
+      setActiveDockTab((prev) => {
+        const isCurrent = prev === tab;
+        const next =
+          typeof value === "function"
+            ? (value as (current: boolean) => boolean)(isCurrent)
+            : value;
 
-  const setIsLogsOpenExclusive: React.Dispatch<
-    React.SetStateAction<boolean>
-  > = (v) => {
-    setIsLogsOpen((prev) => {
-      const next =
-        typeof v === "function" ? (v as (p: boolean) => boolean)(prev) : v;
-      if (next) setShowShortcutHelp(false);
-      return next;
-    });
-  };
+        if (next) return tab;
+        return isCurrent ? null : prev;
+      });
+    },
+    [],
+  );
+
+  const setIsPlaygroundOpen: React.Dispatch<React.SetStateAction<boolean>> =
+    useCallback((value) => setDockTabOpen("playground", value), [setDockTabOpen]);
+
+  const setIsFlowManagerOpen: React.Dispatch<React.SetStateAction<boolean>> =
+    useCallback((value) => setDockTabOpen("flows", value), [setDockTabOpen]);
+
+  const setIsVariablesPanelOpen: React.Dispatch<React.SetStateAction<boolean>> =
+    useCallback((value) => setDockTabOpen("variables", value), [setDockTabOpen]);
+
+  const setIsVersionHistoryOpen: React.Dispatch<React.SetStateAction<boolean>> =
+    useCallback((value) => setDockTabOpen("history", value), [setDockTabOpen]);
+
+  const setShowShortcutHelpExclusive: React.Dispatch<React.SetStateAction<boolean>> =
+    useCallback((value) => setDockTabOpen("shortcuts", value), [setDockTabOpen]);
+
+  const setIsLogsOpenExclusive: React.Dispatch<React.SetStateAction<boolean>> =
+    useCallback((value) => setDockTabOpen("logs", value), [setDockTabOpen]);
 
   const [isOnline, setIsOnline] = useState(true);
 
@@ -1240,9 +1284,10 @@ const Flow = () => {
     return validateFlowGraph(nodes, edges, { locale: validationLocale });
   }, [nodes, edges, validationLocale]);
 
-  const onValidateFlow = useCallback(() => {
+  const onValidateFlow = useCallback((openDock?: boolean) => {
     const issues = validateFlow();
     setFlowIssues(issues);
+    if (openDock) setActiveDockTab("validation");
 
     const errors = issues.filter((issue) => issue.level === "error");
     const errorsByNode = new Map<string, FlowValidationIssue[]>();
@@ -1301,6 +1346,29 @@ const Flow = () => {
 
     return errors.length === 0;
   }, [validateFlow, setNodes]);
+
+  const dockTabs: EditorDockTab[] = useMemo(
+    () => [
+      { id: "playground", label: "Playground", icon: MessageSquare },
+      {
+        id: "logs",
+        label: "Logs",
+        icon: Terminal,
+        badge: executionLogs.length > 0 ? String(Math.min(executionLogs.length, 99)) : undefined,
+      },
+      {
+        id: "validation",
+        label: "Check",
+        icon: AlertTriangle,
+        badge: flowIssues.length > 0 ? String(Math.min(flowIssues.length, 99)) : undefined,
+      },
+      { id: "flows", label: "Flows", icon: FolderOpen },
+      { id: "variables", label: "Vars", icon: DollarSign },
+      { id: "history", label: "History", icon: History },
+      { id: "shortcuts", label: "Keys", icon: Keyboard },
+    ],
+    [executionLogs.length, flowIssues.length],
+  );
 
   // Debounced Auto-validation
   useEffect(() => {
@@ -1378,8 +1446,9 @@ const Flow = () => {
       { role: "user", text: "[System: Deploy Flow Triggered]" },
     ]);
 
-    const isValid = onValidateFlow();
+    const isValid = onValidateFlow(false);
     if (!isValid) {
+      setActiveDockTab("validation");
       setPlaygroundError(
         "Deploy aborted. Fix validation errors shown on flow and run again.",
       );
@@ -1826,7 +1895,7 @@ const Flow = () => {
         group: "Flow",
         shortcut: "Ctrl/Cmd+Shift+K",
         keywords: "validate lint check",
-        run: () => onValidateFlow(),
+        run: () => onValidateFlow(true),
       },
       {
         id: "playground",
@@ -2230,9 +2299,9 @@ const Flow = () => {
         e.preventDefault();
         onSave(currentFlowName);
       } else if (isMod && e.shiftKey && key === "k") {
-        e.preventDefault();
-        onValidateFlow();
-      } else if (isMod && key === "enter") {
+          e.preventDefault();
+          onValidateFlow(true);
+        } else if (isMod && key === "enter") {
         e.preventDefault();
         onRunAll();
       } else if (isMod && e.shiftKey && key === "l") {
@@ -2399,16 +2468,6 @@ const Flow = () => {
               />
             )}
 
-            <ValidationPanel
-              flowIssues={flowIssues}
-              focusIssueNode={focusIssueNode}
-              onClose={() => setFlowIssues([])}
-            />
-
-            <ShortcutHelp
-              showShortcutHelp={showShortcutHelp}
-              setShowShortcutHelp={setShowShortcutHelpExclusive}
-            />
           </ReactFlow>
 
           <CanvasSearch
@@ -2426,27 +2485,87 @@ const Flow = () => {
             handleParamChange={handleConfigParamChange}
             globalVariables={globalVariables}
           />
+          <EditorDock
+            tabs={dockTabs}
+            activeTab={activeDockTab}
+            onTabChange={(tabId) => {
+              if (tabId === null) {
+                setActiveDockTab(null);
+                return;
+              }
+              setActiveDockTab((prev) => (prev === tabId ? null : (tabId as DockTabId)));
+            }}
+          >
+            {activeDockTab === "playground" && (
+              <Playground
+                isOpen={isPlaygroundOpen}
+                onClose={() => setIsPlaygroundOpen(false)}
+                messages={playgroundMessages}
+                isTyping={isPlaygroundTyping}
+                runtimeStatus={runtimeStatus}
+                error={playgroundError}
+                onErrorDismiss={() => setPlaygroundError(null)}
+                onSendMessage={onSendMessage}
+                onClearMessages={onClearPlaygroundMessages}
+                mode="dock"
+              />
+            )}
+            {activeDockTab === "logs" && (
+              <LogViewer
+                isLogsOpen={isLogsOpen}
+                setIsLogsOpen={setIsLogsOpenExclusive}
+                executionLogs={executionLogs}
+                onClear={() => setExecutionLogs([])}
+                mode="dock"
+              />
+            )}
+            {activeDockTab === "validation" && (
+              <ValidationPanel
+                flowIssues={flowIssues}
+                focusIssueNode={focusIssueNode}
+                onClose={() => setActiveDockTab(null)}
+                mode="dock"
+              />
+            )}
+            {activeDockTab === "shortcuts" && (
+              <ShortcutHelp
+                showShortcutHelp={showShortcutHelp}
+                setShowShortcutHelp={setShowShortcutHelpExclusive}
+                mode="dock"
+              />
+            )}
+            {activeDockTab === "flows" && (
+              <FlowManager
+                isFlowManagerOpen={isFlowManagerOpen}
+                setIsFlowManagerOpen={setIsFlowManagerOpen}
+                savedFlows={savedFlows}
+                onDeleteFlow={onDeleteFlow}
+                navigate={navigate}
+                mode="dock"
+              />
+            )}
+            {activeDockTab === "history" && (
+              <VersionHistoryPanel
+                isOpen={isVersionHistoryOpen}
+                onClose={() => setIsVersionHistoryOpen(false)}
+                versions={flowVersions}
+                onLoadVersion={onLoadVersion}
+                isRestoring={isRestoringVersion}
+                mode="dock"
+              />
+            )}
+            {activeDockTab === "variables" && (
+              <VariablesPanel
+                isOpen={isVariablesPanelOpen}
+                onClose={() => setIsVariablesPanelOpen(false)}
+                variables={globalVariables}
+                onVariablesChange={setGlobalVariables}
+                mode="dock"
+              />
+            )}
+          </EditorDock>
         </div>
-
-        <LogViewer
-          isLogsOpen={isLogsOpen}
-          setIsLogsOpen={setIsLogsOpenExclusive}
-          executionLogs={executionLogs}
-          onClear={() => setExecutionLogs([])}
-        />
       </div>
-
-      <Playground
-        isOpen={isPlaygroundOpen}
-        onClose={() => setIsPlaygroundOpen(false)}
-        messages={playgroundMessages}
-        isTyping={isPlaygroundTyping}
-        runtimeStatus={runtimeStatus}
-        error={playgroundError}
-        onErrorDismiss={() => setPlaygroundError(null)}
-        onSendMessage={onSendMessage}
-        onClearMessages={onClearPlaygroundMessages}
-      />
 
       <CommandPalette
         showCommandPalette={showCommandPalette}
@@ -2457,26 +2576,6 @@ const Flow = () => {
         setCommandIndex={setCommandIndex}
         filteredCommands={filteredCommands}
         commandInputRef={commandInputRef}
-      />
-      <FlowManager
-        isFlowManagerOpen={isFlowManagerOpen}
-        setIsFlowManagerOpen={setIsFlowManagerOpen}
-        savedFlows={savedFlows}
-        onDeleteFlow={onDeleteFlow}
-        navigate={navigate}
-      />
-      <VersionHistoryPanel
-        isOpen={isVersionHistoryOpen}
-        onClose={() => setIsVersionHistoryOpen(false)}
-        versions={flowVersions}
-        onLoadVersion={onLoadVersion}
-        isRestoring={isRestoringVersion}
-      />
-      <VariablesPanel
-        isOpen={isVariablesPanelOpen}
-        onClose={() => setIsVariablesPanelOpen(false)}
-        variables={globalVariables}
-        onVariablesChange={setGlobalVariables}
       />
 
       {contextMenu && (

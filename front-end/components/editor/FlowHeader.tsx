@@ -53,7 +53,7 @@ const FlowHeader: React.FC<EditorContextProps> = memo((props) => {
       case "VARIABLES": setIsVariablesPanelOpen(prev => !prev); break;
       case "HISTORY": setIsVersionHistoryOpen(prev => !prev); break;
       case "PLAYGROUND": setIsPlaygroundOpen(prev => !prev); break;
-      case "CHECK_FLOW": onValidateFlow(); break;
+      case "CHECK_FLOW": onValidateFlow(true); break;
       case "SHORTCUTS": setShowShortcutHelp(true); break;
       case "COPY": onCopy(); break;
       case "PASTE": onPaste(); break;

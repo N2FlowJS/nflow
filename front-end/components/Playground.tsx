@@ -21,6 +21,7 @@ export default function Playground({
   onErrorDismiss,
   onSendMessage,
   onClearMessages,
+  mode = 'floating',
 }: { 
   isOpen: boolean;
   onClose: () => void;
@@ -31,6 +32,7 @@ export default function Playground({
   onErrorDismiss?: () => void;
   onSendMessage: (msg: string) => void;
   onClearMessages?: () => void;
+  mode?: 'floating' | 'dock';
 }) {
   const [input, setInput] = useState('');
   const [showSystemMessages, setShowSystemMessages] = useState(false);
@@ -65,9 +67,10 @@ export default function Playground({
   const visibleMessages = showSystemMessages
     ? messages
     : messages.filter((m) => m.role !== 'system');
+  const isDock = mode === 'dock';
 
   return (
-    <div className="fixed top-0 right-0 w-80 md:w-96 h-screen z-[60] animate-in slide-in-from-right duration-300">
+    <div className={isDock ? "h-full w-full" : "fixed top-0 right-0 w-80 md:w-96 h-screen z-[60] animate-in slide-in-from-right duration-300"}>
       <CyberPanel
         title="Playground"
         icon={MessageSquare}

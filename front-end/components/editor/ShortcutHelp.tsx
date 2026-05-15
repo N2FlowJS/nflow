@@ -17,36 +17,46 @@ const SHORTCUTS = [
 interface ShortcutHelpProps {
   showShortcutHelp: boolean;
   setShowShortcutHelp: React.Dispatch<React.SetStateAction<boolean>>;
+  mode?: "floating" | "dock";
 }
 
 const ShortcutHelp: React.FC<ShortcutHelpProps> = ({
   showShortcutHelp,
   setShowShortcutHelp,
+  mode = "floating",
 }) => {
   if (!showShortcutHelp) return null;
+  const isDock = mode === "dock";
+
+  const content = (
+    <CyberPanel
+      title="Shortcuts"
+      icon={Keyboard}
+      onClose={() => setShowShortcutHelp(false)}
+      className={isDock ? "h-full rounded-none border-y-0 border-r-0" : "w-64"}
+      maxHeight={isDock ? "100%" : "80vh"}
+    >
+      <div className="p-2 space-y-0.5">
+        {SHORTCUTS.map((s) => (
+          <CyberListItem
+            key={s.key}
+            className="items-center justify-between rounded-lg px-3 py-1.5 hover:bg-white/5"
+            action={<CyberBadge label={s.key} size="sm" />}
+          >
+            <span className="text-[9px] text-white/40 font-black tracking-[0.18em] group-hover:text-white/60 transition-colors">
+              {s.label}
+            </span>
+          </CyberListItem>
+        ))}
+      </div>
+    </CyberPanel>
+  );
+
+  if (isDock) return <div className="h-full w-full">{content}</div>;
 
   return (
     <Panel position="bottom-left" className="m-4 z-40 animate-in slide-in-from-bottom-4 duration-300">
-      <CyberPanel
-        title="Shortcuts"
-        icon={Keyboard}
-        onClose={() => setShowShortcutHelp(false)}
-        className="w-64"
-      >
-        <div className="p-2 space-y-0.5">
-          {SHORTCUTS.map((s) => (
-            <CyberListItem
-              key={s.key}
-              className="items-center justify-between rounded-lg px-3 py-1.5 hover:bg-white/5"
-              action={<CyberBadge label={s.key} size="sm" />}
-            >
-              <span className="text-[9px] text-white/40 font-black tracking-[0.18em] group-hover:text-white/60 transition-colors">
-                {s.label}
-              </span>
-            </CyberListItem>
-          ))}
-        </div>
-      </CyberPanel>
+      {content}
     </Panel>
   );
 };
