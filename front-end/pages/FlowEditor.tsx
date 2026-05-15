@@ -449,7 +449,9 @@ const Flow = () => {
 
               setCurrentFlowId(flow.id);
               setCurrentFlowName(flow.name);
+              // Mark that we should fit view after these nodes render
               shouldFitAfterLoadRef.current = true;
+              setFitRequestCount((c) => c + 1);
             }
           } else {
             // Fallback to localStorage for migration
@@ -462,7 +464,9 @@ const Flow = () => {
                 setEdges(flow.data.edges || []);
                 setCurrentFlowId(flow.id);
                 setCurrentFlowName(flow.name);
+                // Mark that we should fit view after these nodes render
                 shouldFitAfterLoadRef.current = true;
+                setFitRequestCount((c) => c + 1);
               }
             }
           }
@@ -486,6 +490,8 @@ const Flow = () => {
   const [future, setFuture] = useState<{ nodes: Node[]; edges: Edge[] }[]>([]);
   const stateRef = useRef({ nodes, edges });
   const shouldFitAfterLoadRef = useRef(false);
+  const [fitRequestCount, setFitRequestCount] = useState(0);
+  const lastHandledFitRequestRef = useRef(0);
   const scrollStateRef = useRef({ dx: 0, dy: 0, isScrolling: false });
   const executionAbortRef = useRef<AbortController | null>(null);
   const isSilentExecutionRunningRef = useRef(false);
@@ -498,7 +504,12 @@ const Flow = () => {
   }, [nodes, edges]);
 
   useEffect(() => {
-    if (!reactFlowInstance || !shouldFitAfterLoadRef.current) return;
+    if (!reactFlowInstance) return;
+    // Only run when there's a new fit request
+    if (fitRequestCount === lastHandledFitRequestRef.current) return;
+    // mark as pending
+    shouldFitAfterLoadRef.current = true;
+    lastHandledFitRequestRef.current = fitRequestCount;
 
     let canceled = false;
     let timer: ReturnType<typeof setTimeout> | null = null;
@@ -524,20 +535,55 @@ const Flow = () => {
         return width > 0 && height > 0;
       });
 
-      if (!hasMeasuredNodes && attempts < 14) {
+      try {
+        // Debug: log state to help diagnose fitView timing issues
+        // eslint-disable-next-line no-console
+        console.debug("[FlowEditor] runFit", {
+          nodesCount: flowNodes.length,
+          hasMeasuredNodes,
+          attempts,
+          shouldFitAfterLoad: shouldFitAfterLoadRef.current,
+        });
+      } catch (e) {}
+
+      // Give more attempts and a slightly longer interval for heavy layouts
+      if (!hasMeasuredNodes && attempts < 30) {
         attempts += 1;
-        timer = setTimeout(runFit, 50);
+        timer = setTimeout(runFit, 100);
         return;
       }
 
       requestAnimationFrame(() => {
         if (canceled) return;
-        reactFlowInstance.fitView({
-          duration: 800,
-          padding: 0.2,
-          includeHiddenNodes: true,
-        });
-        shouldFitAfterLoadRef.current = false;
+        try {
+          reactFlowInstance.fitView({
+            duration: 800,
+            padding: 0.2,
+            includeHiddenNodes: true,
+          });
+          // eslint-disable-next-line no-console
+          console.debug("[FlowEditor] fitView executed");
+        } catch (err) {
+          // eslint-disable-next-line no-console
+          console.debug("[FlowEditor] fitView error", err);
+        }
+
+        // Retry shortly after to handle layout/measurement timing issues
+        const retry = setTimeout(() => {
+          if (canceled) return;
+          try {
+            reactFlowInstance.fitView({ duration: 200, padding: 0.2, includeHiddenNodes: true });
+            // eslint-disable-next-line no-console
+            console.debug("[FlowEditor] fitView retry executed");
+          } catch (err) {
+            // eslint-disable-next-line no-console
+            console.debug("[FlowEditor] fitView retry error", err);
+          }
+          shouldFitAfterLoadRef.current = false;
+        }, 300);
+
+        // Track retry timer so cleanup can clear it
+        timer = retry as unknown as ReturnType<typeof setTimeout>;
       });
     };
 
@@ -547,7 +593,9 @@ const Flow = () => {
       canceled = true;
       if (timer) clearTimeout(timer);
     };
-  }, [reactFlowInstance, nodes, edges]);
+  }, [reactFlowInstance, nodes, edges, fitRequestCount]);
+  // include fitRequestCount as a dependency so effect re-runs when a new request is made
+  // (note: it's safe to keep nodes/edges in deps to retry on measurement changes)
 
   const takeSnapshot = useCallback(() => {
     setPast((p) => {
@@ -1604,6 +1652,9 @@ const Flow = () => {
           setGlobalVariables(restoredFlow.data.globalVariables || []);
           setFlowVersions(restoredFlow.versions || []);
           setCurrentFlowName(restoredFlow.name || currentFlowName);
+          // Ensure viewport fits to the restored flow after render
+          shouldFitAfterLoadRef.current = true;
+          setFitRequestCount((c) => c + 1);
         }
 
         setIsVersionHistoryOpen(false);
@@ -1768,6 +1819,9 @@ const Flow = () => {
               takeSnapshot();
               setNodes((flow.nodes || []).map(normalizeModelNode));
               setEdges(flow.edges || []);
+                // After importing a flow file, request a fitView
+                shouldFitAfterLoadRef.current = true;
+                setFitRequestCount((c) => c + 1);
             }
           } catch (err) {
             console.error("Failed to parse JSON file", err);
