@@ -11,7 +11,7 @@ export type EditorDockTab = {
 interface EditorDockProps {
   tabs: EditorDockTab[];
   activeTab: string | null;
-  onTabChange: (tabId: string | null) => void;
+  onTabChange: (tabId: string) => void;
   children: React.ReactNode;
 }
 
@@ -22,7 +22,7 @@ const EditorDock: React.FC<EditorDockProps> = ({
   children,
 }) => {
   return (
-    <div className="fixed top-0 right-0 bottom-0 z-[70] flex pointer-events-none">
+    <div className="fixed top-14 right-0 bottom-0 z-[70] flex pointer-events-none">
       <div className="pointer-events-auto absolute left-0 top-4 -translate-x-full flex flex-col gap-1.5 pr-1">
         {tabs.map((tab) => {
           const isActive = activeTab === tab.id;
@@ -55,15 +55,7 @@ const EditorDock: React.FC<EditorDockProps> = ({
       </div>
 
       {activeTab && (
-        <div className="pointer-events-auto h-full w-[min(420px,calc(100vw-3rem))] animate-in slide-in-from-right duration-200 relative">
-          <button
-            type="button"
-            onClick={() => onTabChange(null)}
-            className="absolute right-2 top-2 z-50 h-6 w-6 rounded-md flex items-center justify-center border border-white/5 bg-black/30 text-white/40 hover:text-white hover:border-cyber-primary"
-            title="Close"
-          >
-            ✕
-          </button>
+        <div className="pointer-events-auto h-full w-[min(420px,calc(100vw-3rem))] animate-in slide-in-from-right duration-200">
           {children}
         </div>
       )}

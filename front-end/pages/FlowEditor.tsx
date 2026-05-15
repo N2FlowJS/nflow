@@ -1287,9 +1287,9 @@ const Flow = () => {
   const onValidateFlow = useCallback((openDock?: boolean) => {
     const issues = validateFlow();
     setFlowIssues(issues);
-    if (openDock) setActiveDockTab("validation");
 
     const errors = issues.filter((issue) => issue.level === "error");
+      if (openDock && errors.length > 0) setActiveDockTab("validation");
     const errorsByNode = new Map<string, FlowValidationIssue[]>();
     issues
       .filter((issue) => issue.level === "error" && issue.nodeId)
@@ -1300,8 +1300,8 @@ const Flow = () => {
         errorsByNode.set(key, current);
       });
 
-    setNodes((nds) =>
-      nds.map((node) => {
+    setNodes((nds) => {
+      const next = nds.map((node) => {
         const nodeErrors = errorsByNode.get(node.id) || [];
         const currentError =
           typeof (node.data as { errorMessage?: unknown }).errorMessage ===
@@ -1333,8 +1333,11 @@ const Flow = () => {
         }
 
         return node;
-      }),
-    );
+      });
+
+      const changed = next.some((n, i) => n !== nds[i]);
+      return changed ? next : nds;
+    });
 
     if (errors.length > 0) {
       setPlaygroundError(
@@ -1374,7 +1377,7 @@ const Flow = () => {
   useEffect(() => {
     if (nodes.length === 0) return;
     const timer = setTimeout(() => {
-      onValidateFlow();
+      onValidateFlow(false);
     }, 1000);
     return () => clearTimeout(timer);
   }, [nodes, edges, onValidateFlow]);
