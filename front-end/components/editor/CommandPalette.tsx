@@ -34,7 +34,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({
           title="Commands"
           icon={Command}
           onClose={() => setShowCommandPalette(false)}
-          className="border-cyber-primary/20 bg-black/80 shadow-[0_0_80px_rgba(0,0,0,0.7)] backdrop-blur-xl"
+          className="border-cyber-primary/20 bg-black/80 shadow-[0_0_30px_rgba(0,0,0,0.45)] backdrop-blur-xl"
           actions={
             <CyberMetaText className="px-0 text-[9px] text-white/20 tracking-[0.2em]">
               Enter
@@ -52,7 +52,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({
                 }}
                 icon={Command}
                 placeholder="Search commands"
-                className="!rounded-xl !border-cyber-primary/20 !bg-black/60 !py-3 !pl-11 !pr-4 !text-base placeholder:!text-white/15 focus:!border-cyber-primary focus:!shadow-[0_0_15px_rgba(0,240,255,0.2)]"
+                className="!rounded-xl !border-cyber-primary/20 !bg-black/60 !py-3 !pl-11 !pr-4 !text-base placeholder:!text-white/15 focus:!border-cyber-primary focus:!shadow-[0_0_8px_rgba(0,240,255,0.12)]"
                 autoFocus
                 onKeyDown={(e) => {
                    if (e.key === 'Escape') setShowCommandPalette(false);
@@ -79,14 +79,14 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({
                       accentClassName={isActive ? "bg-cyber-primary" : "bg-white/10"}
                       className={`items-center justify-between gap-3 rounded-xl border px-4 py-2.5 text-left transition-all active:scale-[0.99] ${
                         isActive
-                          ? "bg-cyber-primary/10 border-cyber-primary/40 shadow-[inset_0_0_15px_rgba(0,240,255,0.05)]"
+                          ? "bg-cyber-primary/10 border-cyber-primary/40 shadow-[inset_0_0_10px_rgba(0,240,255,0.03)]"
                           : "bg-transparent border-transparent hover:bg-white/5"
                       }`}
                       action={command.shortcut ? (
                         <CyberBadge
                           label={command.shortcut}
                           size="sm"
-                          className={isActive ? "border-cyber-primary bg-cyber-primary text-black shadow-[0_0_10px_rgba(0,240,255,0.5)]" : "bg-black/40 text-white/20 border-white/5"}
+                          className={isActive ? "border-cyber-primary bg-cyber-primary text-black shadow-[0_0_8px_rgba(0,240,255,0.18)]" : "bg-black/40 text-white/20 border-white/5"}
                         />
                       ) : undefined}
                     >

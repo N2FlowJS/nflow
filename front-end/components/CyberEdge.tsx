@@ -40,7 +40,7 @@ export default function CyberEdge({
     ...style,
     stroke: strokeColor,
     strokeWidth: selected ? 3 : (style.strokeWidth || 1.5),
-    filter: selected ? 'drop-shadow(0 0 5px rgba(0, 240, 255, 0.5))' : 'none',
+    filter: selected ? 'drop-shadow(0 0 3px rgba(0, 240, 255, 0.25))' : 'none',
   };
 
   const onEdgeDelete = (e: React.MouseEvent) => {
@@ -61,7 +61,7 @@ export default function CyberEdge({
         >
           {label && (
             <div 
-              className="px-2 py-1 rounded bg-black/80 backdrop-blur-sm border shadow-[0_0_10px_rgba(0,0,0,0.5)] transition-all group-hover:scale-105"
+              className="px-2 py-1 rounded bg-black/80 backdrop-blur-sm border shadow-[0_0_6px_rgba(0,0,0,0.35)] transition-all group-hover:scale-105"
               style={{ 
                 borderColor: strokeColor as string,
                 color: (labelStyle?.fill as string) || '#e0e0e0',

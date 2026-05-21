@@ -5,21 +5,26 @@ import { Button } from "../ui";
 /**
  * Standardized status dot with ring and glow
  */
+export type NodeStatus = 'idle' | 'running' | 'success' | 'error' | 'skipped';
+
 export const StatusIndicator: React.FC<{
-  status: 'idle' | 'running' | 'success' | 'error';
+  status: NodeStatus;
   size?: number;
 }> = ({ status, size = 8 }) => {
-  const configs = {
-    idle: "bg-gray-500/50 border-gray-500/30",
-    running: "bg-yellow-400 border-yellow-400 animate-pulse shadow-[0_0_8px_rgba(250,204,21,1)]",
-    success: "bg-green-500 border-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]",
-    error: "bg-red-500 border-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]",
+  const configs: Record<NodeStatus, string> = {
+    idle:    'bg-gray-500/50 border-gray-500/30',
+    running: 'bg-yellow-400 border-yellow-400 animate-pulse shadow-[0_0_6px_rgba(250,204,21,0.45)]',
+    success: 'bg-green-500 border-green-500 shadow-[0_0_6px_rgba(34,197,94,0.35)]',
+    error:   'bg-red-500 border-red-500 shadow-[0_0_6px_rgba(239,68,68,0.35)]',
+    /** Dead-path eliminated – shown as a muted indigo dot */
+    skipped: 'bg-indigo-400/40 border-indigo-400/25',
   };
 
   return (
-    <div 
-      className={`rounded-full border ${configs[status]}`} 
-      style={{ width: size, height: size }} 
+    <div
+      className={`rounded-full border ${configs[status] ?? configs.idle}`}
+      style={{ width: size, height: size }}
+      title={status}
     />
   );
 };
@@ -68,7 +73,7 @@ export const CyberAction: React.FC<CyberActionProps> = ({
       {Icon && (
         <Icon 
           size={14} 
-          className={`${colorClass} group-hover:drop-shadow-[0_0_5px_currentColor] transition-all ${active ? 'drop-shadow-[0_0_5px_currentColor]' : ''}`} 
+          className={`${colorClass} group-hover:drop-shadow-[0_0_3px_currentColor] transition-all ${active ? 'drop-shadow-[0_0_3px_currentColor]' : ''}`} 
         />
       )}
       {showLabel && label && (
@@ -89,6 +94,7 @@ interface CyberPanelProps {
   actions?: React.ReactNode;
   className?: string;
   maxHeight?: string;
+  scrollable?: boolean;
 }
 
 /**
@@ -103,9 +109,10 @@ export const CyberPanel: React.FC<CyberPanelProps> = ({
   actions,
   className = "",
   maxHeight = "80vh",
+  scrollable = true,
 }) => {
   return (
-    <div className={`bg-cyber-panel border border-cyber-primary/20 rounded-xl shadow-2xl overflow-hidden flex flex-col bg-black/80 backdrop-blur-xl ${className}`} style={{ maxHeight }}>
+    <div className={`bg-cyber-panel border border-cyber-primary/20 rounded-xl shadow-xl overflow-hidden flex flex-col bg-black/80 backdrop-blur-xl ${className}`} style={{ maxHeight }}>
       <div className="px-3 py-2 border-b border-white/5 flex items-center justify-between bg-black/40">
         <div className="flex items-center gap-2 text-cyber-primary">
           {Icon && <Icon size={14} />}
@@ -125,9 +132,15 @@ export const CyberPanel: React.FC<CyberPanelProps> = ({
           )}
         </div>
       </div>
-      <div className="flex-1 overflow-y-auto custom-scrollbar">
-        {children}
-      </div>
+      {scrollable ? (
+        <div className="flex-1 overflow-y-auto custom-scrollbar">
+          {children}
+        </div>
+      ) : (
+        <div className="flex-1 flex flex-col min-h-0">
+          {children}
+        </div>
+      )}
     </div>
   );
 };
@@ -143,9 +156,9 @@ interface TooltipBadgeProps {
  */
 export const StatusBadge: React.FC<TooltipBadgeProps> = ({ label, status = "online", className = "" }) => {
   const statusStyles = {
-    online: "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)] animate-pulse",
-    offline: "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]",
-    syncing: "bg-cyber-primary shadow-[0_0_8px_rgba(34,211,238,0.6)] animate-spin-slow",
+    online: "bg-green-500 shadow-[0_0_6px_rgba(34,197,94,0.35)] animate-pulse",
+    offline: "bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.35)]",
+    syncing: "bg-cyber-primary shadow-[0_0_6px_rgba(34,211,238,0.35)] animate-spin-slow",
   };
 
   return (
@@ -383,7 +396,7 @@ export const CyberMenuSurface = React.forwardRef<HTMLDivElement, {
   return (
     <div
       ref={ref}
-      className={`rounded-xl border border-white/10 bg-black/90 py-1.5 shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-xl ${className}`}
+      className={`rounded-xl border border-white/10 bg-black/90 py-1.5 shadow-[0_10px_30px_rgba(0,0,0,0.45)] backdrop-blur-xl ${className}`}
       style={style}
       onContextMenu={onContextMenu}
     >
@@ -432,8 +445,8 @@ export const CyberToolbar: React.FC<{
   children: React.ReactNode;
   className?: string;
 }> = ({ children, className = "" }) => {
-  return (
-    <div className={`flex items-center gap-1 rounded-full border border-white/5 bg-black/40 p-1 shadow-2xl backdrop-blur-md ${className}`}>
+    return (
+      <div className={`flex items-center gap-1 rounded-full border border-white/5 bg-black/40 p-1 shadow-xl backdrop-blur-md ${className}`}>
       {children}
     </div>
   );

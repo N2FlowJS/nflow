@@ -16,6 +16,10 @@ const LOG_TYPE_STYLES: Record<
     bar: "bg-cyber-primary/50",
     text: "text-cyber-primary/80",
   },
+  skipped: {
+    bar: "bg-indigo-400/30",
+    text: "text-indigo-300/50",
+  },
   default: {
     bar: "bg-white/10",
     text: "text-gray-500",
@@ -57,7 +61,7 @@ const LogViewer: React.FC<LogViewerProps> = ({
 
   return (
     <div
-      className={isDock ? "h-full w-full" : `fixed bottom-0 left-12 right-0 z-30 transition-all duration-300 ease-in-out ${
+      className={isDock ? "h-full w-full min-h-0" : `fixed bottom-0 left-12 right-0 z-30 transition-all duration-300 ease-in-out ${
         isLogsOpen ? "h-[30vh]" : "h-6 pointer-events-none"
       }`}
     >
@@ -66,6 +70,7 @@ const LogViewer: React.FC<LogViewerProps> = ({
         icon={Terminal}
         className={`h-full ${isDock ? "rounded-none border-y-0 border-r-0" : "border-x-0 border-b-0 rounded-none bg-black/90 backdrop-blur-2xl transition-all"} ${!isDock && !isLogsOpen ? 'opacity-0' : 'opacity-100'}`}
         maxHeight="100%"
+        scrollable={!isDock}
         onClose={() => setIsLogsOpen(false)}
         actions={
           <CyberAction
@@ -76,7 +81,7 @@ const LogViewer: React.FC<LogViewerProps> = ({
           />
         }
       >
-        <div className="p-2 font-mono text-[9px] space-y-0.5 h-full overflow-y-auto scrollbar-hide">
+        <div className="p-2 font-mono text-[9px] space-y-0.5 h-full overflow-y-auto scrollbar-hide min-h-0">
           {executionLogs.length === 0 ? (
             <CyberEmptyState label="No logs yet" className="h-full text-white/5 tracking-[0.18em]" />
           ) : (

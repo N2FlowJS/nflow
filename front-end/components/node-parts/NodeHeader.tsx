@@ -6,6 +6,8 @@ import { StatusIndicator, CyberBadge } from '../shared/CyberUI';
 interface NodeHeaderProps {
   data: any;
   selected?: boolean;
+  isAgent?: boolean;
+  isLLM?: boolean;
 }
 
 export const NodeHeader = ({ data, selected }: NodeHeaderProps) => {

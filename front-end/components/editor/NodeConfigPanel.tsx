@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState, memo } from "react";
 import { Panel } from "@xyflow/react";
 import type { CustomNodeType, NodeData } from "@n2flow/types";
 import {
-  Settings,
+  Settings2,
   Hash,
   Type,
   List,
@@ -17,17 +17,26 @@ import { Input, TextArea, Select } from "../ui/index";
 import { apiService } from "../../lib/apiService";
 import { maskSecretValue } from "../../lib/utils";
 import type { GlobalVariable } from "../../types/editor";
-import { CyberAction, CyberBadge, CyberFieldShell, CyberMetaText, CyberPanel, CyberToggleSwitch } from "../shared/CyberUI";
+import {
+  CyberAction,
+  CyberBadge,
+  CyberFieldShell,
+  CyberMetaText,
+  CyberPanel,
+  CyberToggleSwitch,
+  CyberEmptyState,
+} from "../shared/CyberUI";
 
 type ConfigField = NonNullable<NodeData["configSchema"]>[number];
 
-interface NodeConfigModalProps {
+interface NodeConfigPanelProps {
   isOpen: boolean;
   onClose: () => void;
-  data: CustomNodeType["data"];
+  data: CustomNodeType["data"] | null;
   updateNodeData: (newData: Partial<CustomNodeType["data"]>) => void;
   handleParamChange: (name: string, value: string | number | boolean) => void;
   globalVariables: GlobalVariable[];
+  mode?: "floating" | "dock";
 }
 
 const FieldIcon = memo(({ type }: { type: ConfigField["type"] }) => {
@@ -45,23 +54,27 @@ const FieldIcon = memo(({ type }: { type: ConfigField["type"] }) => {
       return <Type {...props} />;
   }
 });
+
 const DESCRIPTION_FIELD_CLASS = "!min-h-[32px] !text-white/50 placeholder:!text-white/20";
 
-export const NodeConfigModal = ({
+export const NodeConfigPanel = ({
   isOpen,
   onClose,
   data,
   updateNodeData,
   handleParamChange,
   globalVariables,
-}: NodeConfigModalProps) => {
+  mode = "dock",
+}: NodeConfigPanelProps) => {
   const [models, setModels] = useState<string[]>([]);
   const [modelsLoading, setModelsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState<Record<string, boolean>>({});
   const lastFetchKeyRef = useRef<string | null>(null);
 
-  const baseVal = String(getNodeFieldValue(data, "baseUrl") ?? "");
-  const apiKeyVal = String(getNodeFieldValue(data, "apiKey") ?? "");
+  const isDock = mode === "dock";
+
+  const baseVal = data ? String(getNodeFieldValue(data, "baseUrl") ?? "") : "";
+  const apiKeyVal = data ? String(getNodeFieldValue(data, "apiKey") ?? "") : "";
 
   useEffect(() => {
     setModels([]);
@@ -113,23 +126,31 @@ export const NodeConfigModal = ({
 
   if (!isOpen) return null;
 
-  return (
-    <Panel
-      position="top-right"
-      className="m-4 w-[320px] z-50 animate-in fade-in slide-in-from-right-2 duration-200"
-    >
-      <CyberPanel
-        title="NODE_CONFIG"
-        icon={Settings}
-        onClose={onClose}
-        maxHeight="90vh"
-        actions={
+  // Empty state if no node is selected or data is empty
+  const hasNoData = !data || !data.type;
+
+  const content = (
+    <CyberPanel
+      title="NODE_CONFIG"
+      icon={Settings2}
+      onClose={onClose}
+      className={isDock ? "h-full rounded-none border-y-0 border-r-0 border-cyber-primary/20 bg-black/80 backdrop-blur-xl" : "border-cyber-primary/20 bg-black/80 backdrop-blur-xl"}
+      maxHeight={isDock ? "100%" : "90vh"}
+      scrollable={!isDock}
+      actions={
+        data?.type ? (
           <CyberMetaText className="px-0 text-[9px] opacity-30">
             {data.type}
           </CyberMetaText>
-        }
-      >
-        <div className="p-2 space-y-2.5">
+        ) : undefined
+      }
+    >
+      {hasNoData ? (
+        <div className="h-full flex items-center justify-center p-8 min-h-[300px]">
+          <CyberEmptyState label="SELECT A NODE TO CONFIGURE" className="text-center" />
+        </div>
+      ) : (
+        <div className={`p-3 space-y-3.5 flex flex-col min-h-0 ${isDock ? "h-full overflow-y-auto custom-scrollbar" : ""}`}>
           <TextArea
             variant="micro"
             className={DESCRIPTION_FIELD_CLASS}
@@ -141,7 +162,7 @@ export const NodeConfigModal = ({
             }
           />
 
-          <div className="space-y-2 scrollbar-hide overflow-y-auto max-h-[70vh]">
+          <div className={`space-y-2.5 min-h-0 ${isDock ? "" : "scrollbar-hide overflow-y-auto max-h-[70vh]"}`}>
             {data.configSchema
               ?.filter((f) => !f.hidden)
               .map((f) => {
@@ -258,6 +279,7 @@ export const NodeConfigModal = ({
                             onClick={() =>
                               setShowPassword((p) => ({
                                 ...p,
+                                ...showPassword,
                                 [f.name]: !p[f.name],
                               }))
                             }
@@ -284,7 +306,20 @@ export const NodeConfigModal = ({
               })}
           </div>
         </div>
-      </CyberPanel>
+      )}
+    </CyberPanel>
+  );
+
+  if (isDock) return <div className="h-full w-full min-h-0">{content}</div>;
+
+  return (
+    <Panel
+      position="top-right"
+      className="m-4 w-[320px] z-50 animate-in fade-in slide-in-from-right-2 duration-200"
+    >
+      {content}
     </Panel>
   );
 };
+
+export default NodeConfigPanel;

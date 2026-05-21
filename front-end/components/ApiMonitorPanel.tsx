@@ -19,7 +19,7 @@ export const ApiMonitorPanel: React.FC<{ onClose: () => void }> = ({ onClose }) 
         title="Network Monitor"
         icon={Network}
         onClose={onClose}
-        className="w-full md:w-[480px] shadow-[0_0_40px_rgba(0,0,0,0.7)]"
+        className="w-full md:w-[480px] shadow-[0_0_20px_rgba(0,0,0,0.5)]"
         maxHeight="450px"
         actions={
           <div className="flex items-center gap-1">

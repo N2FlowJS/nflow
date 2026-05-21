@@ -40,7 +40,7 @@ const GlobalPreview: React.FC = () => {
         title={title.toUpperCase()}
         icon={Eye}
         onClose={() => setIsOpen(false)}
-        className="shadow-[0_0_50px_rgba(0,0,0,0.5)] border-cyber-primary/20"
+        className="shadow-[0_0_20px_rgba(0,0,0,0.45)] border-cyber-primary/20"
       >
         <div className="p-1 max-h-[70vh] overflow-auto scrollbar-hide">
           <div className="bg-black/20 rounded-lg p-2">

@@ -113,8 +113,8 @@ export const NodeHandles = ({
                   className={getHandleClass('target', 'text', `!w-2.5 !h-2.5 !bg-cyber-panel !border-2 !border-green-500 hover:!border-green-400 transition-colors ${handleBaseClasses}`)}
                 />
                 {isHovered && (
-                  <div
-                    className="absolute -left-40 px-2 py-1 rounded-md border border-cyber-primary/40 bg-cyber-panel/90 backdrop-blur-sm text-[10px] font-mono text-cyber-primary shadow-[0_0_12px_rgba(0,240,255,0.25)] pointer-events-none whitespace-nowrap"
+                    <div
+                      className="absolute -left-40 px-2 py-1 rounded-md border border-cyber-primary/40 bg-cyber-panel/90 backdrop-blur-sm text-[10px] font-mono text-cyber-primary shadow-[0_0_6px_rgba(0,240,255,0.12)] pointer-events-none whitespace-nowrap"
                     style={{ top: `${top}%`, transform: 'translateY(-50%)' }}
                   >
                     Variable: {`{${varName}}`}
@@ -151,7 +151,7 @@ export const NodeHandles = ({
               className={getHandleClass('source', readPortType(data, 'output_type', 'text'), `!w-2.5 !h-2.5 !bg-cyber-panel !border-2 hover:!border-cyber-primary transition-colors ${handleBaseClasses}`)}
             />
             {hoveredHandle === 'prompt-output' && (
-              <div className="absolute -right-44 top-1/2 -translate-y-1/2 px-2 py-1 rounded-md border border-cyber-primary/40 bg-cyber-panel/90 backdrop-blur-sm text-[10px] font-mono text-cyber-primary shadow-[0_0_12px_rgba(0,240,255,0.25)] pointer-events-none whitespace-nowrap">
+              <div className="absolute -right-44 top-1/2 -translate-y-1/2 px-2 py-1 rounded-md border border-cyber-primary/40 bg-cyber-panel/90 backdrop-blur-sm text-[10px] font-mono text-cyber-primary shadow-[0_0_6px_rgba(0,240,255,0.12)] pointer-events-none whitespace-nowrap">
                 Prompt output
               </div>
             )}

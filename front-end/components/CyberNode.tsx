@@ -126,7 +126,7 @@ const CyberNode = ({ id, data, selected }: NodeProps<CustomNodeType>) => {
     if (!hasActiveConnection) return bClass;
 
     const isCompatible = isCompatibleHandle(kind, portType);
-    return `${bClass} ${isCompatible ? '!opacity-100 !w-4 !h-4 !border-cyber-primary !shadow-[0_0_15px_rgba(0,240,255,0.8)] animate-pulse' : 'opacity-20'}`;
+    return `${bClass} ${isCompatible ? '!opacity-100 !w-4 !h-4 !border-cyber-primary !shadow-[0_0_8px_rgba(0,240,255,0.18)] animate-pulse' : 'opacity-20'}`;
   };
 
   const colorByPortType: Record<PortDataType, string> = {

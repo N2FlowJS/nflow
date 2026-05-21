@@ -32,6 +32,7 @@ const FlowManager: React.FC<FlowManagerProps> = ({
       onClose={closeManager}
       className={isDock ? "h-full rounded-none border-y-0 border-r-0" : "w-[300px] max-w-full border-white/5"}
       maxHeight={isDock ? "100%" : "80vh"}
+      scrollable={!isDock}
       actions={
         <CyberAction
           icon={Plus}
@@ -44,7 +45,7 @@ const FlowManager: React.FC<FlowManagerProps> = ({
         />
       }
     >
-      <div className={`p-1 space-y-1 overflow-y-auto scrollbar-hide ${isDock ? "h-full" : "max-h-[60vh]"}`}>
+      <div className={`p-1 space-y-1 overflow-y-auto scrollbar-hide min-h-0 ${isDock ? "h-full" : "max-h-[60vh]"}`}>
         {savedFlows.length === 0 ? (
           <CyberEmptyState label="No saved flows" className="py-10 tracking-[0.2em]" />
         ) : (
@@ -84,7 +85,7 @@ const FlowManager: React.FC<FlowManagerProps> = ({
     </CyberPanel>
   );
 
-  if (isDock) return <div className="h-full w-full">{content}</div>;
+  if (isDock) return <div className="h-full w-full min-h-0">{content}</div>;
 
   return <CyberOverlay className="z-[100]">{content}</CyberOverlay>;
 };

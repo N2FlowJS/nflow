@@ -205,7 +205,7 @@ const SecretManager: React.FC = () => {
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-white/5">
           <div className="space-y-2">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-cyber-primary/10 rounded-xl border border-cyber-primary/30 text-cyber-primary shadow-[0_0_15px_rgba(34,211,238,0.2)]">
+              <div className="p-2.5 bg-cyber-primary/10 rounded-xl border border-cyber-primary/30 text-cyber-primary shadow-[0_0_8px_rgba(34,211,238,0.12)]">
                 <ShieldCheck size={28} />
               </div>
               <h1 className="text-3xl font-black uppercase tracking-tighter text-white">
@@ -336,10 +336,10 @@ const SecretManager: React.FC = () => {
         {showSecretValue && (
           <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-in fade-in duration-200">
             <CyberPanel
-              title="Decrypted Secret"
-              icon={Eye}
-              className="w-full max-w-md border-cyber-primary/50 shadow-[0_0_50px_rgba(0,240,255,0.2)]"
-              onClose={() => setShowSecretValue(null)}
+                title="Decrypted Secret"
+                icon={Eye}
+                className="w-full max-w-md border-cyber-primary/50 shadow-[0_0_20px_rgba(0,240,255,0.12)]"
+                onClose={() => setShowSecretValue(null)}
             >
               <div className="p-6 space-y-4">
                 <p className="text-xs text-gray-400 font-medium"> This value is shown temporarily for security. It will auto-hide in 30 seconds.</p>
@@ -366,7 +366,7 @@ const SecretManager: React.FC = () => {
             <CyberPanel
               title={isEditing ? 'Modify Secret' : 'Register New Secret'}
               icon={ShieldCheck}
-              className="w-full max-w-lg shadow-[0_0_50px_rgba(0,0,0,0.5)] border-cyber-primary/30"
+              className="w-full max-w-lg shadow-[0_0_20px_rgba(0,0,0,0.45)] border-cyber-primary/30"
               onClose={handleCloseModal}
               actions={
                 <CyberAction

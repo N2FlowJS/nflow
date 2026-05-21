@@ -37,6 +37,15 @@ export default function Playground({
   const [input, setInput] = useState('');
   const [showSystemMessages, setShowSystemMessages] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Auto-resize textarea
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+    textarea.style.height = "auto";
+    textarea.style.height = `${Math.min(textarea.scrollHeight, 120)}px`;
+  }, [input]);
 
   const errorSummary = error
     ? (() => { const msg = extractErrorMessage(error); return msg.length > 200 ? `${msg.slice(0, 200)}…` : msg; })()
@@ -70,12 +79,14 @@ export default function Playground({
   const isDock = mode === 'dock';
 
   return (
-    <div className={isDock ? "h-full w-full" : "fixed top-0 right-0 w-80 md:w-96 h-screen z-[60] animate-in slide-in-from-right duration-300"}>
+    <div className={isDock ? "h-full w-full min-h-0" : "fixed top-0 right-0 w-80 md:w-96 h-screen z-[60] animate-in slide-in-from-right duration-300"}>
       <CyberPanel
         title="Playground"
         icon={MessageSquare}
         onClose={onClose}
         className="h-full rounded-none border-y-0 border-r-0"
+        maxHeight={isDock ? "100%" : "80vh"}
+        scrollable={!isDock}
         actions={
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1.5 px-2 py-1 bg-black/40 rounded border border-white/5">
@@ -102,7 +113,7 @@ export default function Playground({
           </div>
         }
       >
-        <div className="flex flex-col h-full bg-black/20">
+        <div className="flex flex-col h-full bg-black/20 min-h-0">
           {/* Error banner */}
           {errorSummary && (
             <div className="flex items-start gap-2 px-4 py-3 bg-red-500/10 backdrop-blur-md border-b border-red-500/20 text-[11px] text-red-300">
@@ -166,8 +177,9 @@ export default function Playground({
 
           {/* Input Area */}
           <div className="p-4 bg-black/40 border-t border-white/5 backdrop-blur-md">
-            <div className="relative group">
+            <div className="flex flex-col bg-black/60 border border-white/10 focus-within:border-cyber-primary/40 rounded-xl transition-all group overflow-hidden">
               <textarea
+                ref={textareaRef}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => {
@@ -177,15 +189,21 @@ export default function Playground({
                   }
                 }}
                 placeholder="Transmit instructions..."
-                className="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-3 text-[12px] text-white focus:outline-none focus:border-cyber-primary/40 transition-all font-sans min-h-[50px] max-h-[150px] resize-none pr-12 scrollbar-hide"
+                rows={1}
+                className="w-full bg-transparent border-none outline-none focus:outline-none focus:ring-0 text-[12px] text-white font-sans min-h-[40px] max-h-[120px] resize-none px-4 pt-3 pb-1.5 scrollbar-hide"
               />
-              <button
-                onClick={handleSend}
-                disabled={!input.trim() || isTyping}
-                className="absolute right-2 bottom-2 p-2 rounded-lg bg-cyber-primary text-black hover:bg-cyber-primary/80 disabled:opacity-30 transition-all active:scale-95"
-              >
-                <Send size={16} />
-              </button>
+              <div className="flex justify-between items-center px-4 pb-2.5 pt-1">
+                <span className="text-[8px] text-white/20 font-black uppercase tracking-wider">
+                  Press Enter to send, Shift+Enter for new line
+                </span>
+                <button
+                  onClick={handleSend}
+                  disabled={!input.trim() || isTyping}
+                  className="p-1.5 rounded-lg bg-cyber-primary text-black hover:bg-cyber-primary/80 disabled:opacity-20 disabled:bg-cyber-primary/40 transition-all active:scale-95 flex items-center justify-center"
+                >
+                  <Send size={12} />
+                </button>
+              </div>
             </div>
           </div>
         </div>

@@ -26,20 +26,20 @@ export const NodeActions = ({
         label="Run"
         showLabel={false}
         onClick={() => {
-          const event = new MouseEvent('click') as unknown as React.MouseEvent;
+          const event = new MouseEvent("click") as unknown as React.MouseEvent;
           onRun(event);
         }}
         className="w-8 h-8 p-0 bg-transparent border-transparent hover:border-yellow-500/50 hover:bg-yellow-500/10"
         colorClass="text-yellow-500"
         title="Run Node"
       />
-      
+
       <CyberAction
         icon={Settings}
         label="Settings"
         showLabel={false}
         onClick={onOpenConfig}
-        className={`w-8 h-8 p-0 ${isConfigOpen ? 'bg-cyber-primary text-black border-cyber-primary' : 'bg-transparent border-transparent hover:border-cyber-primary/50'}`}
+        className={`w-8 h-8 p-0 bg-transparent border-transparent hover:border-cyber-primary/50`}
         colorClass={isConfigOpen ? "text-black" : "text-cyber-primary"}
         title="Node Settings"
       />
@@ -49,7 +49,7 @@ export const NodeActions = ({
         label="Data"
         showLabel={false}
         onClick={onOpenData}
-        className={`w-8 h-8 p-0 ${isDataOpen ? 'bg-cyan-500 text-black border-cyan-500' : 'bg-transparent border-transparent hover:border-cyan-500/50'}`}
+        className={`w-8 h-8 p-0 ${isDataOpen ? "bg-cyan-500 text-black border-cyan-500" : "bg-transparent border-transparent hover:border-cyan-500/50"}`}
         colorClass={isDataOpen ? "text-black" : "text-cyan-400"}
         title="Execution Data"
       />
@@ -61,7 +61,7 @@ export const NodeActions = ({
         label="Delete"
         showLabel={false}
         onClick={() => {
-          const event = new MouseEvent('click') as unknown as React.MouseEvent;
+          const event = new MouseEvent("click") as unknown as React.MouseEvent;
           onDelete(event);
         }}
         className="w-8 h-8 p-0 bg-transparent border-transparent hover:bg-red-500/20"

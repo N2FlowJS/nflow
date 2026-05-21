@@ -12,6 +12,8 @@ export type ExecutionOptions = {
   toolDef?: ToolDefinition;
   log: (msg: string) => void;
   inputs?: Record<string, unknown[]>;
+  /** AbortSignal from the flow engine – forward to fetch / network calls */
+  signal?: AbortSignal;
 };
 
 export type ToolHandler = (

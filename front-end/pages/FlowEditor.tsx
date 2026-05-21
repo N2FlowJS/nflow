@@ -54,8 +54,10 @@ import FlowManager from "../components/editor/FlowManager";
 import LogViewer from "../components/editor/LogViewer";
 import ShortcutHelp from "../components/editor/ShortcutHelp";
 import ValidationPanel from "../components/editor/ValidationPanel";
+import VariablesPanel from "../components/editor/VariablesPanel";
+import VersionHistoryPanel from "../components/editor/VersionHistoryPanel";
 import GlobalPreview from "../components/GlobalPreview";
-import { NodeConfigModal } from "../components/node-parts/NodeConfigModal";
+import { NodeConfigPanel } from "../components/editor/NodeConfigPanel";
 import Playground from "../components/Playground";
 import { Sidebar } from "../components/Sidebar";
 import { CyberPanel, CyberAction } from "../components/shared/CyberUI";
@@ -120,120 +122,11 @@ type DockTabId =
   | "shortcuts"
   | "flows"
   | "variables"
-  | "history";
+  | "history"
+  | "config";
 
 import { prettifyLabel } from "../lib/utils";
 
-const VariablesPanel: React.FC<{
-  isOpen: boolean;
-  onClose: () => void;
-  variables: GlobalVariable[];
-  onVariablesChange: (variables: GlobalVariable[]) => void;
-  mode?: "floating" | "dock";
-}> = React.memo(({ isOpen, onClose, variables, onVariablesChange, mode = "floating" }) => {
-  if (!isOpen) return null;
-  const isDock = mode === "dock";
-
-  const content = (
-    <CyberPanel
-      title="Variables"
-      icon={DollarSign}
-      onClose={onClose}
-      className={isDock ? "h-full rounded-none border-y-0 border-r-0 border-cyber-primary/20 bg-black/80 backdrop-blur-xl" : "border-cyber-primary/20 bg-black/80 backdrop-blur-xl"}
-      maxHeight={isDock ? "100%" : "80vh"}
-      actions={<CyberAction icon={Plus} onClick={() => onVariablesChange([...variables, { id: `v-${Date.now()}`, name: "KEY", value: "" }])} />}
-    >
-      <div className={`p-2 space-y-1.5 scrollbar-hide overflow-y-auto ${isDock ? "h-full" : "max-h-[60vh]"}`}>
-        {variables.length === 0 ? (
-          <div className="text-center py-8 opacity-20 text-[10px] font-black uppercase tracking-[0.18em]">No variables</div>
-        ) : (
-          variables.map((v) => (
-            <div key={v.id} className="flex items-center gap-1 group/v">
-              <input
-                value={v.name}
-                onChange={(e) => onVariablesChange(variables.map(x => x.id === v.id ? { ...x, name: e.target.value } : x))}
-                className="w-24 bg-black/40 border border-white/5 rounded px-2 py-1 text-[10px] font-mono text-cyber-primary focus:outline-none focus:border-cyber-primary/40"
-                placeholder="KEY"
-              />
-              <input
-                value={v.value}
-                onChange={(e) => onVariablesChange(variables.map(x => x.id === v.id ? { ...x, value: e.target.value } : x))}
-                className="flex-1 bg-black/40 border border-white/5 rounded px-2 py-1 text-[10px] font-mono text-white/50 focus:outline-none focus:border-cyber-primary/40"
-                placeholder="VALUE"
-              />
-              <button onClick={() => onVariablesChange(variables.filter(x => x.id !== v.id))} className="p-1 opacity-10 group-hover/v:opacity-100 hover:text-red-500 transition-all">
-                <Trash2 size={10} />
-              </button>
-            </div>
-          ))
-        )}
-      </div>
-    </CyberPanel>
-  );
-
-  if (isDock) return <div className="h-full w-full">{content}</div>;
-
-  return (
-    <Panel position="top-right" className="m-4 w-[320px] z-50 animate-in fade-in slide-in-from-right-2 duration-200">
-      {content}
-    </Panel>
-  );
-});
-
-const VersionHistoryPanel: React.FC<{
-  isOpen: boolean;
-  onClose: () => void;
-  versions: FlowVersion[];
-  onLoadVersion: (version: FlowVersion) => void;
-  isRestoring?: boolean;
-  mode?: "floating" | "dock";
-}> = React.memo(({ isOpen, onClose, versions, onLoadVersion, isRestoring = false, mode = "floating" }) => {
-  if (!isOpen) return null;
-  const isDock = mode === "dock";
-
-  const content = (
-    <CyberPanel
-      title="History"
-      icon={History}
-      onClose={onClose}
-      className={isDock ? "h-full rounded-none border-y-0 border-r-0 border-cyber-primary/20 bg-black/80 backdrop-blur-xl" : "border-cyber-primary/20 bg-black/80 backdrop-blur-xl"}
-      maxHeight={isDock ? "100%" : "80vh"}
-    >
-      <div className={`p-2 space-y-1 scrollbar-hide overflow-y-auto ${isDock ? "h-full" : "max-h-[60vh]"}`}>
-        {versions.length === 0 ? (
-          <div className="text-center py-8 opacity-20 text-[10px] font-black uppercase tracking-[0.18em]">No saved versions</div>
-        ) : (
-          versions.map((v) => (
-            <div
-              key={v.id}
-              className="group p-2 bg-black/40 border border-white/5 rounded hover:border-cyber-primary/40 cursor-pointer transition-all"
-              onClick={() => confirm(`Restore \"${v.label || v.id}\"?`) && !isRestoring && onLoadVersion(v)}
-            >
-              <div className="flex justify-between items-start mb-1">
-                <span className="text-[10px] font-bold text-white/50 group-hover:text-cyber-primary truncate pr-2">
-                  {v.label || "Auto backup"}
-                </span>
-                <span className="text-[9px] font-mono text-white/20">{v.data?.nodes?.length || 0}N</span>
-              </div>
-              <div className="flex justify-between items-center text-[8px] font-mono opacity-30">
-                <span>{new Date(v.timestamp).toLocaleDateString()}</span>
-                <span>{new Date(v.timestamp).toLocaleTimeString()}</span>
-              </div>
-            </div>
-          ))
-        )}
-      </div>
-    </CyberPanel>
-  );
-
-  if (isDock) return <div className="h-full w-full">{content}</div>;
-
-  return (
-    <Panel position="top-right" className="m-4 w-[320px] z-50 animate-in fade-in slide-in-from-right-2 duration-200">
-      {content}
-    </Panel>
-  );
-});
 
 const Flow = () => {
   const { id } = useParams<{ id: string }>();
@@ -293,8 +186,8 @@ const Flow = () => {
   const showShortcutHelp = activeDockTab === "shortcuts";
   const isLogsOpen = activeDockTab === "logs";
 
-  // Global Node Config (single panel)
-  const [isNodeConfigOpen, setIsNodeConfigOpen] = useState(false);
+  // Global Node Config (derived from activeDockTab === "config")
+  const isNodeConfigOpen = activeDockTab === "config";
   const [configNodeId, setConfigNodeId] = useState<string | null>(null);
   const configFieldRefs = useRef<Record<string, HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement | null>>({});
   const [highlightedConfigField, setHighlightedConfigField] = useState<string | null>(null);
@@ -305,12 +198,12 @@ const Flow = () => {
       const nodeId = ce.detail?.nodeId;
       if (!nodeId) return;
       setConfigNodeId(nodeId);
-      setIsNodeConfigOpen(true);
+      setActiveDockTab("config");
       setHighlightedConfigField(ce.detail?.focusField ?? null);
     };
     window.addEventListener('openNodeConfig', handler as EventListener);
     return () => window.removeEventListener('openNodeConfig', handler as EventListener);
-  }, []);
+  }, [setActiveDockTab]);
 
   useEffect(() => {
     if (!isNodeConfigOpen || !highlightedConfigField) return;
@@ -382,6 +275,9 @@ const Flow = () => {
 
   const setIsPlaygroundOpen: React.Dispatch<React.SetStateAction<boolean>> =
     useCallback((value) => setDockTabOpen("playground", value), [setDockTabOpen]);
+
+  const setIsNodeConfigOpen: React.Dispatch<React.SetStateAction<boolean>> =
+    useCallback((value) => setDockTabOpen("config", value), [setDockTabOpen]);
 
   const setIsFlowManagerOpen: React.Dispatch<React.SetStateAction<boolean>> =
     useCallback((value) => setDockTabOpen("flows", value), [setDockTabOpen]);
@@ -677,6 +573,18 @@ const Flow = () => {
       onEdgesChange(changes);
     },
     [onEdgesChange, takeSnapshot, runtimeStatus],
+  );
+
+  const onSelectionChange = useCallback(
+    ({ nodes: selectedNodes }: { nodes: Node[] }) => {
+      const activeSelected = selectedNodes.find((n) => n.selected);
+      if (activeSelected) {
+        setConfigNodeId(activeSelected.id);
+      } else {
+        setConfigNodeId(null);
+      }
+    },
+    [],
   );
 
   const onConnect = useCallback(
@@ -1273,15 +1181,16 @@ const Flow = () => {
 
         if (!isSilent) {
           if (isAbortError) {
+            log(`[System] Flow execution was cancelled.`);
             if (isCurrentController()) {
-              setRuntimeStatus("cancelled");
+              setRuntimeStatus('cancelled');
             }
           } else {
             hadRuntimeError = true;
             setPlaygroundError(message);
             log(`[Error] ${message}`);
             if (isCurrentController()) {
-              setRuntimeStatus("error");
+              setRuntimeStatus('error');
             }
           }
         }
@@ -1292,6 +1201,19 @@ const Flow = () => {
         }
         if (isSilent) {
           isSilentExecutionRunningRef.current = false;
+        }
+        // Reset any nodes still in a transient state (running/skipped) back to idle
+        // so the canvas is clean for the next execution.
+        if (!isSilent) {
+          setNodes((nds) =>
+            nds.map((n) => {
+              const s = n.data?.status;
+              if (s === 'running' || s === 'skipped') {
+                return { ...n, data: { ...n.data, status: 'idle' } };
+              }
+              return n;
+            }),
+          );
         }
       }
     },
@@ -1402,6 +1324,12 @@ const Flow = () => {
     () => [
       { id: "playground", label: "Playground", icon: MessageSquare },
       {
+        id: "config",
+        label: "Config",
+        icon: Settings2,
+        badge: currentConfigNode ? "Node" : undefined,
+      },
+      {
         id: "logs",
         label: "Logs",
         icon: Terminal,
@@ -1418,7 +1346,7 @@ const Flow = () => {
       { id: "history", label: "History", icon: History },
       { id: "shortcuts", label: "Keys", icon: Keyboard },
     ],
-    [executionLogs.length, flowIssues.length],
+    [executionLogs.length, flowIssues.length, currentConfigNode],
   );
 
   // Debounced Auto-validation
@@ -2461,7 +2389,7 @@ const Flow = () => {
         isOnline={isOnline}
       />
 
-      <div className="flex-1 min-h-0 min-w-0 flex overflow-hidden relative">
+      <div className="flex-1 flex overflow-hidden relative">
         <Sidebar onAddNode={onAddNode} />
 
         {/* React Flow Canvas */}
@@ -2475,6 +2403,7 @@ const Flow = () => {
             edges={renderedEdges}
             onNodesChange={onNodesChangeWrapper}
             onEdgesChange={onEdgesChangeWrapper}
+            onSelectionChange={onSelectionChange}
             onNodeDragStart={takeSnapshot}
             onSelectionDragStart={takeSnapshot}
             onConnect={onConnect}
@@ -2534,14 +2463,6 @@ const Flow = () => {
             setNodes={setNodes}
           />
           <GlobalPreview />
-          <NodeConfigModal
-            isOpen={isNodeConfigOpen}
-            onClose={() => { setIsNodeConfigOpen(false); setConfigNodeId(null); setHighlightedConfigField(null); }}
-            data={(currentConfigNode?.data as CustomNodeType['data'] | undefined) || { label: '', type: '', configSchema: [] }}
-            updateNodeData={updateNodeDataById}
-            handleParamChange={handleConfigParamChange}
-            globalVariables={globalVariables}
-          />
           <EditorDock
             tabs={dockTabs}
             activeTab={activeDockTab}
@@ -2553,6 +2474,17 @@ const Flow = () => {
               setActiveDockTab((prev) => (prev === tabId ? null : (tabId as DockTabId)));
             }}
           >
+            {activeDockTab === "config" && (
+              <NodeConfigPanel
+                isOpen={isNodeConfigOpen}
+                onClose={() => { setActiveDockTab(null); setConfigNodeId(null); setHighlightedConfigField(null); }}
+                data={currentConfigNode?.data as CustomNodeType['data'] | null}
+                updateNodeData={updateNodeDataById}
+                handleParamChange={handleConfigParamChange}
+                globalVariables={globalVariables}
+                mode="dock"
+              />
+            )}
             {activeDockTab === "playground" && (
               <Playground
                 isOpen={isPlaygroundOpen}

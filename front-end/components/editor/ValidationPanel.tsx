@@ -30,6 +30,7 @@ const ValidationPanel: React.FC<ValidationPanelProps> = ({
       icon={hasError ? AlertTriangle : ShieldCheck}
       className={isDock ? "h-full rounded-none border-y-0 border-r-0" : "w-[280px]"}
       maxHeight={isDock ? "100%" : "60vh"}
+      scrollable={!isDock}
       onClose={onClose}
       actions={
         <div className="flex items-center gap-1 font-mono text-[9px] opacity-40">
@@ -39,7 +40,7 @@ const ValidationPanel: React.FC<ValidationPanelProps> = ({
         </div>
       }
     >
-      <div className={`p-2 space-y-1 overflow-y-auto scrollbar-hide ${isDock ? "h-full" : ""}`}>
+      <div className={`p-2 space-y-1 overflow-y-auto scrollbar-hide min-h-0 ${isDock ? "h-full" : ""}`}>
         {flowIssues.length === 0 ? (
           <CyberEmptyState label="No issues found" className="h-full min-h-40 tracking-[0.18em]" />
         ) : (
@@ -82,7 +83,7 @@ const ValidationPanel: React.FC<ValidationPanelProps> = ({
     </CyberPanel>
   );
 
-  if (isDock) return <div className="h-full w-full">{content}</div>;
+  if (isDock) return <div className="h-full w-full min-h-0">{content}</div>;
 
   return (
     <Panel position="top-left" className="m-4 z-50 animate-in fade-in slide-in-from-left-2 duration-200">

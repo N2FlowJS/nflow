@@ -5,11 +5,15 @@ export type FlowRuntimeContext = {
   inputs: Record<string, unknown[]>;
   node: FlowNode;
   isStopped: () => boolean;
+  /** AbortSignal that fires when the flow is cancelled or a node fails */
+  signal: AbortSignal;
   emit: (event: any) => void;
   executeToolByName: (name: string, args: Record<string, string>) => Promise<string>;
   availableTools: ToolDefinition[];
   incomingMap: Map<string, any[]>;
   nodeById: Map<string, FlowNode>;
+  /** Live results map: access completed upstream node outputs */
+  nodeResults: Map<string, unknown>;
   log: (msg: string) => void;
   globalVariables: GlobalVariable[];
   onEvent?: (event: any) => void;

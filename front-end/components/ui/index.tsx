@@ -151,7 +151,7 @@ export const Button = ({
 }) => {
 
   const variants = {
-    primary: 'bg-cyber-primary text-black hover:bg-cyber-primary/90 font-bold shadow-[0_0_15px_rgba(0,240,255,0.2)]',
+    primary: 'bg-cyber-primary text-black hover:bg-cyber-primary/90 font-bold shadow-[0_0_8px_rgba(0,240,255,0.08)]',
     ghost: 'text-cyber-primary hover:bg-cyber-primary/10 font-bold',
     outline: 'border border-cyber-primary/30 text-cyber-primary hover:bg-cyber-primary/10 font-bold',
     danger: 'bg-red-500/10 border border-red-500/30 text-red-500 hover:bg-red-500 hover:text-white font-bold',

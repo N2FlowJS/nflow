@@ -4,7 +4,7 @@ import { Search, X, ChevronUp, ChevronDown } from 'lucide-react';
 import { CyberAction, CyberMetaText, CyberPanel, CyberPanelFooter, CyberPanelSection } from '../shared/CyberUI';
 import { Input } from '../ui/index';
 
-const ACTIVE_NODE_CLASS = ' outline outline-4 outline-cyber-primary shadow-[0_0_30px_rgba(0,240,255,0.8)]';
+const ACTIVE_NODE_CLASS = ' outline outline-4 outline-cyber-primary shadow-[0_0_12px_rgba(0,240,255,0.25)]';
 
 interface CanvasSearchProps {
   isOpen: boolean;
