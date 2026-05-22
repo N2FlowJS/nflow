@@ -1,7 +1,7 @@
 import React from "react";
 import { Trash2, FolderOpen, Plus } from "lucide-react";
 import { SavedFlow } from "../../types/editor";
-import { CyberAction, CyberEmptyState, CyberListItem, CyberOverlay, CyberPanel } from "../shared/CyberUI";
+import { CyberAction, CyberEmptyState, CyberListItem, CyberPanel } from "../shared/CyberUI";
 
 interface FlowManagerProps {
   isFlowManagerOpen: boolean;
@@ -9,19 +9,12 @@ interface FlowManagerProps {
   savedFlows: SavedFlow[];
   onDeleteFlow: (id: string) => void;
   navigate: (path: string) => void;
-  mode?: "floating" | "dock";
+  
 }
 
-const FlowManager: React.FC<FlowManagerProps> = ({
-  isFlowManagerOpen,
-  setIsFlowManagerOpen,
-  savedFlows,
-  onDeleteFlow,
-  navigate,
-  mode = "floating",
-}) => {
+const FlowManager: React.FC<FlowManagerProps> = (props) => {
+  const { isFlowManagerOpen, setIsFlowManagerOpen, savedFlows, onDeleteFlow, navigate } = props;
   const closeManager = () => setIsFlowManagerOpen(false);
-  const isDock = mode === "dock";
 
   if (!isFlowManagerOpen) return null;
 
@@ -30,9 +23,9 @@ const FlowManager: React.FC<FlowManagerProps> = ({
       title="Flows"
       icon={FolderOpen}
       onClose={closeManager}
-      className={isDock ? "h-full rounded-none border-y-0 border-r-0" : "w-[300px] max-w-full border-white/5"}
-      maxHeight={isDock ? "100%" : "80vh"}
-      scrollable={!isDock}
+      className="h-full rounded-none border-y-0 border-r-0"
+      maxHeight="100%"
+      scrollable={false}
       actions={
         <CyberAction
           icon={Plus}
@@ -45,7 +38,7 @@ const FlowManager: React.FC<FlowManagerProps> = ({
         />
       }
     >
-      <div className={`p-1 space-y-1 overflow-y-auto scrollbar-hide min-h-0 ${isDock ? "h-full" : "max-h-[60vh]"}`}>
+      <div className="p-1 space-y-1 overflow-y-auto scrollbar-hide min-h-0 h-full">
         {savedFlows.length === 0 ? (
           <CyberEmptyState label="No saved flows" className="py-10 tracking-[0.2em]" />
         ) : (
@@ -85,9 +78,7 @@ const FlowManager: React.FC<FlowManagerProps> = ({
     </CyberPanel>
   );
 
-  if (isDock) return <div className="h-full w-full min-h-0">{content}</div>;
-
-  return <CyberOverlay className="z-[100]">{content}</CyberOverlay>;
+  return <div className="h-full w-full min-h-0">{content}</div>;
 };
 
 export default FlowManager;

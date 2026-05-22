@@ -1,5 +1,5 @@
 import React from "react";
-import { Panel } from "@xyflow/react";
+
 import { FlowValidationIssue } from "../../../back-end/flow-validation";
 import { CyberBadge, CyberEmptyState, CyberListItem, CyberPanel } from "../shared/CyberUI";
 import { AlertTriangle, ShieldCheck } from "lucide-react";
@@ -8,29 +8,25 @@ interface ValidationPanelProps {
   flowIssues: FlowValidationIssue[];
   focusIssueNode: (nodeId?: string, fieldName?: string) => void;
   onClose?: () => void;
-  mode?: "floating" | "dock";
 }
 
 const ValidationPanel: React.FC<ValidationPanelProps> = ({
   flowIssues,
   focusIssueNode,
   onClose,
-  mode = "floating",
 }) => {
   const errors = flowIssues.filter((i) => i.level === "error");
   const warnings = flowIssues.filter((i) => i.level === "warning");
   const hasError = errors.length > 0;
-  const isDock = mode === "dock";
-
-  if (flowIssues.length === 0 && !isDock) return null;
+  const isDock = true;
 
   const content = (
     <CyberPanel
       title="Validation"
       icon={hasError ? AlertTriangle : ShieldCheck}
-      className={isDock ? "h-full rounded-none border-y-0 border-r-0" : "w-[280px]"}
-      maxHeight={isDock ? "100%" : "60vh"}
-      scrollable={!isDock}
+      className="h-full rounded-none border-y-0 border-r-0"
+      maxHeight="100%"
+      scrollable={false}
       onClose={onClose}
       actions={
         <div className="flex items-center gap-1 font-mono text-[9px] opacity-40">
@@ -83,13 +79,7 @@ const ValidationPanel: React.FC<ValidationPanelProps> = ({
     </CyberPanel>
   );
 
-  if (isDock) return <div className="h-full w-full min-h-0">{content}</div>;
-
-  return (
-    <Panel position="top-left" className="m-4 z-50 animate-in fade-in slide-in-from-left-2 duration-200">
-      {content}
-    </Panel>
-  );
+  return <div className="h-full w-full min-h-0">{content}</div>;
 };
 
 export default ValidationPanel;

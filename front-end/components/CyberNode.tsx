@@ -18,7 +18,7 @@ import {
 // Sub-components
 import { NodeHeader } from './node-parts/NodeHeader';
 import { NodeActions } from './node-parts/NodeActions';
-import { NodeDataModal } from './node-parts/NodeDataModal';
+// NodeDataModal is now a docked global panel; open it via event
 import { NodeHandles } from './node-parts/NodeHandles';
 
 // Hook
@@ -109,6 +109,12 @@ const CyberNode = ({ id, data, selected }: NodeProps<CustomNodeType>) => {
     setIsConfigOpen(true);
   };
 
+  const handleOpenData = () => {
+    try {
+      window.dispatchEvent(new CustomEvent('openExecutionData', { detail: { data, title: data.label, nodeId: id } }));
+    } catch {}
+  };
+
   useEffect(() => {
     if (isPromptTemplate) updateNodeInternals(id);
   }, [isPromptTemplate, id, promptVariablesKey, updateNodeInternals]);
@@ -196,7 +202,7 @@ const CyberNode = ({ id, data, selected }: NodeProps<CustomNodeType>) => {
   return (
     <div className={`group relative min-w-[220px] max-w-[300px] bg-cyber-panel/90 backdrop-blur-xl border-2 ${!!selected ? 'border-cyber-primary ring-1 ring-cyber-primary/50' : (data.status === 'running' ? 'border-yellow-400 animate-pulse' : data.status === 'success' ? 'border-green-500' : 'border-cyber-border')} rounded-xl transition-all duration-300`}>
 
-      <NodeActions onRun={onRun} onOpenConfig={handleOpenConfig} onOpenData={() => setIsDataOpen(true)} onDelete={onDelete} isConfigOpen={isConfigOpen} isDataOpen={isDataOpen} />
+      <NodeActions onRun={onRun} onOpenConfig={handleOpenConfig} onOpenData={handleOpenData} onDelete={onDelete} isConfigOpen={isConfigOpen} isDataOpen={isDataOpen} />
 
       <NodeHeader data={{ ...data, registryEntry }} selected={!!selected} isAgent={isAgent} isLLM={isLLM} />
 
@@ -245,7 +251,7 @@ const CyberNode = ({ id, data, selected }: NodeProps<CustomNodeType>) => {
         <span>NODE_ID: {id.split('-')[0]}</span>
       </div>
 
-      <NodeDataModal isOpen={isDataOpen} onClose={() => setIsDataOpen(false)} data={data} copyJsonValue={copyJsonValue} copiedDataKey={copiedDataKey} />
+      {/* Execution data panel moved to dock; open via 'openExecutionData' event */}
     </div>
   );
 };

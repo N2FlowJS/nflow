@@ -11,7 +11,6 @@ import {
   Node,
   NodeChange,
   NodeTypes,
-  Panel,
   ReactFlow,
   ReactFlowInstance,
   ReactFlowProvider,
@@ -27,11 +26,13 @@ import {
   History,
   Keyboard,
   MessageSquare,
+  Eye,
   Plus,
   Terminal,
   Trash2,
   X,
-  Settings2
+  Settings2,
+  Info
 } from "lucide-react";
 import React, {
   useCallback,
@@ -50,17 +51,18 @@ import CommandPalette from "../components/editor/CommandPalette";
 import ContextMenu from "../components/editor/ContextMenu";
 import EditorDock, { type EditorDockTab } from "../components/editor/EditorDock";
 import FlowHeader from "../components/editor/FlowHeader";
-import FlowManager from "../components/editor/FlowManager";
-import LogViewer from "../components/editor/LogViewer";
-import ShortcutHelp from "../components/editor/ShortcutHelp";
-import ValidationPanel from "../components/editor/ValidationPanel";
-import VariablesPanel from "../components/editor/VariablesPanel";
-import VersionHistoryPanel from "../components/editor/VersionHistoryPanel";
-import GlobalPreview from "../components/GlobalPreview";
-import { NodeConfigPanel } from "../components/editor/NodeConfigPanel";
-import Playground from "../components/Playground";
+const LazyFlowManager = React.lazy(() => import("../components/editor/FlowManager"));
+const LazyLogViewer = React.lazy(() => import("../components/editor/LogViewer"));
+const LazyShortcutHelp = React.lazy(() => import("../components/editor/ShortcutHelp"));
+const LazyValidationPanel = React.lazy(() => import("../components/editor/ValidationPanel"));
+const LazyVariablesPanel = React.lazy(() => import("../components/editor/VariablesPanel"));
+const LazyVersionHistoryPanel = React.lazy(() => import("../components/editor/VersionHistoryPanel"));
+const LazyGlobalPreview = React.lazy(() => import("../components/GlobalPreview"));
+const LazyExecutionPanel = React.lazy(() => import("../components/node-parts/NodeDataModal"));
+const LazyNodeConfigPanel = React.lazy(() => import("../components/editor/NodeConfigPanel"));
+const LazyPlayground = React.lazy(() => import("../components/Playground"));
 import { Sidebar } from "../components/Sidebar";
-import { CyberPanel, CyberAction } from "../components/shared/CyberUI";
+import { CyberPanel, CyberAction, PanelSkeleton } from "../components/shared/CyberUI";
 import { initialEdges, initialNodes } from "../data";
 import {
   AGENT_TEMPLATE_CUSTOM,
@@ -117,6 +119,8 @@ const INITIAL_PLAYGROUND_MESSAGES: PlaygroundMessage[] = [
 
 type DockTabId =
   | "playground"
+  | "preview"
+  | "execution"
   | "logs"
   | "validation"
   | "shortcuts"
@@ -1323,6 +1327,8 @@ const Flow = () => {
   const dockTabs: EditorDockTab[] = useMemo(
     () => [
       { id: "playground", label: "Playground", icon: MessageSquare },
+      { id: "preview", label: "Result", icon: Eye },
+      { id: "execution", label: "Exec", icon: Info },
       {
         id: "config",
         label: "Config",
@@ -2349,6 +2355,149 @@ const Flow = () => {
     });
   }, [edges, nodes]);
 
+  const dockContent = useMemo(() => {
+    if (!activeDockTab) return null;
+    switch (String(activeDockTab)) {
+      case "config":
+        return (
+          <React.Suspense fallback={<PanelSkeleton />}>
+            <LazyNodeConfigPanel
+              isOpen={isNodeConfigOpen}
+              onClose={() => { setActiveDockTab(null); setConfigNodeId(null); setHighlightedConfigField(null); }}
+              data={currentConfigNode?.data as CustomNodeType['data'] | null}
+              updateNodeData={updateNodeDataById}
+              handleParamChange={handleConfigParamChange}
+              globalVariables={globalVariables}
+            />
+          </React.Suspense>
+        );
+      case "playground":
+        return (
+          <React.Suspense fallback={<PanelSkeleton />}>
+            <LazyPlayground
+              isOpen={isPlaygroundOpen}
+              onClose={() => setIsPlaygroundOpen(false)}
+              messages={playgroundMessages}
+              isTyping={isPlaygroundTyping}
+              runtimeStatus={runtimeStatus}
+              error={playgroundError}
+              onErrorDismiss={() => setPlaygroundError(null)}
+              onSendMessage={onSendMessage}
+              onClearMessages={onClearPlaygroundMessages}
+            />
+          </React.Suspense>
+        );
+      case "preview":
+        return (
+          <React.Suspense fallback={<PanelSkeleton />}>
+            <LazyGlobalPreview />
+          </React.Suspense>
+        );
+      case "execution":
+        return (
+          <React.Suspense fallback={<PanelSkeleton />}>
+            <LazyExecutionPanel />
+          </React.Suspense>
+        );
+      case "logs":
+        return (
+          <React.Suspense fallback={<PanelSkeleton />}>
+            <LazyLogViewer
+              isLogsOpen={isLogsOpen}
+              setIsLogsOpen={setIsLogsOpenExclusive}
+              executionLogs={executionLogs}
+              onClear={() => setExecutionLogs([])}
+            />
+          </React.Suspense>
+        );
+      case "validation":
+        return (
+          <React.Suspense fallback={<PanelSkeleton />}>
+            <LazyValidationPanel
+              flowIssues={flowIssues}
+              focusIssueNode={focusIssueNode}
+              onClose={() => setActiveDockTab(null)}
+            />
+          </React.Suspense>
+        );
+      case "shortcuts":
+        return (
+          <React.Suspense fallback={<PanelSkeleton />}>
+            <LazyShortcutHelp
+              showShortcutHelp={showShortcutHelp}
+              setShowShortcutHelp={setShowShortcutHelpExclusive}
+            />
+          </React.Suspense>
+        );
+      case "flows":
+        return (
+          <React.Suspense fallback={<PanelSkeleton />}>
+            <LazyFlowManager
+              isFlowManagerOpen={isFlowManagerOpen}
+              setIsFlowManagerOpen={setIsFlowManagerOpen}
+              savedFlows={savedFlows}
+              onDeleteFlow={onDeleteFlow}
+              navigate={navigate}
+            />
+          </React.Suspense>
+        );
+      case "history":
+        return (
+          <React.Suspense fallback={<PanelSkeleton />}>
+            <LazyVersionHistoryPanel
+              isOpen={isVersionHistoryOpen}
+              onClose={() => setIsVersionHistoryOpen(false)}
+              versions={flowVersions}
+              onLoadVersion={onLoadVersion}
+              isRestoring={isRestoringVersion}
+            />
+          </React.Suspense>
+        );
+      case "variables":
+        return (
+          <React.Suspense fallback={<PanelSkeleton />}>
+            <LazyVariablesPanel
+              isOpen={isVariablesPanelOpen}
+              onClose={() => setIsVariablesPanelOpen(false)}
+              variables={globalVariables}
+              onVariablesChange={setGlobalVariables}
+            />
+          </React.Suspense>
+        );
+      default:
+        return null;
+    }
+  }, [
+    activeDockTab,
+    isNodeConfigOpen,
+    currentConfigNode,
+    updateNodeDataById,
+    handleConfigParamChange,
+    globalVariables,
+    isPlaygroundOpen,
+    playgroundMessages,
+    isPlaygroundTyping,
+    runtimeStatus,
+    playgroundError,
+    onSendMessage,
+    onClearPlaygroundMessages,
+    isLogsOpen,
+    executionLogs,
+    flowIssues,
+    focusIssueNode,
+    showShortcutHelp,
+    isFlowManagerOpen,
+    savedFlows,
+    onDeleteFlow,
+    navigate,
+    isVersionHistoryOpen,
+    flowVersions,
+    onLoadVersion,
+    isRestoringVersion,
+    isVariablesPanelOpen,
+    setGlobalVariables,
+  ]);
+
   return (
     <div className="w-full h-screen min-h-0 bg-cyber-dark text-white overflow-hidden flex flex-col">
       <FlowHeader
@@ -2462,7 +2611,6 @@ const Flow = () => {
             nodes={nodes}
             setNodes={setNodes}
           />
-          <GlobalPreview />
           <EditorDock
             tabs={dockTabs}
             activeTab={activeDockTab}
@@ -2474,84 +2622,7 @@ const Flow = () => {
               setActiveDockTab((prev) => (prev === tabId ? null : (tabId as DockTabId)));
             }}
           >
-            {activeDockTab === "config" && (
-              <NodeConfigPanel
-                isOpen={isNodeConfigOpen}
-                onClose={() => { setActiveDockTab(null); setConfigNodeId(null); setHighlightedConfigField(null); }}
-                data={currentConfigNode?.data as CustomNodeType['data'] | null}
-                updateNodeData={updateNodeDataById}
-                handleParamChange={handleConfigParamChange}
-                globalVariables={globalVariables}
-                mode="dock"
-              />
-            )}
-            {activeDockTab === "playground" && (
-              <Playground
-                isOpen={isPlaygroundOpen}
-                onClose={() => setIsPlaygroundOpen(false)}
-                messages={playgroundMessages}
-                isTyping={isPlaygroundTyping}
-                runtimeStatus={runtimeStatus}
-                error={playgroundError}
-                onErrorDismiss={() => setPlaygroundError(null)}
-                onSendMessage={onSendMessage}
-                onClearMessages={onClearPlaygroundMessages}
-                mode="dock"
-              />
-            )}
-            {activeDockTab === "logs" && (
-              <LogViewer
-                isLogsOpen={isLogsOpen}
-                setIsLogsOpen={setIsLogsOpenExclusive}
-                executionLogs={executionLogs}
-                onClear={() => setExecutionLogs([])}
-                mode="dock"
-              />
-            )}
-            {activeDockTab === "validation" && (
-              <ValidationPanel
-                flowIssues={flowIssues}
-                focusIssueNode={focusIssueNode}
-                onClose={() => setActiveDockTab(null)}
-                mode="dock"
-              />
-            )}
-            {activeDockTab === "shortcuts" && (
-              <ShortcutHelp
-                showShortcutHelp={showShortcutHelp}
-                setShowShortcutHelp={setShowShortcutHelpExclusive}
-                mode="dock"
-              />
-            )}
-            {activeDockTab === "flows" && (
-              <FlowManager
-                isFlowManagerOpen={isFlowManagerOpen}
-                setIsFlowManagerOpen={setIsFlowManagerOpen}
-                savedFlows={savedFlows}
-                onDeleteFlow={onDeleteFlow}
-                navigate={navigate}
-                mode="dock"
-              />
-            )}
-            {activeDockTab === "history" && (
-              <VersionHistoryPanel
-                isOpen={isVersionHistoryOpen}
-                onClose={() => setIsVersionHistoryOpen(false)}
-                versions={flowVersions}
-                onLoadVersion={onLoadVersion}
-                isRestoring={isRestoringVersion}
-                mode="dock"
-              />
-            )}
-            {activeDockTab === "variables" && (
-              <VariablesPanel
-                isOpen={isVariablesPanelOpen}
-                onClose={() => setIsVariablesPanelOpen(false)}
-                variables={globalVariables}
-                onVariablesChange={setGlobalVariables}
-                mode="dock"
-              />
-            )}
+            {dockContent}
           </EditorDock>
         </div>
       </div>

@@ -457,3 +457,11 @@ export const CyberToolbarDivider: React.FC<{
 }> = ({ className = "" }) => {
   return <div className={`h-4 w-px bg-white/5 ${className}`} />;
 };
+
+export const PanelSkeleton: React.FC<{ className?: string }> = ({ className = "" }) => {
+  return (
+    <div className={`h-full w-full flex items-center justify-center p-4 ${className}`}>
+      <div className="animate-pulse text-white/30 font-black uppercase text-[10px]">Loading…</div>
+    </div>
+  );
+};

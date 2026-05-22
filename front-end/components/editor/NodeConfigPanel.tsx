@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, memo } from "react";
-import { Panel } from "@xyflow/react";
+
 import type { CustomNodeType, NodeData } from "@n2flow/types";
 import {
   Settings2,
@@ -36,7 +36,7 @@ interface NodeConfigPanelProps {
   updateNodeData: (newData: Partial<CustomNodeType["data"]>) => void;
   handleParamChange: (name: string, value: string | number | boolean) => void;
   globalVariables: GlobalVariable[];
-  mode?: "floating" | "dock";
+  
 }
 
 const FieldIcon = memo(({ type }: { type: ConfigField["type"] }) => {
@@ -64,14 +64,13 @@ export const NodeConfigPanel = ({
   updateNodeData,
   handleParamChange,
   globalVariables,
-  mode = "dock",
 }: NodeConfigPanelProps) => {
   const [models, setModels] = useState<string[]>([]);
   const [modelsLoading, setModelsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState<Record<string, boolean>>({});
   const lastFetchKeyRef = useRef<string | null>(null);
 
-  const isDock = mode === "dock";
+  const isDock = true;
 
   const baseVal = data ? String(getNodeFieldValue(data, "baseUrl") ?? "") : "";
   const apiKeyVal = data ? String(getNodeFieldValue(data, "apiKey") ?? "") : "";
@@ -310,16 +309,7 @@ export const NodeConfigPanel = ({
     </CyberPanel>
   );
 
-  if (isDock) return <div className="h-full w-full min-h-0">{content}</div>;
-
-  return (
-    <Panel
-      position="top-right"
-      className="m-4 w-[320px] z-50 animate-in fade-in slide-in-from-right-2 duration-200"
-    >
-      {content}
-    </Panel>
-  );
+  return <div className="h-full w-full min-h-0">{content}</div>;
 };
 
 export default NodeConfigPanel;

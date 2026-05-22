@@ -52,6 +52,19 @@ export const useCyberNode = (id: string, data: CustomNodeType['data']) => {
   }, [openDataToken]);
 
   useEffect(() => {
+    const handler = (e: Event) => {
+      const ce = e as CustomEvent<{ nodeId?: string }>;
+      if (ce.detail?.nodeId === id) {
+        setIsDataOpen(true);
+      } else {
+        setIsDataOpen(false);
+      }
+    };
+    window.addEventListener('openExecutionData', handler as EventListener);
+    return () => window.removeEventListener('openExecutionData', handler as EventListener);
+  }, [id]);
+
+  useEffect(() => {
     if (!isConfigOpen || !focusFieldName || focusFieldToken === undefined) return;
     const target = configFieldRefs.current[focusFieldName];
     if (!target) return;

@@ -1,6 +1,5 @@
 import React from "react";
 import { DollarSign, Plus, Trash2 } from "lucide-react";
-import { Panel } from "@xyflow/react";
 import { CyberPanel, CyberAction } from "../shared/CyberUI";
 import { GlobalVariable } from "../../types/editor";
 
@@ -9,7 +8,6 @@ interface VariablesPanelProps {
   onClose: () => void;
   variables: GlobalVariable[];
   onVariablesChange: (variables: GlobalVariable[]) => void;
-  mode?: "floating" | "dock";
 }
 
 export const VariablesPanel: React.FC<VariablesPanelProps> = React.memo(({
@@ -17,19 +15,16 @@ export const VariablesPanel: React.FC<VariablesPanelProps> = React.memo(({
   onClose,
   variables,
   onVariablesChange,
-  mode = "floating",
 }) => {
   if (!isOpen) return null;
-  const isDock = mode === "dock";
-
   const content = (
     <CyberPanel
       title="Variables"
       icon={DollarSign}
       onClose={onClose}
-      className={isDock ? "h-full rounded-none border-y-0 border-r-0 border-cyber-primary/20 bg-black/80 backdrop-blur-xl" : "border-cyber-primary/20 bg-black/80 backdrop-blur-xl"}
-      maxHeight={isDock ? "100%" : "80vh"}
-      scrollable={!isDock}
+      className="h-full rounded-none border-y-0 border-r-0 border-cyber-primary/20 bg-black/80 backdrop-blur-xl"
+      maxHeight={"100%"}
+      scrollable={false}
       actions={
         <CyberAction
           icon={Plus}
@@ -42,7 +37,7 @@ export const VariablesPanel: React.FC<VariablesPanelProps> = React.memo(({
         />
       }
     >
-      <div className={`p-2 space-y-1.5 scrollbar-hide overflow-y-auto min-h-0 ${isDock ? "h-full" : "max-h-[60vh]"}`}>
+    <div className="p-2 space-y-1.5 scrollbar-hide overflow-y-auto min-h-0 h-full">
         {variables.length === 0 ? (
           <div className="text-center py-8 opacity-20 text-[10px] font-black uppercase tracking-[0.18em]">
             No variables
@@ -89,16 +84,7 @@ export const VariablesPanel: React.FC<VariablesPanelProps> = React.memo(({
     </CyberPanel>
   );
 
-  if (isDock) return <div className="h-full w-full min-h-0">{content}</div>;
-
-  return (
-    <Panel
-      position="top-right"
-      className="m-4 w-[320px] z-50 animate-in fade-in slide-in-from-right-2 duration-200"
-    >
-      {content}
-    </Panel>
-  );
+  return <div className="h-full w-full min-h-0">{content}</div>;
 });
 
 VariablesPanel.displayName = "VariablesPanel";

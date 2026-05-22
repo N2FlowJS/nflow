@@ -1,5 +1,4 @@
 import React from "react";
-import { Panel } from "@xyflow/react";
 import { CyberBadge, CyberListItem, CyberPanel } from "../shared/CyberUI";
 import { Keyboard } from "lucide-react";
 
@@ -17,24 +16,21 @@ const SHORTCUTS = [
 interface ShortcutHelpProps {
   showShortcutHelp: boolean;
   setShowShortcutHelp: React.Dispatch<React.SetStateAction<boolean>>;
-  mode?: "floating" | "dock";
 }
 
 const ShortcutHelp: React.FC<ShortcutHelpProps> = ({
   showShortcutHelp,
   setShowShortcutHelp,
-  mode = "floating",
 }) => {
   if (!showShortcutHelp) return null;
-  const isDock = mode === "dock";
 
   const content = (
     <CyberPanel
       title="Shortcuts"
       icon={Keyboard}
       onClose={() => setShowShortcutHelp(false)}
-      className={isDock ? "h-full rounded-none border-y-0 border-r-0" : "w-64"}
-      maxHeight={isDock ? "100%" : "80vh"}
+      className="h-full rounded-none border-y-0 border-r-0"
+      maxHeight="100%"
     >
       <div className="p-2 space-y-0.5">
         {SHORTCUTS.map((s) => (
@@ -52,13 +48,7 @@ const ShortcutHelp: React.FC<ShortcutHelpProps> = ({
     </CyberPanel>
   );
 
-  if (isDock) return <div className="h-full w-full">{content}</div>;
-
-  return (
-    <Panel position="bottom-left" className="m-4 z-40 animate-in slide-in-from-bottom-4 duration-300">
-      {content}
-    </Panel>
-  );
+  return <div className="h-full w-full">{content}</div>;
 };
 
 export default ShortcutHelp;

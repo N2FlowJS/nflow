@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { Panel } from '@xyflow/react';
 import { ResultPreview } from './node-parts/ResultPreview';
 import { CyberPanel } from './shared/CyberUI';
 import { Eye } from 'lucide-react';
@@ -35,12 +34,14 @@ const GlobalPreview: React.FC = () => {
   if (!isOpen) return null;
 
   return (
-    <Panel position="top-right" className="m-4 w-[min(480px,95%)] z-50 animate-in fade-in slide-in-from-right-4 duration-300">
+    <div className="h-full w-full min-h-0">
       <CyberPanel
         title={title.toUpperCase()}
         icon={Eye}
         onClose={() => setIsOpen(false)}
-        className="shadow-[0_0_20px_rgba(0,0,0,0.45)] border-cyber-primary/20"
+        className="shadow-[0_0_20px_rgba(0,0,0,0.45)] border-cyber-primary/20 h-full rounded-none border-y-0 border-r-0 bg-black/80 backdrop-blur-xl"
+        maxHeight={"100%"}
+        scrollable={false}
       >
         <div className="p-1 max-h-[70vh] overflow-auto scrollbar-hide">
           <div className="bg-black/20 rounded-lg p-2">
@@ -48,7 +49,7 @@ const GlobalPreview: React.FC = () => {
           </div>
         </div>
       </CyberPanel>
-    </Panel>
+    </div>
   );
 };
 
