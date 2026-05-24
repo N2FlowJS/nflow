@@ -44,6 +44,7 @@ const ContextMenu = ({ x, y, node, onClose, actions }: ContextMenuProps) => {
 
   const isGroup = node?.type === 'cyberGroup';
   const [showLayoutSubmenu, setShowLayoutSubmenu] = useState(false);
+  const openLeft = menuPos.left > window.innerWidth / 2;
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -128,7 +129,11 @@ const ContextMenu = ({ x, y, node, onClose, actions }: ContextMenuProps) => {
                 active={showLayoutSubmenu}
               />
               {showLayoutSubmenu && (
-                <CyberMenuSurface className="absolute left-full top-0 ml-1 min-w-[160px] animate-in fade-in slide-in-from-left-2 duration-150">
+                <CyberMenuSurface className={`absolute top-0 min-w-[160px] animate-in fade-in duration-150 ${
+                  openLeft 
+                    ? 'right-full mr-1 slide-in-from-right-2' 
+                    : 'left-full ml-1 slide-in-from-left-2'
+                }`}>
                   <CyberMenuItem icon={Layout} label="Layered" onClick={handleMenuAction(() => actions.onLayout?.("LAYERED"))} />
                   <CyberMenuItem icon={Layout} label="Radial" onClick={handleMenuAction(() => actions.onLayout?.("RADIAL"))} />
                   <CyberMenuItem icon={Layout} label="Tree" onClick={handleMenuAction(() => actions.onLayout?.("TREE"))} />

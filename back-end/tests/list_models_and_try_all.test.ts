@@ -111,5 +111,5 @@ describe('diagnostic: listModels and try all models for configured providers', (
     }
 
     expect(true).toBe(true);
-  }, 120000);
+  }, 300000);
 });

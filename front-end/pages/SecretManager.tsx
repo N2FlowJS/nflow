@@ -16,12 +16,14 @@ import {
 import { apiService } from '../lib/apiService';
 import { Input } from '../components/ui';
 import { CyberPanel, CyberAction, CyberBadge, StatusBadge } from '../components/shared/CyberUI';
+import { GlobalHeader } from '../components/shared/GlobalHeader';
 
 interface Secret {
   id: string;
   name: string;
   label?: string;
   key: string; // key preview (****last4chars)
+  keyPreview?: string;
   lastUsedAt?: string;
   createdAt: string;
 }
@@ -58,7 +60,11 @@ const SecretManager: React.FC = () => {
       setLoading(true);
       const response = await apiService.get('/api/secrets');
       if (response.ok) {
-        setSecrets(response.data || []);
+        const mapped = (response.data || []).map((s: any) => ({
+          ...s,
+          key: s.keyPreview || s.key || '',
+        }));
+        setSecrets(mapped);
         setError(null);
       } else {
         setError(response.error || 'Failed to load secrets');
@@ -199,8 +205,16 @@ const SecretManager: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-cyber-panel p-6 font-sans selection:bg-cyber-primary/30">
-      <div className="max-w-6xl mx-auto space-y-8">
+    <div className="min-h-screen bg-[#030303] cyber-grid cyber-scanlines text-white relative overflow-hidden font-sans selection:bg-cyber-primary/30">
+      <GlobalHeader />
+
+      {/* Premium Blurred Glow Elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-[10%] right-[15%] w-96 h-96 bg-cyber-primary/5 rounded-full blur-[120px] animate-pulse-glow"></div>
+        <div className="absolute bottom-[10%] left-[15%] w-96 h-96 bg-cyber-secondary/5 rounded-full blur-[120px] animate-pulse-glow" style={{ animationDelay: '1.5s' }}></div>
+      </div>
+
+      <div className="max-w-6xl mx-auto p-6 space-y-8 relative z-10">
         {/* Header Section */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-white/5">
           <div className="space-y-2">
@@ -292,8 +306,15 @@ const SecretManager: React.FC = () => {
                     <div className="flex items-center gap-2 p-3 bg-black/60 rounded-xl border border-white/5 font-mono text-sm group-hover:border-cyber-primary/20 transition-colors relative overflow-hidden">
                       <Lock size={14} className="text-cyber-primary/50" />
                       <span className="flex-1 truncate">
-                        {showSecretValue === secret.id ? secret.key : secret.key}
+                        {secret.keyPreview || secret.key}
                       </span>
+                      <button 
+                        onClick={() => handleRevealSecret(secret.id)}
+                        className="text-gray-500 hover:text-cyber-primary transition-colors mr-1"
+                        title="Reveal Secret"
+                      >
+                        <Eye size={14} />
+                      </button>
                       <button 
                         onClick={() => handleCopyToClipboard(secret.id)}
                         className="text-gray-500 hover:text-cyber-primary transition-colors"

@@ -733,9 +733,11 @@ function mergeSchemaWithParams(
   if (!schema) return undefined;
   return schema.map((field) => {
     const paramValue = params?.[field.name];
+    // Prefer the stored user value over the registry default.
+    // Only fall back to field.value (registry default) when paramValue is truly absent.
     return {
       ...field,
-      value: field.value ?? paramValue,
+      value: paramValue !== undefined ? paramValue : field.value,
     };
   });
 }

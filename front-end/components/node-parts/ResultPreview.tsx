@@ -92,7 +92,47 @@ export const ResultPreview = ({ output }: ResultPreviewProps) => {
           );
         }
 
-        // 2. Detect Table Shape
+        // 2. Detect List Shape
+        if (
+          rows.length > 0 &&
+          isPreviewRow(rows[0])
+        ) {
+          const r0 = rows[0];
+          if ("title" in r0 || "snippet" in r0 || "text" in r0) {
+            return (
+              <div className="space-y-2">
+                {rows.slice(0, 3).map((item, i) => (
+                  <div
+                    key={i}
+                    className="pb-2 border-b border-white/5 last:border-0 last:pb-0 group"
+                  >
+                    {hasRowValue(item, 'title') && (
+                      <div className="text-cyber-primary truncate font-bold group-hover:text-cyan-300 transition-colors">
+                        {getRowText(item, 'title')}
+                      </div>
+                    )}
+                    {hasRowValue(item, 'link') && (
+                      <div className="text-[8px] text-gray-500 truncate mb-1">
+                        {getRowText(item, 'link')}
+                      </div>
+                    )}
+                    <div className="text-gray-400 line-clamp-3 text-[9px] leading-snug">
+                      {item.snippet
+                        ? getRowText(item, 'snippet')
+                        : item.text
+                          ? getRowText(item, 'text')
+                          : item.content
+                            ? getRowText(item, 'content')
+                            : stringifyUnknown(item)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            );
+          }
+        }
+
+        // 3. Detect Table Shape
         let cols: string[] = [];
 
         if (
@@ -145,46 +185,6 @@ export const ResultPreview = ({ output }: ResultPreviewProps) => {
                     )}
                   </tbody>
                 </table>
-              </div>
-            );
-          }
-        }
-
-        // 3. Detect List Shape
-        if (
-          rows.length > 0 &&
-          isPreviewRow(rows[0])
-        ) {
-          const r0 = rows[0];
-          if ("title" in r0 || "snippet" in r0 || "text" in r0) {
-            return (
-              <div className="space-y-2">
-                {rows.slice(0, 3).map((item, i) => (
-                  <div
-                    key={i}
-                    className="pb-2 border-b border-white/5 last:border-0 last:pb-0 group"
-                  >
-                    {hasRowValue(item, 'title') && (
-                      <div className="text-cyber-primary truncate font-bold group-hover:text-cyan-300 transition-colors">
-                        {getRowText(item, 'title')}
-                      </div>
-                    )}
-                    {hasRowValue(item, 'link') && (
-                      <div className="text-[8px] text-gray-500 truncate mb-1">
-                        {getRowText(item, 'link')}
-                      </div>
-                    )}
-                    <div className="text-gray-400 line-clamp-3 text-[9px] leading-snug">
-                      {item.snippet
-                        ? getRowText(item, 'snippet')
-                        : item.text
-                          ? getRowText(item, 'text')
-                          : item.content
-                            ? getRowText(item, 'content')
-                            : stringifyUnknown(item)}
-                    </div>
-                  </div>
-                ))}
               </div>
             );
           }

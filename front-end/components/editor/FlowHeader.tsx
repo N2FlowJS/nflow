@@ -2,6 +2,7 @@ import React, { memo, useMemo } from "react";
 import {
   Activity,
   AlertTriangle,
+  Check,
   ClipboardPaste,
   Copy,
   DollarSign,
@@ -12,6 +13,7 @@ import {
   Keyboard,
   Layers,
   LayoutGrid,
+  Loader2,
   Map as MapIcon,
   Save,
   Terminal,
@@ -30,6 +32,8 @@ const FlowHeader: React.FC<EditorContextProps> = memo((props) => {
     currentFlowName,
     setCurrentFlowName,
     isSaving,
+    isAutoSaving,
+    lastAutoSave,
     onSave,
     onRunAll,
     onValidateFlow,
@@ -46,6 +50,13 @@ const FlowHeader: React.FC<EditorContextProps> = memo((props) => {
     onDownloadImage,
     onClear,
   } = props;
+
+  // Determine save status for indicator
+  const saveStatus = isSaving || isAutoSaving
+    ? 'saving'
+    : lastAutoSave
+      ? 'saved'
+      : 'unsaved';
 
   const handleAction = (id: string) => {
     switch (id) {
@@ -122,6 +133,23 @@ const FlowHeader: React.FC<EditorContextProps> = memo((props) => {
           className="bg-transparent border-none text-[9px] font-black uppercase tracking-[0.2em] text-white/40 focus:text-white focus:outline-none transition-all w-20 focus:w-32"
           placeholder="UNNAMED"
         />
+        {/* Save status indicator */}
+        <div
+          title={
+            saveStatus === 'saving' ? 'Saving…' :
+            saveStatus === 'saved' ? `Saved ${lastAutoSave ? new Date(lastAutoSave).toLocaleTimeString() : ''}` :
+            'Unsaved changes — will auto-save in 5s'
+          }
+          className="flex items-center transition-all duration-300"
+        >
+          {saveStatus === 'saving' ? (
+            <Loader2 size={8} className="text-cyber-primary animate-spin" />
+          ) : saveStatus === 'saved' ? (
+            <Check size={8} className="text-green-400 opacity-60" />
+          ) : (
+            <span className="block w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+          )}
+        </div>
       </div>
 
       <div className="flex items-center gap-0.5 pr-1">

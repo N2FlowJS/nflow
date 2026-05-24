@@ -457,7 +457,12 @@ export async function executeFlowOnServer({
 
   await new Promise<void>((resolve, reject) => {
     const tryDispatch = () => {
-      if (firstError) { resolve(); return; } // stop dispatching after first failure
+      if (firstError) {
+        if (inFlight.size === 0) {
+          reject(firstError);
+        }
+        return;
+      }
 
       while (readyQueue.length > 0 && inFlight.size < MAX_CONCURRENCY) {
         const nodeId = readyQueue.shift()!;
@@ -484,14 +489,17 @@ export async function executeFlowOnServer({
               firstError = err;
               abortAll();
             }
-            // Drain remaining in-flight then surface error
-            if (inFlight.size === 0) reject(err);
+            tryDispatch();
           });
       }
 
       // All nodes dispatched and in-flight is empty → we are done
       if (readyQueue.length === 0 && inFlight.size === 0) {
-        resolve();
+        if (firstError) {
+          reject(firstError);
+        } else {
+          resolve();
+        }
       }
     };
 

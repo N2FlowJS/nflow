@@ -6,6 +6,7 @@ export interface Secret {
   name: string;
   label?: string;
   key: string; // preview
+  keyPreview?: string;
   createdAt: string;
   lastUsedAt?: string;
 }
@@ -21,7 +22,11 @@ export const useSecrets = () => {
       setError(null);
       const response = await apiService.get('/api/secrets');
       if (response.ok) {
-        setSecrets(response.secrets || []);
+        const mapped = (response.data || []).map((s: any) => ({
+          ...s,
+          key: s.keyPreview || s.key || '',
+        }));
+        setSecrets(mapped);
       } else {
         setError(response.error || 'Failed to load secrets');
       }
@@ -36,7 +41,7 @@ export const useSecrets = () => {
     try {
       const response = await apiService.get(`/api/secrets/${secretId}`);
       if (response.ok) {
-        return response.secret?.key || null;
+        return response.data?.key || null;
       }
       return null;
     } catch (err) {

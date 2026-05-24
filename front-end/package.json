@@ -32,6 +32,7 @@
     "@types/dagre": "^0.7.53",
     "@types/node": "^20.11.0",
     "@vitejs/plugin-react": "^5.0.0",
+    "terser": "^5.48.0",
     "typescript": "~5.8.2",
     "vite": "^6.2.0"
   }

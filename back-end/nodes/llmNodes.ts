@@ -27,6 +27,7 @@ export const llmConfigHandler: NodeHandler = async (ctx) => {
     top_k: num('top_k', 40),
     presence_penalty: num('presence_penalty', 0),
     frequency_penalty: num('frequency_penalty', 0),
+    stream: getNodeFieldValue(node, 'stream') === true,
   };
 };
 
@@ -63,7 +64,7 @@ export const agentHandler: NodeHandler = async (ctx) => {
     max_tokens: llmCfg?.max_tokens as number | undefined,
     top_p: llmCfg?.top_p as number | undefined,
     top_k: llmCfg?.top_k as number | undefined,
-    stream: getNodeFieldValue(node, 'stream') === true,
+    stream: getNodeFieldValue(node, 'stream') === true || llmCfg?.stream === true,
   };
 
   const executeToolByNameWithContext = async (name: string, callArgs: Record<string, string>) => {

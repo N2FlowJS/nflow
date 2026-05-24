@@ -55,8 +55,12 @@ export const initialNodes: Node<NodeData>[] = [
       description: "Database execution layer for QC records.",
       status: "idle",
       configSchema: [
-        { label: 'Host', name: 'host', type: 'text' },
-        { label: 'Query Template', name: 'query', type: 'textarea' }
+        { label: "Server Host", name: "server", type: "text", value: "localhost" },
+        { label: "Port", name: "port", type: "number", value: 1433 },
+        { label: "DB User", name: "user", type: "text", value: "sa" },
+        { label: "DB Password", name: "password", type: "password", value: "" },
+        { label: "Database", name: "database", type: "text", value: "QC_Records" },
+        { label: "Query Template", name: "query", type: "textarea", value: "SELECT TOP 20 * FROM YourTable WHERE name LIKE '%{query}%'" }
       ]
     }
   },

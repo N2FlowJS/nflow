@@ -11,7 +11,12 @@ export type { LlmRuntimeConfig, AgentTool, LlmProvider };
 export const listModels = async (cfg: LlmRuntimeConfig) => {
   const p = (cfg.provider || '').toUpperCase();
   if (p === 'ANTHROPIC') return anthropicList(cfg);
-  if (p === 'GOOGLE' || p === 'GENAI') return genaiList(cfg);
+  if (p === 'GOOGLE' || p === 'GENAI') {
+    if (cfg.baseUrl && (cfg.baseUrl.includes('/openai') || cfg.baseUrl.includes('/v1'))) {
+      return openaiList(cfg);
+    }
+    return genaiList(cfg);
+  }
   if (p === 'OLLAMA') return ollamaList(cfg);
   return openaiList(cfg);
 };
@@ -30,7 +35,12 @@ export const runChat = async (
   const p = (cfg.provider || '').toUpperCase();
 
   if (p === 'ANTHROPIC') return runAnthropicChat(cfg, systemPrompt, userPrompt, availableTools, exec, safeLog, onStream);
-  if (p === 'GOOGLE' || p === 'GENAI') return runGoogleChat(cfg, systemPrompt, userPrompt, availableTools, exec, safeLog, onStream);
+  if (p === 'GOOGLE' || p === 'GENAI') {
+    if (cfg.baseUrl && (cfg.baseUrl.includes('/openai') || cfg.baseUrl.includes('/v1'))) {
+      return runOpenAICompatibleChat(cfg, systemPrompt, userPrompt, availableTools, exec, safeLog, onStream);
+    }
+    return runGoogleChat(cfg, systemPrompt, userPrompt, availableTools, exec, safeLog, onStream);
+  }
   if (p === 'OLLAMA') return runOllamaChat(cfg, systemPrompt, userPrompt, availableTools, exec, safeLog, onStream);
 
   // Default to OpenAI-compatible (covers NVIDIA, vLLM, DeepSeek, etc.)
@@ -40,7 +50,12 @@ export const runChat = async (
 export const embedText = async (cfg: LlmRuntimeConfig, input: string) => {
   const p = (cfg.provider || '').toUpperCase();
 
-  if (p === 'GOOGLE' || p === 'GENAI') return genaiEmbed(cfg, input);
+  if (p === 'GOOGLE' || p === 'GENAI') {
+    if (cfg.baseUrl && (cfg.baseUrl.includes('/openai') || cfg.baseUrl.includes('/v1'))) {
+      return openaiEmbed(cfg, input);
+    }
+    return genaiEmbed(cfg, input);
+  }
   if (p === 'OLLAMA') return ollamaEmbed(cfg, input);
   
   // Default to OpenAI-compatible (covers NVIDIA, etc.)

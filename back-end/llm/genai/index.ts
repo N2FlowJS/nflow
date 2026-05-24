@@ -59,8 +59,29 @@ export const runGoogleChat = async (
       let tool_calls: any[] = [];
 
       try {
-        // ai.chat.create
-        if (ai.chat && typeof ai.chat.create === 'function') {
+        // ai.models.generateContent (Google GenAI SDK native)
+        if (ai.models && typeof ai.models.generateContent === 'function') {
+          const nativeContents = messages
+            .filter((m: any) => m.role !== 'system')
+            .map((m: any) => ({
+              role: m.role === 'assistant' ? 'model' : 'user',
+              parts: [{ text: m.content || '' }]
+            }));
+
+          const resp = await ai.models.generateContent({
+            model: modelName,
+            contents: nativeContents,
+            config: {
+              systemInstruction: systemPrompt || undefined,
+              temperature: cfg.temperature,
+              maxOutputTokens: cfg.max_tokens,
+              tools: toolsDecl ? [{ functionDeclarations: toolsDecl }] : undefined,
+            }
+          });
+
+          content = resp.text || '';
+          tool_calls = resp.functionCalls || [];
+        } else if (ai.chat && typeof ai.chat.create === 'function') {
           const resp = await ai.chat.create({ model: modelName, messages, tools: toolsDecl, temperature: cfg.temperature, max_tokens: cfg.max_tokens, stream: stream });
           
           if (stream) {

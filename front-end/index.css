@@ -1,0 +1,159 @@
+/* --- FUTURISTIC CYBERPUNK GLASSMORPHISM STYLE SYSTEM --- */
+
+:root {
+  --cyber-dark-bg: #030303;
+  --cyber-panel-bg: rgba(6, 6, 6, 0.7);
+  --cyber-glass-bg: rgba(10, 10, 10, 0.6);
+  --cyber-border-color: rgba(255, 255, 255, 0.06);
+  
+  /* Cyber Colors */
+  --cyber-cyan: #00f0ff;
+  --cyber-purple: #9d4edd;
+  --cyber-green: #00ff9f;
+  --cyber-amber: #f59e0b;
+  --cyber-red: #ef4444;
+  --cyber-text-muted: #8892b0;
+}
+
+/* Global Reset & Futuristic Defaults */
+body {
+  background-color: var(--cyber-dark-bg);
+  color: #e0e0e0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* 1. Cyber Matrix Blueprint Grid Pattern */
+.cyber-grid {
+  background-size: 32px 32px;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-position: center center;
+  position: relative;
+}
+
+.cyber-grid::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 50%, transparent 20%, var(--cyber-dark-bg) 80%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* 2. Cyberpunk Scanlines Retro Effect */
+.cyber-scanlines {
+  position: relative;
+  overflow: hidden;
+}
+
+.cyber-scanlines::after {
+  content: " ";
+  display: block;
+  position: absolute;
+  top: 0; left: 0; bottom: 0; right: 0;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+  z-index: 2;
+  background-size: 100% 4px, 6px 100%;
+  pointer-events: none;
+}
+
+/* 3. Premium Glassmorphic container with custom shadows */
+.cyber-glass {
+  background: var(--cyber-glass-bg) !important;
+  backdrop-filter: blur(12px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4) !important;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.cyber-glass:hover {
+  border-color: rgba(0, 240, 255, 0.25) !important;
+  box-shadow: 0 12px 40px 0 rgba(0, 240, 255, 0.08) !important;
+}
+
+/* 4. Glowing Neon utilities */
+.neon-glow-cyan {
+  box-shadow: 0 0 15px rgba(0, 240, 255, 0.15) !important;
+}
+
+.neon-glow-purple {
+  box-shadow: 0 0 15px rgba(157, 78, 221, 0.15) !important;
+}
+
+.neon-glow-success {
+  box-shadow: 0 0 15px rgba(0, 255, 159, 0.15) !important;
+}
+
+.neon-glow-error {
+  box-shadow: 0 0 15px rgba(239, 68, 68, 0.15) !important;
+}
+
+/* 5. Custom Themed Form Control Highlights */
+.cyber-input-focus:focus {
+  border-color: var(--cyber-cyan) !important;
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.15) !important;
+  background-color: rgba(0, 0, 0, 0.6) !important;
+}
+
+/* Floating Animation */
+@keyframes cyber-float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-6px); }
+  100% { transform: translateY(0px); }
+}
+
+.animate-cyber-float {
+  animation: cyber-float 5s ease-in-out infinite;
+}
+
+/* Cyber Pulse Glow */
+@keyframes cyber-pulse-glow {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.6; }
+}
+
+.animate-pulse-glow {
+  animation: cyber-pulse-glow 3s ease-in-out infinite;
+}
+
+/* 6. Dynamic Card Slide-up Hover effect */
+.cyber-hover-card {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cyber-hover-card:hover {
+  transform: translateY(-4px) scale(1.015);
+  border-color: rgba(0, 240, 255, 0.35) !important;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 240, 255, 0.1) !important;
+}
+
+/* 7. Double-gradient Border accent */
+.cyber-accent-gradient {
+  background: linear-gradient(135deg, var(--cyber-cyan) 0%, var(--cyber-purple) 100%);
+}
+
+/* Custom Scrollbar Styles for elegant UI */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(10, 10, 10, 0.3);
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(0, 240, 255, 0.15);
+  border-radius: 4px;
+  border: 1px solid rgba(0, 240, 255, 0.05);
+  transition: background 0.3s;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 240, 255, 0.35);
+}

@@ -124,7 +124,7 @@ export default function Playground({
           )}
 
           {/* Messages */}
-          <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-6 space-y-6 scrollbar-hide">
+          <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-6 space-y-6 custom-scrollbar">
             {visibleMessages.length === 0 ? (
               <div className="h-full flex flex-col items-center justify-center opacity-20 gap-3">
                 <Bot size={48} />

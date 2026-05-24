@@ -1,47 +1,15 @@
 import {
-  addEdge,
   Background,
   BackgroundVariant,
-  Connection,
   Controls,
-  Edge,
-  EdgeChange,
   EdgeTypes,
   MiniMap,
   Node,
-  NodeChange,
   NodeTypes,
   ReactFlow,
-  ReactFlowInstance,
   ReactFlowProvider,
-  useEdgesState,
-  useNodesState,
-  useReactFlow
 } from "@xyflow/react";
-import { toPng } from "html-to-image";
-import {
-  AlertTriangle,
-  DollarSign,
-  FolderOpen,
-  History,
-  Keyboard,
-  MessageSquare,
-  Eye,
-  Plus,
-  Terminal,
-  Trash2,
-  X,
-  Settings2,
-  Info
-} from "lucide-react";
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import React, { useMemo } from "react";
 import CyberEdge from "../components/CyberEdge";
 import CyberGroupNode from "../components/CyberGroupNode";
 import CyberNode from "../components/CyberNode";
@@ -51,6 +19,12 @@ import CommandPalette from "../components/editor/CommandPalette";
 import ContextMenu from "../components/editor/ContextMenu";
 import EditorDock, { type EditorDockTab } from "../components/editor/EditorDock";
 import FlowHeader from "../components/editor/FlowHeader";
+import { Sidebar } from "../components/Sidebar";
+import { PanelSkeleton } from "../components/shared/CyberUI";
+import { CyberErrorBoundary } from "../components/shared/CyberErrorBoundary";
+import { useFlowEditor, DockTabId } from "../hooks/useFlowEditor";
+import type { CustomNodeType } from "@n2flow/types";
+
 const LazyFlowManager = React.lazy(() => import("../components/editor/FlowManager"));
 const LazyLogViewer = React.lazy(() => import("../components/editor/LogViewer"));
 const LazyShortcutHelp = React.lazy(() => import("../components/editor/ShortcutHelp"));
@@ -61,44 +35,6 @@ const LazyGlobalPreview = React.lazy(() => import("../components/GlobalPreview")
 const LazyExecutionPanel = React.lazy(() => import("../components/node-parts/NodeDataModal"));
 const LazyNodeConfigPanel = React.lazy(() => import("../components/editor/NodeConfigPanel"));
 const LazyPlayground = React.lazy(() => import("../components/Playground"));
-import { Sidebar } from "../components/Sidebar";
-import { CyberPanel, CyberAction, PanelSkeleton } from "../components/shared/CyberUI";
-import { initialEdges, initialNodes } from "../data";
-import {
-  AGENT_TEMPLATE_CUSTOM,
-  getAgentInstructionByTemplate,
-} from "../../back-end/agent-templates";
-import {
-  validateFlowGraph,
-  type FlowValidationIssue,
-  type ValidationLocale,
-} from "../../back-end/flow-validation";
-import { useGraphLayout, type LayoutMode } from "../hooks/useGraphLayout";
-import {
-  createNodeDataByType,
-  setNodeFieldValueInSchema
-} from "../../back-end/node-registry";
-import nodeRegistry from "../../back-end/node-registry";
-import {
-  inferSourcePortType,
-  inferTargetPortType,
-  normalizeModelNode,
-  PortDataType
-} from "../../back-end/node-registry/utils";
-import type { CustomNodeType } from "@n2flow/types";
-import {
-  CommandAction,
-  FlowVersion,
-  GlobalVariable,
-  LogEntry,
-  PlaygroundMessage,
-  PlaygroundWorkerOutput,
-  RuntimeStatus,
-  SavedFlow,
-} from "../types/editor";
-import { API_BASE, fetchWithAuth } from "../lib/api";
-import { apiService } from "../lib/apiService";
-import { Button, Input } from "../components/ui";
 
 const nodeTypes: NodeTypes = {
   cyberNode: CyberNode as any,
@@ -110,2455 +46,242 @@ const edgeTypes: EdgeTypes = {
   cyberEdge: CyberEdge,
 };
 
-const INITIAL_PLAYGROUND_MESSAGES: PlaygroundMessage[] = [
-  {
-    role: "assistant",
-    text: "Protocol initialized. Ready to test the workflow. How can I assist?",
-  },
-];
-
-type DockTabId =
-  | "playground"
-  | "preview"
-  | "execution"
-  | "logs"
-  | "validation"
-  | "shortcuts"
-  | "flows"
-  | "variables"
-  | "history"
-  | "config";
-
-import { prettifyLabel } from "../lib/utils";
-
-
 const Flow = () => {
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
-  const { deleteElements } = useReactFlow();
-
-  const [nodes, setNodes, onNodesChange] = useNodesState<Node>(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
-  const [activeDockTab, setActiveDockTab] = useState<DockTabId | null>(null);
-  const [reactFlowInstance, setReactFlowInstance] =
-    useState<ReactFlowInstance | null>(null);
-  const [playgroundMessages, setPlaygroundMessages] = useState<
-    PlaygroundMessage[]
-  >(INITIAL_PLAYGROUND_MESSAGES);
-  const [isPlaygroundTyping, setIsPlaygroundTyping] = useState(false);
-  const [runtimeStatus, setRuntimeStatus] = useState<RuntimeStatus>("idle");
-  const [playgroundError, setPlaygroundError] = useState<string | null>(null);
-  const [flowIssues, setFlowIssues] = useState<FlowValidationIssue[]>([]);
-  const [showMinimap, setShowMinimap] = useState(true);
-  const [currentFlowId, setCurrentFlowId] = useState<string | null>(null);
-  const [currentFlowName, setCurrentFlowName] =
-    useState<string>("Untitled Flow");
-  const [isLiveMode, setIsLiveMode] = useState(false);
-  const [isCanvasSearchOpen, setIsCanvasSearchOpen] = useState(false);
-  const [globalVariables, setGlobalVariables] = useState<GlobalVariable[]>([]);
-  const [flowVersions, setFlowVersions] = useState<FlowVersion[]>([]);
-  const [isRestoringVersion, setIsRestoringVersion] = useState(false);
-  const [isAutoSaving, setIsAutoSaving] = useState(false);
-  const [lastAutoSave, setLastAutoSave] = useState<number | null>(null);
-  const [contextMenu, setContextMenu] = useState<{
-    x: number;
-    y: number;
-    node?: Node;
-  } | null>(null);
-  const [validationLocale, setValidationLocale] = useState<ValidationLocale>(
-    () =>
-      typeof navigator !== "undefined" &&
-      navigator.language.toLowerCase().startsWith("vi")
-        ? "vi"
-        : "en",
-  );
-  const [isToolsMenuOpen, setIsToolsMenuOpen] = useState(false);
-  const [showCommandPalette, setShowCommandPalette] = useState(false);
-  const [commandQuery, setCommandQuery] = useState("");
-  const [commandIndex, setCommandIndex] = useState(0);
-  const [pendingNodeInsertPosition, setPendingNodeInsertPosition] = useState<
-    { x: number; y: number } | null
-  >(null);
-  const [executionLogs, setExecutionLogs] = useState<LogEntry[]>([]);
-  const [savedFlows, setSavedFlows] = useState<SavedFlow[]>([]);
-  const [isSaving, setIsSaving] = useState(false);
-
-  const isPlaygroundOpen = activeDockTab === "playground";
-  const isFlowManagerOpen = activeDockTab === "flows";
-  const isVariablesPanelOpen = activeDockTab === "variables";
-  const isVersionHistoryOpen = activeDockTab === "history";
-  const showShortcutHelp = activeDockTab === "shortcuts";
-  const isLogsOpen = activeDockTab === "logs";
-
-  // Global Node Config (derived from activeDockTab === "config")
-  const isNodeConfigOpen = activeDockTab === "config";
-  const [configNodeId, setConfigNodeId] = useState<string | null>(null);
-  const configFieldRefs = useRef<Record<string, HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement | null>>({});
-  const [highlightedConfigField, setHighlightedConfigField] = useState<string | null>(null);
-
-  useEffect(() => {
-    const handler = (e: Event) => {
-      const ce = e as CustomEvent<{ nodeId?: string; focusField?: string }>;
-      const nodeId = ce.detail?.nodeId;
-      if (!nodeId) return;
-      setConfigNodeId(nodeId);
-      setActiveDockTab("config");
-      setHighlightedConfigField(ce.detail?.focusField ?? null);
-    };
-    window.addEventListener('openNodeConfig', handler as EventListener);
-    return () => window.removeEventListener('openNodeConfig', handler as EventListener);
-  }, [setActiveDockTab]);
-
-  useEffect(() => {
-    if (!isNodeConfigOpen || !highlightedConfigField) return;
-    const target = configFieldRefs.current[highlightedConfigField];
-    if (!target) return;
-    const focusTimer = window.setTimeout(() => {
-      try { (target as HTMLElement).focus(); } catch {}
-      if ('select' in target && typeof (target as HTMLInputElement | HTMLTextAreaElement).select === 'function') {
-        ((target as HTMLInputElement | HTMLTextAreaElement).select());
-      }
-      try { target.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch {}
-    }, 50);
-    const clearTimer = window.setTimeout(() => setHighlightedConfigField(null), 2000);
-    return () => {
-      window.clearTimeout(focusTimer);
-      window.clearTimeout(clearTimer);
-    };
-  }, [isNodeConfigOpen, highlightedConfigField]);
-
-  const currentConfigNode = useMemo(
-    () => nodes.find((n) => n.id === configNodeId) || null,
-    [nodes, configNodeId],
-  );
-
-  const updateNodeDataById = (newData: Partial<CustomNodeType["data"]>) => {
-    if (!configNodeId) return;
-    setNodes((nds) => nds.map((n) => (n.id === configNodeId ? { ...n, data: { ...n.data, ...newData } } : n)));
-  };
-
-  const handleConfigParamChange = (
-    name: string,
-    value: string | number | boolean,
-  ) => {
-    if (!configNodeId) return;
-    setNodes((nds) => nds.map((n) => {
-      if (n.id !== configNodeId) return n;
-      const data = n.data as CustomNodeType["data"];
-      if (data.type === 'Agent' && name === 'agentTemplate') {
-        const templateName = String(value || '');
-        const configSchema = Array.isArray(data.configSchema) ? data.configSchema : [];
-        let updatedSchema = setNodeFieldValueInSchema(configSchema, 'agentTemplate', templateName);
-        const templateInstruction = getAgentInstructionByTemplate(templateName);
-        if (templateName !== AGENT_TEMPLATE_CUSTOM && templateInstruction) {
-          updatedSchema = setNodeFieldValueInSchema(updatedSchema, 'instruction', templateInstruction);
-        }
-        return { ...n, data: { ...n.data, configSchema: updatedSchema } };
-      }
-      const configSchema = Array.isArray(data.configSchema) ? data.configSchema : undefined;
-      const updatedSchema = setNodeFieldValueInSchema(configSchema, name, value);
-      return { ...n, data: { ...n.data, configSchema: updatedSchema } };
-    }));
-  };
-
-  const setDockTabOpen = useCallback(
-    (tab: DockTabId, value: React.SetStateAction<boolean>) => {
-      setActiveDockTab((prev) => {
-        const isCurrent = prev === tab;
-        const next =
-          typeof value === "function"
-            ? (value as (current: boolean) => boolean)(isCurrent)
-            : value;
-
-        if (next) return tab;
-        return isCurrent ? null : prev;
-      });
-    },
-    [],
-  );
-
-  const setIsPlaygroundOpen: React.Dispatch<React.SetStateAction<boolean>> =
-    useCallback((value) => setDockTabOpen("playground", value), [setDockTabOpen]);
-
-  const setIsNodeConfigOpen: React.Dispatch<React.SetStateAction<boolean>> =
-    useCallback((value) => setDockTabOpen("config", value), [setDockTabOpen]);
-
-  const setIsFlowManagerOpen: React.Dispatch<React.SetStateAction<boolean>> =
-    useCallback((value) => setDockTabOpen("flows", value), [setDockTabOpen]);
-
-  const setIsVariablesPanelOpen: React.Dispatch<React.SetStateAction<boolean>> =
-    useCallback((value) => setDockTabOpen("variables", value), [setDockTabOpen]);
-
-  const setIsVersionHistoryOpen: React.Dispatch<React.SetStateAction<boolean>> =
-    useCallback((value) => setDockTabOpen("history", value), [setDockTabOpen]);
-
-  const setShowShortcutHelpExclusive: React.Dispatch<React.SetStateAction<boolean>> =
-    useCallback((value) => setDockTabOpen("shortcuts", value), [setDockTabOpen]);
-
-  const setIsLogsOpenExclusive: React.Dispatch<React.SetStateAction<boolean>> =
-    useCallback((value) => setDockTabOpen("logs", value), [setDockTabOpen]);
-
-  const [isOnline, setIsOnline] = useState(true);
-
-  // Heartbeat to check server connectivity
-  useEffect(() => {
-    const checkStatus = async () => {
-      try {
-        const response = await apiService.get('/api/health');
-        setIsOnline(response.ok);
-      } catch {
-        setIsOnline(false);
-      }
-    };
-    const timer = setInterval(checkStatus, 30000);
-    checkStatus();
-    return () => clearInterval(timer);
-  }, []);
-
-  const fetchFlows = useCallback(async () => {
-    try {
-      const response = await apiService.get('/api/flows');
-      if (response.ok) {
-        const flows = Array.isArray(response.data) ? response.data : [];
-        setSavedFlows(flows);
-        return flows;
-      }
-    } catch (err) {
-      console.error("Failed to fetch flows", err);
-    }
-    return [];
-  }, []);
-
-  useEffect(() => {
-    const loadFlow = async () => {
-      if (id && id !== "new") {
-        try {
-          const response = await apiService.get(`/api/flows/${id}`);
-          if (response.ok && response.data) {
-            const flow = response.data;
-            if (flow && flow.data) {
-              setNodes((flow.data.nodes || []).map(normalizeModelNode));
-              setEdges(flow.data.edges || []);
-              setGlobalVariables(flow.data.globalVariables || []);
-              
-              // Load versions sequentially
-              const versionsResp = await apiService.get(`/api/flows/${id}/versions`);
-              if (versionsResp.ok) {
-                setFlowVersions(versionsResp.data || []);
-              }
-
-              setCurrentFlowId(flow.id);
-              setCurrentFlowName(flow.name);
-              // Mark that we should fit view after these nodes render
-              shouldFitAfterLoadRef.current = true;
-              setFitRequestCount((c) => c + 1);
-            }
-          } else {
-            // Fallback to localStorage for migration
-            const saved = localStorage.getItem("cyber-flows");
-            if (saved) {
-              const flows: SavedFlow[] = JSON.parse(saved);
-              const flow = flows.find((f) => f.id === id);
-              if (flow && flow.data) {
-                setNodes((flow.data.nodes || []).map(normalizeModelNode));
-                setEdges(flow.data.edges || []);
-                setCurrentFlowId(flow.id);
-                setCurrentFlowName(flow.name);
-                // Mark that we should fit view after these nodes render
-                shouldFitAfterLoadRef.current = true;
-                setFitRequestCount((c) => c + 1);
-              }
-            }
-          }
-        } catch (err) {
-          console.error("Error loading flow", err);
-        }
-      } else if (id === "new") {
-        setNodes([]);
-        setEdges([]);
-        setCurrentFlowId(null);
-        setCurrentFlowName("Untitled Flow");
-        setGlobalVariables([]);
-        shouldFitAfterLoadRef.current = false;
-      }
-    };
-    loadFlow();
-    fetchFlows();
-  }, [id, setNodes, setEdges, fetchFlows]);
-
-  const [past, setPast] = useState<{ nodes: Node[]; edges: Edge[] }[]>([]);
-  const [future, setFuture] = useState<{ nodes: Node[]; edges: Edge[] }[]>([]);
-  const stateRef = useRef({ nodes, edges });
-  const shouldFitAfterLoadRef = useRef(false);
-  const [fitRequestCount, setFitRequestCount] = useState(0);
-  const lastHandledFitRequestRef = useRef(0);
-  const scrollStateRef = useRef({ dx: 0, dy: 0, isScrolling: false });
-  const executionAbortRef = useRef<AbortController | null>(null);
-  const isSilentExecutionRunningRef = useRef(false);
-  const wasPlaygroundOpenRef = useRef(false);
-  const importInputRef = useRef<HTMLInputElement>(null!);
-  const commandInputRef = useRef<HTMLInputElement>(null!);
-
-  useEffect(() => {
-    stateRef.current = { nodes, edges };
-  }, [nodes, edges]);
-
-  useEffect(() => {
-    if (!reactFlowInstance) return;
-    // Only run when there's a new fit request
-    if (fitRequestCount === lastHandledFitRequestRef.current) return;
-    // mark as pending
-    shouldFitAfterLoadRef.current = true;
-    lastHandledFitRequestRef.current = fitRequestCount;
-
-    let canceled = false;
-    let timer: ReturnType<typeof setTimeout> | null = null;
-    let attempts = 0;
-
-    const runFit = () => {
-      if (canceled) return;
-
-      const flowNodes = reactFlowInstance.getNodes();
-      const hasMeasuredNodes = flowNodes.some((node) => {
-        const width =
-          typeof node.measured?.width === "number"
-            ? node.measured.width
-            : typeof node.width === "number"
-              ? node.width
-              : 0;
-        const height =
-          typeof node.measured?.height === "number"
-            ? node.measured.height
-            : typeof node.height === "number"
-              ? node.height
-              : 0;
-        return width > 0 && height > 0;
-      });
-
-      try {
-        // Debug: log state to help diagnose fitView timing issues
-        // eslint-disable-next-line no-console
-        console.debug("[FlowEditor] runFit", {
-          nodesCount: flowNodes.length,
-          hasMeasuredNodes,
-          attempts,
-          shouldFitAfterLoad: shouldFitAfterLoadRef.current,
-        });
-      } catch (e) {}
-
-      // Give more attempts and a slightly longer interval for heavy layouts
-      if (!hasMeasuredNodes && attempts < 30) {
-        attempts += 1;
-        timer = setTimeout(runFit, 100);
-        return;
-      }
-
-      requestAnimationFrame(() => {
-        if (canceled) return;
-        try {
-          reactFlowInstance.fitView({
-            duration: 800,
-            padding: 0.2,
-            includeHiddenNodes: true,
-          });
-          // eslint-disable-next-line no-console
-          console.debug("[FlowEditor] fitView executed");
-        } catch (err) {
-          // eslint-disable-next-line no-console
-          console.debug("[FlowEditor] fitView error", err);
-        }
-
-        // Retry shortly after to handle layout/measurement timing issues
-        const retry = setTimeout(() => {
-          if (canceled) return;
-          try {
-            reactFlowInstance.fitView({ duration: 200, padding: 0.2, includeHiddenNodes: true });
-            // eslint-disable-next-line no-console
-            console.debug("[FlowEditor] fitView retry executed");
-          } catch (err) {
-            // eslint-disable-next-line no-console
-            console.debug("[FlowEditor] fitView retry error", err);
-          }
-          shouldFitAfterLoadRef.current = false;
-        }, 300);
-
-        // Track retry timer so cleanup can clear it
-        timer = retry as unknown as ReturnType<typeof setTimeout>;
-      });
-    };
-
-    timer = setTimeout(runFit, 0);
-
-    return () => {
-      canceled = true;
-      if (timer) clearTimeout(timer);
-    };
-  }, [reactFlowInstance, nodes, edges, fitRequestCount]);
-  // include fitRequestCount as a dependency so effect re-runs when a new request is made
-  // (note: it's safe to keep nodes/edges in deps to retry on measurement changes)
-
-  const takeSnapshot = useCallback(() => {
-    setPast((p) => {
-      const newPast = [...p, stateRef.current];
-      if (newPast.length > 50) newPast.shift();
-      return newPast;
-    });
-    setFuture([]);
-  }, []);
-
-  const undo = useCallback(() => {
-    setPast((p) => {
-      if (p.length === 0) return p;
-      const previous = p[p.length - 1];
-      const newPast = p.slice(0, p.length - 1);
-
-      setFuture((f) => [stateRef.current, ...f]);
-      setNodes(previous.nodes);
-      setEdges(previous.edges);
-      return newPast;
-    });
-  }, [setNodes, setEdges]);
-
-  const redo = useCallback(() => {
-    setFuture((f) => {
-      if (f.length === 0) return f;
-      const next = f[0];
-      const newFuture = f.slice(1);
-
-      setPast((p) => [...p, stateRef.current]);
-      setNodes(next.nodes);
-      setEdges(next.edges);
-      return newFuture;
-    });
-  }, [setNodes, setEdges]);
-
-  const [copiedNodes, setCopiedNodes] = useState<Node[]>([]);
-  const [copiedEdges, setCopiedEdges] = useState<Edge[]>([]);
-
-  useEffect(() => {
-    const handleTakeSnapshot = () => takeSnapshot();
-    window.addEventListener("takeSnapshot", handleTakeSnapshot);
-    return () => window.removeEventListener("takeSnapshot", handleTakeSnapshot);
-  }, [takeSnapshot]);
-
-  const onNodesChangeWrapper = useCallback(
-    (changes: NodeChange[]) => {
-      // Prevent node modifications during flow execution to avoid state desynchronization
-      if (runtimeStatus === "running") {
-        console.warn("[Security] Node modifications blocked during flow execution");
-        return;
-      }
-
-      const isSignificant = changes.some(
-        (c) => c.type === "remove" || c.type === "add",
-      );
-      if (isSignificant) {
-        takeSnapshot();
-      }
-      onNodesChange(changes);
-    },
-    [onNodesChange, takeSnapshot, runtimeStatus],
-  );
-
-  const onEdgesChangeWrapper = useCallback(
-    (changes: EdgeChange[]) => {
-      // Prevent edge modifications during flow execution to avoid state desynchronization
-      if (runtimeStatus === "running") {
-        console.warn("[Security] Edge modifications blocked during flow execution");
-        return;
-      }
-
-      const isSignificant = changes.some(
-        (c) => c.type === "remove" || c.type === "add",
-      );
-      if (isSignificant) {
-        takeSnapshot();
-      }
-      onEdgesChange(changes);
-    },
-    [onEdgesChange, takeSnapshot, runtimeStatus],
-  );
-
-  const onSelectionChange = useCallback(
-    ({ nodes: selectedNodes }: { nodes: Node[] }) => {
-      const activeSelected = selectedNodes.find((n) => n.selected);
-      if (activeSelected) {
-        setConfigNodeId(activeSelected.id);
-      } else {
-        setConfigNodeId(null);
-      }
-    },
-    [],
-  );
-
-  const onConnect = useCallback(
-    (params: Connection) => {
-      if (!params.source || !params.target) {
-        return;
-      }
-
-      const sourceNode = nodes.find((n) => n.id === params.source) as
-        | CustomNodeType
-        | undefined;
-      const targetNode = nodes.find((n) => n.id === params.target) as
-        | CustomNodeType
-        | undefined;
-      if (!sourceNode || !targetNode) {
-        return;
-      }
-
-      const pushValidationError = (err: string) => {
-        setPlaygroundError(err);
-        setPlaygroundMessages((prev) => [
-          ...prev,
-          { role: "system", text: `[Validation] ${err}` },
-        ]);
-      };
-
-      const sourcePortType = inferSourcePortType(
-        sourceNode,
-        params.sourceHandle,
-      );
-      const targetPortType = inferTargetPortType(
-        targetNode,
-        params.targetHandle,
-      );
-
-      const isPortCompatible =
-        sourcePortType === "any" ||
-        targetPortType === "any" ||
-        sourcePortType === targetPortType;
-
-      if (!isPortCompatible) {
-        const err = `Không tương thích type: output ${sourcePortType} không thể nối vào input ${targetPortType}.`;
-        pushValidationError(err);
-        return;
-      }
-
-      if (params.targetHandle === "agent_llm") {
-        const hasExistingAgentModel = edges.some(
-          (edge) =>
-            edge.target === params.target && edge.targetHandle === "agent_llm",
-        );
-        if (hasExistingAgentModel) {
-          pushValidationError("Cổng LLM_LINK chỉ nhận 1 Chat Model. Hãy xóa kết nối cũ trước.");
-          return;
-        }
-      }
-
-      if (params.targetHandle === "embedding_model") {
-        const hasExistingEmbeddingModel = edges.some(
-          (edge) =>
-            edge.target === params.target &&
-            edge.targetHandle === "embedding_model",
-        );
-        if (hasExistingEmbeddingModel) {
-          pushValidationError("Cổng EMBEDDING chỉ nhận 1 Embedding Model. Hãy xóa kết nối cũ trước.");
-          return;
-        }
-      }
-
-      if (
-        params.targetHandle === "tools" &&
-        params.sourceHandle !== "as_tool"
-      ) {
-        pushValidationError("Cổng TOOL_BUS chỉ nhận kết nối từ handle AS_TOOL.");
-        return;
-      }
-
-
-      takeSnapshot();
-      setEdges((eds) => {
-        let stroke = "#4b5563";
-
-        const portColor = (portType: PortDataType) => {
-          if (portType === "text") return "#22c55e";
-          if (portType === "chat_model") return "#a855f7";
-          if (portType === "embedding_model") return "#3b82f6";
-          if (portType === "tool") return "#f59e0b";
-          if (portType === "boolean_route") return "#ec4899";
-          return "#4b5563";
-        };
-
-        if (params.targetHandle === "tools") {
-          stroke = "#f59e0b"; // amber-500
-        } else if (params.targetHandle === "agent_llm") {
-          stroke = "#a855f7"; // purple-500
-        } else if (params.targetHandle === "embedding_model") {
-          stroke = "#3b82f6"; // blue-500
-        } else if (params.sourceHandle === "true") {
-          stroke = "#22c55e"; // green-500
-        } else if (params.sourceHandle === "false") {
-          stroke = "#ef4444"; // red-500
-        } else if (params.sourceHandle === "as_tool") {
-          stroke = "#f59e0b"; // amber-500
-        } else if (params.targetHandle === "system_prompt") {
-          stroke = "#64748b"; // slate-500
-        } else if (params.targetHandle === "input_value") {
-          stroke = "#22c55e"; // green-500
-        } else if (params.sourceHandle === "response") {
-          stroke = "#22d3ee"; // cyan-400
-        } else {
-          const effectiveType =
-            targetPortType !== "any" ? targetPortType : sourcePortType;
-          stroke = portColor(effectiveType);
-        }
-
-        return addEdge(
-          {
-            ...params,
-            type: "cyberEdge",
-            animated: true,
-            style: { stroke, strokeWidth: 1.5 },
-            labelStyle: { fill: stroke },
-          },
-          eds,
-        );
-      });
-    },
-    [nodes, edges, setEdges, takeSnapshot],
-  );
-
-  const onNodeContextMenu = useCallback(
-    (event: React.MouseEvent, node: Node) => {
-      event.preventDefault();
-      setContextMenu({
-        x: event.clientX,
-        y: event.clientY,
-        node,
-      });
-    },
-    [setContextMenu],
-  );
-
-  const onPaneContextMenu = useCallback(
-    (event: React.MouseEvent) => {
-      event.preventDefault();
-      setContextMenu({
-        x: event.clientX,
-        y: event.clientY,
-      });
-    },
-    [setContextMenu],
-  );
-
-  // Wrapper for ReactFlow which passes native MouseEvent or React.MouseEvent
-  const onPaneContextMenuHandler = useCallback(
-    (event: MouseEvent | React.MouseEvent<Element, MouseEvent>) => {
-      const clientX = event instanceof MouseEvent ? event.clientX : (event as React.MouseEvent).clientX;
-      const clientY = event instanceof MouseEvent ? event.clientY : (event as React.MouseEvent).clientY;
-      event.preventDefault();
-      setContextMenu({
-        x: clientX,
-        y: clientY,
-      });
-    },
-    [setContextMenu],
-  );
-
-  const onAddNode = useCallback(
-    (type: string, label: string, position?: { x: number; y: number }) => {
-      takeSnapshot();
-
-      const newNode: CustomNodeType = {
-        id: `${type}-${Date.now()}`,
-        type: "cyberNode",
-        position: position || {
-          x: Math.random() * 400 + 100,
-          y: Math.random() * 400 + 100,
-        },
-        data: createNodeDataByType(type, label),
-      };
-      setNodes((nds) => nds.concat(newNode));
-    },
-    [setNodes, takeSnapshot],
-  );
-
-  const onDragOver = useCallback(
-    (event: React.DragEvent) => {
-      event.preventDefault();
-      event.dataTransfer.dropEffect = "move";
-
-      if (reactFlowInstance) {
-        const scrollThreshold = 100;
-
-        const { innerWidth, innerHeight } = window;
-        const { clientX, clientY } = event;
-
-        let dx = 0;
-        let dy = 0;
-
-        // Sidebar is 256px wide
-        if (clientX < scrollThreshold + 256) {
-          dx = Math.max(5, (scrollThreshold + 256 - clientX) * 0.25);
-        } else if (clientX > innerWidth - scrollThreshold) {
-          dx = -Math.max(5, (clientX - (innerWidth - scrollThreshold)) * 0.25);
-        }
-
-        // Top header is ~60px
-        if (clientY < scrollThreshold + 60) {
-          dy = Math.max(5, (scrollThreshold + 60 - clientY) * 0.25);
-        } else if (clientY > innerHeight - scrollThreshold) {
-          dy = -Math.max(5, (clientY - (innerHeight - scrollThreshold)) * 0.25);
-        }
-
-        scrollStateRef.current.dx = dx;
-        scrollStateRef.current.dy = dy;
-
-        if ((dx !== 0 || dy !== 0) && !scrollStateRef.current.isScrolling) {
-          scrollStateRef.current.isScrolling = true;
-          const scrollLoop = () => {
-            const { dx, dy, isScrolling } = scrollStateRef.current;
-            if (!isScrolling || (dx === 0 && dy === 0)) {
-              scrollStateRef.current.isScrolling = false;
-              return;
-            }
-            const { x, y, zoom } = reactFlowInstance.getViewport();
-            reactFlowInstance.setViewport({ x: x + dx, y: y + dy, zoom });
-            requestAnimationFrame(scrollLoop);
-          };
-          requestAnimationFrame(scrollLoop);
-        }
-      }
-    },
-    [reactFlowInstance],
-  );
-
-  const onDrop = useCallback(
-    (event: React.DragEvent) => {
-      event.preventDefault();
-      scrollStateRef.current = { dx: 0, dy: 0, isScrolling: false };
-
-      if (!reactFlowInstance) return;
-
-      const dataStr = event.dataTransfer.getData("application/reactflow");
-      if (!dataStr) return;
-
-      const { type, label } = JSON.parse(dataStr);
-      const position = reactFlowInstance.screenToFlowPosition({
-        x: event.clientX,
-        y: event.clientY,
-      });
-
-      onAddNode(type, label, position);
-    },
-    [reactFlowInstance, onAddNode],
-  );
-
-  const onGroupNodes = useCallback(() => {
-    const selectedNodes = nodes.filter(
-      (n) => n.selected && !n.parentId && n.type !== "cyberGroup",
-    );
-
-    if (selectedNodes.length < 1) return;
-
-    takeSnapshot();
-
-    // Calculate bounding box
-    let minX = Infinity;
-    let minY = Infinity;
-    let maxX = -Infinity;
-    let maxY = -Infinity;
-
-    selectedNodes.forEach((node) => {
-      minX = Math.min(minX, node.position.x);
-      minY = Math.min(minY, node.position.y);
-      // Estimate width/height if measured is not available (using typical cyberNode size)
-      const w = node.measured?.width ?? 250;
-      const h = node.measured?.height ?? 150;
-      maxX = Math.max(maxX, node.position.x + w);
-      maxY = Math.max(maxY, node.position.y + h);
-    });
-
-    const padding = 50;
-    const groupId = `group-${Date.now()}`;
-
-    const groupNode: Node = {
-      id: groupId,
-      type: "cyberGroup",
-      position: { x: minX - padding, y: minY - padding },
-      style: {
-        width: maxX - minX + padding * 2,
-        height: maxY - minY + padding * 2,
-      },
-      data: { label: "New Cluster" },
-      selected: true,
-    };
-
-    const updatedChildren = selectedNodes.map((node) => ({
-      ...node,
-      parentId: groupId,
-      expandParent: true, // Allow dragging child to expand group
-      extent: "parent" as const, // Keep child inside group
-      position: {
-        x: node.position.x - (minX - padding),
-        y: node.position.y - (minY - padding),
-      },
-      selected: false,
-    }));
-
-    // Remove original selected nodes instances and add the group + updated children
-    setNodes((nds) => {
-      const remainingNodes = nds.filter(
-        (n) => !selectedNodes.find((sn) => sn.id === n.id),
-      );
-      return [...remainingNodes, groupNode, ...updatedChildren];
-    });
-  }, [nodes, setNodes, takeSnapshot]);
-
-  const onUngroupNodes = useCallback(
-    (targetGroupId?: string) => {
-      const selectedGroups = targetGroupId
-        ? nodes.filter((n) => n.id === targetGroupId)
-        : nodes.filter((n) => n.selected && n.type === "cyberGroup");
-
-      if (selectedGroups.length === 0) return;
-
-      takeSnapshot();
-
-      const groupIds = selectedGroups.map((g) => g.id);
-
-      setNodes((nds) => {
-        const result = nds
-          .filter((n) => !groupIds.includes(n.id))
-          .map((n) => {
-            if (n.parentId && groupIds.includes(n.parentId)) {
-              const parent = nds.find((g) => g.id === n.parentId);
-              return {
-                ...n,
-                parentId: undefined,
-                position: {
-                  x: n.position.x + (parent?.position.x || 0),
-                  y: n.position.y + (parent?.position.y || 0),
-                },
-              };
-            }
-            return n;
-          });
-        return result;
-      });
-    },
-    [nodes, setNodes, takeSnapshot],
-  );
-
-  const focusNode = useCallback(
-    (nodeIdOrNode: string | Node) => {
-      if (!reactFlowInstance) return;
-      const node = typeof nodeIdOrNode === "string"
-        ? nodes.find((n) => n.id === nodeIdOrNode)
-        : nodeIdOrNode;
-      if (!node) return;
-
-      const x = node.position.x + (node.measured?.width || 200) / 2;
-      const y = node.position.y + (node.measured?.height || 100) / 2;
-      reactFlowInstance.setCenter(x, y, { zoom: 1.2, duration: 800 });
-    },
-    [nodes, reactFlowInstance],
-  );
-
-  const executeFlow = useCallback(
-    async (inputMessage?: string, isSilent: boolean = false) => {
-      if (isSilent && isSilentExecutionRunningRef.current) {
-        return null;
-      }
-
-      const runtimeBaseUrl =
-        (import.meta as { env?: Record<string, string | undefined> }).env
-          ?.VITE_RUNTIME_URL || "http://localhost:8787";
-
-      if (!isSilent) {
-        executionAbortRef.current?.abort();
-      }
-
-      const controller = new AbortController();
-      executionAbortRef.current = controller;
-      const isCurrentController = () =>
-        executionAbortRef.current === controller;
-      if (isSilent) {
-        isSilentExecutionRunningRef.current = true;
-      } else {
-        setRuntimeStatus("running");
-      }
-
-      const addLog = (text: string) => {
-        setPlaygroundMessages((prev) => [...prev, { role: "system", text }]);
-      };
-      const log = (msg: string) => {
-        if (!isSilent) addLog(msg);
-      };
-
-      let hadRuntimeError = false;
-
-      const applyEvent = (event: any) => {
-        const { type, message, nodeId, data, chunk } = event;
-        if (type === "log" || type === "error" || type === "nodeUpdate") {
-          setExecutionLogs((prev) => [
-            {
-              id: Math.random().toString(36).substr(2, 9),
-              time: new Date().toLocaleTimeString(),
-              type,
-              message:
-                message ||
-                (type === "nodeUpdate"
-                  ? `Node ${nodeId} status: ${data?.status}`
-                  : ""),
-              nodeId,
-            },
-            ...prev.slice(0, 99),
-          ]);
-        }
-        if (type === "llm_chunk" && chunk && !isSilent) {
-          setPlaygroundMessages((prev) => {
-            const lastMsg = prev[prev.length - 1];
-            if (lastMsg && lastMsg.role === "assistant") {
-              const updated = [...prev];
-              updated[updated.length - 1] = {
-                ...lastMsg,
-                text: lastMsg.text + chunk,
-              };
-              return updated;
-            }
-            return [...prev, { role: "assistant", text: chunk }];
-          });
-          return;
-        }
-        switch (type) {
-          case "log":
-            log(message);
-            break;
-          case "nodeUpdate":
-            if (!isSilent) {
-              setNodes((nds) =>
-                nds.map((n) =>
-                  n.id === nodeId ? { ...n, data: { ...n.data, ...data } } : n,
-                ),
-              );
-            }
-            break;
-          case "error":
-            hadRuntimeError = true;
-            if (!isSilent) {
-              setPlaygroundError(message);
-              if (nodeId) {
-                setNodes((nds) =>
-                  nds.map((n) =>
-                    n.id === nodeId
-                      ? {
-                          ...n,
-                          data: {
-                            ...n.data,
-                            status: "error",
-                            errorMessage: String(message || "Execution error"),
-                          },
-                        }
-                      : n,
-                  ),
-                );
-              }
-              log(`[Error] ${message}`);
-            }
-            break;
-        }
-      };
-
-      log(`[System] Dispatching flow to server runtime...`);
-      if (!isSilent) {
-        setPlaygroundError(null);
-        setExecutionLogs([]);
-        setIsLogsOpenExclusive(true);
-        setNodes((nds) =>
-          nds.map((n) => ({
-            ...n,
-            data: {
-              ...n.data,
-              status: "idle",
-              errorMessage: undefined,
-            },
-          })),
-        );
-      }
-
-      try {
-        const serverResponse = await fetch(
-          `${runtimeBaseUrl}/api/flow/execute/stream`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            signal: controller.signal,
-            body: JSON.stringify({
-              nodes,
-              edges,
-              inputMessage,
-              isSilent,
-              globalVariables,
-            }),
-          },
-        );
-
-        if (!serverResponse.ok || !serverResponse.body) {
-          const payload = await serverResponse.json().catch(() => ({}));
-          throw new Error(
-            payload?.error ||
-              `Server execution failed: ${serverResponse.status}`,
-          );
-        }
-
-        const reader = serverResponse.body.getReader();
-        const decoder = new TextDecoder();
-        let buffer = "";
-        let finalOutput: PlaygroundWorkerOutput | null = null;
-
-        while (true) {
-          const { value, done } = await reader.read();
-          if (done) break;
-          buffer += decoder.decode(value, { stream: true });
-
-          const lines = buffer.split("\n");
-          buffer = lines.pop() || "";
-
-          lines.forEach((line) => {
-            const raw = line.trim();
-            if (!raw) return;
-            let event: any;
-            try {
-              event = JSON.parse(raw);
-            } catch {
-              return;
-            }
-
-            if (event.type === "done") {
-              finalOutput = (event.output ??
-                null) as PlaygroundWorkerOutput | null;
-              return;
-            }
-
-            if (event.type === "ping") {
-              return;
-            }
-
-            if (event.type === "result") {
-              finalOutput = (event.output ??
-                null) as PlaygroundWorkerOutput | null;
-            }
-
-            applyEvent(event);
-          });
-        }
-
-        if (buffer.trim()) {
-          try {
-            const trailingEvent = JSON.parse(buffer.trim());
-            if (
-              trailingEvent.type === "done" ||
-              trailingEvent.type === "result"
-            ) {
-              finalOutput = (trailingEvent.output ??
-                null) as PlaygroundWorkerOutput | null;
-            } else {
-              applyEvent(trailingEvent);
-            }
-          } catch {}
-        }
-
-        if (!isSilent) {
-          if (!hadRuntimeError) {
-            log(`[System] Flow execution finished successfully.`);
-            if (isCurrentController()) {
-              setRuntimeStatus("success");
-            }
-          } else if (isCurrentController()) {
-            setRuntimeStatus("error");
-          }
-        }
-
-        return finalOutput;
-      } catch (serverErr) {
-        const message =
-          serverErr instanceof Error
-            ? serverErr.message
-            : "Server runtime unavailable.";
-
-        const isAbortError =
-          (serverErr instanceof DOMException &&
-            serverErr.name === "AbortError") ||
-          (serverErr instanceof Error && serverErr.name === "AbortError");
-
-        if (!isSilent) {
-          if (isAbortError) {
-            log(`[System] Flow execution was cancelled.`);
-            if (isCurrentController()) {
-              setRuntimeStatus('cancelled');
-            }
-          } else {
-            hadRuntimeError = true;
-            setPlaygroundError(message);
-            log(`[Error] ${message}`);
-            if (isCurrentController()) {
-              setRuntimeStatus('error');
-            }
-          }
-        }
-        return null;
-      } finally {
-        if (isCurrentController()) {
-          executionAbortRef.current = null;
-        }
-        if (isSilent) {
-          isSilentExecutionRunningRef.current = false;
-        }
-        // Reset any nodes still in a transient state (running/skipped) back to idle
-        // so the canvas is clean for the next execution.
-        if (!isSilent) {
-          setNodes((nds) =>
-            nds.map((n) => {
-              const s = n.data?.status;
-              if (s === 'running' || s === 'skipped') {
-                return { ...n, data: { ...n.data, status: 'idle' } };
-              }
-              return n;
-            }),
-          );
-        }
-      }
-    },
-    [nodes, edges, setNodes],
-  );
-
-  const appendAssistantOutput = useCallback(
-    (response: PlaygroundWorkerOutput) => {
-      if (typeof response === "string") {
-        setPlaygroundMessages((prev) => {
-          const lastMsg = prev[prev.length - 1];
-          if (lastMsg && lastMsg.role === "assistant" && lastMsg.text) {
-            return prev;
-          }
-          return [...prev, { role: "assistant", text: response }];
-        });
-        return;
-      }
-
-      const text = (response.text || "").trim();
-
-      setPlaygroundMessages((prev) => {
-        const lastMsg = prev[prev.length - 1];
-        if (lastMsg && lastMsg.role === "assistant" && lastMsg.text) {
-          return prev;
-        }
-        const next = [...prev];
-        if (text) {
-          next.push({ role: "assistant", text });
-        }
-        return next;
-      });
-    },
-    [],
-  );
-
-  const validateFlow = useCallback((): FlowValidationIssue[] => {
-    return validateFlowGraph(nodes, edges, { locale: validationLocale });
-  }, [nodes, edges, validationLocale]);
-
-  const onValidateFlow = useCallback((openDock?: boolean) => {
-    const issues = validateFlow();
-    setFlowIssues(issues);
-
-    const errors = issues.filter((issue) => issue.level === "error");
-      if (openDock && errors.length > 0) setActiveDockTab("validation");
-    const errorsByNode = new Map<string, FlowValidationIssue[]>();
-    issues
-      .filter((issue) => issue.level === "error" && issue.nodeId)
-      .forEach((issue) => {
-        const key = issue.nodeId as string;
-        const current = errorsByNode.get(key) || [];
-        current.push(issue);
-        errorsByNode.set(key, current);
-      });
-
-    setNodes((nds) => {
-      const next = nds.map((node) => {
-        const nodeErrors = errorsByNode.get(node.id) || [];
-        const currentError =
-          typeof (node.data as { errorMessage?: unknown }).errorMessage ===
-          "string"
-            ? ((node.data as { errorMessage?: string }).errorMessage as string)
-            : "";
-        const isValidationError = currentError.startsWith("[Validation]");
-
-        if (nodeErrors.length > 0) {
-          return {
-            ...node,
-            data: {
-              ...node.data,
-              status: "error",
-              errorMessage: `[Validation] ${nodeErrors[0].message}`,
-            },
-          };
-        }
-
-        if (isValidationError) {
-          return {
-            ...node,
-            data: {
-              ...node.data,
-              status: "idle",
-              errorMessage: undefined,
-            },
-          };
-        }
-
-        return node;
-      });
-
-      const changed = next.some((n, i) => n !== nds[i]);
-      return changed ? next : nds;
-    });
-
-    if (errors.length > 0) {
-      setPlaygroundError(
-        `Flow validation failed with ${errors.length} error(s).`,
-      );
-    } else {
-      setPlaygroundError(null);
-    }
-
-    return errors.length === 0;
-  }, [validateFlow, setNodes]);
-
-  const dockTabs: EditorDockTab[] = useMemo(
-    () => [
-      { id: "playground", label: "Playground", icon: MessageSquare },
-      { id: "preview", label: "Result", icon: Eye },
-      { id: "execution", label: "Exec", icon: Info },
-      {
-        id: "config",
-        label: "Config",
-        icon: Settings2,
-        badge: currentConfigNode ? "Node" : undefined,
-      },
-      {
-        id: "logs",
-        label: "Logs",
-        icon: Terminal,
-        badge: executionLogs.length > 0 ? String(Math.min(executionLogs.length, 99)) : undefined,
-      },
-      {
-        id: "validation",
-        label: "Check",
-        icon: AlertTriangle,
-        badge: flowIssues.length > 0 ? String(Math.min(flowIssues.length, 99)) : undefined,
-      },
-      { id: "flows", label: "Flows", icon: FolderOpen },
-      { id: "variables", label: "Vars", icon: DollarSign },
-      { id: "history", label: "History", icon: History },
-      { id: "shortcuts", label: "Keys", icon: Keyboard },
-    ],
-    [executionLogs.length, flowIssues.length, currentConfigNode],
-  );
-
-  // Debounced Auto-validation
-  useEffect(() => {
-    if (nodes.length === 0) return;
-    const timer = setTimeout(() => {
-      onValidateFlow(false);
-    }, 1000);
-    return () => clearTimeout(timer);
-  }, [nodes, edges, onValidateFlow]);
-
-  const focusIssueNode = useCallback(
-    (nodeId?: string, fieldName?: string) => {
-      if (!nodeId) return;
-      const node = nodes.find((n) => n.id === nodeId);
-      if (!node) return;
-
-      const openConfigToken = Date.now() + Math.random();
-      const focusFieldToken = Date.now() + Math.random();
-
-      setNodes((nds) =>
-        nds.map((n) => ({
-          ...n,
-          selected: n.id === nodeId,
-          data:
-            n.id === nodeId
-              ? {
-                  ...n.data,
-                  __openConfigToken: openConfigToken,
-                  __focusFieldName: fieldName,
-                  __focusFieldToken: focusFieldToken,
-                }
-              : n.data,
-        })),
-      );
-
-      reactFlowInstance?.setCenter(
-        node.position.x + 120,
-        node.position.y + 60,
-        {
-          zoom: 1.1,
-          duration: 500,
-        },
-      );
-    },
-    [nodes, setNodes, reactFlowInstance],
-  );
-
-  const onSendMessage = useCallback(
-    async (msg: string) => {
-      setPlaygroundMessages((prev) => [...prev, { role: "user", text: msg }]);
-      setPlaygroundMessages((prev) => [...prev, { role: "assistant", text: "" }]);
-      setIsPlaygroundTyping(true);
-
-      const response = await executeFlow(msg);
-
-      setIsPlaygroundTyping(false);
-      const responseText = typeof response === 'string' ? response : response?.text;
-      if (!responseText?.trim()) {
-        setPlaygroundMessages((prev) => {
-          const lastMsg = prev[prev.length - 1];
-          if (lastMsg && lastMsg.role === "assistant" && !lastMsg.text) {
-            return prev.slice(0, -1);
-          }
-          return prev;
-        });
-      }
-    },
-    [executeFlow],
-  );
-
-  const onRunAll = useCallback(async () => {
-    setIsPlaygroundOpen(true);
-    setPlaygroundMessages((prev) => [
-      ...prev,
-      { role: "user", text: "[System: Deploy Flow Triggered]" },
-    ]);
-
-    const isValid = onValidateFlow(false);
-    if (!isValid) {
-      setActiveDockTab("validation");
-      setPlaygroundError(
-        "Deploy aborted. Fix validation errors shown on flow and run again.",
-      );
-      return;
-    }
-
-    setIsPlaygroundTyping(true);
-
-    const response = await executeFlow();
-
-    setIsPlaygroundTyping(false);
-    if (response) {
-      appendAssistantOutput(response);
-    }
-  }, [executeFlow, appendAssistantOutput, onValidateFlow]);
-
-  const onClearPlaygroundMessages = useCallback(() => {
-    setPlaygroundMessages(INITIAL_PLAYGROUND_MESSAGES);
-    setPlaygroundError(null);
-  }, []);
-
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (isLiveMode) {
-      interval = setInterval(() => {
-        executeFlow("auto-tick", true);
-      }, 2000);
-    }
-    return () => clearInterval(interval);
-  }, [isLiveMode, executeFlow]);
-
-  const onSave = useCallback(
-    async (name: string, versionLabel?: string, isAutoSave: boolean = false) => {
-      if (reactFlowInstance) {
-        if (!isAutoSave) setIsSaving(true);
-        const flow = reactFlowInstance.toObject();
-        const flowId = currentFlowId || `flow-${Date.now()}`;
-        const newFlow: SavedFlow = {
-          id: flowId,
-          name: name || currentFlowName,
-          data: {
-            nodes: flow.nodes as any,
-            edges: flow.edges as any,
-            viewport: flow.viewport,
-            globalVariables,
-          },
-          updatedAt: Date.now(),
-        };
-
-        try {
-          const response = await apiService.post(`/api/flows`, {
-            ...newFlow,
-            versionLabel,
-            isAutoSave
-          });
-          if (response.ok) {
-            setCurrentFlowId(newFlow.id);
-            setCurrentFlowName(newFlow.name);
-            fetchFlows();
-
-            // Reload flow to get updated versions
-            const updatedResponse = await apiService.get(`/api/flows/${newFlow.id}/versions`);
-            if (updatedResponse.ok) {
-              setFlowVersions(updatedResponse.data || []);
-            }
-
-            if (!currentFlowId) {
-              navigate(`/flow/${newFlow.id}`);
-            }
-            
-            // Success: Reset auto-save baseline to prevent redundant saves
-            setLastAutoSave(Date.now());
-            return newFlow.id;
-          }
-        } catch (err) {
-          console.error("Failed to save flow", err);
-          // Fallback to localStorage
-          const saved = localStorage.getItem("cyber-flows");
-          let flows: SavedFlow[] = saved ? JSON.parse(saved) : [];
-          const existingIndex = flows.findIndex((f) => f.id === newFlow.id);
-          if (existingIndex >= 0) {
-            flows[existingIndex] = newFlow;
-          } else {
-            flows.push(newFlow);
-          }
-          localStorage.setItem("cyber-flows", JSON.stringify(flows));
-          setCurrentFlowId(newFlow.id);
-          setCurrentFlowName(newFlow.name);
-          if (!currentFlowId) {
-            navigate(`/flow/${newFlow.id}`);
-          }
-          return newFlow.id;
-        } finally {
-          setIsSaving(false);
-        }
-      }
-      return "";
-    },
-    [
-      reactFlowInstance,
-      currentFlowId,
-      currentFlowName,
-      globalVariables,
-      API_BASE,
-      fetchFlows,
-      navigate,
-    ],
-  );
-
-  // Server-side Auto-save (debounced)
-  useEffect(() => {
-    if (!reactFlowInstance || !currentFlowId || currentFlowId === "new") return;
-
-    const timeout = setTimeout(() => {
-      setIsAutoSaving(true);
-      void onSave(currentFlowName, undefined, true)
-        .then(() => {
-          setIsAutoSaving(false);
-          setLastAutoSave(Date.now());
-        })
-        .catch((err) => {
-          console.error("Auto-save failed:", err);
-          setIsAutoSaving(false);
-        });
-    }, 5000);
-
-    return () => clearTimeout(timeout);
-  }, [nodes, edges, globalVariables, reactFlowInstance, currentFlowId, onSave, currentFlowName]);
-
-  const onLoadVersion = useCallback(
-    async (version: FlowVersion) => {
-      if (!currentFlowId) {
-        return;
-      }
-
-      setIsRestoringVersion(true);
-      try {
-        const response = await fetchWithAuth(`/api/flows/${currentFlowId}/versions/${version.id}/restore`, {
-          method: 'POST',
-        });
-
-        if (!response.ok || !response.flow) {
-          throw new Error(response.error || 'Failed to restore version');
-        }
-
-        const restoredFlow = response.flow;
-        if (restoredFlow.data) {
-          setNodes((restoredFlow.data.nodes || []).map(normalizeModelNode));
-          setEdges(restoredFlow.data.edges || []);
-          setGlobalVariables(restoredFlow.data.globalVariables || []);
-          setFlowVersions(restoredFlow.versions || []);
-          setCurrentFlowName(restoredFlow.name || currentFlowName);
-          // Ensure viewport fits to the restored flow after render
-          shouldFitAfterLoadRef.current = true;
-          setFitRequestCount((c) => c + 1);
-        }
-
-        setIsVersionHistoryOpen(false);
-      } catch (err) {
-        console.error('Failed to restore version', err);
-      } finally {
-        setIsRestoringVersion(false);
-      }
-    },
-    [currentFlowId, currentFlowName, setNodes, setEdges, setGlobalVariables],
-  );
-
-  const onDeleteFlow = useCallback(
-    async (flowId: string) => {
-      try {
-        const response = await fetchWithAuth(`/api/flows/${flowId}`, {
-          method: "DELETE",
-        });
-        if (response.ok) {
-          fetchFlows();
-          if (currentFlowId === flowId) {
-            navigate("/flow/new");
-          }
-        }
-      } catch (err) {
-        console.error("Failed to delete flow", err);
-      }
-    },
-    [currentFlowId, navigate, fetchFlows],
-  );
-
-  useEffect(() => {
-    if (!wasPlaygroundOpenRef.current && isPlaygroundOpen) {
-      onSave(currentFlowName);
-    }
-    wasPlaygroundOpenRef.current = isPlaygroundOpen;
-  }, [isPlaygroundOpen, onSave, currentFlowName]);
-
-  const onCopy = useCallback(() => {
-    const selectedNodes = nodes.filter((n) => n.selected);
-    if (selectedNodes.length > 0) {
-      setCopiedNodes(selectedNodes);
-      const selectedNodeIds = new Set(selectedNodes.map((n) => n.id));
-      const selectedEdges = edges.filter(
-        (edge) =>
-          selectedNodeIds.has(edge.source) && selectedNodeIds.has(edge.target),
-      );
-      setCopiedEdges(selectedEdges);
-    }
-  }, [nodes, edges]);
-
-  const onPaste = useCallback(
-    (targetPos?: { x: number; y: number }) => {
-      if (copiedNodes.length > 0) {
-        takeSnapshot();
-
-        const idMap = new Map<string, string>();
-
-        // Calculate offset if targetPos is provided
-        let offset = { x: 50, y: 50 };
-        if (targetPos) {
-          // Find the bounding box center of copied nodes to offset correctly
-          const minX = Math.min(...copiedNodes.map((n) => n.position.x));
-          const minY = Math.min(...copiedNodes.map((n) => n.position.y));
-          offset = { x: targetPos.x - minX, y: targetPos.y - minY };
-        }
-
-        const newNodes = copiedNodes.map((node) => {
-          const newId = `${node.type}-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
-          idMap.set(node.id, newId);
-          return {
-            ...node,
-            id: newId,
-            position: targetPos
-              ? { x: node.position.x + offset.x, y: node.position.y + offset.y }
-              : { x: node.position.x + 50, y: node.position.y + 50 },
-            selected: true,
-          };
-        });
-
-        const newEdges = copiedEdges.map((edge) => ({
-          ...edge,
-          id: `e-${idMap.get(edge.source)}-${idMap.get(edge.target)}-${Date.now()}`,
-          source: idMap.get(edge.source)!,
-          target: idMap.get(edge.target)!,
-          selected: false,
-        }));
-
-        setNodes((nds) =>
-          nds.map((n) => ({ ...n, selected: false })).concat(newNodes),
-        );
-        setEdges((eds) => eds.concat(newEdges));
-      }
-    },
-    [copiedNodes, copiedEdges, setNodes, setEdges, takeSnapshot],
-  );
-
-  const onDuplicate = useCallback(() => {
-    const selectedNodes = nodes.filter((n) => n.selected);
-    if (selectedNodes.length > 0) {
-      takeSnapshot();
-      const selectedNodeIds = new Set(selectedNodes.map((n) => n.id));
-      const selectedEdges = edges.filter(
-        (edge) =>
-          selectedNodeIds.has(edge.source) && selectedNodeIds.has(edge.target),
-      );
-
-      const idMap = new Map<string, string>();
-      const newNodes = selectedNodes.map((node) => {
-        const newId = `${node.type}-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
-        idMap.set(node.id, newId);
-        return {
-          ...node,
-          id: newId,
-          position: { x: node.position.x + 30, y: node.position.y + 30 },
-          selected: true,
-        };
-      });
-
-      const newEdges = selectedEdges.map((edge) => ({
-        ...edge,
-        id: `e-${idMap.get(edge.source)}-${idMap.get(edge.target)}-${Date.now()}`,
-        source: idMap.get(edge.source)!,
-        target: idMap.get(edge.target)!,
-        selected: false,
-      }));
-
-      setNodes((nds) =>
-        nds.map((n) => ({ ...n, selected: false })).concat(newNodes),
-      );
-      setEdges((eds) => eds.concat(newEdges));
-    }
-  }, [nodes, edges, setNodes, setEdges, takeSnapshot]);
-
-  const onExport = useCallback(() => {
-    if (reactFlowInstance) {
-      const flow = reactFlowInstance.toObject();
-      const dataStr =
-        "data:text/json;charset=utf-8," +
-        encodeURIComponent(JSON.stringify(flow, null, 2));
-      const downloadAnchorNode = document.createElement("a");
-      downloadAnchorNode.setAttribute("href", dataStr);
-      downloadAnchorNode.setAttribute(
-        "download",
-        `cyber-flow-${Date.now()}.json`,
-      );
-      document.body.appendChild(downloadAnchorNode);
-      downloadAnchorNode.click();
-      downloadAnchorNode.remove();
-    }
-  }, [reactFlowInstance]);
-
-  const onImport = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      const file = event.target.files?.[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          try {
-            const flow = JSON.parse(e.target?.result as string);
-            if (flow) {
-              takeSnapshot();
-              setNodes((flow.nodes || []).map(normalizeModelNode));
-              setEdges(flow.edges || []);
-                // After importing a flow file, request a fitView
-                shouldFitAfterLoadRef.current = true;
-                setFitRequestCount((c) => c + 1);
-            }
-          } catch (err) {
-            console.error("Failed to parse JSON file", err);
-            alert("Invalid flow file.");
-          }
-        };
-        reader.readAsText(file);
-      }
-      // Reset input
-      event.target.value = "";
-    },
-    [setNodes, setEdges, takeSnapshot],
-  );
-
-  const onClear = useCallback(() => {
-    if (window.confirm("Are you sure you want to clear the entire canvas? This action cannot be undone.")) {
-      takeSnapshot();
-      setNodes([]);
-      setEdges([]);
-      setCurrentFlowId(null);
-      setCurrentFlowName("Untitled Flow");
-    }
-  }, [setNodes, setEdges, takeSnapshot]);
-
-
-  const onSelectAll = useCallback(() => {
-    setNodes((nds) => nds.map((n) => ({ ...n, selected: true })));
-    setEdges((eds) => eds.map((e) => ({ ...e, selected: true })));
-  }, [setNodes, setEdges]);
-
-  const { runLayout, isLayouting } = useGraphLayout({
-    nodes,
-    edges,
-    setNodes,
-    setEdges,
-    reactFlowInstance,
-  });
-
-  const onLayout = useCallback(
-    (mode: LayoutMode = "LR") => {
-      takeSnapshot();
-      void runLayout(mode).catch((error) => {
-        console.error("Layout failed", error);
-      });
-    },
-    [runLayout, takeSnapshot],
-  );
-
-  // Wrapper for FlowHeader which expects (type: string) => void
-  const onLayoutHandler = useCallback(
-    (type: string) => {
-      onLayout(type as LayoutMode);
-    },
-    [onLayout],
-  );
-
-  const onDownloadImage = useCallback(() => {
-    const reactFlowElement = document.querySelector(
-      ".react-flow",
-    ) as HTMLElement;
-    if (reactFlowElement) {
-      toPng(reactFlowElement, {
-        backgroundColor: "#0a0a0a",
-        filter: (node) => {
-          // Exclude minimap and controls from the image
-          if (
-            node?.classList?.contains("react-flow__minimap") ||
-            node?.classList?.contains("react-flow__controls") ||
-            node?.classList?.contains("react-flow__panel")
-          ) {
-            return false;
-          }
-          return true;
-        },
-      })
-        .then((dataUrl) => {
-          const a = document.createElement("a");
-          a.setAttribute("download", `cyber-flow-${Date.now()}.png`);
-          a.setAttribute("href", dataUrl);
-          a.click();
-        })
-        .catch((err) => {
-          console.error("Failed to download image", err);
-          alert("Failed to download image.");
-        });
-    }
-  }, []);
-
-  const commandActions = useMemo<CommandAction[]>(
-    () => {
-      const nodeActions: CommandAction[] = Object.keys(nodeRegistry)
-        .sort((left, right) => prettifyLabel(left).localeCompare(prettifyLabel(right)))
-        .map((type) => {
-          const label = prettifyLabel(type);
-          return {
-            id: `add-node-${type}`,
-            label: `Add ${label}`,
-            group: "Nodes",
-            shortcut: "-",
-            keywords: `add node create ${type} ${label.toLowerCase()}`,
-            run: () => {
-              onAddNode(type, label, pendingNodeInsertPosition ?? undefined);
-              setPendingNodeInsertPosition(null);
-            },
-          };
-        });
-
-      return [
-      {
-        id: "save",
-        label: "Save Flow",
-        group: "Flow",
-        shortcut: "Ctrl/Cmd+S",
-        keywords: "save flow persist",
-        run: () => onSave(currentFlowName),
-      },
-      {
-        id: "deploy",
-        label: "Deploy Flow",
-        group: "Flow",
-        shortcut: "Ctrl/Cmd+Enter",
-        keywords: "deploy run execute",
-        run: () => void onRunAll(),
-      },
-      {
-        id: "validate",
-        label: "Validate Flow",
-        group: "Flow",
-        shortcut: "Ctrl/Cmd+Shift+K",
-        keywords: "validate lint check",
-        run: () => onValidateFlow(true),
-      },
-      {
-        id: "playground",
-        label: "Open Playground",
-        group: "Flow",
-        shortcut: "-",
-        keywords: "playground terminal chat",
-        run: () => setIsPlaygroundOpen(true),
-      },
-      {
-        id: "canvas-search",
-        label: "Find in Canvas",
-        group: "Flow",
-        shortcut: "Ctrl/Cmd+F",
-        keywords: "find search canvas node",
-        run: () => setIsCanvasSearchOpen(true),
-      },
-      {
-        id: "smart-layout",
-        label: "Smart Layout",
-        group: "Layout",
-        shortcut: "Ctrl/Cmd+Shift+L",
-        keywords: "layout smart auto",
-        run: () => onLayout("SMART"),
-      },
-
-      {
-        id: "layout-layered",
-        label: "Layered Layout",
-        group: "Layout",
-        shortcut: "-",
-        keywords: "layout layered dagre elk",
-        run: () => onLayout("LAYERED"),
-      },
-      {
-        id: "layout-force",
-        label: "Force-directed Layout",
-        group: "Layout",
-        shortcut: "-",
-        keywords: "layout force elk spring",
-        run: () => onLayout("FORCE"),
-      },
-      {
-        id: "layout-radial",
-        label: "Radial Layout",
-        group: "Layout",
-        shortcut: "-",
-        keywords: "layout radial elk",
-        run: () => onLayout("RADIAL"),
-      },
-      {
-        id: "layout-orthogonal",
-        label: "Orthogonal / Box Layout",
-        group: "Layout",
-        shortcut: "-",
-        keywords: "layout orthogonal box elk",
-        run: () => onLayout("ORTHOGONAL"),
-      },
-      {
-        id: "layout-tree",
-        label: "Tree Layout",
-        group: "Layout",
-        shortcut: "-",
-        keywords: "layout tree hierarchical elk",
-        run: () => onLayout("TREE"),
-      },
-      {
-        id: "layout-dagre-lr",
-        label: "Dagre: Left → Right",
-        group: "Layout",
-        shortcut: "-",
-        keywords: "layout dagre lr",
-        run: () => onLayout("DAGRE_LR"),
-      },
-      {
-        id: "layout-dagre-tb",
-        label: "Dagre: Top → Bottom",
-        group: "Layout",
-        shortcut: "-",
-        keywords: "layout dagre tb",
-        run: () => onLayout("DAGRE_TB"),
-      },
-      {
-        id: "layout-dagre-rl",
-        label: "Dagre: Right → Left",
-        group: "Layout",
-        shortcut: "-",
-        keywords: "layout dagre rl",
-        run: () => onLayout("DAGRE_RL"),
-      },
-      {
-        id: "layout-dagre-bt",
-        label: "Dagre: Bottom → Top",
-        group: "Layout",
-        shortcut: "-",
-        keywords: "layout dagre bt",
-        run: () => onLayout("DAGRE_BT"),
-      },
-      {
-        id: "layout-lr",
-        label: "Layout Left to Right",
-        group: "Layout",
-        shortcut: "-",
-        keywords: "layout left right lr",
-        run: () => onLayout("LR"),
-      },
-      {
-        id: "layout-tb",
-        label: "Layout Top to Bottom",
-        group: "Layout",
-        shortcut: "-",
-        keywords: "layout top bottom tb",
-        run: () => onLayout("TB"),
-      },
-      {
-        id: "undo",
-        label: "Undo",
-        group: "Edit",
-        shortcut: "Ctrl/Cmd+Z",
-        keywords: "undo",
-        run: () => undo(),
-      },
-      {
-        id: "redo",
-        label: "Redo",
-        group: "Edit",
-        shortcut: "Ctrl/Cmd+Y",
-        keywords: "redo",
-        run: () => redo(),
-      },
-      {
-        id: "copy",
-        label: "Copy Selection",
-        group: "Edit",
-        shortcut: "Ctrl/Cmd+C",
-        keywords: "copy duplicate",
-        run: () => onCopy(),
-      },
-      {
-        id: "paste",
-        label: "Paste",
-        group: "Edit",
-        shortcut: "Ctrl/Cmd+V",
-        keywords: "paste duplicate",
-        run: () => onPaste(),
-      },
-      {
-        id: "duplicate",
-        label: "Duplicate Selection",
-        group: "Edit",
-        shortcut: "Ctrl/Cmd+D",
-        keywords: "duplicate copy clone",
-        run: () => onDuplicate(),
-      },
-      {
-        id: "toggle-minimap",
-        label: "Toggle Minimap",
-        group: "View",
-        shortcut: "Ctrl/Cmd+Shift+M",
-        keywords: "minimap view",
-        run: () => setShowMinimap((prev) => !prev),
-      },
-      {
-        id: "fit-view",
-        label: "Fit View",
-        group: "View",
-        shortcut: "Ctrl/Cmd+Shift+F",
-        keywords: "fit view zoom",
-        run: () => reactFlowInstance?.fitView({ duration: 800 }),
-      },
-      {
-        id: "toggle-live",
-        label: "Toggle Live Mode",
-        group: "Flow",
-        shortcut: "-",
-        keywords: "live mode",
-        run: () => setIsLiveMode((prev) => !prev),
-      },
-      {
-        id: "group",
-        label: "Group Selected Nodes",
-        group: "Canvas",
-        shortcut: "Ctrl/Cmd+Shift+G",
-        keywords: "group cluster",
-        run: () => onGroupNodes(),
-      },
-      {
-        id: "ungroup",
-        label: "Ungroup Selected",
-        group: "Canvas",
-        shortcut: "Ctrl/Cmd+Shift+U",
-        keywords: "ungroup release",
-        run: () => onUngroupNodes(),
-      },
-      {
-        id: "export-json",
-        label: "Export JSON",
-        group: "I/O",
-        shortcut: "Ctrl/Cmd+Shift+E",
-        keywords: "export json",
-        run: () => onExport(),
-      },
-      {
-        id: "import-json",
-        label: "Import JSON",
-        group: "I/O",
-        shortcut: "Ctrl/Cmd+Shift+I",
-        keywords: "import json",
-        run: () => importInputRef.current?.click(),
-      },
-      {
-        id: "download-image",
-        label: "Download Image",
-        group: "I/O",
-        shortcut: "-",
-        keywords: "download image png",
-        run: () => onDownloadImage(),
-      },
-      {
-        id: "clear-canvas",
-        label: "Clear Canvas",
-        group: "Canvas",
-        shortcut: "-",
-        keywords: "clear remove all",
-        run: () => onClear(),
-      },
-      {
-        id: "select-all",
-        label: "Select All Nodes",
-        group: "Canvas",
-        shortcut: "Ctrl/Cmd+A",
-        keywords: "select all nodes edges",
-        run: () => onSelectAll(),
-      },
-      {
-        id: "toggle-shortcuts",
-        label: "Toggle Shortcut Help",
-        group: "Help",
-        shortcut: "Ctrl/Cmd+Shift+/",
-        keywords: "shortcuts help",
-        run: () => setShowShortcutHelpExclusive((prev) => !prev),
-      },
-      ...nodeActions,
-    ];
-    },
-    [
-      currentFlowName,
-      onSave,
-      onRunAll,
-      onValidateFlow,
-      onLayout,
-      undo,
-      redo,
-      onCopy,
-      onPaste,
-      reactFlowInstance,
-      onGroupNodes,
-      onUngroupNodes,
-      onExport,
-      onDownloadImage,
-      onClear,
-      onAddNode,
-      pendingNodeInsertPosition,
-    ],
-  );
-
-  const filteredCommands = useMemo(() => {
-    const query = commandQuery.trim().toLowerCase();
-    if (!query) return commandActions;
-    return commandActions.filter((command) => {
-      const haystack =
-        `${command.label} ${command.group} ${command.keywords}`.toLowerCase();
-      return haystack.includes(query);
-    });
-  }, [commandActions, commandQuery]);
-
-  useEffect(() => {
-    setCommandIndex((idx) => {
-      if (filteredCommands.length === 0) return 0;
-      return Math.min(idx, filteredCommands.length - 1);
-    });
-  }, [filteredCommands]);
-
-  useEffect(() => {
-    if (!showCommandPalette) return;
-    setCommandIndex(0);
-    setTimeout(() => {
-      commandInputRef.current?.focus();
-      if (!commandQuery) {
-        commandInputRef.current?.select();
-      }
-    }, 0);
-  }, [showCommandPalette, commandQuery]);
-
-  useEffect(() => {
-    if (!showCommandPalette) {
-      setPendingNodeInsertPosition(null);
-    }
-  }, [showCommandPalette]);
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      const isMod = e.ctrlKey || e.metaKey;
-      const key = typeof e.key === 'string' ? e.key.toLowerCase() : '';
-
-      if (!key) {
-        return;
-      }
-
-      if (showCommandPalette) {
-        if (key === "escape") {
-          e.preventDefault();
-          setShowCommandPalette(false);
-          return;
-        }
-        if (key === "arrowdown") {
-          e.preventDefault();
-          setCommandIndex((prev) =>
-            filteredCommands.length === 0
-              ? 0
-              : (prev + 1) % filteredCommands.length,
-          );
-          return;
-        }
-        if (key === "arrowup") {
-          e.preventDefault();
-          setCommandIndex((prev) =>
-            filteredCommands.length === 0
-              ? 0
-              : (prev - 1 + filteredCommands.length) % filteredCommands.length,
-          );
-          return;
-        }
-        if (key === "enter") {
-          e.preventDefault();
-          const command = filteredCommands[commandIndex];
-          if (command) {
-            command.run();
-            setShowCommandPalette(false);
-          }
-          return;
-        }
-      }
-
-      if (isMod && !e.shiftKey && key === "k") {
-        e.preventDefault();
-        setShowCommandPalette((prev) => !prev);
-        return;
-      }
-
-      if (isMod && !e.shiftKey && key === "f") {
-        e.preventDefault();
-        setIsCanvasSearchOpen((prev) => !prev);
-        return;
-      }
-
-      if (
-        e.target instanceof HTMLInputElement ||
-        e.target instanceof HTMLTextAreaElement ||
-        e.target instanceof HTMLSelectElement ||
-        (e.target instanceof HTMLElement && e.target.isContentEditable)
-      ) {
-        return;
-      }
-
-      if (key === "escape") {
-        setIsToolsMenuOpen(false);
-        setShowShortcutHelpExclusive(false);
-        setShowCommandPalette(false);
-        return;
-      }
-
-      if (isMod && key === "z") {
-        e.preventDefault();
-        if (e.shiftKey) {
-          redo();
-        } else {
-          undo();
-        }
-      } else if (isMod && key === "y") {
-        e.preventDefault();
-        redo();
-      } else if (isMod && key === "c") {
-        onCopy();
-      } else if (isMod && key === "v") {
-        onPaste();
-      } else if (isMod && key === "a") {
-        e.preventDefault();
-        onSelectAll();
-      } else if (isMod && key === "d") {
-        e.preventDefault();
-        onDuplicate();
-      } else if (key === "delete" || key === "backspace") {
-        const selectedNodes = nodes.filter((n) => n.selected);
-        const selectedEdges = edges.filter((e) => e.selected);
-        if (selectedNodes.length > 0 || selectedEdges.length > 0) {
-          takeSnapshot();
-          deleteElements({ nodes: selectedNodes, edges: selectedEdges });
-        }
-      } else if (isMod && key === "s") {
-        e.preventDefault();
-        onSave(currentFlowName);
-      } else if (isMod && e.shiftKey && key === "k") {
-          e.preventDefault();
-          onValidateFlow(true);
-        } else if (isMod && key === "enter") {
-        e.preventDefault();
-        onRunAll();
-      } else if (isMod && e.shiftKey && key === "l") {
-        e.preventDefault();
-        onLayout("SMART");
-      } else if (isMod && e.shiftKey && key === "g") {
-        e.preventDefault();
-        onGroupNodes();
-      } else if (isMod && e.shiftKey && key === "u") {
-        e.preventDefault();
-        onUngroupNodes();
-      } else if (isMod && e.shiftKey && key === "m") {
-        e.preventDefault();
-        setShowMinimap((prev) => !prev);
-      } else if (isMod && e.shiftKey && key === "f") {
-        e.preventDefault();
-        reactFlowInstance?.fitView({ duration: 800 });
-      } else if (isMod && e.shiftKey && key === "e") {
-        e.preventDefault();
-        onExport();
-      } else if (isMod && e.shiftKey && key === "i") {
-        e.preventDefault();
-        importInputRef.current?.click();
-      } else if (isMod && e.shiftKey && key === "/") {
-        e.preventDefault();
-        setShowShortcutHelpExclusive((prev) => !prev);
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [
-    showCommandPalette,
-    filteredCommands,
-    commandIndex,
-    undo,
-    redo,
-    onCopy,
-    onPaste,
-    onSave,
-    currentFlowName,
-    onValidateFlow,
-    onRunAll,
-    onLayout,
-    onGroupNodes,
-    onUngroupNodes,
-    reactFlowInstance,
-    onExport,
-  ]);
-
-  const renderedEdges = useMemo(() => {
-    return edges.map((edge) => {
-      const sourceNode = nodes.find((n) => n.id === edge.source);
-      const isAnimated =
-        sourceNode?.data?.status === "running" || edge.animated;
-      return {
-        ...edge,
-        animated: isAnimated,
-      };
-    });
-  }, [edges, nodes]);
+  const editor = useFlowEditor();
 
   const dockContent = useMemo(() => {
-    if (!activeDockTab) return null;
-    switch (String(activeDockTab)) {
+    if (!editor.activeDockTab) return null;
+    switch (String(editor.activeDockTab)) {
       case "config":
         return (
-          <React.Suspense fallback={<PanelSkeleton />}>
-            <LazyNodeConfigPanel
-              isOpen={isNodeConfigOpen}
-              onClose={() => { setActiveDockTab(null); setConfigNodeId(null); setHighlightedConfigField(null); }}
-              data={currentConfigNode?.data as CustomNodeType['data'] | null}
-              updateNodeData={updateNodeDataById}
-              handleParamChange={handleConfigParamChange}
-              globalVariables={globalVariables}
-            />
-          </React.Suspense>
+          <CyberErrorBoundary name="Config Panel Module">
+            <React.Suspense fallback={<PanelSkeleton />}>
+              <LazyNodeConfigPanel
+                isOpen={editor.isNodeConfigOpen}
+                onClose={() => {
+                  editor.setActiveDockTab(null);
+                  editor.setConfigNodeId(null);
+                  editor.setHighlightedConfigField(null);
+                }}
+                data={editor.currentConfigNode?.data as CustomNodeType["data"] | null}
+                updateNodeData={editor.updateNodeDataById}
+                handleParamChange={editor.handleConfigParamChange}
+                globalVariables={editor.globalVariables}
+              />
+            </React.Suspense>
+          </CyberErrorBoundary>
         );
       case "playground":
         return (
-          <React.Suspense fallback={<PanelSkeleton />}>
-            <LazyPlayground
-              isOpen={isPlaygroundOpen}
-              onClose={() => setIsPlaygroundOpen(false)}
-              messages={playgroundMessages}
-              isTyping={isPlaygroundTyping}
-              runtimeStatus={runtimeStatus}
-              error={playgroundError}
-              onErrorDismiss={() => setPlaygroundError(null)}
-              onSendMessage={onSendMessage}
-              onClearMessages={onClearPlaygroundMessages}
-            />
-          </React.Suspense>
+          <CyberErrorBoundary name="Playground Module">
+            <React.Suspense fallback={<PanelSkeleton />}>
+              <LazyPlayground
+                isOpen={editor.isPlaygroundOpen}
+                onClose={() => editor.setIsPlaygroundOpen(false)}
+                messages={editor.playgroundMessages}
+                isTyping={editor.isPlaygroundTyping}
+                runtimeStatus={editor.runtimeStatus}
+                error={editor.playgroundError}
+                onErrorDismiss={() => editor.setPlaygroundError(null)}
+                onSendMessage={editor.onSendMessage}
+                onClearMessages={editor.onClearPlaygroundMessages}
+              />
+            </React.Suspense>
+          </CyberErrorBoundary>
         );
       case "preview":
         return (
-          <React.Suspense fallback={<PanelSkeleton />}>
-            <LazyGlobalPreview />
-          </React.Suspense>
+          <CyberErrorBoundary name="Result Preview Module">
+            <React.Suspense fallback={<PanelSkeleton />}>
+              <LazyGlobalPreview />
+            </React.Suspense>
+          </CyberErrorBoundary>
         );
       case "execution":
         return (
-          <React.Suspense fallback={<PanelSkeleton />}>
-            <LazyExecutionPanel />
-          </React.Suspense>
+          <CyberErrorBoundary name="Execution Details Module">
+            <React.Suspense fallback={<PanelSkeleton />}>
+              <LazyExecutionPanel />
+            </React.Suspense>
+          </CyberErrorBoundary>
         );
       case "logs":
         return (
-          <React.Suspense fallback={<PanelSkeleton />}>
-            <LazyLogViewer
-              isLogsOpen={isLogsOpen}
-              setIsLogsOpen={setIsLogsOpenExclusive}
-              executionLogs={executionLogs}
-              onClear={() => setExecutionLogs([])}
-            />
-          </React.Suspense>
+          <CyberErrorBoundary name="Execution Logs Module">
+            <React.Suspense fallback={<PanelSkeleton />}>
+              <LazyLogViewer
+                isLogsOpen={editor.isLogsOpen}
+                setIsLogsOpen={editor.setIsLogsOpenExclusive}
+                executionLogs={editor.executionLogs}
+                onClear={() => editor.setExecutionLogs([])}
+              />
+            </React.Suspense>
+          </CyberErrorBoundary>
         );
       case "validation":
         return (
-          <React.Suspense fallback={<PanelSkeleton />}>
-            <LazyValidationPanel
-              flowIssues={flowIssues}
-              focusIssueNode={focusIssueNode}
-              onClose={() => setActiveDockTab(null)}
-            />
-          </React.Suspense>
+          <CyberErrorBoundary name="Flow Validator Module">
+            <React.Suspense fallback={<PanelSkeleton />}>
+              <LazyValidationPanel
+                flowIssues={editor.flowIssues}
+                focusIssueNode={editor.focusIssueNode}
+                onClose={() => editor.setActiveDockTab(null)}
+              />
+            </React.Suspense>
+          </CyberErrorBoundary>
         );
       case "shortcuts":
         return (
-          <React.Suspense fallback={<PanelSkeleton />}>
-            <LazyShortcutHelp
-              showShortcutHelp={showShortcutHelp}
-              setShowShortcutHelp={setShowShortcutHelpExclusive}
-            />
-          </React.Suspense>
+          <CyberErrorBoundary name="Shortcuts Reference Module">
+            <React.Suspense fallback={<PanelSkeleton />}>
+              <LazyShortcutHelp
+                showShortcutHelp={editor.showShortcutHelp}
+                setShowShortcutHelp={editor.setShowShortcutHelpExclusive}
+              />
+            </React.Suspense>
+          </CyberErrorBoundary>
         );
       case "flows":
         return (
-          <React.Suspense fallback={<PanelSkeleton />}>
-            <LazyFlowManager
-              isFlowManagerOpen={isFlowManagerOpen}
-              setIsFlowManagerOpen={setIsFlowManagerOpen}
-              savedFlows={savedFlows}
-              onDeleteFlow={onDeleteFlow}
-              navigate={navigate}
-            />
-          </React.Suspense>
+          <CyberErrorBoundary name="Flow Manager Module">
+            <React.Suspense fallback={<PanelSkeleton />}>
+              <LazyFlowManager
+                isFlowManagerOpen={editor.isFlowManagerOpen}
+                setIsFlowManagerOpen={editor.setIsFlowManagerOpen}
+                savedFlows={editor.savedFlows}
+                onDeleteFlow={editor.onDeleteFlow}
+                navigate={editor.navigate}
+              />
+            </React.Suspense>
+          </CyberErrorBoundary>
         );
       case "history":
         return (
-          <React.Suspense fallback={<PanelSkeleton />}>
-            <LazyVersionHistoryPanel
-              isOpen={isVersionHistoryOpen}
-              onClose={() => setIsVersionHistoryOpen(false)}
-              versions={flowVersions}
-              onLoadVersion={onLoadVersion}
-              isRestoring={isRestoringVersion}
-            />
-          </React.Suspense>
+          <CyberErrorBoundary name="Version History Module">
+            <React.Suspense fallback={<PanelSkeleton />}>
+              <LazyVersionHistoryPanel
+                isOpen={editor.isVersionHistoryOpen}
+                onClose={() => editor.setIsVersionHistoryOpen(false)}
+                versions={editor.flowVersions}
+                onLoadVersion={editor.onLoadVersion}
+                isRestoring={editor.isRestoringVersion}
+              />
+            </React.Suspense>
+          </CyberErrorBoundary>
         );
       case "variables":
         return (
-          <React.Suspense fallback={<PanelSkeleton />}>
-            <LazyVariablesPanel
-              isOpen={isVariablesPanelOpen}
-              onClose={() => setIsVariablesPanelOpen(false)}
-              variables={globalVariables}
-              onVariablesChange={setGlobalVariables}
-            />
-          </React.Suspense>
+          <CyberErrorBoundary name="Global Variables Module">
+            <React.Suspense fallback={<PanelSkeleton />}>
+              <LazyVariablesPanel
+                isOpen={editor.isVariablesPanelOpen}
+                onClose={() => editor.setIsVariablesPanelOpen(false)}
+                variables={editor.globalVariables}
+                onVariablesChange={editor.setGlobalVariables}
+              />
+            </React.Suspense>
+          </CyberErrorBoundary>
         );
       default:
         return null;
     }
   }, [
-    activeDockTab,
-    isNodeConfigOpen,
-    currentConfigNode,
-    updateNodeDataById,
-    handleConfigParamChange,
-    globalVariables,
-    isPlaygroundOpen,
-    playgroundMessages,
-    isPlaygroundTyping,
-    runtimeStatus,
-    playgroundError,
-    onSendMessage,
-    onClearPlaygroundMessages,
-    isLogsOpen,
-    executionLogs,
-    flowIssues,
-    focusIssueNode,
-    showShortcutHelp,
-    isFlowManagerOpen,
-    savedFlows,
-    onDeleteFlow,
-    navigate,
-    isVersionHistoryOpen,
-    flowVersions,
-    onLoadVersion,
-    isRestoringVersion,
-    isVariablesPanelOpen,
-    setGlobalVariables,
+    editor.activeDockTab,
+    editor.isNodeConfigOpen,
+    editor.currentConfigNode,
+    editor.updateNodeDataById,
+    editor.handleConfigParamChange,
+    editor.globalVariables,
+    editor.isPlaygroundOpen,
+    editor.playgroundMessages,
+    editor.isPlaygroundTyping,
+    editor.runtimeStatus,
+    editor.playgroundError,
+    editor.onSendMessage,
+    editor.onClearPlaygroundMessages,
+    editor.isLogsOpen,
+    editor.setIsLogsOpenExclusive,
+    editor.executionLogs,
+    editor.flowIssues,
+    editor.focusIssueNode,
+    editor.showShortcutHelp,
+    editor.setShowShortcutHelpExclusive,
+    editor.isFlowManagerOpen,
+    editor.setIsFlowManagerOpen,
+    editor.savedFlows,
+    editor.onDeleteFlow,
+    editor.navigate,
+    editor.isVersionHistoryOpen,
+    editor.setIsVersionHistoryOpen,
+    editor.flowVersions,
+    editor.onLoadVersion,
+    editor.isRestoringVersion,
+    editor.isVariablesPanelOpen,
+    editor.setIsVariablesPanelOpen,
+    editor.setGlobalVariables,
   ]);
 
   return (
     <div className="w-full h-screen min-h-0 bg-cyber-dark text-white overflow-hidden flex flex-col">
       <FlowHeader
-        currentFlowName={currentFlowName}
-        setCurrentFlowName={setCurrentFlowName}
-        isSaving={isSaving}
-        onSave={onSave}
-        onRunAll={onRunAll}
-        onValidateFlow={onValidateFlow}
-        setIsPlaygroundOpen={setIsPlaygroundOpen}
-        setIsFlowManagerOpen={setIsFlowManagerOpen}
-        setIsVariablesPanelOpen={setIsVariablesPanelOpen}
-        setIsVersionHistoryOpen={setIsVersionHistoryOpen}
-        validationLocale={validationLocale}
-        setValidationLocale={setValidationLocale}
-        setShowShortcutHelp={setShowShortcutHelpExclusive}
-        setShowCommandPalette={setShowCommandPalette}
-        importInputRef={importInputRef}
-        onImport={onImport}
-        onExport={onExport}
-        onCopy={onCopy}
-        onPaste={onPaste}
-        onDuplicate={onDuplicate}
-        undo={undo}
-        redo={redo}
-        onLayout={onLayoutHandler}
-        onGroupNodes={onGroupNodes}
-        onUngroupNodes={onUngroupNodes}
-        onDownloadImage={onDownloadImage}
-        onClear={onClear}
-        setShowMinimap={setShowMinimap}
-        setIsLiveMode={setIsLiveMode}
-        isLiveMode={isLiveMode}
-        reactFlowInstance={reactFlowInstance}
-        navigate={navigate}
-        lastAutoSave={lastAutoSave}
-        isAutoSaving={isAutoSaving}
-        isOnline={isOnline}
+        currentFlowName={editor.currentFlowName}
+        setCurrentFlowName={editor.setCurrentFlowName}
+        isSaving={editor.isSaving}
+        onSave={editor.onSave}
+        onRunAll={editor.onRunAll}
+        onValidateFlow={editor.onValidateFlow}
+        setIsPlaygroundOpen={editor.setIsPlaygroundOpen}
+        setIsFlowManagerOpen={editor.setIsFlowManagerOpen}
+        setIsVariablesPanelOpen={editor.setIsVariablesPanelOpen}
+        setIsVersionHistoryOpen={editor.setIsVersionHistoryOpen}
+        validationLocale={editor.validationLocale}
+        setValidationLocale={editor.setValidationLocale}
+        setShowShortcutHelp={editor.setShowShortcutHelpExclusive}
+        setShowCommandPalette={editor.setShowCommandPalette}
+        importInputRef={editor.importInputRef}
+        onImport={editor.onImport}
+        onExport={editor.onExport}
+        onCopy={editor.onCopy}
+        onPaste={editor.onPaste}
+        onDuplicate={editor.onDuplicate}
+        undo={editor.undo}
+        redo={editor.redo}
+        onLayout={editor.onLayoutHandler}
+        onGroupNodes={editor.onGroupNodes}
+        onUngroupNodes={editor.onUngroupNodes}
+        onDownloadImage={editor.onDownloadImage}
+        onClear={editor.onClear}
+        setShowMinimap={editor.setShowMinimap}
+        setIsLiveMode={editor.setIsLiveMode}
+        isLiveMode={editor.isLiveMode}
+        reactFlowInstance={editor.reactFlowInstance}
+        navigate={editor.navigate}
+        lastAutoSave={editor.lastAutoSave}
+        isAutoSaving={editor.isAutoSaving}
+        isOnline={editor.isOnline}
       />
 
       <div className="flex-1 flex overflow-hidden relative">
-        <Sidebar onAddNode={onAddNode} />
+        <Sidebar onAddNode={editor.onAddNode} />
 
         {/* React Flow Canvas */}
         <div
           className="flex-1 min-h-0 min-w-0 relative"
-          onDragOver={onDragOver}
-          onDrop={onDrop}
+          onDragOver={editor.onDragOver}
+          onDrop={editor.onDrop}
         >
           <ReactFlow
-            nodes={nodes}
-            edges={renderedEdges}
-            onNodesChange={onNodesChangeWrapper}
-            onEdgesChange={onEdgesChangeWrapper}
-            onSelectionChange={onSelectionChange}
-            onNodeDragStart={takeSnapshot}
-            onSelectionDragStart={takeSnapshot}
-            onConnect={onConnect}
-            onNodeContextMenu={onNodeContextMenu}
-            onPaneContextMenu={onPaneContextMenuHandler}
-            onInit={setReactFlowInstance}
+            nodes={editor.nodes}
+            edges={editor.renderedEdges}
+            onNodesChange={editor.onNodesChangeWrapper}
+            onEdgesChange={editor.onEdgesChangeWrapper}
+            onSelectionChange={editor.onSelectionChange}
+            onNodeDragStart={editor.takeSnapshot}
+            onSelectionDragStart={editor.takeSnapshot}
+            onConnect={editor.onConnect}
+            onNodeContextMenu={editor.onNodeContextMenu}
+            onPaneContextMenu={editor.onPaneContextMenuHandler}
+            onInit={editor.setReactFlowInstance}
             nodeTypes={nodeTypes}
             edgeTypes={edgeTypes}
             fitView
@@ -2586,7 +309,7 @@ const Flow = () => {
               className="!bg-black/40 !backdrop-blur-md !border-white/5 !rounded-lg !m-4 !shadow-none opacity-20 hover:opacity-100 transition-all duration-500 scale-75 origin-top-right"
             />
 
-            {showMinimap && (
+            {editor.showMinimap && (
               <MiniMap
                 nodeStrokeWidth={3}
                 nodeColor={(n) => {
@@ -2602,24 +325,23 @@ const Flow = () => {
                 className="!bg-black/40 !backdrop-blur-md !border-white/5 !rounded-lg !bottom-4 !right-4 !shadow-none !w-[140px] !h-[100px] opacity-40 hover:opacity-100 transition-opacity"
               />
             )}
-
           </ReactFlow>
 
           <CanvasSearch
-            isOpen={isCanvasSearchOpen}
-            onClose={() => setIsCanvasSearchOpen(false)}
-            nodes={nodes}
-            setNodes={setNodes}
+            isOpen={editor.isCanvasSearchOpen}
+            onClose={() => editor.setIsCanvasSearchOpen(false)}
+            nodes={editor.nodes}
+            setNodes={editor.setNodes}
           />
           <EditorDock
-            tabs={dockTabs}
-            activeTab={activeDockTab}
+            tabs={editor.dockTabs}
+            activeTab={editor.activeDockTab}
             onTabChange={(tabId) => {
               if (tabId === null) {
-                setActiveDockTab(null);
+                editor.setActiveDockTab(null);
                 return;
               }
-              setActiveDockTab((prev) => (prev === tabId ? null : (tabId as DockTabId)));
+              editor.setActiveDockTab((prev) => (prev === tabId ? null : (tabId as DockTabId)));
             }}
           >
             {dockContent}
@@ -2628,48 +350,47 @@ const Flow = () => {
       </div>
 
       <CommandPalette
-        showCommandPalette={showCommandPalette}
-        setShowCommandPalette={setShowCommandPalette}
-        commandQuery={commandQuery}
-        setCommandQuery={setCommandQuery}
-        commandIndex={commandIndex}
-        setCommandIndex={setCommandIndex}
-        filteredCommands={filteredCommands}
-        commandInputRef={commandInputRef}
+        showCommandPalette={editor.showCommandPalette}
+        setShowCommandPalette={editor.setShowCommandPalette}
+        commandQuery={editor.commandQuery}
+        setCommandQuery={editor.setCommandQuery}
+        commandIndex={editor.commandIndex}
+        setCommandIndex={editor.setCommandIndex}
+        filteredCommands={editor.filteredCommands}
+        commandInputRef={editor.commandInputRef}
       />
 
-      {contextMenu && (
+      {editor.contextMenu && (
         <ContextMenu
-          x={contextMenu.x}
-          y={contextMenu.y}
-          node={contextMenu.node}
-          onClose={() => setContextMenu(null)}
+          x={editor.contextMenu.x}
+          y={editor.contextMenu.y}
+          node={editor.contextMenu.node}
+          onClose={() => editor.setContextMenu(null)}
           actions={{
             onFocus: () => {
-              const node = contextMenu.node;
-              if (node) focusNode(node);
+              const node = editor.contextMenu?.node;
+              if (node) editor.focusNode(node);
             },
             onRun: () => {
-              const node = contextMenu.node;
+              const node = editor.contextMenu?.node;
               if (node) {
-                setNodes((nds) =>
+                editor.setNodes((nds) =>
                   nds.map((n) =>
                     n.id === node.id
                       ? { ...n, data: { ...n.data, status: "running" } }
                       : n,
                   ),
                 );
-                // Simulate execution
                 setTimeout(() => {
-                  setNodes((nds) =>
+                  editor.setNodes((nds) =>
                     nds.map((n) =>
                       n.id === node.id
                         ? { ...n, data: { ...n.data, status: "success" } }
                         : n,
-                    ),
-                  );
+                  ),
+                );
                   setTimeout(() => {
-                    setNodes((nds) =>
+                    editor.setNodes((nds) =>
                       nds.map((n) =>
                         n.id === node.id
                           ? { ...n, data: { ...n.data, status: "idle" } }
@@ -2681,9 +402,9 @@ const Flow = () => {
               }
             },
             onOpenConfig: () => {
-              const node = contextMenu.node;
+              const node = editor.contextMenu?.node;
               if (node) {
-                setNodes((nds) =>
+                editor.setNodes((nds) =>
                   nds.map((n) =>
                     n.id === node.id
                       ? {
@@ -2699,11 +420,9 @@ const Flow = () => {
               }
             },
             onOpenData: () => {
-              const node = contextMenu.node;
+              const node = editor.contextMenu?.node;
               if (node) {
-                // Similar to config but for data
-                // In CyberNode we use local state for isDataOpen, but we can trigger it via data prop
-                setNodes((nds) =>
+                editor.setNodes((nds) =>
                   nds.map((n) =>
                     n.id === node.id
                       ? {
@@ -2718,59 +437,59 @@ const Flow = () => {
                 );
               }
             },
-            onCopy: () => onCopy(),
+            onCopy: () => editor.onCopy(),
             onPaste: (pos) => {
-              if (reactFlowInstance) {
-                const project = reactFlowInstance.screenToFlowPosition(pos);
-                onPaste(project);
+              if (editor.reactFlowInstance) {
+                const project = editor.reactFlowInstance.screenToFlowPosition(pos);
+                editor.onPaste(project);
               } else {
-                onPaste();
+                editor.onPaste();
               }
             },
-            onDuplicate: () => onDuplicate(),
+            onDuplicate: () => editor.onDuplicate(),
             onDelete: () => {
-              const node = contextMenu.node;
+              const node = editor.contextMenu?.node;
               if (node) {
-                takeSnapshot();
-                deleteElements({ nodes: [node] });
+                editor.takeSnapshot();
+                editor.deleteElements?.({ nodes: [node] });
               }
             },
             onUngroup: () => {
-              const node = contextMenu.node;
+              const node = editor.contextMenu?.node;
               if (node && node.type === "cyberGroup") {
-                onUngroupNodes(node.id);
+                editor.onUngroupNodes(node.id);
               }
             },
             onLayout: (type?: string) => {
               if (type) {
-                onLayout(type as LayoutMode);
+                editor.onLayout(type as any);
               } else {
-                onLayout("LR");
+                editor.onLayout("LR");
               }
             },
             onAddNode: (pos) => {
-              if (reactFlowInstance) {
-                const project = reactFlowInstance.screenToFlowPosition(pos);
-                setPendingNodeInsertPosition(project);
-                setCommandQuery("add node ");
-                setCommandIndex(0);
-                setShowCommandPalette(true);
+              if (editor.reactFlowInstance) {
+                const project = editor.reactFlowInstance.screenToFlowPosition(pos);
+                editor.setPendingNodeInsertPosition(project);
+                editor.setCommandQuery("add node ");
+                editor.setCommandIndex(0);
+                editor.setShowCommandPalette(true);
               }
             },
             onAddNote: (pos) => {
-              if (reactFlowInstance) {
-                const project = reactFlowInstance.screenToFlowPosition(pos);
+              if (editor.reactFlowInstance) {
+                const project = editor.reactFlowInstance.screenToFlowPosition(pos);
                 const newNode: Node = {
                   id: `note-${Date.now()}`,
                   type: "cyberNote",
                   position: project,
                   data: { label: "", type: "cyberNote", status: "idle" },
                 };
-                takeSnapshot();
-                setNodes((nds) => nds.concat(newNode));
+                editor.takeSnapshot();
+                editor.setNodes((nds) => nds.concat(newNode));
               }
             },
-            onSelectAll: onSelectAll,
+            onSelectAll: editor.onSelectAll,
           }}
         />
       )}

@@ -101,6 +101,8 @@ app.get('/api/flows/:id/versions/:versionId', authMiddleware);
 app.post('/api/flows', authMiddleware);
 app.post('/api/flows/:id/versions/:versionId/restore', authMiddleware);
 app.delete('/api/flows/:id', authMiddleware);
+app.use('/api/secrets', authMiddleware);
+app.use('/api/sql', authMiddleware);
 
 app.use('/', rootRouter);
 
