@@ -11,7 +11,6 @@ import {
   ValidationLocale,
   validateFlowGraph
 } from "../../../back-end/flow-validation";
-import { apiService } from '../../lib/apiService';
 
 export const INITIAL_PLAYGROUND_MESSAGES: PlaygroundMessage[] = [
   {
@@ -21,21 +20,21 @@ export const INITIAL_PLAYGROUND_MESSAGES: PlaygroundMessage[] = [
 ];
 
 interface UseFlowExecutionOptions {
-  nodes: Node[];
-  edges: Edge[];
-  globalVariables: any[];
+  getNodes: () => Node[];
+  getEdges: () => Edge[];
+  getGlobalVariables: () => any[];
   runtimeStatus: RuntimeStatus;
   setRuntimeStatus: (status: RuntimeStatus) => void;
   setNodes: (updater: (nds: Node[]) => Node[]) => void;
-  setIsPlaygroundOpen: (open: boolean) => void;
+  setIsPlaygroundOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setActiveDockTab: (tab: any) => void;
-  setIsLogsOpenExclusive: (open: boolean) => void;
+  setIsLogsOpenExclusive: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export const useFlowExecution = ({
-  nodes,
-  edges,
-  globalVariables,
+  getNodes,
+  getEdges,
+  getGlobalVariables,
   runtimeStatus,
   setRuntimeStatus,
   setNodes,
@@ -73,7 +72,7 @@ export const useFlowExecution = ({
   }, []);
 
   const onValidateFlow = useCallback((openDock: boolean = true) => {
-    const errors = validateFlowGraph(nodes, edges);
+    const errors = validateFlowGraph(getNodes(), getEdges());
     setFlowIssues(errors);
     
     if (errors.length > 0) {
@@ -84,7 +83,7 @@ export const useFlowExecution = ({
       setPlaygroundError(null);
     }
     return errors.length === 0;
-  }, [nodes, edges, setActiveDockTab]);
+  }, [getNodes, getEdges, setActiveDockTab]);
 
   const executeFlow = useCallback(
     async (
@@ -121,7 +120,7 @@ export const useFlowExecution = ({
       };
 
       try {
-        const historyToSend = messagesRef.current.filter(m => m.role !== 'system');
+        const historyToSend = [...messagesRef.current.filter(m => m.role !== 'system')];
         // If we have an input message that isn't the last user message in history, add it
         if (inputMessage && (!historyToSend.length || historyToSend[historyToSend.length - 1].text !== inputMessage)) {
           historyToSend.push({ role: 'user', text: inputMessage });
@@ -134,12 +133,12 @@ export const useFlowExecution = ({
             headers: { "Content-Type": "application/json" },
             signal: controller.signal,
             body: JSON.stringify({
-              nodes,
-              edges,
+              nodes: getNodes(),
+              edges: getEdges(),
               inputMessage,
               chatHistory: historyToSend,
               isSilent,
-              globalVariables,
+              globalVariables: getGlobalVariables(),
             }),
           },
         );
@@ -222,7 +221,7 @@ export const useFlowExecution = ({
         }
       }
     },
-    [nodes, edges, globalVariables, setNodes, setIsLogsOpenExclusive, appendAssistantOutput]
+    [getNodes, getEdges, getGlobalVariables, setNodes, setIsLogsOpenExclusive, appendAssistantOutput, setRuntimeStatus, setPlaygroundError]
   );
 
   const onSendMessage = useCallback(
@@ -261,7 +260,7 @@ export const useFlowExecution = ({
     if (response) {
       appendAssistantOutput(response);
     }
-  }, [executeFlow, appendAssistantOutput, onValidateFlow, setIsPlaygroundOpen, setActiveDockTab]);
+  }, [executeFlow, appendAssistantOutput, onValidateFlow, setIsPlaygroundOpen, setActiveDockTab, setPlaygroundError]);
 
   const onClearPlaygroundMessages = useCallback(() => {
     setPlaygroundMessages(INITIAL_PLAYGROUND_MESSAGES);
@@ -274,6 +273,10 @@ export const useFlowExecution = ({
    */
   const executeNodeSubgraph = useCallback(
     async (nodeId: string) => {
+      const nodes = getNodes();
+      const edges = getEdges();
+      const globalVariables = getGlobalVariables();
+
       // BFS/DFS backwards from nodeId to collect ancestor node ids
       const edgesById = new Map<string, Edge[]>();
       edges.forEach((e) => {
@@ -389,7 +392,7 @@ export const useFlowExecution = ({
         setIsPlaygroundTyping(false);
       }
     },
-    [nodes, edges, globalVariables, setNodes, setIsPlaygroundOpen]
+    [getNodes, getEdges, getGlobalVariables, setNodes, setIsPlaygroundOpen, setRuntimeStatus, setPlaygroundError]
   );
 
   return {

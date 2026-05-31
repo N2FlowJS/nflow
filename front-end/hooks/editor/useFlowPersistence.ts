@@ -215,6 +215,7 @@ export const useFlowPersistence = ({
     setIsAutoSaving,
     lastAutoSave,
     setLastAutoSave,
+    isRestoringVersion,
     onSave,
     onLoadVersion,
     onDeleteFlow,

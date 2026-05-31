@@ -35,28 +35,46 @@ export const useEditorUI = () => {
   const isLogsOpen = activeDockTab === "logs";
   const isNodeConfigOpen = activeDockTab === "config";
 
-  const setIsPlaygroundOpen = useCallback((open: boolean) => {
-    setActiveDockTab(open ? "playground" : null);
+  const setIsPlaygroundOpen: React.Dispatch<React.SetStateAction<boolean>> = useCallback((value: React.SetStateAction<boolean>) => {
+    setActiveDockTab((prev) => {
+      const open = typeof value === 'function' ? (value as any)(prev === "playground") : value;
+      return open ? "playground" : (prev === "playground" ? null : prev);
+    });
   }, []);
 
-  const setIsFlowManagerOpen = useCallback((open: boolean) => {
-    setActiveDockTab(open ? "flows" : null);
+  const setIsFlowManagerOpen: React.Dispatch<React.SetStateAction<boolean>> = useCallback((value: React.SetStateAction<boolean>) => {
+    setActiveDockTab((prev) => {
+      const open = typeof value === 'function' ? (value as any)(prev === "flows") : value;
+      return open ? "flows" : (prev === "flows" ? null : prev);
+    });
   }, []);
 
-  const setIsVariablesPanelOpen = useCallback((open: boolean) => {
-    setActiveDockTab(open ? "variables" : null);
+  const setIsVariablesPanelOpen: React.Dispatch<React.SetStateAction<boolean>> = useCallback((value: React.SetStateAction<boolean>) => {
+    setActiveDockTab((prev) => {
+      const open = typeof value === 'function' ? (value as any)(prev === "variables") : value;
+      return open ? "variables" : (prev === "variables" ? null : prev);
+    });
   }, []);
 
-  const setIsVersionHistoryOpen = useCallback((open: boolean) => {
-    setActiveDockTab(open ? "history" : null);
+  const setIsVersionHistoryOpen: React.Dispatch<React.SetStateAction<boolean>> = useCallback((value: React.SetStateAction<boolean>) => {
+    setActiveDockTab((prev) => {
+      const open = typeof value === 'function' ? (value as any)(prev === "history") : value;
+      return open ? "history" : (prev === "history" ? null : prev);
+    });
   }, []);
 
-  const setShowShortcutHelp = useCallback((open: boolean) => {
-    setActiveDockTab(open ? "shortcuts" : null);
+  const setShowShortcutHelp: React.Dispatch<React.SetStateAction<boolean>> = useCallback((value: React.SetStateAction<boolean>) => {
+    setActiveDockTab((prev) => {
+      const open = typeof value === 'function' ? (value as any)(prev === "shortcuts") : value;
+      return open ? "shortcuts" : (prev === "shortcuts" ? null : prev);
+    });
   }, []);
 
-  const setIsLogsOpenExclusive = useCallback((open: boolean) => {
-    setActiveDockTab(open ? "logs" : null);
+  const setIsLogsOpenExclusive: React.Dispatch<React.SetStateAction<boolean>> = useCallback((value: React.SetStateAction<boolean>) => {
+    setActiveDockTab((prev) => {
+      const open = typeof value === 'function' ? (value as any)(prev === "logs") : value;
+      return open ? "logs" : (prev === "logs" ? null : prev);
+    });
   }, []);
 
   return {

@@ -122,7 +122,7 @@ const DockContentPanel: React.FC<DockContentPanelProps> = ({ activeTab, editor }
           <React.Suspense fallback={<PanelSkeleton />}>
             <LazyShortcutHelp
               showShortcutHelp={editor.showShortcutHelp}
-              setShowShortcutHelp={editor.setShowShortcutHelpExclusive}
+              setShowShortcutHelp={editor.setShowShortcutHelp}
             />
           </React.Suspense>
         </CyberErrorBoundary>

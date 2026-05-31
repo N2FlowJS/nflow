@@ -13,7 +13,7 @@ const prismaMock = {
 };
 
 vi.mock('../lib/prisma', () => ({
-  default: prismaMock,
+  prisma: prismaMock,
 }));
 
 const { default: secretsRoute } = await import('../routes/secrets');

@@ -10,11 +10,12 @@ const prismaMock = {
     update: vi.fn(),
     delete: vi.fn(),
     upsert: vi.fn(),
+    count: vi.fn(),
   },
 };
 
 vi.mock('../lib/prisma', () => ({
-  default: prismaMock,
+  prisma: prismaMock,
 }));
 
 // Mock executeFlowOnServer

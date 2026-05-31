@@ -54,7 +54,7 @@ const Flow = () => {
         setIsVersionHistoryOpen={editor.setIsVersionHistoryOpen}
         validationLocale={editor.validationLocale}
         setValidationLocale={editor.setValidationLocale}
-        setShowShortcutHelp={editor.setShowShortcutHelpExclusive}
+        setShowShortcutHelp={editor.setShowShortcutHelp}
         setShowCommandPalette={editor.setShowCommandPalette}
         importInputRef={editor.importInputRef}
         onImport={editor.onImport}
@@ -98,7 +98,7 @@ const Flow = () => {
             onSelectionDragStart={editor.takeSnapshot}
             onConnect={editor.onConnect}
             onNodeContextMenu={editor.onNodeContextMenu}
-            onPaneContextMenu={editor.onPaneContextMenuHandler}
+            onPaneContextMenu={editor.onPaneContextMenu}
             onInit={editor.setReactFlowInstance}
             nodeTypes={nodeTypes}
             edgeTypes={edgeTypes}
@@ -241,7 +241,7 @@ const Flow = () => {
               const node = editor.contextMenu?.node;
               if (node) {
                 editor.takeSnapshot();
-                editor.deleteElements?.({ nodes: [node] });
+                editor.deleteElements({ nodes: [node] });
               }
             },
             onUngroup: () => {

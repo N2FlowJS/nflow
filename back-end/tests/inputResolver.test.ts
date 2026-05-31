@@ -23,13 +23,13 @@ describe('inputResolver', () => {
         ]]
       ]);
       const nodeById = new Map<string, FlowNode>([
-        ['cond', { id: 'cond', data: { type: 'ConditionComponent' } } as FlowNode]
+        ['cond', { id: 'cond', position: { x: 0, y: 0 }, data: { label: 'cond', type: 'ConditionComponent' } } as FlowNode]
       ]);
       const nodeResults = new Map<string, unknown>([
         ['cond', false] // Condition result is false, but edge is for 'true'
       ]);
       const nodeStatus = new Map<string, NodeStatus>([
-        ['cond', 'completed']
+        ['cond', 'success']
       ]);
 
       expect(shouldSkipNode(nodeId, incomingMap, nodeById, nodeResults, nodeStatus)).toBe(true);
@@ -43,13 +43,13 @@ describe('inputResolver', () => {
         ]]
       ]);
       const nodeById = new Map<string, FlowNode>([
-        ['cond', { id: 'cond', data: { type: 'ConditionComponent' } } as FlowNode]
+        ['cond', { id: 'cond', position: { x: 0, y: 0 }, data: { label: 'cond', type: 'ConditionComponent' } } as FlowNode]
       ]);
       const nodeResults = new Map<string, unknown>([
         ['cond', 'true'] // Matches edge handle
       ]);
       const nodeStatus = new Map<string, NodeStatus>([
-        ['cond', 'completed']
+        ['cond', 'success']
       ]);
 
       expect(shouldSkipNode(nodeId, incomingMap, nodeById, nodeResults, nodeStatus)).toBe(false);
@@ -60,7 +60,10 @@ describe('inputResolver', () => {
     it('should resolve dynamic node-output references', () => {
       const node = {
         id: 'node-2',
+        position: { x: 0, y: 0 },
         data: {
+          label: 'node-2',
+          type: 'Agent',
           params: {
             text: 'Hello {{nodes.node-1.name}}'
           }
@@ -73,13 +76,16 @@ describe('inputResolver', () => {
       ]);
 
       const resolved = resolveNodeConfig(node, globalVariables, nodeResults);
-      expect(resolved.data.params.text).toBe('Hello World');
+      expect(resolved.data.params?.text).toBe('Hello World');
     });
 
     it('should resolve global variables', () => {
       const node = {
         id: 'node-2',
+        position: { x: 0, y: 0 },
         data: {
+          label: 'node-2',
+          type: 'Agent',
           params: {
             apiKey: '{{MY_KEY}}'
           }
@@ -90,7 +96,7 @@ describe('inputResolver', () => {
       const nodeResults = new Map<string, unknown>();
 
       const resolved = resolveNodeConfig(node, globalVariables, nodeResults);
-      expect(resolved.data.params.apiKey).toBe('secret-123');
+      expect(resolved.data.params?.apiKey).toBe('secret-123');
     });
   });
 });

@@ -163,6 +163,20 @@ export const useEditorHotkeys = ({
       } else if (isMod && key === "enter") {
         e.preventDefault();
         execution.onRunAll();
+      } else if (key === "delete" || key === "backspace") {
+        if (!(e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement)) {
+          graph.onDeleteSelected();
+        }
+      } else if (isMod && key === "a") {
+        e.preventDefault();
+        graph.onSelectAll();
+      } else if (isMod && key === "c") {
+        graph.onCopy();
+      } else if (isMod && key === "v") {
+        graph.onPaste();
+      } else if (isMod && key === "d") {
+        e.preventDefault();
+        graph.onDuplicate();
       }
     };
 

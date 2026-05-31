@@ -37,6 +37,7 @@ export const useGraphState = ({ onNotify }: UseGraphStateOptions = {}) => {
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null);
   const [runtimeStatus, setRuntimeStatus] = useState<string>("idle");
+  const [pendingNodeInsertPosition, setPendingNodeInsertPosition] = useState<{ x: number; y: number } | null>(null);
   
   const [copiedNodes, setCopiedNodes] = useState<Node[]>([]);
   const [copiedEdges, setCopiedEdges] = useState<Edge[]>([]);
@@ -391,5 +392,7 @@ export const useGraphState = ({ onNotify }: UseGraphStateOptions = {}) => {
     onSelectAll,
     onGroupNodes,
     onUngroupNodes,
+    pendingNodeInsertPosition,
+    setPendingNodeInsertPosition,
   };
 };

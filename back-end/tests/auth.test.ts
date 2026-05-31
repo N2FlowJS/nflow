@@ -11,7 +11,7 @@ const prismaMock = {
 };
 
 vi.mock('../lib/prisma', () => ({
-  default: prismaMock,
+  prisma: prismaMock,
 }));
 
 const { AuthService } = await import('../services/authService');

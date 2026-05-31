@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useReactFlow } from "@xyflow/react";
+import { Node, useReactFlow } from "@xyflow/react";
 import { toPng } from "html-to-image";
 import {
   AlertTriangle,
@@ -36,20 +36,7 @@ export const useFlowEditor = () => {
   // 1. UI State
   const ui = useEditorUI();
 
-  // 2. Flow Execution (needs some UI methods)
-  const execution = useFlowExecution({
-    nodes: [], // Placeholder, will be synced
-    edges: [],
-    globalVariables: [],
-    runtimeStatus: 'idle' as any, // Placeholder, will be synced
-    setRuntimeStatus: () => {},
-    setNodes: () => {},
-    setIsPlaygroundOpen: ui.setIsPlaygroundOpen,
-    setActiveDockTab: ui.setActiveDockTab,
-    setIsLogsOpenExclusive: ui.setIsLogsOpenExclusive,
-  });
-
-  // 3. Graph State
+  // 2. Graph State (needed by execution)
   const graph = useGraphState({
     onNotify: (msg, type) => {
       if (type === 'error') {
@@ -62,14 +49,7 @@ export const useFlowEditor = () => {
     }
   });
 
-  // Sync execution with actual graph state
-  execution.nodes = graph.nodes;
-  execution.edges = graph.edges;
-  (execution as any).setNodes = graph.setNodes;
-  (execution as any).runtimeStatus = graph.runtimeStatus;
-  (execution as any).setRuntimeStatus = graph.setRuntimeStatus;
-
-  // 4. Persistence
+  // 3. Persistence (needed by execution)
   const persistence = useFlowPersistence({
     id,
     reactFlowInstance: graph.reactFlowInstance,
@@ -82,8 +62,37 @@ export const useFlowEditor = () => {
     }
   });
 
-  // Sync global variables back to execution
-  execution.globalVariables = persistence.globalVariables;
+  // 4. Flow Execution
+  const execution = useFlowExecution({
+    getNodes: () => graph.nodes,
+    getEdges: () => graph.edges,
+    getGlobalVariables: () => persistence.globalVariables,
+    runtimeStatus: graph.runtimeStatus as any,
+    setRuntimeStatus: graph.setRuntimeStatus as any,
+    setNodes: graph.setNodes,
+    setIsPlaygroundOpen: ui.setIsPlaygroundOpen,
+    setActiveDockTab: ui.setActiveDockTab,
+    setIsLogsOpenExclusive: ui.setIsLogsOpenExclusive,
+  });
+
+  const [highlightedConfigField, setHighlightedConfigField] = useState<string | null>(null);
+
+  const focusNode = useCallback((node: any) => {
+    graph.reactFlowInstance?.setCenter(node.position.x, node.position.y, { zoom: 1.2, duration: 800 });
+    graph.setNodes((nds) => nds.map((n) => ({ ...n, selected: n.id === node.id })));
+  }, [graph]);
+
+  const focusIssueNode = useCallback((issue: any) => {
+    const node = graph.nodes.find((n) => n.id === issue.nodeId);
+    if (node) {
+      focusNode(node);
+      if (issue.fieldName) {
+        ui.setActiveDockTab("config");
+        graph.setConfigNodeId(node.id);
+        setHighlightedConfigField(issue.fieldName);
+      }
+    }
+  }, [graph, focusNode, ui]);
 
   // 5. Layout
   const { runLayout, isLayouting } = useGraphLayout({
@@ -216,14 +225,14 @@ export const useFlowEditor = () => {
     graph.onAddNode(type, label, position);
   }, [graph]);
 
-  const onNodeContextMenu = useCallback((event: React.MouseEvent, node: any) => {
+  const onNodeContextMenu = useCallback((event: React.MouseEvent | MouseEvent, node: any) => {
     event.preventDefault();
-    ui.setContextMenu({ x: event.clientX, y: event.clientY, node });
+    ui.setContextMenu({ x: (event as any).clientX, y: (event as any).clientY, node });
   }, [ui]);
 
-  const onPaneContextMenu = useCallback((event: React.MouseEvent) => {
+  const onPaneContextMenu = useCallback((event: React.MouseEvent | MouseEvent) => {
     event.preventDefault();
-    ui.setContextMenu({ x: event.clientX, y: event.clientY });
+    ui.setContextMenu({ x: (event as any).clientX, y: (event as any).clientY });
   }, [ui]);
 
   const onClear = useCallback(() => {
@@ -235,6 +244,8 @@ export const useFlowEditor = () => {
       persistence.setCurrentFlowName("Untitled Flow");
     }
   }, [graph, persistence]);
+
+  const commandInputRef = useRef<HTMLInputElement>(null!);
 
   return {
     id, navigate, isOnline, dockTabs, renderedEdges,
@@ -254,6 +265,12 @@ export const useFlowEditor = () => {
       const activeSelected = selectedNodes.find((n) => n.selected);
       graph.setConfigNodeId(activeSelected ? activeSelected.id : null);
     },
+    focusNode,
+    focusIssueNode,
+    highlightedConfigField,
+    setHighlightedConfigField,
+    commandInputRef,
+    deleteElements,
   };
 };
 

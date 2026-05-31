@@ -16,22 +16,11 @@ import {
   FLOW_TEMPLATES,
   createSavedFlowFromTemplate,
 } from "../../back-end/flow-templates";
+import type { SavedFlow } from "@n2flow/types";
 import { API_BASE } from "../lib/api";
 import { apiService } from "../lib/apiService";
 import { Button, Input } from "../components/ui";
 import { GlobalHeader } from "../components/shared/GlobalHeader";
-
-type SavedFlow = {
-  id: string;
-  name: string;
-  data?: {
-    nodes?: unknown[];
-    edges?: unknown[];
-  };
-  nodeCount?: number;
-  edgeCount?: number;
-  updatedAt: number;
-};
 
 export default function Home() {
   const navigate = useNavigate();
@@ -91,8 +80,7 @@ export default function Home() {
           id: newId,
           name: `${fullFlow.name} (copy)`,
           updatedAt: Date.now(),
-          nodeCount: fullFlow.data?.nodes?.length || 0,
-          edgeCount: fullFlow.data?.edges?.length || 0,
+          data: fullFlow.data,
         };
         setFlows([duplicatedFlow as any, ...flows]);
       }
@@ -112,7 +100,7 @@ export default function Home() {
         nodes: newFlow.data?.nodes || [],
         edges: newFlow.data?.edges || [],
         viewport: newFlow.data?.viewport,
-        globalVariables: newFlow.data?.globalVariables || [],
+        globalVariables: (newFlow.data as any)?.globalVariables || [],
       });
 
       if (response.ok) {
@@ -269,11 +257,11 @@ export default function Home() {
                   </div>
                   <div className="flex items-center gap-1 shrink-0 bg-cyber-primary/5 text-cyber-primary px-2 py-1 rounded-md border border-cyber-primary/10">
                     <GitBranch size={11} />
-                    {flow.nodeCount ?? flow.data?.nodes?.length ?? 0} Nodes
+                    {flow.data?.nodes?.length ?? 0} Nodes
                   </div>
                   <div className="flex items-center gap-1 shrink-0 bg-cyber-secondary/5 text-cyber-secondary px-2 py-1 rounded-md border border-cyber-secondary/10">
                     <GitCommit size={11} />
-                    {flow.edgeCount ?? flow.data?.edges?.length ?? 0} Edges
+                    {flow.data?.edges?.length ?? 0} Edges
                   </div>
                 </div>
               </div>
