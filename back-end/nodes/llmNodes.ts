@@ -2,6 +2,7 @@ import { getNodeFieldValue, resolveVariablePlaceholders } from '../utils/common'
 import { NodeHandler } from './registry';
 import { runChat } from '../llm';
 import { NodeExecutionError } from './errors';
+import { LLMProviderService } from '../services/llmProviderService';
 
 export const llmConfigHandler: NodeHandler = async (ctx) => {
   const node = ctx.node;
@@ -9,18 +10,34 @@ export const llmConfigHandler: NodeHandler = async (ctx) => {
     resolveVariablePlaceholders(getNodeFieldValue(node, key), ctx.globalVariables);
   const num = (key: string, def: number) => Number(resolveRuntimeValue(key) || def);
 
+  const providerId = resolveRuntimeValue('providerId');
+  let provider = resolveRuntimeValue('provider');
+  let apiKey = resolveRuntimeValue('apiKey') || '';
+  let baseUrl = resolveRuntimeValue('baseUrl') || '';
+
+  if (typeof providerId === 'string' && providerId) {
+    try {
+      const resolved = await LLMProviderService.resolveProvider(ctx.userId, providerId);
+      provider = resolved.provider;
+      if (resolved.apiKey) apiKey = resolved.apiKey;
+      if (resolved.baseUrl) baseUrl = resolved.baseUrl;
+    } catch (err) {
+      console.error(`Failed to resolve provider ${providerId}`, err);
+    }
+  }
+
   return {
     kind: 'llm_chat',
     provider:
-      resolveRuntimeValue('provider') ||
+      provider ||
       (node.data.type.includes('Ollama')
         ? 'Ollama'
         : node.data.type.includes('VLLM')
           ? 'vLLM'
           : 'Google'),
     model: resolveRuntimeValue('model') || 'gemini-2.0-flash',
-    apiKey: resolveRuntimeValue('apiKey') || '',
-    baseUrl: resolveRuntimeValue('baseUrl') || '',
+    apiKey,
+    baseUrl,
     temperature: Number(resolveRuntimeValue('temperature') ?? resolveRuntimeValue('temp') ?? 0.7),
     max_tokens: num('max_tokens', 2048),
     top_p: num('top_p', 0.95),

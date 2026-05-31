@@ -117,6 +117,7 @@ const createAsToolSourceHandle = (
 });
 
 const commonModelFields = (sourceType: NodeSourceHandleConfig["portType"] = "chat_model"): RegistryConfigSchema => [
+  { label: "Saved Provider", name: "providerId", type: "select", options: [] },
   { label: "Base URL (Optional)", name: "baseUrl", type: "text" },
   { label: "API Key (Optional)", name: "apiKey", type: "text" },
   {
@@ -151,6 +152,7 @@ const chatModelFields = (extraFields: RegistryConfigField[] = []): RegistryConfi
 // --- Schemas ---
 
 const embeddingModelSchema: RegistryConfigSchema = [
+  { label: "Saved Provider", name: "providerId", type: "select", options: [] },
   {
     label: "Provider",
     name: "provider",

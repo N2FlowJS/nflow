@@ -3,8 +3,8 @@
 
 generator client {
   provider   = "prisma-client-js"
-  engineType = "binary"
   output     = "../lib/prisma-client"
+  engineType = "binary"
 }
 
 datasource db {
@@ -12,15 +12,16 @@ datasource db {
 }
 
 model User {
-  id        String       @id @default(cuid())
-  email     String       @unique
-  username  String       @unique
+  id        String        @id @default(cuid())
+  email     String        @unique
+  username  String        @unique
   password  String // Hashed password
   name      String?
   flows     Flow[]
   secrets   UserSecret[]
-  createdAt DateTime     @default(now())
-  updatedAt DateTime     @updatedAt
+  providers LLMProvider[]
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
 
   @@map("users")
 }
@@ -69,4 +70,20 @@ model UserSecret {
   @@unique([userId, name])
   @@index([userId])
   @@map("user_secrets")
+}
+
+model LLMProvider {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String // User-defined name
+  provider  String // e.g., "OpenAI", "Anthropic", "Ollama", "NVIDIA"
+  baseUrl   String? // Custom endpoint
+  apiKey    String? // Encrypted API Key
+  config    String? // Optional JSON for extra settings
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@map("llm_providers")
 }

@@ -27,6 +27,7 @@ NodeRegistry.register('Prompt Template', promptTemplateHandler);
 
 // LLM
 NodeRegistry.register('ChatModelComponent', llmConfigHandler);
+NodeRegistry.register('EmbeddingModelComponent', llmConfigHandler);
 NodeRegistry.register('Agent', agentHandler);
 
 export const executeNode = async (ctx: FlowRuntimeContext): Promise<unknown> => {

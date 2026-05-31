@@ -6,11 +6,15 @@ import llmRoute from './llm';
 import toolsRoute from './tools';
 import authRoute from './auth';
 import secretsRoute from './secrets';
+import llmProvidersRoute from './llmProviders';
+import templatesRoute from './templates';
 
 const router = Router();
 
 router.use('/api/auth', authRoute);
 router.use('/api', secretsRoute);
+router.use('/api/llm-providers', llmProvidersRoute);
+router.use('/api', templatesRoute);
 router.use('/api', healthRoute);
 router.use('/api', sqlRoute);
 router.use('/api', flowRoute);

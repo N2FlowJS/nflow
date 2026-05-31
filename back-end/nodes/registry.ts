@@ -2,6 +2,7 @@ import { FlowNode, GlobalVariable, ChatMessage } from '../flowTypes';
 import { ToolDefinition } from '../tools';
 
 export type FlowRuntimeContext = {
+  userId: string;
   inputs: Record<string, unknown[]>;
   node: FlowNode;
   isStopped: () => boolean;

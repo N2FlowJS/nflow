@@ -69,6 +69,7 @@ function makeEvents(isSilent: boolean, handler?: EventHandler) {
 // ---------------------------------------------------------------------------
 
 export async function executeFlowOnServer({
+  userId,
   nodes = [],
   edges = [],
   flowId,
@@ -205,6 +206,7 @@ export async function executeFlowOnServer({
       };
 
       const ctx: FlowRuntimeContext = {
+        userId,
         inputs,
         node: resolvedNode,
         isStopped,

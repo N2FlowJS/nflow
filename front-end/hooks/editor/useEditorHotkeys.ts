@@ -47,7 +47,15 @@ export const useEditorHotkeys = ({
           group: "Nodes",
           shortcut: "-",
           keywords: `add node create ${type} ${label.toLowerCase()}`,
-          run: () => graph.onAddNode(type, label),
+          run: () => {
+            const connectFrom = (window as any).__lastConnectionStart;
+            const pos = graph.pendingNodeInsertPosition || { x: Math.random() * 400 + 100, y: Math.random() * 400 + 100 };
+            graph.onAddNode(type, label, pos, connectFrom);
+            
+            // Clear the temp state
+            (window as any).__lastConnectionStart = null;
+            graph.setPendingNodeInsertPosition(null);
+          },
         };
       });
 

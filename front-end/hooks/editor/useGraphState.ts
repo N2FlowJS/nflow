@@ -278,6 +278,37 @@ export const useGraphState = ({ onNotify }: UseGraphStateOptions = {}): GraphSta
     }));
   }, [nodes, setNodes, takeSnapshot]);
 
+  const connectingHandleRef = useRef<any>(null);
+
+  const onConnectStart = useCallback((_: any, { nodeId, handleId, handleType }: any) => {
+    connectingHandleRef.current = { nodeId, handleId, handleType };
+  }, []);
+
+  const onConnectEnd = useCallback((event: any) => {
+    if (!connectingHandleRef.current) return;
+
+    const targetIsPane = (event.target as Element).classList.contains('react-flow__pane');
+
+    if (targetIsPane && reactFlowInstance) {
+      const { x, y } = reactFlowInstance.screenToFlowPosition({
+        x: event.clientX,
+        y: event.clientY,
+      });
+
+      setPendingNodeInsertPosition({ x, y });
+      
+      // Store the starting connection info in a ref to be used when a node is added
+      (window as any).__lastConnectionStart = connectingHandleRef.current;
+      
+      // Trigger the command palette to show "Add Node" options
+      window.dispatchEvent(new CustomEvent('openCommandPalette', { 
+        detail: { query: 'add node ', triggerConnection: true } 
+      }));
+    }
+
+    connectingHandleRef.current = null;
+  }, [reactFlowInstance]);
+
   const onConnect = useCallback(
     (params: Connection) => {
       if (!params.source || !params.target) return;
@@ -350,17 +381,35 @@ export const useGraphState = ({ onNotify }: UseGraphStateOptions = {}): GraphSta
   );
 
   const onAddNode = useCallback(
-    (type: string, label: string, position?: { x: number; y: number }) => {
+    (type: string, label: string, position?: { x: number; y: number }, connectFrom?: { nodeId: string; handleId: string; handleType: string }) => {
       takeSnapshot();
+      const newNodeId = `${type}-${Date.now()}`;
       const newNode: CustomNodeType = {
-        id: `${type}-${Date.now()}`,
+        id: newNodeId,
         type: "cyberNode",
         position: position || { x: Math.random() * 400 + 100, y: Math.random() * 400 + 100 },
         data: createNodeDataByType(type, label),
       };
+
       setNodes((nds) => nds.concat(newNode));
+
+      if (connectFrom) {
+        setTimeout(() => {
+          const source = connectFrom.handleType === 'source' ? connectFrom.nodeId : newNodeId;
+          const target = connectFrom.handleType === 'target' ? connectFrom.nodeId : newNodeId;
+          const sourceHandle = connectFrom.handleType === 'source' ? connectFrom.handleId : null;
+          const targetHandle = connectFrom.handleType === 'target' ? connectFrom.handleId : null;
+
+          onConnect({
+            source,
+            target,
+            sourceHandle,
+            targetHandle,
+          } as any);
+        }, 50);
+      }
     },
-    [setNodes, takeSnapshot]
+    [setNodes, takeSnapshot, onConnect]
   );
 
   return {

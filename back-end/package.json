@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "node --watch --import tsx index.ts",
     "build": "tsc && node scripts/postbuild.cjs",
-    "test": "vitest",
+    "test": "vitest run",
     "type-check": "tsc --noEmit",
     "start": "node --enable-source-maps dist/index.js",
     "db:studio": "prisma studio --config prisma.config.ts",

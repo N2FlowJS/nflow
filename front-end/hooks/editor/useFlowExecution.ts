@@ -75,7 +75,7 @@ export const useFlowExecution = ({
   }, []);
 
   const onValidateFlow = useCallback((openDock: boolean = true) => {
-    const errors = validateFlowGraph(getNodes(), getEdges());
+    const errors = validateFlowGraph(getNodes(), getEdges(), { locale: validationLocale as any });
     setFlowIssues(errors);
     
     if (errors.length > 0) {
@@ -86,7 +86,12 @@ export const useFlowExecution = ({
       setPlaygroundError(null);
     }
     return errors.length === 0;
-  }, [getNodes, getEdges, setActiveDockTab]);
+  }, [getNodes, getEdges, setActiveDockTab, validationLocale]);
+
+  // Real-time validation
+  useEffect(() => {
+    onValidateFlow(false);
+  }, [getNodes, getEdges, onValidateFlow]);
 
   const executeFlow = useCallback(
     async (

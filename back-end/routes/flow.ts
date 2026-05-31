@@ -45,6 +45,7 @@ router.post('/flow/execute', async (req: AuthRequest, res: Response) => {
     const validatedRequest = RequestValidator.validateFlowExecution(req.body);
 
     const result = await executeFlowOnServer({
+      userId: req.userId!,
       nodes: TypeConverters.toFlowNodes(validatedRequest.nodes),
       edges: TypeConverters.toFlowEdges(validatedRequest.edges),
       flowId: validatedRequest.flowId,
@@ -100,6 +101,7 @@ router.post('/flow/execute/stream', async (req: AuthRequest, res: Response) => {
 
     try {
       const result = await executeFlowOnServer({
+        userId: req.userId!,
         nodes: TypeConverters.toFlowNodes(validatedRequest.nodes),
         edges: TypeConverters.toFlowEdges(validatedRequest.edges),
         flowId: validatedRequest.flowId,

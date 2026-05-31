@@ -24,6 +24,8 @@ import { Sidebar } from "../components/Sidebar";
 import { useFlowEditor, type DockTabId } from "../hooks/useFlowEditor";
 import type { CustomNodeType } from "@n2flow/types";
 
+import { EditorProvider, useEditor } from "../context/EditorContext";
+
 const nodeTypes: NodeTypes = {
   cyberNode: CyberNode as any,
   cyberGroup: CyberGroupNode as any,
@@ -35,7 +37,7 @@ const edgeTypes: EdgeTypes = {
 };
 
 const Flow = () => {
-  const editor = useFlowEditor();
+  const editor = useEditor();
   const { executeNodeSubgraph } = editor;
 
 
@@ -97,6 +99,8 @@ const Flow = () => {
             onNodeDragStart={editor.takeSnapshot}
             onSelectionDragStart={editor.takeSnapshot}
             onConnect={editor.onConnect}
+            onConnectStart={editor.onConnectStart}
+            onConnectEnd={editor.onConnectEnd}
             onNodeContextMenu={editor.onNodeContextMenu}
             onPaneContextMenu={editor.onPaneContextMenu}
             onInit={editor.setReactFlowInstance}
@@ -289,7 +293,9 @@ const Flow = () => {
 
 const FlowEditor = () => (
   <ReactFlowProvider>
-    <Flow />
+    <EditorProvider>
+      <Flow />
+    </EditorProvider>
   </ReactFlowProvider>
 );
 

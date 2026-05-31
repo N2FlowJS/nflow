@@ -1,20 +1,8 @@
 import { useState, useCallback } from 'react';
-import type { EditorUIState } from '../../types/editor';
-
-export type DockTabId =
-  | "playground"
-  | "preview"
-  | "execution"
-  | "logs"
-  | "validation"
-  | "shortcuts"
-  | "flows"
-  | "variables"
-  | "history"
-  | "config";
+import type { EditorUIState, DockTabId } from '../../types/editor';
 
 export const useEditorUI = (): EditorUIState => {
-  const [activeDockTab, setActiveDockTab] = useState<string | null>(null);
+  const [activeDockTab, setActiveDockTab] = useState<DockTabId | null>(null);
   const [showMinimap, setShowMinimap] = useState(false);
   const [isLiveMode, setIsLiveMode] = useState(false);
   const [isCanvasSearchOpen, setIsCanvasSearchOpen] = useState(false);

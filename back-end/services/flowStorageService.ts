@@ -8,9 +8,24 @@ type FlowRow = { id: string; name: string; createdAt: Date; updatedAt: Date; dat
 
 const countJsonArray = (json: string, key: string): number => {
   try {
-    const parsed = JSON.parse(json);
-    return Array.isArray(parsed?.[key]) ? parsed[key].length : 0;
-  } catch { return 0; }
+    const parsed = typeof json === 'string' ? JSON.parse(json) : json;
+    if (!parsed) return 0;
+    
+    // Check if the key exists and is an array
+    if (Array.isArray(parsed[key])) {
+      return parsed[key].length;
+    }
+    
+    // Handle cases where nodes/edges might be inside a 'data' property
+    if (parsed.data && Array.isArray(parsed.data[key])) {
+      return parsed.data[key].length;
+    }
+
+    return 0;
+  } catch (e) { 
+    logger.error(`Error counting ${key} in JSON`, { error: String(e) });
+    return 0; 
+  }
 };
 
 const mapFlowRow = (f: FlowRow) => ({

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { GitBranch, FolderOpen, ShieldCheck, LogOut, Activity } from 'lucide-react';
+import { GitBranch, FolderOpen, ShieldCheck, LogOut, Activity, Cpu } from 'lucide-react';
 import { useAuthUser, useLogout } from '../ProtectedRoute';
 import { apiService } from '../../lib/apiService';
 
@@ -29,6 +29,7 @@ export const GlobalHeader: React.FC = () => {
   const currentPath = location.pathname;
   const isDashboardActive = currentPath === '/' || currentPath.startsWith('/flow/');
   const isSecretsActive = currentPath.startsWith('/secrets');
+  const isProvidersActive = currentPath.startsWith('/llm-providers');
 
   return (
     <header className="sticky top-0 z-50 w-full bg-black/60 backdrop-blur-xl border-b border-white/5 shadow-[0_4px_30px_rgba(0,0,0,0.4)]">
@@ -97,6 +98,24 @@ export const GlobalHeader: React.FC = () => {
               Secret Vault
             </div>
             {isSecretsActive && (
+              <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-4 h-[2px] bg-cyber-primary rounded-full shadow-[0_0_6px_#00f0ff]" />
+            )}
+          </button>
+
+          {/* LLM Providers Tab */}
+          <button
+            onClick={() => navigate('/llm-providers')}
+            className={`relative px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider font-mono transition-all duration-300 ${
+              isProvidersActive
+                ? 'text-cyber-primary bg-cyber-primary/10 border border-cyber-primary/20 shadow-[0_0_10px_rgba(0,240,255,0.1)]'
+                : 'text-white/40 hover:text-white hover:bg-white/5 border border-transparent'
+            }`}
+          >
+            <div className="flex items-center gap-1.5">
+              <Cpu size={12} className={isProvidersActive ? 'text-cyber-primary' : 'text-white/30'} />
+              LLM Providers
+            </div>
+            {isProvidersActive && (
               <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-4 h-[2px] bg-cyber-primary rounded-full shadow-[0_0_6px_#00f0ff]" />
             )}
           </button>

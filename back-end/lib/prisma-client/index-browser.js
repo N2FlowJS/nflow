@@ -162,6 +162,18 @@ exports.Prisma.UserSecretScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.LLMProviderScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  name: 'name',
+  provider: 'provider',
+  baseUrl: 'baseUrl',
+  apiKey: 'apiKey',
+  config: 'config',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -182,7 +194,8 @@ exports.Prisma.ModelName = {
   User: 'User',
   Flow: 'Flow',
   FlowExecution: 'FlowExecution',
-  UserSecret: 'UserSecret'
+  UserSecret: 'UserSecret',
+  LLMProvider: 'LLMProvider'
 };
 
 /**

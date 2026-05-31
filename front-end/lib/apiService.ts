@@ -131,6 +131,14 @@ class ApiService {
     });
   }
 
+  public patch<T = any>(path: string, body: any, options?: RequestInit) {
+    return this.request<T>(path, {
+      ...options,
+      method: 'PATCH',
+      body: JSON.stringify(body)
+    });
+  }
+
   public delete<T = any>(path: string, options?: RequestInit) {
     return this.request<T>(path, { ...options, method: 'DELETE' });
   }

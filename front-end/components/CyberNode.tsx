@@ -18,12 +18,13 @@ import {
 // Sub-components
 import { NodeHeader } from './node-parts/NodeHeader';
 import { NodeActions } from './node-parts/NodeActions';
-// NodeDataModal is now a docked global panel; open it via event
 import { NodeHandles } from './node-parts/NodeHandles';
 
 // Hook
 import { useCyberNode } from '../hooks/useCyberNode';
 import { extractErrorMessage, getOutputSummary } from '../lib/utils';
+import { useEditor } from '../context/EditorContext';
+import { AlertTriangle, AlertCircle } from 'lucide-react';
 
 const PreviewButton: React.FC<{ output: unknown }> = ({ output }) => {
   const onOpen = (e: React.MouseEvent) => {
@@ -53,6 +54,11 @@ const PreviewButton: React.FC<{ output: unknown }> = ({ output }) => {
 const outputPortTypeCycle: PortDataType[] = ['any', 'text', 'chat_model', 'embedding_model', 'tool', 'boolean_route'];
 
 const CyberNode = ({ id, data, selected }: NodeProps<CustomNodeType>) => {
+  const { flowIssues } = useEditor();
+  const nodeIssues = useMemo(() => flowIssues.filter(i => i.nodeId === id), [flowIssues, id]);
+  const hasError = useMemo(() => nodeIssues.some(i => i.level === 'error'), [nodeIssues]);
+  const hasWarning = useMemo(() => nodeIssues.some(i => i.level === 'warning'), [nodeIssues]);
+
   const {
     isConfigOpen, setIsConfigOpen,
     isDataOpen, setIsDataOpen,
@@ -200,17 +206,45 @@ const CyberNode = ({ id, data, selected }: NodeProps<CustomNodeType>) => {
   const displayedErrorText = showFullError || !isLongError ? errorText : `${errorText.slice(0, 240)}...`;
 
   return (
-    <div className={`group relative min-w-[220px] max-w-[300px] bg-cyber-panel/90 backdrop-blur-xl border-2 ${!!selected ? 'border-cyber-primary ring-1 ring-cyber-primary/50' : (data.status === 'running' ? 'border-yellow-400 animate-pulse' : data.status === 'success' ? 'border-green-500' : 'border-cyber-border')} rounded-xl transition-all duration-300`}>
+    <div className={`group relative min-w-[220px] max-w-[300px] bg-cyber-panel/90 backdrop-blur-xl border-2 ${!!selected ? 'border-cyber-primary ring-1 ring-cyber-primary/50' : (hasError ? 'border-red-500/50 shadow-[0_0_15px_rgba(239,68,68,0.1)]' : hasWarning ? 'border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.1)]' : (data.status === 'running' ? 'border-yellow-400 animate-pulse' : data.status === 'success' ? 'border-green-500' : 'border-cyber-border'))} rounded-xl transition-all duration-300`}>
 
       <NodeActions onRun={onRun} onOpenConfig={handleOpenConfig} onOpenData={handleOpenData} onDelete={onDelete} isConfigOpen={isConfigOpen} isDataOpen={isDataOpen} />
 
       <NodeHeader data={{ ...data, registryEntry }} selected={!!selected} isAgent={isAgent} isLLM={isLLM} />
+
+      {(hasError || hasWarning) && (
+        <div className="absolute -top-3 -right-3 flex gap-1 z-30">
+          {nodeIssues.map((issue, idx) => (
+            <div 
+              key={idx} 
+              className={`p-1 rounded-full border shadow-lg animate-in zoom-in duration-300 ${issue.level === 'error' ? 'bg-red-500 border-red-400 text-white' : 'bg-amber-500 border-amber-400 text-black'}`}
+              title={issue.message}
+            >
+              {issue.level === 'error' ? <AlertCircle size={12} /> : <AlertTriangle size={12} />}
+            </div>
+          ))}
+        </div>
+      )}
 
       <div className="relative p-3">
         {data.status === 'error' && errorText && (
           <div className="relative z-10 mb-3 p-2 bg-red-500/10 border border-red-500/30 rounded text-[10px] text-red-200 leading-tight">
             <div className={`break-all ${showFullError ? 'max-h-40 overflow-y-auto pr-1' : ''}`}>{displayedErrorText}</div>
             {isLongError && <button type="button" onClick={() => setShowFullError(!showFullError)} className="mt-1 text-[9px] uppercase tracking-wider text-red-300 hover:text-red-100">{showFullError ? 'Show less' : 'Show more'}</button>}
+          </div>
+        )}
+
+        {nodeIssues.length > 0 && (
+          <div className={`mb-3 p-2 rounded text-[9px] leading-tight font-medium ${hasError ? 'bg-red-500/10 border border-red-500/20 text-red-300' : 'bg-amber-500/10 border border-amber-500/20 text-amber-200'}`}>
+            <div className="flex flex-col gap-1.5">
+              {nodeIssues.slice(0, 2).map((issue, i) => (
+                <div key={i} className="flex gap-1.5 items-start">
+                  <div className="shrink-0 mt-0.5">{issue.level === 'error' ? <AlertCircle size={8} /> : <AlertTriangle size={8} />}</div>
+                  <span>{issue.message}</span>
+                </div>
+              ))}
+              {nodeIssues.length > 2 && <div className="text-[8px] opacity-60 ml-3">+ {nodeIssues.length - 2} more issues...</div>}
+            </div>
           </div>
         )}
 

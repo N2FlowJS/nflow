@@ -29,7 +29,7 @@ export class SecretService {
     return secret;
   }
 
-  private static encryptSecret(secret: string): string {
+  public static encryptSecret(secret: string): string {
     try {
       const iv = crypto.randomBytes(16);
       const cipher = crypto.createCipheriv(ENCRYPTION_ALGORITHM, Buffer.alloc(32, ENCRYPTION_KEY), iv);
@@ -46,7 +46,7 @@ export class SecretService {
     }
   }
 
-  private static decryptSecret(encryptedSecret: string): string {
+  public static decryptSecret(encryptedSecret: string): string {
     try {
       const [ivHex, authTagHex, encrypted] = encryptedSecret.split(':');
       const iv = Buffer.from(ivHex, 'hex');

@@ -33,6 +33,11 @@ export type FlowExecution = $Result.DefaultSelection<Prisma.$FlowExecutionPayloa
  * 
  */
 export type UserSecret = $Result.DefaultSelection<Prisma.$UserSecretPayload>
+/**
+ * Model LLMProvider
+ * 
+ */
+export type LLMProvider = $Result.DefaultSelection<Prisma.$LLMProviderPayload>
 
 /**
  * ##  Prisma Client ʲˢ
@@ -194,6 +199,16 @@ export class PrismaClient<
     * ```
     */
   get userSecret(): Prisma.UserSecretDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.lLMProvider`: Exposes CRUD operations for the **LLMProvider** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more LLMProviders
+    * const lLMProviders = await prisma.lLMProvider.findMany()
+    * ```
+    */
+  get lLMProvider(): Prisma.LLMProviderDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -631,7 +646,8 @@ export namespace Prisma {
     User: 'User',
     Flow: 'Flow',
     FlowExecution: 'FlowExecution',
-    UserSecret: 'UserSecret'
+    UserSecret: 'UserSecret',
+    LLMProvider: 'LLMProvider'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -647,7 +663,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "flow" | "flowExecution" | "userSecret"
+      modelProps: "user" | "flow" | "flowExecution" | "userSecret" | "lLMProvider"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -947,6 +963,80 @@ export namespace Prisma {
           }
         }
       }
+      LLMProvider: {
+        payload: Prisma.$LLMProviderPayload<ExtArgs>
+        fields: Prisma.LLMProviderFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.LLMProviderFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LLMProviderPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.LLMProviderFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LLMProviderPayload>
+          }
+          findFirst: {
+            args: Prisma.LLMProviderFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LLMProviderPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.LLMProviderFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LLMProviderPayload>
+          }
+          findMany: {
+            args: Prisma.LLMProviderFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LLMProviderPayload>[]
+          }
+          create: {
+            args: Prisma.LLMProviderCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LLMProviderPayload>
+          }
+          createMany: {
+            args: Prisma.LLMProviderCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.LLMProviderCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LLMProviderPayload>[]
+          }
+          delete: {
+            args: Prisma.LLMProviderDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LLMProviderPayload>
+          }
+          update: {
+            args: Prisma.LLMProviderUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LLMProviderPayload>
+          }
+          deleteMany: {
+            args: Prisma.LLMProviderDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.LLMProviderUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.LLMProviderUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LLMProviderPayload>[]
+          }
+          upsert: {
+            args: Prisma.LLMProviderUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LLMProviderPayload>
+          }
+          aggregate: {
+            args: Prisma.LLMProviderAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateLLMProvider>
+          }
+          groupBy: {
+            args: Prisma.LLMProviderGroupByArgs<ExtArgs>
+            result: $Utils.Optional<LLMProviderGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.LLMProviderCountArgs<ExtArgs>
+            result: $Utils.Optional<LLMProviderCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -1059,6 +1149,7 @@ export namespace Prisma {
     flow?: FlowOmit
     flowExecution?: FlowExecutionOmit
     userSecret?: UserSecretOmit
+    lLMProvider?: LLMProviderOmit
   }
 
   /* Types for Logging */
@@ -1141,11 +1232,13 @@ export namespace Prisma {
   export type UserCountOutputType = {
     flows: number
     secrets: number
+    providers: number
   }
 
   export type UserCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     flows?: boolean | UserCountOutputTypeCountFlowsArgs
     secrets?: boolean | UserCountOutputTypeCountSecretsArgs
+    providers?: boolean | UserCountOutputTypeCountProvidersArgs
   }
 
   // Custom InputTypes
@@ -1171,6 +1264,13 @@ export namespace Prisma {
    */
   export type UserCountOutputTypeCountSecretsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: UserSecretWhereInput
+  }
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountProvidersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: LLMProviderWhereInput
   }
 
 
@@ -1391,6 +1491,7 @@ export namespace Prisma {
     updatedAt?: boolean
     flows?: boolean | User$flowsArgs<ExtArgs>
     secrets?: boolean | User$secretsArgs<ExtArgs>
+    providers?: boolean | User$providersArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["user"]>
 
@@ -1428,6 +1529,7 @@ export namespace Prisma {
   export type UserInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     flows?: boolean | User$flowsArgs<ExtArgs>
     secrets?: boolean | User$secretsArgs<ExtArgs>
+    providers?: boolean | User$providersArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type UserIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -1438,6 +1540,7 @@ export namespace Prisma {
     objects: {
       flows: Prisma.$FlowPayload<ExtArgs>[]
       secrets: Prisma.$UserSecretPayload<ExtArgs>[]
+      providers: Prisma.$LLMProviderPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -1843,6 +1946,7 @@ export namespace Prisma {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     flows<T extends User$flowsArgs<ExtArgs> = {}>(args?: Subset<T, User$flowsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$FlowPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     secrets<T extends User$secretsArgs<ExtArgs> = {}>(args?: Subset<T, User$secretsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserSecretPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    providers<T extends User$providersArgs<ExtArgs> = {}>(args?: Subset<T, User$providersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$LLMProviderPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2317,6 +2421,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: UserSecretScalarFieldEnum | UserSecretScalarFieldEnum[]
+  }
+
+  /**
+   * User.providers
+   */
+  export type User$providersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LLMProvider
+     */
+    select?: LLMProviderSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the LLMProvider
+     */
+    omit?: LLMProviderOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LLMProviderInclude<ExtArgs> | null
+    where?: LLMProviderWhereInput
+    orderBy?: LLMProviderOrderByWithRelationInput | LLMProviderOrderByWithRelationInput[]
+    cursor?: LLMProviderWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: LLMProviderScalarFieldEnum | LLMProviderScalarFieldEnum[]
   }
 
   /**
@@ -5662,6 +5790,1121 @@ export namespace Prisma {
 
 
   /**
+   * Model LLMProvider
+   */
+
+  export type AggregateLLMProvider = {
+    _count: LLMProviderCountAggregateOutputType | null
+    _min: LLMProviderMinAggregateOutputType | null
+    _max: LLMProviderMaxAggregateOutputType | null
+  }
+
+  export type LLMProviderMinAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    name: string | null
+    provider: string | null
+    baseUrl: string | null
+    apiKey: string | null
+    config: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type LLMProviderMaxAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    name: string | null
+    provider: string | null
+    baseUrl: string | null
+    apiKey: string | null
+    config: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type LLMProviderCountAggregateOutputType = {
+    id: number
+    userId: number
+    name: number
+    provider: number
+    baseUrl: number
+    apiKey: number
+    config: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type LLMProviderMinAggregateInputType = {
+    id?: true
+    userId?: true
+    name?: true
+    provider?: true
+    baseUrl?: true
+    apiKey?: true
+    config?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type LLMProviderMaxAggregateInputType = {
+    id?: true
+    userId?: true
+    name?: true
+    provider?: true
+    baseUrl?: true
+    apiKey?: true
+    config?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type LLMProviderCountAggregateInputType = {
+    id?: true
+    userId?: true
+    name?: true
+    provider?: true
+    baseUrl?: true
+    apiKey?: true
+    config?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type LLMProviderAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which LLMProvider to aggregate.
+     */
+    where?: LLMProviderWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of LLMProviders to fetch.
+     */
+    orderBy?: LLMProviderOrderByWithRelationInput | LLMProviderOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: LLMProviderWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` LLMProviders from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` LLMProviders.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned LLMProviders
+    **/
+    _count?: true | LLMProviderCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: LLMProviderMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: LLMProviderMaxAggregateInputType
+  }
+
+  export type GetLLMProviderAggregateType<T extends LLMProviderAggregateArgs> = {
+        [P in keyof T & keyof AggregateLLMProvider]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateLLMProvider[P]>
+      : GetScalarType<T[P], AggregateLLMProvider[P]>
+  }
+
+
+
+
+  export type LLMProviderGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: LLMProviderWhereInput
+    orderBy?: LLMProviderOrderByWithAggregationInput | LLMProviderOrderByWithAggregationInput[]
+    by: LLMProviderScalarFieldEnum[] | LLMProviderScalarFieldEnum
+    having?: LLMProviderScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: LLMProviderCountAggregateInputType | true
+    _min?: LLMProviderMinAggregateInputType
+    _max?: LLMProviderMaxAggregateInputType
+  }
+
+  export type LLMProviderGroupByOutputType = {
+    id: string
+    userId: string
+    name: string
+    provider: string
+    baseUrl: string | null
+    apiKey: string | null
+    config: string | null
+    createdAt: Date
+    updatedAt: Date
+    _count: LLMProviderCountAggregateOutputType | null
+    _min: LLMProviderMinAggregateOutputType | null
+    _max: LLMProviderMaxAggregateOutputType | null
+  }
+
+  type GetLLMProviderGroupByPayload<T extends LLMProviderGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<LLMProviderGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof LLMProviderGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], LLMProviderGroupByOutputType[P]>
+            : GetScalarType<T[P], LLMProviderGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type LLMProviderSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    name?: boolean
+    provider?: boolean
+    baseUrl?: boolean
+    apiKey?: boolean
+    config?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["lLMProvider"]>
+
+  export type LLMProviderSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    name?: boolean
+    provider?: boolean
+    baseUrl?: boolean
+    apiKey?: boolean
+    config?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["lLMProvider"]>
+
+  export type LLMProviderSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    name?: boolean
+    provider?: boolean
+    baseUrl?: boolean
+    apiKey?: boolean
+    config?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["lLMProvider"]>
+
+  export type LLMProviderSelectScalar = {
+    id?: boolean
+    userId?: boolean
+    name?: boolean
+    provider?: boolean
+    baseUrl?: boolean
+    apiKey?: boolean
+    config?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type LLMProviderOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "name" | "provider" | "baseUrl" | "apiKey" | "config" | "createdAt" | "updatedAt", ExtArgs["result"]["lLMProvider"]>
+  export type LLMProviderInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type LLMProviderIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type LLMProviderIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+
+  export type $LLMProviderPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "LLMProvider"
+    objects: {
+      user: Prisma.$UserPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      userId: string
+      name: string
+      provider: string
+      baseUrl: string | null
+      apiKey: string | null
+      config: string | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["lLMProvider"]>
+    composites: {}
+  }
+
+  type LLMProviderGetPayload<S extends boolean | null | undefined | LLMProviderDefaultArgs> = $Result.GetResult<Prisma.$LLMProviderPayload, S>
+
+  type LLMProviderCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<LLMProviderFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: LLMProviderCountAggregateInputType | true
+    }
+
+  export interface LLMProviderDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['LLMProvider'], meta: { name: 'LLMProvider' } }
+    /**
+     * Find zero or one LLMProvider that matches the filter.
+     * @param {LLMProviderFindUniqueArgs} args - Arguments to find a LLMProvider
+     * @example
+     * // Get one LLMProvider
+     * const lLMProvider = await prisma.lLMProvider.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends LLMProviderFindUniqueArgs>(args: SelectSubset<T, LLMProviderFindUniqueArgs<ExtArgs>>): Prisma__LLMProviderClient<$Result.GetResult<Prisma.$LLMProviderPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one LLMProvider that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {LLMProviderFindUniqueOrThrowArgs} args - Arguments to find a LLMProvider
+     * @example
+     * // Get one LLMProvider
+     * const lLMProvider = await prisma.lLMProvider.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends LLMProviderFindUniqueOrThrowArgs>(args: SelectSubset<T, LLMProviderFindUniqueOrThrowArgs<ExtArgs>>): Prisma__LLMProviderClient<$Result.GetResult<Prisma.$LLMProviderPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first LLMProvider that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {LLMProviderFindFirstArgs} args - Arguments to find a LLMProvider
+     * @example
+     * // Get one LLMProvider
+     * const lLMProvider = await prisma.lLMProvider.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends LLMProviderFindFirstArgs>(args?: SelectSubset<T, LLMProviderFindFirstArgs<ExtArgs>>): Prisma__LLMProviderClient<$Result.GetResult<Prisma.$LLMProviderPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first LLMProvider that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {LLMProviderFindFirstOrThrowArgs} args - Arguments to find a LLMProvider
+     * @example
+     * // Get one LLMProvider
+     * const lLMProvider = await prisma.lLMProvider.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends LLMProviderFindFirstOrThrowArgs>(args?: SelectSubset<T, LLMProviderFindFirstOrThrowArgs<ExtArgs>>): Prisma__LLMProviderClient<$Result.GetResult<Prisma.$LLMProviderPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more LLMProviders that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {LLMProviderFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all LLMProviders
+     * const lLMProviders = await prisma.lLMProvider.findMany()
+     * 
+     * // Get first 10 LLMProviders
+     * const lLMProviders = await prisma.lLMProvider.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const lLMProviderWithIdOnly = await prisma.lLMProvider.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends LLMProviderFindManyArgs>(args?: SelectSubset<T, LLMProviderFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$LLMProviderPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a LLMProvider.
+     * @param {LLMProviderCreateArgs} args - Arguments to create a LLMProvider.
+     * @example
+     * // Create one LLMProvider
+     * const LLMProvider = await prisma.lLMProvider.create({
+     *   data: {
+     *     // ... data to create a LLMProvider
+     *   }
+     * })
+     * 
+     */
+    create<T extends LLMProviderCreateArgs>(args: SelectSubset<T, LLMProviderCreateArgs<ExtArgs>>): Prisma__LLMProviderClient<$Result.GetResult<Prisma.$LLMProviderPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many LLMProviders.
+     * @param {LLMProviderCreateManyArgs} args - Arguments to create many LLMProviders.
+     * @example
+     * // Create many LLMProviders
+     * const lLMProvider = await prisma.lLMProvider.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends LLMProviderCreateManyArgs>(args?: SelectSubset<T, LLMProviderCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many LLMProviders and returns the data saved in the database.
+     * @param {LLMProviderCreateManyAndReturnArgs} args - Arguments to create many LLMProviders.
+     * @example
+     * // Create many LLMProviders
+     * const lLMProvider = await prisma.lLMProvider.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many LLMProviders and only return the `id`
+     * const lLMProviderWithIdOnly = await prisma.lLMProvider.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends LLMProviderCreateManyAndReturnArgs>(args?: SelectSubset<T, LLMProviderCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$LLMProviderPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a LLMProvider.
+     * @param {LLMProviderDeleteArgs} args - Arguments to delete one LLMProvider.
+     * @example
+     * // Delete one LLMProvider
+     * const LLMProvider = await prisma.lLMProvider.delete({
+     *   where: {
+     *     // ... filter to delete one LLMProvider
+     *   }
+     * })
+     * 
+     */
+    delete<T extends LLMProviderDeleteArgs>(args: SelectSubset<T, LLMProviderDeleteArgs<ExtArgs>>): Prisma__LLMProviderClient<$Result.GetResult<Prisma.$LLMProviderPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one LLMProvider.
+     * @param {LLMProviderUpdateArgs} args - Arguments to update one LLMProvider.
+     * @example
+     * // Update one LLMProvider
+     * const lLMProvider = await prisma.lLMProvider.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends LLMProviderUpdateArgs>(args: SelectSubset<T, LLMProviderUpdateArgs<ExtArgs>>): Prisma__LLMProviderClient<$Result.GetResult<Prisma.$LLMProviderPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more LLMProviders.
+     * @param {LLMProviderDeleteManyArgs} args - Arguments to filter LLMProviders to delete.
+     * @example
+     * // Delete a few LLMProviders
+     * const { count } = await prisma.lLMProvider.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends LLMProviderDeleteManyArgs>(args?: SelectSubset<T, LLMProviderDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more LLMProviders.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {LLMProviderUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many LLMProviders
+     * const lLMProvider = await prisma.lLMProvider.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends LLMProviderUpdateManyArgs>(args: SelectSubset<T, LLMProviderUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more LLMProviders and returns the data updated in the database.
+     * @param {LLMProviderUpdateManyAndReturnArgs} args - Arguments to update many LLMProviders.
+     * @example
+     * // Update many LLMProviders
+     * const lLMProvider = await prisma.lLMProvider.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more LLMProviders and only return the `id`
+     * const lLMProviderWithIdOnly = await prisma.lLMProvider.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends LLMProviderUpdateManyAndReturnArgs>(args: SelectSubset<T, LLMProviderUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$LLMProviderPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one LLMProvider.
+     * @param {LLMProviderUpsertArgs} args - Arguments to update or create a LLMProvider.
+     * @example
+     * // Update or create a LLMProvider
+     * const lLMProvider = await prisma.lLMProvider.upsert({
+     *   create: {
+     *     // ... data to create a LLMProvider
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the LLMProvider we want to update
+     *   }
+     * })
+     */
+    upsert<T extends LLMProviderUpsertArgs>(args: SelectSubset<T, LLMProviderUpsertArgs<ExtArgs>>): Prisma__LLMProviderClient<$Result.GetResult<Prisma.$LLMProviderPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of LLMProviders.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {LLMProviderCountArgs} args - Arguments to filter LLMProviders to count.
+     * @example
+     * // Count the number of LLMProviders
+     * const count = await prisma.lLMProvider.count({
+     *   where: {
+     *     // ... the filter for the LLMProviders we want to count
+     *   }
+     * })
+    **/
+    count<T extends LLMProviderCountArgs>(
+      args?: Subset<T, LLMProviderCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], LLMProviderCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a LLMProvider.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {LLMProviderAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends LLMProviderAggregateArgs>(args: Subset<T, LLMProviderAggregateArgs>): Prisma.PrismaPromise<GetLLMProviderAggregateType<T>>
+
+    /**
+     * Group by LLMProvider.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {LLMProviderGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends LLMProviderGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: LLMProviderGroupByArgs['orderBy'] }
+        : { orderBy?: LLMProviderGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, LLMProviderGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetLLMProviderGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the LLMProvider model
+   */
+  readonly fields: LLMProviderFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for LLMProvider.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__LLMProviderClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the LLMProvider model
+   */
+  interface LLMProviderFieldRefs {
+    readonly id: FieldRef<"LLMProvider", 'String'>
+    readonly userId: FieldRef<"LLMProvider", 'String'>
+    readonly name: FieldRef<"LLMProvider", 'String'>
+    readonly provider: FieldRef<"LLMProvider", 'String'>
+    readonly baseUrl: FieldRef<"LLMProvider", 'String'>
+    readonly apiKey: FieldRef<"LLMProvider", 'String'>
+    readonly config: FieldRef<"LLMProvider", 'String'>
+    readonly createdAt: FieldRef<"LLMProvider", 'DateTime'>
+    readonly updatedAt: FieldRef<"LLMProvider", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * LLMProvider findUnique
+   */
+  export type LLMProviderFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LLMProvider
+     */
+    select?: LLMProviderSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the LLMProvider
+     */
+    omit?: LLMProviderOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LLMProviderInclude<ExtArgs> | null
+    /**
+     * Filter, which LLMProvider to fetch.
+     */
+    where: LLMProviderWhereUniqueInput
+  }
+
+  /**
+   * LLMProvider findUniqueOrThrow
+   */
+  export type LLMProviderFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LLMProvider
+     */
+    select?: LLMProviderSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the LLMProvider
+     */
+    omit?: LLMProviderOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LLMProviderInclude<ExtArgs> | null
+    /**
+     * Filter, which LLMProvider to fetch.
+     */
+    where: LLMProviderWhereUniqueInput
+  }
+
+  /**
+   * LLMProvider findFirst
+   */
+  export type LLMProviderFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LLMProvider
+     */
+    select?: LLMProviderSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the LLMProvider
+     */
+    omit?: LLMProviderOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LLMProviderInclude<ExtArgs> | null
+    /**
+     * Filter, which LLMProvider to fetch.
+     */
+    where?: LLMProviderWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of LLMProviders to fetch.
+     */
+    orderBy?: LLMProviderOrderByWithRelationInput | LLMProviderOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for LLMProviders.
+     */
+    cursor?: LLMProviderWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` LLMProviders from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` LLMProviders.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of LLMProviders.
+     */
+    distinct?: LLMProviderScalarFieldEnum | LLMProviderScalarFieldEnum[]
+  }
+
+  /**
+   * LLMProvider findFirstOrThrow
+   */
+  export type LLMProviderFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LLMProvider
+     */
+    select?: LLMProviderSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the LLMProvider
+     */
+    omit?: LLMProviderOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LLMProviderInclude<ExtArgs> | null
+    /**
+     * Filter, which LLMProvider to fetch.
+     */
+    where?: LLMProviderWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of LLMProviders to fetch.
+     */
+    orderBy?: LLMProviderOrderByWithRelationInput | LLMProviderOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for LLMProviders.
+     */
+    cursor?: LLMProviderWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` LLMProviders from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` LLMProviders.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of LLMProviders.
+     */
+    distinct?: LLMProviderScalarFieldEnum | LLMProviderScalarFieldEnum[]
+  }
+
+  /**
+   * LLMProvider findMany
+   */
+  export type LLMProviderFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LLMProvider
+     */
+    select?: LLMProviderSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the LLMProvider
+     */
+    omit?: LLMProviderOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LLMProviderInclude<ExtArgs> | null
+    /**
+     * Filter, which LLMProviders to fetch.
+     */
+    where?: LLMProviderWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of LLMProviders to fetch.
+     */
+    orderBy?: LLMProviderOrderByWithRelationInput | LLMProviderOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing LLMProviders.
+     */
+    cursor?: LLMProviderWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` LLMProviders from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` LLMProviders.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of LLMProviders.
+     */
+    distinct?: LLMProviderScalarFieldEnum | LLMProviderScalarFieldEnum[]
+  }
+
+  /**
+   * LLMProvider create
+   */
+  export type LLMProviderCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LLMProvider
+     */
+    select?: LLMProviderSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the LLMProvider
+     */
+    omit?: LLMProviderOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LLMProviderInclude<ExtArgs> | null
+    /**
+     * The data needed to create a LLMProvider.
+     */
+    data: XOR<LLMProviderCreateInput, LLMProviderUncheckedCreateInput>
+  }
+
+  /**
+   * LLMProvider createMany
+   */
+  export type LLMProviderCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many LLMProviders.
+     */
+    data: LLMProviderCreateManyInput | LLMProviderCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * LLMProvider createManyAndReturn
+   */
+  export type LLMProviderCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LLMProvider
+     */
+    select?: LLMProviderSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the LLMProvider
+     */
+    omit?: LLMProviderOmit<ExtArgs> | null
+    /**
+     * The data used to create many LLMProviders.
+     */
+    data: LLMProviderCreateManyInput | LLMProviderCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LLMProviderIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * LLMProvider update
+   */
+  export type LLMProviderUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LLMProvider
+     */
+    select?: LLMProviderSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the LLMProvider
+     */
+    omit?: LLMProviderOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LLMProviderInclude<ExtArgs> | null
+    /**
+     * The data needed to update a LLMProvider.
+     */
+    data: XOR<LLMProviderUpdateInput, LLMProviderUncheckedUpdateInput>
+    /**
+     * Choose, which LLMProvider to update.
+     */
+    where: LLMProviderWhereUniqueInput
+  }
+
+  /**
+   * LLMProvider updateMany
+   */
+  export type LLMProviderUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update LLMProviders.
+     */
+    data: XOR<LLMProviderUpdateManyMutationInput, LLMProviderUncheckedUpdateManyInput>
+    /**
+     * Filter which LLMProviders to update
+     */
+    where?: LLMProviderWhereInput
+    /**
+     * Limit how many LLMProviders to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * LLMProvider updateManyAndReturn
+   */
+  export type LLMProviderUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LLMProvider
+     */
+    select?: LLMProviderSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the LLMProvider
+     */
+    omit?: LLMProviderOmit<ExtArgs> | null
+    /**
+     * The data used to update LLMProviders.
+     */
+    data: XOR<LLMProviderUpdateManyMutationInput, LLMProviderUncheckedUpdateManyInput>
+    /**
+     * Filter which LLMProviders to update
+     */
+    where?: LLMProviderWhereInput
+    /**
+     * Limit how many LLMProviders to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LLMProviderIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * LLMProvider upsert
+   */
+  export type LLMProviderUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LLMProvider
+     */
+    select?: LLMProviderSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the LLMProvider
+     */
+    omit?: LLMProviderOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LLMProviderInclude<ExtArgs> | null
+    /**
+     * The filter to search for the LLMProvider to update in case it exists.
+     */
+    where: LLMProviderWhereUniqueInput
+    /**
+     * In case the LLMProvider found by the `where` argument doesn't exist, create a new LLMProvider with this data.
+     */
+    create: XOR<LLMProviderCreateInput, LLMProviderUncheckedCreateInput>
+    /**
+     * In case the LLMProvider was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<LLMProviderUpdateInput, LLMProviderUncheckedUpdateInput>
+  }
+
+  /**
+   * LLMProvider delete
+   */
+  export type LLMProviderDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LLMProvider
+     */
+    select?: LLMProviderSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the LLMProvider
+     */
+    omit?: LLMProviderOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LLMProviderInclude<ExtArgs> | null
+    /**
+     * Filter which LLMProvider to delete.
+     */
+    where: LLMProviderWhereUniqueInput
+  }
+
+  /**
+   * LLMProvider deleteMany
+   */
+  export type LLMProviderDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which LLMProviders to delete
+     */
+    where?: LLMProviderWhereInput
+    /**
+     * Limit how many LLMProviders to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * LLMProvider without action
+   */
+  export type LLMProviderDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LLMProvider
+     */
+    select?: LLMProviderSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the LLMProvider
+     */
+    omit?: LLMProviderOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LLMProviderInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -5727,6 +6970,21 @@ export namespace Prisma {
   };
 
   export type UserSecretScalarFieldEnum = (typeof UserSecretScalarFieldEnum)[keyof typeof UserSecretScalarFieldEnum]
+
+
+  export const LLMProviderScalarFieldEnum: {
+    id: 'id',
+    userId: 'userId',
+    name: 'name',
+    provider: 'provider',
+    baseUrl: 'baseUrl',
+    apiKey: 'apiKey',
+    config: 'config',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type LLMProviderScalarFieldEnum = (typeof LLMProviderScalarFieldEnum)[keyof typeof LLMProviderScalarFieldEnum]
 
 
   export const SortOrder: {
@@ -5816,6 +7074,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"User"> | Date | string
     flows?: FlowListRelationFilter
     secrets?: UserSecretListRelationFilter
+    providers?: LLMProviderListRelationFilter
   }
 
   export type UserOrderByWithRelationInput = {
@@ -5828,6 +7087,7 @@ export namespace Prisma {
     updatedAt?: SortOrder
     flows?: FlowOrderByRelationAggregateInput
     secrets?: UserSecretOrderByRelationAggregateInput
+    providers?: LLMProviderOrderByRelationAggregateInput
   }
 
   export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -5843,6 +7103,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"User"> | Date | string
     flows?: FlowListRelationFilter
     secrets?: UserSecretListRelationFilter
+    providers?: LLMProviderListRelationFilter
   }, "id" | "email" | "username">
 
   export type UserOrderByWithAggregationInput = {
@@ -6080,6 +7341,81 @@ export namespace Prisma {
     updatedAt?: DateTimeWithAggregatesFilter<"UserSecret"> | Date | string
   }
 
+  export type LLMProviderWhereInput = {
+    AND?: LLMProviderWhereInput | LLMProviderWhereInput[]
+    OR?: LLMProviderWhereInput[]
+    NOT?: LLMProviderWhereInput | LLMProviderWhereInput[]
+    id?: StringFilter<"LLMProvider"> | string
+    userId?: StringFilter<"LLMProvider"> | string
+    name?: StringFilter<"LLMProvider"> | string
+    provider?: StringFilter<"LLMProvider"> | string
+    baseUrl?: StringNullableFilter<"LLMProvider"> | string | null
+    apiKey?: StringNullableFilter<"LLMProvider"> | string | null
+    config?: StringNullableFilter<"LLMProvider"> | string | null
+    createdAt?: DateTimeFilter<"LLMProvider"> | Date | string
+    updatedAt?: DateTimeFilter<"LLMProvider"> | Date | string
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+  }
+
+  export type LLMProviderOrderByWithRelationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    name?: SortOrder
+    provider?: SortOrder
+    baseUrl?: SortOrderInput | SortOrder
+    apiKey?: SortOrderInput | SortOrder
+    config?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    user?: UserOrderByWithRelationInput
+  }
+
+  export type LLMProviderWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: LLMProviderWhereInput | LLMProviderWhereInput[]
+    OR?: LLMProviderWhereInput[]
+    NOT?: LLMProviderWhereInput | LLMProviderWhereInput[]
+    userId?: StringFilter<"LLMProvider"> | string
+    name?: StringFilter<"LLMProvider"> | string
+    provider?: StringFilter<"LLMProvider"> | string
+    baseUrl?: StringNullableFilter<"LLMProvider"> | string | null
+    apiKey?: StringNullableFilter<"LLMProvider"> | string | null
+    config?: StringNullableFilter<"LLMProvider"> | string | null
+    createdAt?: DateTimeFilter<"LLMProvider"> | Date | string
+    updatedAt?: DateTimeFilter<"LLMProvider"> | Date | string
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+  }, "id">
+
+  export type LLMProviderOrderByWithAggregationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    name?: SortOrder
+    provider?: SortOrder
+    baseUrl?: SortOrderInput | SortOrder
+    apiKey?: SortOrderInput | SortOrder
+    config?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: LLMProviderCountOrderByAggregateInput
+    _max?: LLMProviderMaxOrderByAggregateInput
+    _min?: LLMProviderMinOrderByAggregateInput
+  }
+
+  export type LLMProviderScalarWhereWithAggregatesInput = {
+    AND?: LLMProviderScalarWhereWithAggregatesInput | LLMProviderScalarWhereWithAggregatesInput[]
+    OR?: LLMProviderScalarWhereWithAggregatesInput[]
+    NOT?: LLMProviderScalarWhereWithAggregatesInput | LLMProviderScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"LLMProvider"> | string
+    userId?: StringWithAggregatesFilter<"LLMProvider"> | string
+    name?: StringWithAggregatesFilter<"LLMProvider"> | string
+    provider?: StringWithAggregatesFilter<"LLMProvider"> | string
+    baseUrl?: StringNullableWithAggregatesFilter<"LLMProvider"> | string | null
+    apiKey?: StringNullableWithAggregatesFilter<"LLMProvider"> | string | null
+    config?: StringNullableWithAggregatesFilter<"LLMProvider"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"LLMProvider"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"LLMProvider"> | Date | string
+  }
+
   export type UserCreateInput = {
     id?: string
     email: string
@@ -6090,6 +7426,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     flows?: FlowCreateNestedManyWithoutUserInput
     secrets?: UserSecretCreateNestedManyWithoutUserInput
+    providers?: LLMProviderCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateInput = {
@@ -6102,6 +7439,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     flows?: FlowUncheckedCreateNestedManyWithoutUserInput
     secrets?: UserSecretUncheckedCreateNestedManyWithoutUserInput
+    providers?: LLMProviderUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserUpdateInput = {
@@ -6114,6 +7452,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     flows?: FlowUpdateManyWithoutUserNestedInput
     secrets?: UserSecretUpdateManyWithoutUserNestedInput
+    providers?: LLMProviderUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateInput = {
@@ -6126,6 +7465,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     flows?: FlowUncheckedUpdateManyWithoutUserNestedInput
     secrets?: UserSecretUncheckedUpdateManyWithoutUserNestedInput
+    providers?: LLMProviderUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateManyInput = {
@@ -6383,6 +7723,89 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type LLMProviderCreateInput = {
+    id?: string
+    name: string
+    provider: string
+    baseUrl?: string | null
+    apiKey?: string | null
+    config?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    user: UserCreateNestedOneWithoutProvidersInput
+  }
+
+  export type LLMProviderUncheckedCreateInput = {
+    id?: string
+    userId: string
+    name: string
+    provider: string
+    baseUrl?: string | null
+    apiKey?: string | null
+    config?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type LLMProviderUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    provider?: StringFieldUpdateOperationsInput | string
+    baseUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    apiKey?: NullableStringFieldUpdateOperationsInput | string | null
+    config?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutProvidersNestedInput
+  }
+
+  export type LLMProviderUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    provider?: StringFieldUpdateOperationsInput | string
+    baseUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    apiKey?: NullableStringFieldUpdateOperationsInput | string | null
+    config?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type LLMProviderCreateManyInput = {
+    id?: string
+    userId: string
+    name: string
+    provider: string
+    baseUrl?: string | null
+    apiKey?: string | null
+    config?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type LLMProviderUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    provider?: StringFieldUpdateOperationsInput | string
+    baseUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    apiKey?: NullableStringFieldUpdateOperationsInput | string | null
+    config?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type LLMProviderUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    provider?: StringFieldUpdateOperationsInput | string
+    baseUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    apiKey?: NullableStringFieldUpdateOperationsInput | string | null
+    config?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -6436,6 +7859,12 @@ export namespace Prisma {
     none?: UserSecretWhereInput
   }
 
+  export type LLMProviderListRelationFilter = {
+    every?: LLMProviderWhereInput
+    some?: LLMProviderWhereInput
+    none?: LLMProviderWhereInput
+  }
+
   export type SortOrderInput = {
     sort: SortOrder
     nulls?: NullsOrder
@@ -6446,6 +7875,10 @@ export namespace Prisma {
   }
 
   export type UserSecretOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type LLMProviderOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -6675,6 +8108,42 @@ export namespace Prisma {
     updatedAt?: SortOrder
   }
 
+  export type LLMProviderCountOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    name?: SortOrder
+    provider?: SortOrder
+    baseUrl?: SortOrder
+    apiKey?: SortOrder
+    config?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type LLMProviderMaxOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    name?: SortOrder
+    provider?: SortOrder
+    baseUrl?: SortOrder
+    apiKey?: SortOrder
+    config?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type LLMProviderMinOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    name?: SortOrder
+    provider?: SortOrder
+    baseUrl?: SortOrder
+    apiKey?: SortOrder
+    config?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
   export type FlowCreateNestedManyWithoutUserInput = {
     create?: XOR<FlowCreateWithoutUserInput, FlowUncheckedCreateWithoutUserInput> | FlowCreateWithoutUserInput[] | FlowUncheckedCreateWithoutUserInput[]
     connectOrCreate?: FlowCreateOrConnectWithoutUserInput | FlowCreateOrConnectWithoutUserInput[]
@@ -6689,6 +8158,13 @@ export namespace Prisma {
     connect?: UserSecretWhereUniqueInput | UserSecretWhereUniqueInput[]
   }
 
+  export type LLMProviderCreateNestedManyWithoutUserInput = {
+    create?: XOR<LLMProviderCreateWithoutUserInput, LLMProviderUncheckedCreateWithoutUserInput> | LLMProviderCreateWithoutUserInput[] | LLMProviderUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: LLMProviderCreateOrConnectWithoutUserInput | LLMProviderCreateOrConnectWithoutUserInput[]
+    createMany?: LLMProviderCreateManyUserInputEnvelope
+    connect?: LLMProviderWhereUniqueInput | LLMProviderWhereUniqueInput[]
+  }
+
   export type FlowUncheckedCreateNestedManyWithoutUserInput = {
     create?: XOR<FlowCreateWithoutUserInput, FlowUncheckedCreateWithoutUserInput> | FlowCreateWithoutUserInput[] | FlowUncheckedCreateWithoutUserInput[]
     connectOrCreate?: FlowCreateOrConnectWithoutUserInput | FlowCreateOrConnectWithoutUserInput[]
@@ -6701,6 +8177,13 @@ export namespace Prisma {
     connectOrCreate?: UserSecretCreateOrConnectWithoutUserInput | UserSecretCreateOrConnectWithoutUserInput[]
     createMany?: UserSecretCreateManyUserInputEnvelope
     connect?: UserSecretWhereUniqueInput | UserSecretWhereUniqueInput[]
+  }
+
+  export type LLMProviderUncheckedCreateNestedManyWithoutUserInput = {
+    create?: XOR<LLMProviderCreateWithoutUserInput, LLMProviderUncheckedCreateWithoutUserInput> | LLMProviderCreateWithoutUserInput[] | LLMProviderUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: LLMProviderCreateOrConnectWithoutUserInput | LLMProviderCreateOrConnectWithoutUserInput[]
+    createMany?: LLMProviderCreateManyUserInputEnvelope
+    connect?: LLMProviderWhereUniqueInput | LLMProviderWhereUniqueInput[]
   }
 
   export type StringFieldUpdateOperationsInput = {
@@ -6743,6 +8226,20 @@ export namespace Prisma {
     deleteMany?: UserSecretScalarWhereInput | UserSecretScalarWhereInput[]
   }
 
+  export type LLMProviderUpdateManyWithoutUserNestedInput = {
+    create?: XOR<LLMProviderCreateWithoutUserInput, LLMProviderUncheckedCreateWithoutUserInput> | LLMProviderCreateWithoutUserInput[] | LLMProviderUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: LLMProviderCreateOrConnectWithoutUserInput | LLMProviderCreateOrConnectWithoutUserInput[]
+    upsert?: LLMProviderUpsertWithWhereUniqueWithoutUserInput | LLMProviderUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: LLMProviderCreateManyUserInputEnvelope
+    set?: LLMProviderWhereUniqueInput | LLMProviderWhereUniqueInput[]
+    disconnect?: LLMProviderWhereUniqueInput | LLMProviderWhereUniqueInput[]
+    delete?: LLMProviderWhereUniqueInput | LLMProviderWhereUniqueInput[]
+    connect?: LLMProviderWhereUniqueInput | LLMProviderWhereUniqueInput[]
+    update?: LLMProviderUpdateWithWhereUniqueWithoutUserInput | LLMProviderUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: LLMProviderUpdateManyWithWhereWithoutUserInput | LLMProviderUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: LLMProviderScalarWhereInput | LLMProviderScalarWhereInput[]
+  }
+
   export type FlowUncheckedUpdateManyWithoutUserNestedInput = {
     create?: XOR<FlowCreateWithoutUserInput, FlowUncheckedCreateWithoutUserInput> | FlowCreateWithoutUserInput[] | FlowUncheckedCreateWithoutUserInput[]
     connectOrCreate?: FlowCreateOrConnectWithoutUserInput | FlowCreateOrConnectWithoutUserInput[]
@@ -6769,6 +8266,20 @@ export namespace Prisma {
     update?: UserSecretUpdateWithWhereUniqueWithoutUserInput | UserSecretUpdateWithWhereUniqueWithoutUserInput[]
     updateMany?: UserSecretUpdateManyWithWhereWithoutUserInput | UserSecretUpdateManyWithWhereWithoutUserInput[]
     deleteMany?: UserSecretScalarWhereInput | UserSecretScalarWhereInput[]
+  }
+
+  export type LLMProviderUncheckedUpdateManyWithoutUserNestedInput = {
+    create?: XOR<LLMProviderCreateWithoutUserInput, LLMProviderUncheckedCreateWithoutUserInput> | LLMProviderCreateWithoutUserInput[] | LLMProviderUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: LLMProviderCreateOrConnectWithoutUserInput | LLMProviderCreateOrConnectWithoutUserInput[]
+    upsert?: LLMProviderUpsertWithWhereUniqueWithoutUserInput | LLMProviderUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: LLMProviderCreateManyUserInputEnvelope
+    set?: LLMProviderWhereUniqueInput | LLMProviderWhereUniqueInput[]
+    disconnect?: LLMProviderWhereUniqueInput | LLMProviderWhereUniqueInput[]
+    delete?: LLMProviderWhereUniqueInput | LLMProviderWhereUniqueInput[]
+    connect?: LLMProviderWhereUniqueInput | LLMProviderWhereUniqueInput[]
+    update?: LLMProviderUpdateWithWhereUniqueWithoutUserInput | LLMProviderUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: LLMProviderUpdateManyWithWhereWithoutUserInput | LLMProviderUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: LLMProviderScalarWhereInput | LLMProviderScalarWhereInput[]
   }
 
   export type UserCreateNestedOneWithoutFlowsInput = {
@@ -6857,6 +8368,20 @@ export namespace Prisma {
     upsert?: UserUpsertWithoutSecretsInput
     connect?: UserWhereUniqueInput
     update?: XOR<XOR<UserUpdateToOneWithWhereWithoutSecretsInput, UserUpdateWithoutSecretsInput>, UserUncheckedUpdateWithoutSecretsInput>
+  }
+
+  export type UserCreateNestedOneWithoutProvidersInput = {
+    create?: XOR<UserCreateWithoutProvidersInput, UserUncheckedCreateWithoutProvidersInput>
+    connectOrCreate?: UserCreateOrConnectWithoutProvidersInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type UserUpdateOneRequiredWithoutProvidersNestedInput = {
+    create?: XOR<UserCreateWithoutProvidersInput, UserUncheckedCreateWithoutProvidersInput>
+    connectOrCreate?: UserCreateOrConnectWithoutProvidersInput
+    upsert?: UserUpsertWithoutProvidersInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutProvidersInput, UserUpdateWithoutProvidersInput>, UserUncheckedUpdateWithoutProvidersInput>
   }
 
   export type NestedStringFilter<$PrismaModel = never> = {
@@ -7051,6 +8576,38 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type LLMProviderCreateWithoutUserInput = {
+    id?: string
+    name: string
+    provider: string
+    baseUrl?: string | null
+    apiKey?: string | null
+    config?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type LLMProviderUncheckedCreateWithoutUserInput = {
+    id?: string
+    name: string
+    provider: string
+    baseUrl?: string | null
+    apiKey?: string | null
+    config?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type LLMProviderCreateOrConnectWithoutUserInput = {
+    where: LLMProviderWhereUniqueInput
+    create: XOR<LLMProviderCreateWithoutUserInput, LLMProviderUncheckedCreateWithoutUserInput>
+  }
+
+  export type LLMProviderCreateManyUserInputEnvelope = {
+    data: LLMProviderCreateManyUserInput | LLMProviderCreateManyUserInput[]
+    skipDuplicates?: boolean
+  }
+
   export type FlowUpsertWithWhereUniqueWithoutUserInput = {
     where: FlowWhereUniqueInput
     update: XOR<FlowUpdateWithoutUserInput, FlowUncheckedUpdateWithoutUserInput>
@@ -7109,6 +8666,37 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"UserSecret"> | Date | string
   }
 
+  export type LLMProviderUpsertWithWhereUniqueWithoutUserInput = {
+    where: LLMProviderWhereUniqueInput
+    update: XOR<LLMProviderUpdateWithoutUserInput, LLMProviderUncheckedUpdateWithoutUserInput>
+    create: XOR<LLMProviderCreateWithoutUserInput, LLMProviderUncheckedCreateWithoutUserInput>
+  }
+
+  export type LLMProviderUpdateWithWhereUniqueWithoutUserInput = {
+    where: LLMProviderWhereUniqueInput
+    data: XOR<LLMProviderUpdateWithoutUserInput, LLMProviderUncheckedUpdateWithoutUserInput>
+  }
+
+  export type LLMProviderUpdateManyWithWhereWithoutUserInput = {
+    where: LLMProviderScalarWhereInput
+    data: XOR<LLMProviderUpdateManyMutationInput, LLMProviderUncheckedUpdateManyWithoutUserInput>
+  }
+
+  export type LLMProviderScalarWhereInput = {
+    AND?: LLMProviderScalarWhereInput | LLMProviderScalarWhereInput[]
+    OR?: LLMProviderScalarWhereInput[]
+    NOT?: LLMProviderScalarWhereInput | LLMProviderScalarWhereInput[]
+    id?: StringFilter<"LLMProvider"> | string
+    userId?: StringFilter<"LLMProvider"> | string
+    name?: StringFilter<"LLMProvider"> | string
+    provider?: StringFilter<"LLMProvider"> | string
+    baseUrl?: StringNullableFilter<"LLMProvider"> | string | null
+    apiKey?: StringNullableFilter<"LLMProvider"> | string | null
+    config?: StringNullableFilter<"LLMProvider"> | string | null
+    createdAt?: DateTimeFilter<"LLMProvider"> | Date | string
+    updatedAt?: DateTimeFilter<"LLMProvider"> | Date | string
+  }
+
   export type UserCreateWithoutFlowsInput = {
     id?: string
     email: string
@@ -7118,6 +8706,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     secrets?: UserSecretCreateNestedManyWithoutUserInput
+    providers?: LLMProviderCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutFlowsInput = {
@@ -7129,6 +8718,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     secrets?: UserSecretUncheckedCreateNestedManyWithoutUserInput
+    providers?: LLMProviderUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutFlowsInput = {
@@ -7188,6 +8778,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     secrets?: UserSecretUpdateManyWithoutUserNestedInput
+    providers?: LLMProviderUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutFlowsInput = {
@@ -7199,6 +8790,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     secrets?: UserSecretUncheckedUpdateManyWithoutUserNestedInput
+    providers?: LLMProviderUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type FlowExecutionUpsertWithWhereUniqueWithoutFlowInput = {
@@ -7293,6 +8885,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     flows?: FlowCreateNestedManyWithoutUserInput
+    providers?: LLMProviderCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutSecretsInput = {
@@ -7304,6 +8897,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     flows?: FlowUncheckedCreateNestedManyWithoutUserInput
+    providers?: LLMProviderUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutSecretsInput = {
@@ -7331,6 +8925,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     flows?: FlowUpdateManyWithoutUserNestedInput
+    providers?: LLMProviderUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutSecretsInput = {
@@ -7342,6 +8937,71 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     flows?: FlowUncheckedUpdateManyWithoutUserNestedInput
+    providers?: LLMProviderUncheckedUpdateManyWithoutUserNestedInput
+  }
+
+  export type UserCreateWithoutProvidersInput = {
+    id?: string
+    email: string
+    username: string
+    password: string
+    name?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    flows?: FlowCreateNestedManyWithoutUserInput
+    secrets?: UserSecretCreateNestedManyWithoutUserInput
+  }
+
+  export type UserUncheckedCreateWithoutProvidersInput = {
+    id?: string
+    email: string
+    username: string
+    password: string
+    name?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    flows?: FlowUncheckedCreateNestedManyWithoutUserInput
+    secrets?: UserSecretUncheckedCreateNestedManyWithoutUserInput
+  }
+
+  export type UserCreateOrConnectWithoutProvidersInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutProvidersInput, UserUncheckedCreateWithoutProvidersInput>
+  }
+
+  export type UserUpsertWithoutProvidersInput = {
+    update: XOR<UserUpdateWithoutProvidersInput, UserUncheckedUpdateWithoutProvidersInput>
+    create: XOR<UserCreateWithoutProvidersInput, UserUncheckedCreateWithoutProvidersInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutProvidersInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutProvidersInput, UserUncheckedUpdateWithoutProvidersInput>
+  }
+
+  export type UserUpdateWithoutProvidersInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    username?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    flows?: FlowUpdateManyWithoutUserNestedInput
+    secrets?: UserSecretUpdateManyWithoutUserNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutProvidersInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    username?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    flows?: FlowUncheckedUpdateManyWithoutUserNestedInput
+    secrets?: UserSecretUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type FlowCreateManyUserInput = {
@@ -7358,6 +9018,17 @@ export namespace Prisma {
     key: string
     label?: string | null
     lastUsedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type LLMProviderCreateManyUserInput = {
+    id?: string
+    name: string
+    provider: string
+    baseUrl?: string | null
+    apiKey?: string | null
+    config?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -7414,6 +9085,39 @@ export namespace Prisma {
     key?: StringFieldUpdateOperationsInput | string
     label?: NullableStringFieldUpdateOperationsInput | string | null
     lastUsedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type LLMProviderUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    provider?: StringFieldUpdateOperationsInput | string
+    baseUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    apiKey?: NullableStringFieldUpdateOperationsInput | string | null
+    config?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type LLMProviderUncheckedUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    provider?: StringFieldUpdateOperationsInput | string
+    baseUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    apiKey?: NullableStringFieldUpdateOperationsInput | string | null
+    config?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type LLMProviderUncheckedUpdateManyWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    provider?: StringFieldUpdateOperationsInput | string
+    baseUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    apiKey?: NullableStringFieldUpdateOperationsInput | string | null
+    config?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }

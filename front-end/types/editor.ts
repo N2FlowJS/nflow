@@ -42,9 +42,21 @@ export type LogEntry = {
   nodeId?: string;
 };
 
+export type DockTabId =
+  | "playground"
+  | "preview"
+  | "execution"
+  | "logs"
+  | "validation"
+  | "shortcuts"
+  | "flows"
+  | "variables"
+  | "history"
+  | "config";
+
 export interface EditorUIState {
-  activeDockTab: string | null;
-  setActiveDockTab: (tab: string | null) => void;
+  activeDockTab: DockTabId | null;
+  setActiveDockTab: React.Dispatch<React.SetStateAction<DockTabId | null>>;
   showMinimap: boolean;
   setShowMinimap: React.Dispatch<React.SetStateAction<boolean>>;
   isLiveMode: boolean;
@@ -56,11 +68,11 @@ export interface EditorUIState {
   showCommandPalette: boolean;
   setShowCommandPalette: React.Dispatch<React.SetStateAction<boolean>>;
   commandQuery: string;
-  setCommandQuery: (query: string) => void;
+  setCommandQuery: React.Dispatch<React.SetStateAction<string>>;
   commandIndex: number;
   setCommandIndex: React.Dispatch<React.SetStateAction<number>>;
   contextMenu: { x: number; y: number; node?: any } | null;
-  setContextMenu: (menu: { x: number; y: number; node?: any } | null) => void;
+  setContextMenu: React.Dispatch<React.SetStateAction<{ x: number; y: number; node?: any } | null>>;
   isPlaygroundOpen: boolean;
   isFlowManagerOpen: boolean;
   isVariablesPanelOpen: boolean;
@@ -106,6 +118,8 @@ export interface GraphState {
   onUngroupNodes: (targetGroupId?: string) => void;
   pendingNodeInsertPosition: { x: number; y: number } | null;
   setPendingNodeInsertPosition: (pos: { x: number; y: number } | null) => void;
+  onConnectStart: (event: any, params: any) => void;
+  onConnectEnd: (event: any) => void;
 }
 
 export interface FlowPersistenceState {

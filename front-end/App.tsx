@@ -4,6 +4,7 @@ import Home from './pages/Home';
 import FlowEditor from './pages/FlowEditor';
 import Login from './pages/Login';
 import SecretManager from './pages/SecretManager';
+import LLMProviderManager from './pages/LLMProviderManager';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { ApiMonitorPanel } from './components/ApiMonitorPanel';
 import {
@@ -111,6 +112,17 @@ export default function App() {
               isCheckingAuth={isCheckingAuth}
             >
               <SecretManager />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/llm-providers"
+          element={
+            <ProtectedRoute
+              isAuthenticated={isAuthenticated}
+              isCheckingAuth={isCheckingAuth}
+            >
+              <LLMProviderManager />
             </ProtectedRoute>
           }
         />

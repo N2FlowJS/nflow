@@ -77,6 +77,8 @@ export interface SavedFlow {
   name: string;
   data?: FlowData;
   versions?: FlowVersion[];
+  nodeCount?: number;
+  edgeCount?: number;
   updatedAt: number;
   userId?: string;
 }

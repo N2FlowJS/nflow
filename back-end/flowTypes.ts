@@ -10,6 +10,7 @@ export interface FlowEdge extends CustomEdgeType {}
 
 
 export interface ExecuteFlowInput {
+  userId: string;
   nodes: FlowNode[];
   edges: FlowEdge[];
   globalVariables?: GlobalVariable[];

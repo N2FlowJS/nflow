@@ -257,11 +257,11 @@ export default function Home() {
                   </div>
                   <div className="flex items-center gap-1 shrink-0 bg-cyber-primary/5 text-cyber-primary px-2 py-1 rounded-md border border-cyber-primary/10">
                     <GitBranch size={11} />
-                    {flow.data?.nodes?.length ?? 0} Nodes
+                    {flow.nodeCount ?? 0} Nodes
                   </div>
                   <div className="flex items-center gap-1 shrink-0 bg-cyber-secondary/5 text-cyber-secondary px-2 py-1 rounded-md border border-cyber-secondary/10">
                     <GitCommit size={11} />
-                    {flow.data?.edges?.length ?? 0} Edges
+                    {flow.edgeCount ?? 0} Edges
                   </div>
                 </div>
               </div>

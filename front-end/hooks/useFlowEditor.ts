@@ -15,10 +15,12 @@ import {
   Info,
 } from "lucide-react";
 
-import { useEditorUI, DockTabId } from "./editor/useEditorUI";
+import { useEditorUI } from "./editor/useEditorUI";
 import { useGraphState } from "./editor/useGraphState";
 import { useFlowPersistence } from "./editor/useFlowPersistence";
 import { useFlowExecution, INITIAL_PLAYGROUND_MESSAGES } from "./editor/useFlowExecution";
+
+import { DockTabId, EditorContextProps } from "../types/editor";
 
 export { INITIAL_PLAYGROUND_MESSAGES };
 export type { DockTabId };
@@ -27,7 +29,6 @@ import { useGraphLayout, LayoutMode } from "./useGraphLayout";
 
 import { normalizeModelNode } from "../../back-end/node-registry/utils";
 import { apiService } from "../lib/apiService";
-import { EditorContextProps } from "../types/editor";
 
 export const useFlowEditor = (): EditorContextProps => {
   const { id } = useParams<{ id: string }>();

@@ -67,6 +67,7 @@ export const NodeConfigPanel = ({
 }: NodeConfigPanelProps) => {
   const [models, setModels] = useState<string[]>([]);
   const [modelsLoading, setModelsLoading] = useState(false);
+  const [providers, setProviders] = useState<{ id: string; name: string }[]>([]);
   const [showPassword, setShowPassword] = useState<Record<string, boolean>>({});
   const lastFetchKeyRef = useRef<string | null>(null);
 
@@ -74,16 +75,35 @@ export const NodeConfigPanel = ({
 
   const baseVal = data ? String(getNodeFieldValue(data, "baseUrl") ?? "") : "";
   const apiKeyVal = data ? String(getNodeFieldValue(data, "apiKey") ?? "") : "";
+  const providerIdVal = data ? String(getNodeFieldValue(data, "providerId") ?? "") : "";
+  const providerVal = data ? String(getNodeFieldValue(data, "provider") ?? "") : "";
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchProviders();
+    }
+  }, [isOpen]);
+
+  const fetchProviders = async () => {
+    try {
+      const res = await apiService.get("/api/llm-providers");
+      if (res.ok && Array.isArray(res.data)) {
+        setProviders(res.data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch providers", err);
+    }
+  };
 
   useEffect(() => {
     setModels([]);
     setModelsLoading(false);
     lastFetchKeyRef.current = null;
-  }, [baseVal, apiKeyVal]);
+  }, [baseVal, apiKeyVal, providerIdVal]);
 
   const tryFetchModels = async () => {
-    if (!baseVal) return;
-    const fetchKey = `${baseVal}::${apiKeyVal}`;
+    if (!baseVal && !providerIdVal && !providerVal) return;
+    const fetchKey = `${baseVal}::${apiKeyVal}::${providerIdVal}::${providerVal}`;
     if (lastFetchKeyRef.current === fetchKey && models.length > 0) return;
 
     setModelsLoading(true);
@@ -95,7 +115,8 @@ export const NodeConfigPanel = ({
       }>("/api/llm/models", {
         baseUrl: baseVal,
         apiKey: apiKeyVal,
-        provider: "NVIDIA",
+        providerId: providerIdVal,
+        provider: providerVal,
       });
       if (res.ok && Array.isArray(res.models)) {
         setModels(
@@ -168,7 +189,10 @@ export const NodeConfigPanel = ({
                 const isPw =
                   f.type === "password" ||
                   f.name.match(/key|token|secret|password/i);
-                const canScanModels = f.name === "model" && baseVal && apiKeyVal;
+                
+                const isOverriddenByProvider = !!providerIdVal && (f.name === "baseUrl" || f.name === "apiKey" || f.name === "provider");
+                
+                const canScanModels = f.name === "model" && (providerIdVal || (baseVal && apiKeyVal) || providerVal);
                 const val = String(getNodeFieldValue(data, f.name) ?? "");
                 const varMatch = val.match(/^\{\{\s*(.*?)\s*\}\}$/)?.[1];
                 const variable = varMatch
@@ -182,7 +206,7 @@ export const NodeConfigPanel = ({
                     key={f.name}
                     label={f.label}
                     leading={<FieldIcon type={f.type} />}
-                    headerClassName="group-focus-within/f:text-cyber-primary"
+                    headerClassName={isOverriddenByProvider ? "opacity-30" : "group-focus-within/f:text-cyber-primary"}
                     className="group/f"
                     action={canScanModels ? (
                       <CyberAction
@@ -219,13 +243,25 @@ export const NodeConfigPanel = ({
                       <Select
                         variant="dense"
                         value={val}
+                        disabled={isOverriddenByProvider}
                         onChange={(e) => onValueChange(e.target.value)}
                       >
-                        {f.options?.map((o) => (
-                          <option key={o} value={o} className="bg-slate-900">
-                            {o}
-                          </option>
-                        ))}
+                        {f.name === "providerId" ? (
+                          <>
+                            <option value="" className="bg-slate-900">-- NONE (USE MANUALLY) --</option>
+                            {providers.map((p) => (
+                              <option key={p.id} value={p.id} className="bg-slate-900">
+                                {p.name}
+                              </option>
+                            ))}
+                          </>
+                        ) : (
+                          f.options?.map((o) => (
+                            <option key={o} value={o} className="bg-slate-900">
+                              {isOverriddenByProvider ? "Using Saved Provider" : o}
+                            </option>
+                          ))
+                        )}
                       </Select>
                     ) : f.type === "textarea" ? (
                       <TextArea
@@ -249,7 +285,7 @@ export const NodeConfigPanel = ({
                       </div>
                     ) : isPw ? (
                       <div className="space-y-1">
-                        {f.name !== "apiKey" && globalVariables.length > 0 && (
+                        {!isOverriddenByProvider && f.name !== "apiKey" && globalVariables.length > 0 && (
                           <Select
                             variant="micro"
                             className="!bg-black/60 !border-cyber-primary/10"
@@ -271,21 +307,25 @@ export const NodeConfigPanel = ({
                             type={showPassword[f.name] ? "text" : "password"}
                             variant="dense"
                             className="!pr-7"
-                            value={val}
+                            disabled={isOverriddenByProvider}
+                            value={isOverriddenByProvider ? "••••••••" : val}
                             onChange={(e) => onValueChange(e.target.value)}
+                            placeholder={isOverriddenByProvider ? "Using Saved Provider" : ""}
                           />
-                          <CyberAction
-                            onClick={() =>
-                              setShowPassword((p) => ({
-                                ...p,
-                                ...showPassword,
-                                [f.name]: !p[f.name],
-                              }))
-                            }
-                            icon={showPassword[f.name] ? EyeOff : Eye}
-                            showLabel={false}
-                            className="absolute right-1 top-1/2 h-5 w-5 -translate-y-1/2 justify-center border-none bg-transparent opacity-30 hover:opacity-100"
-                          />
+                          {!isOverriddenByProvider && (
+                            <CyberAction
+                              onClick={() =>
+                                setShowPassword((p) => ({
+                                  ...p,
+                                  ...showPassword,
+                                  [f.name]: !p[f.name],
+                                }))
+                              }
+                              icon={showPassword[f.name] ? EyeOff : Eye}
+                              showLabel={false}
+                              className="absolute right-1 top-1/2 h-5 w-5 -translate-y-1/2 justify-center border-none bg-transparent opacity-30 hover:opacity-100"
+                            />
+                          )}
                         </div>
                         {variable && (
                           <CyberMetaText>
@@ -296,8 +336,10 @@ export const NodeConfigPanel = ({
                     ) : (
                       <Input
                         variant="dense"
-                        value={val}
+                        disabled={isOverriddenByProvider}
+                        value={isOverriddenByProvider ? "Using Saved Provider" : val}
                         onChange={(e) => onValueChange(e.target.value)}
+                        placeholder={isOverriddenByProvider ? "Using Saved Provider" : ""}
                       />
                     )}
                   </CyberFieldShell>

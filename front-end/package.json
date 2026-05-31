@@ -8,7 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "type-check": "tsc --noEmit -p tsconfig.json",
-    "test": "vitest"
+    "test": "vitest run"
   },
   "dependencies": {
     "@tailwindcss/postcss": "^4.2.4",

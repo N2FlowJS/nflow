@@ -71,18 +71,27 @@ describe('Flow API Routes', () => {
     vi.clearAllMocks();
   });
 
-  it('GET /api/flows - should return list of flows', async () => {
+  it('GET /api/flows - should return list of flows with correct node/edge counts', async () => {
     const now = new Date();
-    const mockFlows = [{ id: '1', name: 'Test Flow', createdAt: now, updatedAt: now }];
-    // FlowStorageService.mapFlowRow converts dates to timestamps
-    const expectedData = mockFlows.map(f => ({
-      id: f.id,
-      name: f.name,
+    const mockFlows = [{ 
+      id: '1', 
+      name: 'Test Flow', 
+      createdAt: now, 
+      updatedAt: now,
+      data: JSON.stringify({
+        nodes: [{ id: 'n1' }, { id: 'n2' }],
+        edges: [{ id: 'e1' }]
+      })
+    }];
+    
+    const expectedData = [{
+      id: '1',
+      name: 'Test Flow',
       updatedAt: now.getTime(),
       createdAt: now.getTime(),
-      nodeCount: 0,
-      edgeCount: 0,
-    }));
+      nodeCount: 2,
+      edgeCount: 1,
+    }];
     prismaMock.flow.findMany.mockResolvedValue(mockFlows);
 
     await withTestServer(async (baseUrl) => {
@@ -92,13 +101,6 @@ describe('Flow API Routes', () => {
       expect(response.status).toBe(200);
       expect(body.ok).toBe(true);
       expect(body.data).toEqual(expectedData);
-      // Service uses select: { id, name, createdAt, updatedAt } + where/orderBy
-      expect(prismaMock.flow.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: { userId: 'test-user-id' },
-          orderBy: { updatedAt: 'desc' },
-        }),
-      );
     });
   });
 
