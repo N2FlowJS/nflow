@@ -31,3 +31,16 @@ The `ConditionComponent` is a special node that controls flow branching. It eval
 -   **Node Limit**: To prevent accidental infinite recursion (if the graph logic somehow bypasses cycle detection), execution is aborted after 500 node runs.
 -   **Time Limit**: Global execution is capped at 5 minutes to free up server resources.
 -   **Per-node Timeout**: Individual nodes (like long LLM calls) are capped at 3 minutes.
+
+## Configuration
+
+The engine behavior is managed through the following environment variables:
+
+| Variable | Description | Default |
+| :--- | :--- | :--- |
+| `EXECUTOR_CONCURRENCY` | Maximum number of nodes running in parallel. | `5` |
+| `MAX_FLOW_NODES` | Maximum total nodes allowed per flow execution (protection against loops). | `500` |
+| `GLOBAL_FLOW_TIMEOUT` | Global timeout for the entire flow execution in milliseconds. | `300000` (5 mins) |
+| `NODE_EXECUTION_TIMEOUT_MS` | Timeout for a single node execution in milliseconds. | `180000` (3 mins) |
+| `ENCRYPTION_KEY` | 32-character key for encrypting/decrypting secrets at rest. | (Required) |
+| `JWT_SECRET` | Secret key for signing authentication tokens. | (Required) |

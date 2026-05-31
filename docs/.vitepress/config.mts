@@ -26,6 +26,7 @@ export default defineConfig({
         text: 'Guides',
         items: [
           { text: 'Creating Your First Flow', link: '/guides/creating-flows' },
+          { text: 'Extending N2FLOW', link: '/guides/extending' },
         ]
       },
       {
