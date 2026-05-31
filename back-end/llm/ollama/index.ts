@@ -15,6 +15,7 @@ export const runOllamaChat = async (
   executeToolByName: (name: string, callArgs: Record<string, string>) => Promise<string>,
   log: (msg: string) => void,
   onStream?: (chunk: string) => void,
+  chatHistory: any[] = [],
 ) => {
   const ollama = getOllamaClient(cfg);
   const ollamaAny = ollama as any;
@@ -23,7 +24,19 @@ export const runOllamaChat = async (
 
   const messages: any[] = [];
   if (systemPrompt) messages.push({ role: 'system', content: systemPrompt });
-  messages.push({ role: 'user', content: userPrompt });
+
+  // Map history to internal format
+  chatHistory.forEach((msg: any) => {
+    if (msg.role === 'system' || msg.role === 'user' || msg.role === 'assistant') {
+      messages.push({ role: msg.role, content: msg.text });
+    }
+  });
+
+  // Always include the current user turn if not already in history
+  const lastHistory = chatHistory[chatHistory.length - 1];
+  if (!lastHistory || lastHistory.text !== userPrompt) {
+    messages.push({ role: 'user', content: userPrompt });
+  }
 
   // 1. Try SDK-managed agent APIs (Speculative)
   if (ollamaAny.agents && typeof ollamaAny.agents.run === 'function') {

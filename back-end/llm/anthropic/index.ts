@@ -10,34 +10,27 @@ export const runAnthropicChat = async (
   executeToolByName: (name: string, callArgs: Record<string, string>) => Promise<string>,
   log: (msg: string) => void,
   onStream?: (chunk: string) => void,
+  chatHistory: any[] = [],
 ) => {
   const apiKey = String(cfg.apiKey || '');
   if (!apiKey) throw new Error('Missing Anthropic API Key.');
   const stream = cfg.stream === true && typeof onStream === 'function';
   const toolsDecl = availableTools.length > 0 ? toAnthropicToolDeclarations(availableTools) : undefined;
   
-  // 1. Try SDK-managed agent/run APIs (Speculative)
-  try {
-    const mod: any = (AnthropicModule as any) || null;
-    const Anthropic = mod?.Anthropic || mod?.default || mod;
-    if (Anthropic) {
-      const client: any = new Anthropic({ apiKey });
+  const messages: any[] = [];
 
-      if (client.agents && typeof client.agents.run === 'function') {
-        const resp = await client.agents.run({ 
-          model: cfg.model || 'claude-3-5-sonnet', 
-          input: userPrompt, 
-          tools: toolsDecl, 
-          temperature: cfg.temperature, 
-          max_output_tokens: cfg.max_tokens 
-        });
-        const text = resp?.output_text || resp?.text || (Array.isArray(resp?.output) && (resp.output[0]?.content?.[0]?.text || resp.output[0]?.text)) || '';
-        if (text) return String(text);
-      }
+  // Map history to Anthropic format
+  chatHistory.forEach((msg: any) => {
+    if (msg.role === 'user' || msg.role === 'assistant') {
+      messages.push({ role: msg.role, content: msg.text });
     }
-  } catch { /* ignore */ }
+  });
 
-  const messages: any[] = [{ role: 'user', content: userPrompt }];
+  // Always include the current user turn if not already in history
+  const lastHistory = chatHistory[chatHistory.length - 1];
+  if (!lastHistory || lastHistory.text !== userPrompt) {
+    messages.push({ role: 'user', content: userPrompt });
+  }
 
   // 2. Use Orchestrator for manual loop
   return createChatOrchestrator({

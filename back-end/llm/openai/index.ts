@@ -48,6 +48,7 @@ export const runOpenAICompatibleChat = async (
   executeToolByName: (name: string, callArgs: Record<string, string>) => Promise<string>,
   log: (msg: string) => void,
   onStream?: (chunk: string) => void,
+  chatHistory: any[] = [],
 ) => {
   const base = ensureOpenAiBaseUrl(cfg.baseUrl, cfg.provider || 'OpenAI');
   const apiKey = validateLlmConfig(cfg, cfg.provider || 'OpenAI');
@@ -61,7 +62,19 @@ export const runOpenAICompatibleChat = async (
 
   const messages: any[] = [];
   if (systemPrompt) messages.push({ role: 'system', content: systemPrompt });
-  messages.push({ role: 'user', content: userPrompt });
+
+  // Map history to OpenAI format
+  chatHistory.forEach((msg: any) => {
+    if (msg.role === 'system' || msg.role === 'user' || msg.role === 'assistant') {
+      messages.push({ role: msg.role, content: msg.text });
+    }
+  });
+
+  // Always include the current user turn if not already at the end of history
+  const lastHistory = chatHistory[chatHistory.length - 1];
+  if (!lastHistory || lastHistory.text !== userPrompt) {
+    messages.push({ role: 'user', content: userPrompt });
+  }
 
   // Use Orchestrator for manual loop
   return createChatOrchestrator({

@@ -36,6 +36,7 @@ export const runGoogleChat = async (
   executeToolByName?: (name: string, callArgs: Record<string, string>) => Promise<string>,
   log?: (msg: string) => void,
   onStream?: (chunk: string) => void,
+  chatHistory: any[] = [],
 ): Promise<string> => {
   if (!cfg.apiKey) throw new Error('Missing API key for Google GenAI');
 
@@ -47,6 +48,13 @@ export const runGoogleChat = async (
   // Build the message history in a mutable array that the orchestrator loop
   // extends with assistant + tool-result turns.
   const messages: { role: string; content: string }[] = [];
+
+  // Map history to internal format
+  chatHistory.forEach((msg: any) => {
+    if (msg.role === 'user' || msg.role === 'assistant') {
+      messages.push({ role: msg.role, content: msg.text });
+    }
+  });
 
   return createChatOrchestrator({
     log: log ?? (() => {}),
@@ -60,8 +68,11 @@ export const runGoogleChat = async (
           parts: [{ text: m.content ?? '' }],
         }));
 
-      // Always include the current user turn
-      nativeContents.push({ role: 'user', parts: [{ text: userPrompt }] });
+      // Always include the current user turn if not already in history
+      const lastHistory = chatHistory[chatHistory.length - 1];
+      if (!lastHistory || lastHistory.text !== userPrompt) {
+        nativeContents.push({ role: 'user', parts: [{ text: userPrompt }] });
+      }
 
       const resp = await (ai as any).models.generateContent({
         model: modelName,

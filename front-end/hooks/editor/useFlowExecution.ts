@@ -44,6 +44,10 @@ export const useFlowExecution = ({
   setIsLogsOpenExclusive,
 }: UseFlowExecutionOptions) => {
   const [playgroundMessages, setPlaygroundMessages] = useState<PlaygroundMessage[]>(INITIAL_PLAYGROUND_MESSAGES);
+  const messagesRef = useRef(playgroundMessages);
+  useEffect(() => {
+    messagesRef.current = playgroundMessages;
+  }, [playgroundMessages]);
   const [isPlaygroundTyping, setIsPlaygroundTyping] = useState(false);
   const [playgroundError, setPlaygroundError] = useState<string | null>(null);
   const [executionLogs, setExecutionLogs] = useState<LogEntry[]>([]);
@@ -117,6 +121,12 @@ export const useFlowExecution = ({
       };
 
       try {
+        const historyToSend = messagesRef.current.filter(m => m.role !== 'system');
+        // If we have an input message that isn't the last user message in history, add it
+        if (inputMessage && (!historyToSend.length || historyToSend[historyToSend.length - 1].text !== inputMessage)) {
+          historyToSend.push({ role: 'user', text: inputMessage });
+        }
+
         const serverResponse = await fetch(
           `${runtimeBaseUrl}/api/flow/execute/stream`,
           {
@@ -127,6 +137,7 @@ export const useFlowExecution = ({
               nodes,
               edges,
               inputMessage,
+              chatHistory: historyToSend,
               isSilent,
               globalVariables,
             }),
