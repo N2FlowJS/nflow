@@ -5,7 +5,8 @@
 - **Backend**: Express app exposing REST endpoints and a streaming NDJSON execution
 	interface. Uses Prisma for persistence and contains a flow execution engine
 	that performs topological sorting, dead-path elimination (DPE), concurrency
-	control, per-node timeouts and streaming events.
+	control, per-node timeouts and streaming events. Includes a centralized 
+	**LLM Provider Service** for managing external model APIs.
 - **Frontend**: React + Vite single-page app with protected routes and a visual
 	flow editor (uses `@xyflow/react`, `dagre`, and `tailwindcss`).
 - **Shared Types**: Centralized TypeScript types for flows, nodes and runtime messages.

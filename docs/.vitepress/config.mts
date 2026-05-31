@@ -23,10 +23,19 @@ export default defineConfig({
         ]
       },
       {
+        text: 'Guides',
+        items: [
+          { text: 'Creating Your First Flow', link: '/guides/creating-flows' },
+        ]
+      },
+      {
         text: 'Features',
         items: [
           { text: 'Flow Editor', link: '/features/editor' },
           { text: 'Execution Engine', link: '/features/engine' },
+          { text: 'Node Reference', link: '/features/nodes' },
+          { text: 'LLM Providers', link: '/features/llm-providers' },
+          { text: 'Flow Templates', link: '/features/templates' },
           { text: 'Secrets Management', link: '/features/secrets' }
         ]
       }

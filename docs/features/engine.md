@@ -1,14 +1,33 @@
-# Execution Engine
+# Execution Engine Deep Dive
 
-The backend execution engine is responsible for running the flows in the correct order.
+The N2FLOW Execution Engine is a sophisticated runtime designed to execute directed acyclic graphs (DAGs) of AI operations with high concurrency and reliability.
 
-## Core Concepts
+## Execution Lifecycle
 
-- **Topological Sorting**: Ensures nodes are executed in the correct dependency order.
-- **Dead-Path Elimination (DPE)**: Skips execution of nodes that don't have active inputs.
-- **Concurrency Control**: Executes parallel branches simultaneously up to a defined limit.
-- **Streaming NDJSON**: Provides real-time updates to the frontend during execution.
+When a flow execution is triggered (via `/api/flow/execute/stream`), the engine follows these steps:
 
-## Configuration
+1.  **Graph Construction**: The list of nodes and edges is converted into an internal adjacency map and in-degree map.
+2.  **Topological Sort**: The engine performs a Kahn's algorithm topological sort to ensure nodes are executed only after their dependencies are met. It also detects cycles at this stage.
+3.  **Dynamic Scheduling**:
+    -   Nodes with 0 in-degree are placed in a `readyQueue`.
+    -   An event-driven loop dispatches nodes from the queue to available execution slots (controlled by `MAX_CONCURRENCY`).
+    -   As a node completes, it decrements the in-degree of its children and moves them to the `readyQueue` if they become 0.
+4.  **Dead-Path Elimination (DPE)**: Before executing a node, the engine checks if it has any "live" paths. If a node is a child of a `ConditionComponent` branch that wasn't taken, and all other incoming paths are also skipped or dead, this node is marked as `skipped`, and the skip status propagates downstream.
+5.  **Streaming**: Throughout the process, the engine streams NDJSON events back to the client, including `log`, `nodeUpdate` (status changes), `llm_chunk` (token-by-token output), and `result`.
 
-The engine behavior can be tuned using environment variables like `EXECUTOR_CONCURRENCY` and `MAX_FLOW_NODES`.
+## Advanced Logic
+
+### Input Resolution
+Nodes don't just receive static values; their inputs are resolved dynamically:
+-   **Handle Matching**: Data is passed through specific handles (ports). A node can distinguish between `system_prompt` and `user_input`.
+-   **Node References**: <span v-pre>`{{nodes.NODE_ID.field}}`</span> syntax to pull data from previously executed nodes.
+-   **Global Variables**: <span v-pre>`{{VAR_NAME}}`</span> syntax is resolved against the flow's global variables and encrypted secrets.
+
+
+### Condition Component
+The `ConditionComponent` is a special node that controls flow branching. It evaluates a condition and outputs its result to either a `true` or `false` handle. The engine's DPE logic ensures that only the branch matching the result is executed.
+
+### Circuit Breakers
+-   **Node Limit**: To prevent accidental infinite recursion (if the graph logic somehow bypasses cycle detection), execution is aborted after 500 node runs.
+-   **Time Limit**: Global execution is capped at 5 minutes to free up server resources.
+-   **Per-node Timeout**: Individual nodes (like long LLM calls) are capped at 3 minutes.

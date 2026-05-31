@@ -442,5 +442,7 @@ export const useGraphState = ({ onNotify }: UseGraphStateOptions = {}): GraphSta
     onUngroupNodes,
     pendingNodeInsertPosition,
     setPendingNodeInsertPosition,
+    onConnectStart,
+    onConnectEnd,
   };
 };

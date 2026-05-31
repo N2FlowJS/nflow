@@ -106,7 +106,7 @@ export interface GraphState {
   redo: () => void;
   takeSnapshot: () => void;
   onConnect: (params: any) => void;
-  onAddNode: (type: string, label: string, position?: { x: number; y: number }) => void;
+  onAddNode: (type: string, label: string, position?: { x: number; y: number }, connectFrom?: any) => void;
   updateNodeDataById: (nodeId: string, newData: any) => void;
   handleParamChange: (nodeId: string, name: string, value: any) => void;
   onCopy: () => void;
