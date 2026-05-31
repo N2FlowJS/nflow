@@ -2,6 +2,7 @@ import { FlowRuntimeContext, NodeRegistry, NodeHandler } from './registry';
 import {
   currentTimeHandler,
   chatInputHandler,
+  chatOutputHandler,
   textInputHandler,
   waitHandler,
 } from './standard';
@@ -17,7 +18,7 @@ export { NodeExecutionError };
 NodeRegistry.register('CurrentTime', currentTimeHandler);
 NodeRegistry.register('ChatInput', chatInputHandler);
 NodeRegistry.register('TextInput', textInputHandler);
-NodeRegistry.register('ChatOutput', chatInputHandler);
+NodeRegistry.register('ChatOutput', chatOutputHandler);
 NodeRegistry.register('VariableComponent', textInputHandler);
 NodeRegistry.register('WaitComponent', waitHandler);
 

@@ -47,7 +47,7 @@ if (process.env.NODE_ENV === 'production') {
   prisma = globalThis.prisma;
 }
 
-export default prisma;
+export { prisma };
 
 declare global {
   // eslint-disable-next-line no-var

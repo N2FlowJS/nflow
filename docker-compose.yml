@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: n2flow
+      POSTGRES_PASSWORD: n2flow_password
+      POSTGRES_DB: n2flow_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: .
+      dockerfile: back-end/Dockerfile
+    restart: always
+    environment:
+      DATABASE_URL: postgresql://n2flow:n2flow_password@db:5432/n2flow_db?schema=public
+      SQL_SERVER_PORT: 8787
+      JWT_SECRET: super_secret_jwt_key
+      ENCRYPTION_KEY: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+      NODE_ENV: production
+    ports:
+      - "8787:8787"
+    depends_on:
+      - db
+
+  frontend:
+    build:
+      context: .
+      dockerfile: front-end/Dockerfile
+    restart: always
+    ports:
+      - "80:80"
+    environment:
+      VITE_API_BASE: http://localhost:8787/api
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:

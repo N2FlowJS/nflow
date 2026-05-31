@@ -7,11 +7,13 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "type-check": "tsc --noEmit -p tsconfig.json"
+    "type-check": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest"
   },
   "dependencies": {
     "@tailwindcss/postcss": "^4.2.4",
     "@tailwindcss/typography": "^0.5.19",
+    "@textea/json-viewer": "^4.0.1",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@xyflow/react": "^12.10.2",
@@ -29,11 +31,17 @@
   },
   "devDependencies": {
     "@n2flow/types": "file:../packages/types",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
     "@types/dagre": "^0.7.53",
     "@types/node": "^20.11.0",
     "@vitejs/plugin-react": "^5.0.0",
+    "@vitest/ui": "^4.1.7",
+    "jsdom": "^29.1.1",
     "terser": "^5.48.0",
     "typescript": "~5.8.2",
-    "vite": "^6.2.0"
+    "vite": "^6.2.0",
+    "vitest": "^4.1.7"
   }
 }

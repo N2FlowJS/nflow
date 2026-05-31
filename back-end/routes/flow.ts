@@ -11,7 +11,33 @@ import { successResponse, errorResponse } from '../utils/apiResponse';
 const router = Router();
 const logger = createLogger('Flow');
 
-// Execution endpoints
+/**
+ * @openapi
+ * /api/flow/execute:
+ *   post:
+ *     summary: Execute a flow synchronously
+ *     tags: [Flows]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [nodes, edges]
+ *             properties:
+ *               nodes: { type: array, items: { type: object } }
+ *               edges: { type: array, items: { type: object } }
+ *               inputMessage: { type: string }
+ *               isSilent: { type: boolean }
+ *               globalVariables: { type: array, items: { type: object } }
+ *     responses:
+ *       200:
+ *         description: Flow executed successfully
+ *       500:
+ *         description: Execution failed
+ */
 router.post('/flow/execute', async (req: AuthRequest, res: Response) => {
   try {
     // Validate request payload
@@ -108,7 +134,25 @@ router.post('/flow/execute/stream', async (req: AuthRequest, res: Response) => {
 });
 
 
-// Storage endpoints
+/**
+ * @openapi
+ * /api/flows:
+ *   get:
+ *     summary: List saved flows for the authenticated user
+ *     tags: [Flows]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: limit
+ *         schema: { type: integer, default: 20 }
+ *       - in: query
+ *         name: offset
+ *         schema: { type: integer, default: 0 }
+ *     responses:
+ *       200:
+ *         description: List of flows retrieved
+ */
 router.get('/flows', async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.userId;
@@ -118,9 +162,7 @@ router.get('/flows', async (req: AuthRequest, res: Response) => {
     const limit = Math.min(Math.max(parseInt(String(req.query.limit)) || 20, 1), 100);
     const offset = Math.max(parseInt(String(req.query.offset)) || 0, 0);
     
-    const allFlows = await FlowStorageService.listFlowsScoped(userId);
-    const total = allFlows.length;
-    const flows = allFlows.slice(offset, offset + limit);
+    const { flows, total } = await FlowStorageService.listFlowsScoped(userId, { limit, offset });
     
     res.json(successResponse(flows, {
       limit,
@@ -134,6 +176,25 @@ router.get('/flows', async (req: AuthRequest, res: Response) => {
   }
 });
 
+/**
+ * @openapi
+ * /api/flows/{id}:
+ *   get:
+ *     summary: Get a specific flow by ID
+ *     tags: [Flows]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Flow retrieved
+ *       404:
+ *         description: Flow not found
+ */
 router.get('/flows/:id', async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.userId;
@@ -146,6 +207,29 @@ router.get('/flows/:id', async (req: AuthRequest, res: Response) => {
   }
 });
 
+/**
+ * @openapi
+ * /api/flows:
+ *   post:
+ *     summary: Save or update a flow
+ *     tags: [Flows]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [name, data]
+ *             properties:
+ *               id: { type: string }
+ *               name: { type: string }
+ *               data: { type: string }
+ *     responses:
+ *       200:
+ *         description: Flow saved successfully
+ */
 router.post('/flows', async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.userId;

@@ -1,4 +1,5 @@
 import React from "react";
+import { JsonViewer } from "@textea/json-viewer";
 import { stringifyUnknown } from '../../lib/utils';
 import { CyberBadge } from "../shared/CyberUI";
 
@@ -52,6 +53,21 @@ export const ResultPreview = ({ output }: ResultPreviewProps) => {
 
   const rows = parseRows(output);
 
+  // Try to parse as JSON for tree view
+  let jsonObj: any = null;
+  if (typeof output === 'object') {
+    jsonObj = output;
+  } else if (typeof output === 'string') {
+    try {
+      const parsed = JSON.parse(output);
+      if (typeof parsed === 'object' && parsed !== null) {
+        jsonObj = parsed;
+      }
+    } catch {
+      // Not JSON
+    }
+  }
+
   return (
     <div className="p-0 max-h-[160px] overflow-auto text-[10px] font-mono custom-scrollbar">
       {(() => {
@@ -92,7 +108,26 @@ export const ResultPreview = ({ output }: ResultPreviewProps) => {
           );
         }
 
-        // 2. Detect List Shape
+        // 2. JSON Tree View (Priority for structured objects)
+        if (jsonObj) {
+          return (
+            <div className="bg-black/20 p-2 rounded">
+              <JsonViewer
+                value={jsonObj}
+                theme="dark"
+                rootName={false}
+                displayDataTypes={false}
+                style={{
+                  backgroundColor: 'transparent',
+                  fontSize: '9px',
+                }}
+                defaultInspectDepth={1}
+              />
+            </div>
+          );
+        }
+
+        // 3. Detect List Shape
         if (
           rows.length > 0 &&
           isPreviewRow(rows[0])
@@ -127,64 +162,6 @@ export const ResultPreview = ({ output }: ResultPreviewProps) => {
                     </div>
                   </div>
                 ))}
-              </div>
-            );
-          }
-        }
-
-        // 3. Detect Table Shape
-        let cols: string[] = [];
-
-        if (
-          rows.length > 0 &&
-          isPreviewRow(rows[0])
-        ) {
-          cols = Object.keys(rows[0])
-            .filter(
-              (k) => typeof rows[0][k] !== "object" || rows[0][k] === null,
-            )
-            .slice(0, 4);
-          if (cols.length > 0) {
-            return (
-              <div className="bg-black/20">
-                <table className="w-full border-collapse">
-                  <thead>
-                    <tr className="border-b border-white/10 bg-black/40 text-gray-500 text-[9px]">
-                      {cols.map((c) => (
-                        <th
-                          key={c}
-                          className="text-left px-2 py-1.5 font-bold uppercase tracking-tighter"
-                        >
-                          {c}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {rows.slice(0, 5).map((r, i) => (
-                      <tr
-                        key={i}
-                        className="border-b border-white/5 last:border-0 hover:bg-cyber-primary/5 transition-colors"
-                      >
-                        {cols.map((c) => (
-                          <td key={c} className="px-2 py-1.5 truncate max-w-[80px] text-white/80">
-                            {String(r[c] ?? "")}
-                          </td>
-                        ))}
-                      </tr>
-                    ))}
-                    {rows.length > 5 && (
-                      <tr>
-                        <td
-                          colSpan={cols.length}
-                          className="text-center py-1.5 opacity-40 text-[8px] font-bold uppercase tracking-widest bg-black/40"
-                        >
-                          + {rows.length - 5} MORE_ENTRIES
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
               </div>
             );
           }

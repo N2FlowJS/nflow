@@ -9,7 +9,7 @@ import {
   ReactFlow,
   ReactFlowProvider,
 } from "@xyflow/react";
-import React, { useMemo } from "react";
+import React from "react";
 import CyberEdge from "../components/CyberEdge";
 import CyberGroupNode from "../components/CyberGroupNode";
 import CyberNode from "../components/CyberNode";
@@ -19,22 +19,10 @@ import CommandPalette from "../components/editor/CommandPalette";
 import ContextMenu from "../components/editor/ContextMenu";
 import EditorDock, { type EditorDockTab } from "../components/editor/EditorDock";
 import FlowHeader from "../components/editor/FlowHeader";
+import DockContentPanel from "../components/editor/DockContentPanel";
 import { Sidebar } from "../components/Sidebar";
-import { PanelSkeleton } from "../components/shared/CyberUI";
-import { CyberErrorBoundary } from "../components/shared/CyberErrorBoundary";
-import { useFlowEditor, DockTabId } from "../hooks/useFlowEditor";
+import { useFlowEditor, type DockTabId } from "../hooks/useFlowEditor";
 import type { CustomNodeType } from "@n2flow/types";
-
-const LazyFlowManager = React.lazy(() => import("../components/editor/FlowManager"));
-const LazyLogViewer = React.lazy(() => import("../components/editor/LogViewer"));
-const LazyShortcutHelp = React.lazy(() => import("../components/editor/ShortcutHelp"));
-const LazyValidationPanel = React.lazy(() => import("../components/editor/ValidationPanel"));
-const LazyVariablesPanel = React.lazy(() => import("../components/editor/VariablesPanel"));
-const LazyVersionHistoryPanel = React.lazy(() => import("../components/editor/VersionHistoryPanel"));
-const LazyGlobalPreview = React.lazy(() => import("../components/GlobalPreview"));
-const LazyExecutionPanel = React.lazy(() => import("../components/node-parts/NodeDataModal"));
-const LazyNodeConfigPanel = React.lazy(() => import("../components/editor/NodeConfigPanel"));
-const LazyPlayground = React.lazy(() => import("../components/Playground"));
 
 const nodeTypes: NodeTypes = {
   cyberNode: CyberNode as any,
@@ -48,178 +36,8 @@ const edgeTypes: EdgeTypes = {
 
 const Flow = () => {
   const editor = useFlowEditor();
+  const { executeNodeSubgraph } = editor;
 
-  const dockContent = useMemo(() => {
-    if (!editor.activeDockTab) return null;
-    switch (String(editor.activeDockTab)) {
-      case "config":
-        return (
-          <CyberErrorBoundary name="Config Panel Module">
-            <React.Suspense fallback={<PanelSkeleton />}>
-              <LazyNodeConfigPanel
-                isOpen={editor.isNodeConfigOpen}
-                onClose={() => {
-                  editor.setActiveDockTab(null);
-                  editor.setConfigNodeId(null);
-                  editor.setHighlightedConfigField(null);
-                }}
-                data={editor.currentConfigNode?.data as CustomNodeType["data"] | null}
-                updateNodeData={editor.updateNodeDataById}
-                handleParamChange={editor.handleConfigParamChange}
-                globalVariables={editor.globalVariables}
-              />
-            </React.Suspense>
-          </CyberErrorBoundary>
-        );
-      case "playground":
-        return (
-          <CyberErrorBoundary name="Playground Module">
-            <React.Suspense fallback={<PanelSkeleton />}>
-              <LazyPlayground
-                isOpen={editor.isPlaygroundOpen}
-                onClose={() => editor.setIsPlaygroundOpen(false)}
-                messages={editor.playgroundMessages}
-                isTyping={editor.isPlaygroundTyping}
-                runtimeStatus={editor.runtimeStatus}
-                error={editor.playgroundError}
-                onErrorDismiss={() => editor.setPlaygroundError(null)}
-                onSendMessage={editor.onSendMessage}
-                onClearMessages={editor.onClearPlaygroundMessages}
-              />
-            </React.Suspense>
-          </CyberErrorBoundary>
-        );
-      case "preview":
-        return (
-          <CyberErrorBoundary name="Result Preview Module">
-            <React.Suspense fallback={<PanelSkeleton />}>
-              <LazyGlobalPreview />
-            </React.Suspense>
-          </CyberErrorBoundary>
-        );
-      case "execution":
-        return (
-          <CyberErrorBoundary name="Execution Details Module">
-            <React.Suspense fallback={<PanelSkeleton />}>
-              <LazyExecutionPanel />
-            </React.Suspense>
-          </CyberErrorBoundary>
-        );
-      case "logs":
-        return (
-          <CyberErrorBoundary name="Execution Logs Module">
-            <React.Suspense fallback={<PanelSkeleton />}>
-              <LazyLogViewer
-                isLogsOpen={editor.isLogsOpen}
-                setIsLogsOpen={editor.setIsLogsOpenExclusive}
-                executionLogs={editor.executionLogs}
-                onClear={() => editor.setExecutionLogs([])}
-              />
-            </React.Suspense>
-          </CyberErrorBoundary>
-        );
-      case "validation":
-        return (
-          <CyberErrorBoundary name="Flow Validator Module">
-            <React.Suspense fallback={<PanelSkeleton />}>
-              <LazyValidationPanel
-                flowIssues={editor.flowIssues}
-                focusIssueNode={editor.focusIssueNode}
-                onClose={() => editor.setActiveDockTab(null)}
-              />
-            </React.Suspense>
-          </CyberErrorBoundary>
-        );
-      case "shortcuts":
-        return (
-          <CyberErrorBoundary name="Shortcuts Reference Module">
-            <React.Suspense fallback={<PanelSkeleton />}>
-              <LazyShortcutHelp
-                showShortcutHelp={editor.showShortcutHelp}
-                setShowShortcutHelp={editor.setShowShortcutHelpExclusive}
-              />
-            </React.Suspense>
-          </CyberErrorBoundary>
-        );
-      case "flows":
-        return (
-          <CyberErrorBoundary name="Flow Manager Module">
-            <React.Suspense fallback={<PanelSkeleton />}>
-              <LazyFlowManager
-                isFlowManagerOpen={editor.isFlowManagerOpen}
-                setIsFlowManagerOpen={editor.setIsFlowManagerOpen}
-                savedFlows={editor.savedFlows}
-                onDeleteFlow={editor.onDeleteFlow}
-                navigate={editor.navigate}
-              />
-            </React.Suspense>
-          </CyberErrorBoundary>
-        );
-      case "history":
-        return (
-          <CyberErrorBoundary name="Version History Module">
-            <React.Suspense fallback={<PanelSkeleton />}>
-              <LazyVersionHistoryPanel
-                isOpen={editor.isVersionHistoryOpen}
-                onClose={() => editor.setIsVersionHistoryOpen(false)}
-                versions={editor.flowVersions}
-                onLoadVersion={editor.onLoadVersion}
-                isRestoring={editor.isRestoringVersion}
-              />
-            </React.Suspense>
-          </CyberErrorBoundary>
-        );
-      case "variables":
-        return (
-          <CyberErrorBoundary name="Global Variables Module">
-            <React.Suspense fallback={<PanelSkeleton />}>
-              <LazyVariablesPanel
-                isOpen={editor.isVariablesPanelOpen}
-                onClose={() => editor.setIsVariablesPanelOpen(false)}
-                variables={editor.globalVariables}
-                onVariablesChange={editor.setGlobalVariables}
-              />
-            </React.Suspense>
-          </CyberErrorBoundary>
-        );
-      default:
-        return null;
-    }
-  }, [
-    editor.activeDockTab,
-    editor.isNodeConfigOpen,
-    editor.currentConfigNode,
-    editor.updateNodeDataById,
-    editor.handleConfigParamChange,
-    editor.globalVariables,
-    editor.isPlaygroundOpen,
-    editor.playgroundMessages,
-    editor.isPlaygroundTyping,
-    editor.runtimeStatus,
-    editor.playgroundError,
-    editor.onSendMessage,
-    editor.onClearPlaygroundMessages,
-    editor.isLogsOpen,
-    editor.setIsLogsOpenExclusive,
-    editor.executionLogs,
-    editor.flowIssues,
-    editor.focusIssueNode,
-    editor.showShortcutHelp,
-    editor.setShowShortcutHelpExclusive,
-    editor.isFlowManagerOpen,
-    editor.setIsFlowManagerOpen,
-    editor.savedFlows,
-    editor.onDeleteFlow,
-    editor.navigate,
-    editor.isVersionHistoryOpen,
-    editor.setIsVersionHistoryOpen,
-    editor.flowVersions,
-    editor.onLoadVersion,
-    editor.isRestoringVersion,
-    editor.isVariablesPanelOpen,
-    editor.setIsVariablesPanelOpen,
-    editor.setGlobalVariables,
-  ]);
 
   return (
     <div className="w-full h-screen min-h-0 bg-cyber-dark text-white overflow-hidden flex flex-col">
@@ -304,11 +122,6 @@ const Flow = () => {
               className="bg-black"
             />
 
-            <Controls
-              position="top-right"
-              className="!bg-black/40 !backdrop-blur-md !border-white/5 !rounded-lg !m-4 !shadow-none opacity-20 hover:opacity-100 transition-all duration-500 scale-75 origin-top-right"
-            />
-
             {editor.showMinimap && (
               <MiniMap
                 nodeStrokeWidth={3}
@@ -344,7 +157,7 @@ const Flow = () => {
               editor.setActiveDockTab((prev) => (prev === tabId ? null : (tabId as DockTabId)));
             }}
           >
-            {dockContent}
+            <DockContentPanel activeTab={editor.activeDockTab} editor={editor} />
           </EditorDock>
         </div>
       </div>
@@ -374,31 +187,8 @@ const Flow = () => {
             onRun: () => {
               const node = editor.contextMenu?.node;
               if (node) {
-                editor.setNodes((nds) =>
-                  nds.map((n) =>
-                    n.id === node.id
-                      ? { ...n, data: { ...n.data, status: "running" } }
-                      : n,
-                  ),
-                );
-                setTimeout(() => {
-                  editor.setNodes((nds) =>
-                    nds.map((n) =>
-                      n.id === node.id
-                        ? { ...n, data: { ...n.data, status: "success" } }
-                        : n,
-                  ),
-                );
-                  setTimeout(() => {
-                    editor.setNodes((nds) =>
-                      nds.map((n) =>
-                        n.id === node.id
-                          ? { ...n, data: { ...n.data, status: "idle" } }
-                          : n,
-                      ),
-                    );
-                  }, 3000);
-                }, 1000);
+                executeNodeSubgraph(node.id);
+                editor.setContextMenu(null);
               }
             },
             onOpenConfig: () => {

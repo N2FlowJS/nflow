@@ -1,4 +1,4 @@
-import { FlowNode, GlobalVariable } from '../flowTypes';
+import { FlowNode, GlobalVariable, ChatMessage } from '../flowTypes';
 import { ToolDefinition } from '../tools';
 
 export type FlowRuntimeContext = {
@@ -17,6 +17,7 @@ export type FlowRuntimeContext = {
   log: (msg: string) => void;
   globalVariables: GlobalVariable[];
   onEvent?: (event: any) => void;
+  chatHistory?: ChatMessage[];
 };
 
 export type NodeHandler = (

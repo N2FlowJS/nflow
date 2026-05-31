@@ -7,6 +7,7 @@
 
 import type { FlowNode, FlowEdge, NodeData, GlobalVariable as FlowGlobalVariable } from '../flowTypes';
 import { validatePlaceholdersInString } from '@n2flow/types';
+import { z } from 'zod';
 
 export interface NodePosition {
   x: number;
@@ -42,10 +43,16 @@ export interface GlobalVariable {
   type?: 'string' | 'number' | 'boolean' | 'object';
 }
 
+export interface ChatMessage {
+  role: 'user' | 'assistant' | 'system';
+  text: string;
+}
+
 export interface FlowExecutionRequest {
   nodes: Node[];
   edges: Edge[];
   inputMessage?: string;
+  chatHistory?: ChatMessage[];
   isSilent?: boolean;
   apiKey?: string;
   globalVariables?: GlobalVariable[];
@@ -68,6 +75,72 @@ export interface FlowSaveRequest {
   };
 }
 
+export const NodePositionSchema = z.object({
+  x: z.number(),
+  y: z.number(),
+});
+
+export const NodeSchema = z.object({
+  id: z.string(),
+  type: z.string(),
+  position: NodePositionSchema,
+  data: z.record(z.string(), z.any()).optional(),
+  selected: z.boolean().optional(),
+  dragging: z.boolean().optional(),
+  isConnectable: z.boolean().optional(),
+  zIndex: z.number().optional(),
+});
+
+export const EdgeSchema = z.object({
+  id: z.string(),
+  source: z.string(),
+  target: z.string(),
+  sourceHandle: z.string().optional(),
+  targetHandle: z.string().optional(),
+  type: z.string().optional(),
+  data: z.record(z.string(), z.any()).optional(),
+  style: z.record(z.string(), z.any()).optional(),
+  animated: z.boolean().optional(),
+});
+
+export const GlobalVariableSchema = z.object({
+  name: z.string(),
+  value: z.any(),
+  type: z.enum(['string', 'number', 'boolean', 'object']).optional(),
+});
+
+export const ChatMessageSchema = z.object({
+  role: z.enum(['user', 'assistant', 'system']),
+  text: z.string(),
+});
+
+export const FlowExecutionRequestSchema = z.object({
+  nodes: z.array(NodeSchema).min(1, 'At least one node is required'),
+  edges: z.array(EdgeSchema),
+  inputMessage: z.string().optional(),
+  chatHistory: z.array(ChatMessageSchema).optional(),
+  isSilent: z.boolean().optional(),
+  apiKey: z.string().optional(),
+  globalVariables: z.array(GlobalVariableSchema).optional(),
+});
+
+export const FlowSaveRequestSchema = z.object({
+  id: z.string().optional(),
+  name: z.string().min(1, 'Name is required'),
+  description: z.string().optional(),
+  nodes: z.array(NodeSchema),
+  edges: z.array(EdgeSchema),
+  metadata: z.record(z.string(), z.any()).optional(),
+  globalVariables: z.array(GlobalVariableSchema).optional(),
+  versionLabel: z.string().optional(),
+  isAutoSave: z.boolean().optional(),
+  viewport: z.object({
+    x: z.number(),
+    y: z.number(),
+    zoom: z.number(),
+  }).optional(),
+});
+
 /**
  * Validates if a string contains placeholders that can be resolved either by 
  * global variables or by server environment variables.
@@ -83,123 +156,11 @@ export const validatePlaceholder = (value: string, globalVariables: GlobalVariab
  */
 export class RequestValidator {
   static validateFlowExecution(data: unknown): FlowExecutionRequest {
-    if (!data || typeof data !== 'object') {
-      throw new Error('Request body must be a JSON object');
-    }
-
-    const obj = data as Record<string, any>;
-
-    // Validate required fields
-    if (!Array.isArray(obj.nodes)) {
-      throw new Error('nodes must be an array');
-    }
-    if (!Array.isArray(obj.edges)) {
-      throw new Error('edges must be an array');
-    }
-    if (obj.nodes.length === 0) {
-      throw new Error('At least one node is required');
-    }
-
-    // Validate nodes
-    const nodeErrors = this.validateNodes(obj.nodes);
-    if (nodeErrors.length > 0) {
-      throw new Error(`Invalid nodes: ${nodeErrors.join('; ')}`);
-    }
-
-    // Validate edges
-    const edgeErrors = this.validateEdges(obj.nodes, obj.edges);
-    if (edgeErrors.length > 0) {
-      throw new Error(`Invalid edges: ${edgeErrors.join('; ')}`);
-    }
-
-    // Validate optional fields
-    if (obj.inputMessage !== undefined && typeof obj.inputMessage !== 'string') {
-      throw new Error('inputMessage must be a string');
-    }
-    if (obj.isSilent !== undefined && typeof obj.isSilent !== 'boolean') {
-      throw new Error('isSilent must be a boolean');
-    }
-    if (obj.apiKey !== undefined && typeof obj.apiKey !== 'string') {
-      throw new Error('apiKey must be a string');
-    }
-    if (obj.globalVariables !== undefined && !Array.isArray(obj.globalVariables)) {
-      throw new Error('globalVariables must be an array');
-    }
-
-    const globalVariableErrors = this.validateGlobalVariables(obj.globalVariables || []);
-    if (globalVariableErrors.length > 0) {
-      throw new Error(`Invalid globalVariables: ${globalVariableErrors.join('; ')}`);
-    }
-
-    const placeholderErrors = this.validateResolvablePlaceholders(obj.nodes, obj.globalVariables || []);
-    if (placeholderErrors.length > 0) {
-      throw new Error(`Invalid placeholders: ${placeholderErrors.join('; ')}`);
-    }
-
-    return {
-      nodes: obj.nodes,
-      edges: obj.edges,
-      inputMessage: obj.inputMessage,
-      isSilent: obj.isSilent,
-      apiKey: obj.apiKey,
-      globalVariables: obj.globalVariables,
-    };
+    return FlowExecutionRequestSchema.parse(data) as FlowExecutionRequest;
   }
 
   static validateFlowSave(data: unknown): FlowSaveRequest {
-    if (!data || typeof data !== 'object') {
-      throw new Error('Request body must be a JSON object');
-    }
-
-    const obj = data as Record<string, any>;
-
-    if (!obj.name || typeof obj.name !== 'string') {
-      throw new Error('Flow name is required and must be a string');
-    }
-
-    // Support both flat { nodes, edges } and nested { data: { nodes, edges } } shapes
-    const nested = (!Array.isArray(obj.nodes) && obj.data && typeof obj.data === 'object') ? obj.data : obj;
-    const nodes          = Array.isArray(obj.nodes)          ? obj.nodes          : nested.nodes;
-    const edges          = Array.isArray(obj.edges)          ? obj.edges          : nested.edges;
-    const globalVariables = obj.globalVariables              ?? nested.globalVariables;
-    const metadata        = obj.metadata                     ?? nested.metadata;
-    const viewport        = obj.viewport                     ?? nested.viewport;
-
-    if (!Array.isArray(nodes)) {
-      throw new Error('nodes must be an array');
-    }
-    if (!Array.isArray(edges)) {
-      throw new Error('edges must be an array');
-    }
-
-    // Allow empty arrays as valid (flow can have no connections initially)
-    // Validate nodes and edges only if they exist
-    if (nodes.length > 0) {
-      const nodeErrors = this.validateNodes(nodes);
-      if (nodeErrors.length > 0) {
-        throw new Error(`Invalid nodes: ${nodeErrors.join('; ')}`);
-      }
-    }
-
-    if (edges.length > 0) {
-      const edgeErrors = this.validateEdges(nodes, edges);
-      if (edgeErrors.length > 0) {
-        throw new Error(`Invalid edges: ${edgeErrors.join('; ')}`);
-      }
-    }
-
-    return {
-      id: obj.id,
-      name: obj.name,
-      description: obj.description,
-      nodes: nodes,
-      edges: edges,
-      metadata,
-      globalVariables,
-      versionLabel: typeof obj.versionLabel === 'string' ? obj.versionLabel : undefined,
-      isAutoSave: typeof obj.isAutoSave === 'boolean' ? obj.isAutoSave : undefined,
-      viewport,
-    };
+    return FlowSaveRequestSchema.parse(data) as FlowSaveRequest;
   }
 
   static validateGlobalVariables(vars: any[]): string[] {
@@ -207,17 +168,13 @@ export class RequestValidator {
     const names = new Set<string>();
 
     for (const [index, variable] of vars.entries()) {
-      if (!variable || typeof variable !== 'object') {
-        errors.push(`Global variable ${index}: must be an object`);
+      const result = GlobalVariableSchema.safeParse(variable);
+      if (!result.success) {
+        errors.push(`Global variable ${index}: ${result.error.issues.map((e: any) => e.message).join(', ')}`);
         continue;
       }
 
-      const name = typeof variable.name === 'string' ? variable.name.trim() : '';
-      if (!name) {
-        errors.push(`Global variable ${index}: name is required and must be a string`);
-        continue;
-      }
-
+      const name = variable.name.trim();
       if (names.has(name)) {
         errors.push(`Duplicate global variable name: ${name}`);
       } else {
@@ -236,17 +193,9 @@ export class RequestValidator {
     }
 
     for (const [index, node] of nodes.entries()) {
-      if (!node.id || typeof node.id !== 'string') {
-        errors.push(`Node ${index}: id is required and must be a string`);
-      }
-      if (!node.type || typeof node.type !== 'string') {
-        errors.push(`Node ${index}: type is required and must be a string`);
-      }
-      if (!node.position || typeof node.position.x !== 'number' || typeof node.position.y !== 'number') {
-        errors.push(`Node ${index}: position must have numeric x and y`);
-      }
-      if (node.data && typeof node.data !== 'object') {
-        errors.push(`Node ${index}: data must be an object`);
+      const result = NodeSchema.safeParse(node);
+      if (!result.success) {
+        errors.push(`Node ${index}: ${result.error.issues.map((e: any) => e.message).join(', ')}`);
       }
     }
 
@@ -262,9 +211,11 @@ export class RequestValidator {
     }
 
     // Check for missing references
-    for (const edge of edges) {
-      if (!edge.id || typeof edge.id !== 'string') {
-        errors.push(`Edge: id is required and must be a string`);
+    for (const [index, edge] of edges.entries()) {
+      const result = EdgeSchema.safeParse(edge);
+      if (!result.success) {
+        errors.push(`Edge ${index}: ${result.error.issues.map((e: any) => e.message).join(', ')}`);
+        continue;
       }
       if (!edge.source || !nodeIds.has(edge.source)) {
         errors.push(`Edge: references non-existent source node: ${edge.source}`);

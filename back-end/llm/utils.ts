@@ -1,4 +1,5 @@
 import { trimTrailingSlash, parseJsonSafely, normalizeApiKey } from '../utils/common';
+import type { AgentTool } from './types';
 export { trimTrailingSlash };
 
 export const hasTemplatePlaceholder = (value: unknown): boolean =>
@@ -106,7 +107,6 @@ export const tryFetchModelsFromBase = async (baseUrl: string, apiKey?: string) =
   return [] as Array<{ id: string; name?: string; description?: string }>;
 };
 // Additional helpers used by runtime adapters
-import type { AgentTool } from './types';
 
 const toStringRecord = (obj: object): Record<string, string> =>
   Object.fromEntries(Object.entries(obj).map(([k, v]) => [k, String(v ?? '')]));

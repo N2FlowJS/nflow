@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import prisma from '../lib/prisma';
+import { prisma } from '../lib/prisma';
 import { createLogger } from '../utils/logger';
 
 const logger = createLogger('Secret');

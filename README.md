@@ -62,6 +62,21 @@ npm run db:reset
 npm run db:studio
 ```
 
+Utility scripts:
+
+```bash
+npm run format     # Format code with Prettier
+npm run lint       # Lint code with ESLint
+npm run gen-key    # Generate a 32-byte hex key for ENCRYPTION_KEY
+```
+
+---
+
+## Documentation
+
+- **API Documentation**: When the backend is running, visit `http://localhost:8787/api-docs` for the Swagger UI.
+- **Architecture**: See [GEMINI.md](GEMINI.md) for project standards and architectural notes.
+
 ---
 
 ## Architecture Overview

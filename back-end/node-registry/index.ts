@@ -375,16 +375,10 @@ const nodeRegistry: Record<string, NodeRegistryEntry> = {
             }),
           ],
         },
-        {
-          label: "Stream Response",
-          name: "stream",
-          type: "boolean",
-        },
       ],
       {
         agentTemplate: DEFAULT_AGENT_TEMPLATE,
         instruction: DEFAULT_AGENT_INSTRUCTION,
-        stream: false,
       },
     ),
     validationRules: ["agent-llm-link"],

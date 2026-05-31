@@ -120,8 +120,13 @@ function isValidApiKey(apiKey: string): boolean {
     return keyList.includes(apiKey);
   }
 
-  // Check if key has valid format (can be customized per implementation)
-  // Format: sk_<environment>_<timestamp>_<hash>
+  // In production, we MUST have a whitelist or JWT.
+  // The regex check alone is insecure as it allows ANY key matching the pattern.
+  // We only allow the regex check in non-production if VALID_API_KEYS is not set.
+  if (process.env.NODE_ENV === 'production') {
+    return false;
+  }
+
   return /^(sk_|pk_)[a-zA-Z0-9_]{20,}$/.test(apiKey);
 }
 

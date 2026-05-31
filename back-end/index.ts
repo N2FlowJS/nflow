@@ -1,14 +1,22 @@
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import rootRouter from './routes';
 import { authMiddleware } from './middleware/auth';
 import { LogSanitizer, installGlobalLogSanitizer } from './middleware/logSanitizer';
 import { globalErrorHandler, notFoundHandler } from './middleware/errorHandler';
+import swaggerUi from 'swagger-ui-express';
+import { swaggerSpec } from './swagger';
 
 const app = express();
-const port = Number(process.env.SQL_SERVER_PORT || 8787);
+app.use(helmet());
+
+// Swagger Documentation
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+// SERVER_PORT is the canonical name; SQL_SERVER_PORT is kept for backward compatibility.
+const port = Number(process.env.SERVER_PORT || process.env.SQL_SERVER_PORT || 8787);
 const isProduction = process.env.NODE_ENV === 'production';
 
 function readNumberEnv(name: string, fallback: number): number {
@@ -110,6 +118,24 @@ app.use('/', rootRouter);
 app.use(notFoundHandler);
 app.use(globalErrorHandler);
 
-app.listen(port, () => {
+const server = app.listen(port, () => {
   console.log(`[n2flow] SQL server is running at http://localhost:${port}`);
+  console.log(`[n2flow] API Documentation available at http://localhost:${port}/api-docs`);
+});
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('SIGTERM signal received: closing HTTP server');
+  server.close(() => {
+    console.log('HTTP server closed');
+    process.exit(0);
+  });
+});
+
+process.on('SIGINT', () => {
+  console.log('SIGINT signal received: closing HTTP server');
+  server.close(() => {
+    console.log('HTTP server closed');
+    process.exit(0);
+  });
 });

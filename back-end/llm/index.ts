@@ -7,18 +7,44 @@ import { tryFetchModelsFromBase } from './utils';
 
 export type { LlmRuntimeConfig, AgentTool, LlmProvider };
 
-// Provider dispatch logic
-export const listModels = async (cfg: LlmRuntimeConfig) => {
+// ---------------------------------------------------------------------------
+// Provider resolution — single source of truth, no duplication
+// ---------------------------------------------------------------------------
+
+type Adapter = 'anthropic' | 'google' | 'openai-compat' | 'ollama';
+
+/**
+ * Determine which adapter to use given a runtime config.
+ * Google provider with an OpenAI-compatible base URL is routed to the openai
+ * adapter so it benefits from the full OpenAI streaming / tool-call path.
+ */
+const resolveAdapter = (cfg: LlmRuntimeConfig): Adapter => {
   const p = (cfg.provider || '').toUpperCase();
-  if (p === 'ANTHROPIC') return anthropicList(cfg);
+  if (p === 'ANTHROPIC') return 'anthropic';
+  if (p === 'OLLAMA') return 'ollama';
   if (p === 'GOOGLE' || p === 'GENAI') {
+    // If the caller supplied an OpenAI-compatible base URL, prefer that adapter
     if (cfg.baseUrl && (cfg.baseUrl.includes('/openai') || cfg.baseUrl.includes('/v1'))) {
-      return openaiList(cfg);
+      return 'openai-compat';
     }
-    return genaiList(cfg);
+    return 'google';
   }
-  if (p === 'OLLAMA') return ollamaList(cfg);
-  return openaiList(cfg);
+  // Covers: OpenAI, NVIDIA, vLLM, DeepSeek, and any other OpenAI-compat provider
+  return 'openai-compat';
+};
+
+// ---------------------------------------------------------------------------
+// Public API
+// ---------------------------------------------------------------------------
+
+export const listModels = async (cfg: LlmRuntimeConfig) => {
+  const adapter = resolveAdapter(cfg);
+  switch (adapter) {
+    case 'anthropic': return anthropicList(cfg);
+    case 'google':    return genaiList(cfg);
+    case 'ollama':    return ollamaList(cfg);
+    default:          return openaiList(cfg);
+  }
 };
 
 export const runChat = async (
@@ -29,37 +55,27 @@ export const runChat = async (
   executeToolByName?: (name: string, callArgs: Record<string, string>) => Promise<string>,
   log?: (msg: string) => void,
   onStream?: (chunk: string) => void,
+  chatHistory: any[] = [],
 ) => {
   const safeLog = typeof log === 'function' ? log : () => {};
   const exec = executeToolByName || (async () => '');
-  const p = (cfg.provider || '').toUpperCase();
+  const adapter = resolveAdapter(cfg);
 
-  if (p === 'ANTHROPIC') return runAnthropicChat(cfg, systemPrompt, userPrompt, availableTools, exec, safeLog, onStream);
-  if (p === 'GOOGLE' || p === 'GENAI') {
-    if (cfg.baseUrl && (cfg.baseUrl.includes('/openai') || cfg.baseUrl.includes('/v1'))) {
-      return runOpenAICompatibleChat(cfg, systemPrompt, userPrompt, availableTools, exec, safeLog, onStream);
-    }
-    return runGoogleChat(cfg, systemPrompt, userPrompt, availableTools, exec, safeLog, onStream);
+  switch (adapter) {
+    case 'anthropic':    return runAnthropicChat(cfg, systemPrompt, userPrompt, availableTools, exec, safeLog, onStream, chatHistory);
+    case 'google':       return runGoogleChat(cfg, systemPrompt, userPrompt, availableTools, exec, safeLog, onStream, chatHistory);
+    case 'ollama':       return runOllamaChat(cfg, systemPrompt, userPrompt, availableTools, exec, safeLog, onStream, chatHistory);
+    default:             return runOpenAICompatibleChat(cfg, systemPrompt, userPrompt, availableTools, exec, safeLog, onStream, chatHistory);
   }
-  if (p === 'OLLAMA') return runOllamaChat(cfg, systemPrompt, userPrompt, availableTools, exec, safeLog, onStream);
-
-  // Default to OpenAI-compatible (covers NVIDIA, vLLM, DeepSeek, etc.)
-  return runOpenAICompatibleChat(cfg, systemPrompt, userPrompt, availableTools, exec, safeLog, onStream);
 };
 
 export const embedText = async (cfg: LlmRuntimeConfig, input: string) => {
-  const p = (cfg.provider || '').toUpperCase();
-
-  if (p === 'GOOGLE' || p === 'GENAI') {
-    if (cfg.baseUrl && (cfg.baseUrl.includes('/openai') || cfg.baseUrl.includes('/v1'))) {
-      return openaiEmbed(cfg, input);
-    }
-    return genaiEmbed(cfg, input);
+  const adapter = resolveAdapter(cfg);
+  switch (adapter) {
+    case 'google': return genaiEmbed(cfg, input);
+    case 'ollama': return ollamaEmbed(cfg, input);
+    default:       return openaiEmbed(cfg, input);
   }
-  if (p === 'OLLAMA') return ollamaEmbed(cfg, input);
-  
-  // Default to OpenAI-compatible (covers NVIDIA, etc.)
-  return openaiEmbed(cfg, input);
 };
 
 export default {

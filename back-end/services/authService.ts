@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import prisma from '../lib/prisma';
+import { prisma } from '../lib/prisma';
 import { createLogger } from '../utils/logger';
 import { toErrorMessage } from '../utils/common';
 

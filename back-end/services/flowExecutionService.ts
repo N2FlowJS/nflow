@@ -10,14 +10,26 @@ import type {
 import { executeNode, FlowRuntimeContext, NodeExecutionError } from '../nodes';
 import { ToolDefinition, executeToolNode } from '../tools';
 import { AgentTool } from '../llm';
-import { resolveVariablePlaceholders, withTimeout } from '../utils/common';
+import { withTimeout } from '../utils/common';
+
+// Engine modules
+import {
+  buildGraphMaps,
+  performTopologicalSort,
+  type NodeStatus,
+} from './engine/graphBuilder';
+import {
+  collectNodeInputs,
+  resolveNodeConfig,
+  shouldSkipNode,
+} from './engine/inputResolver';
 
 // ---------------------------------------------------------------------------
 // Circuit-breaker constants (env-configurable)
 // ---------------------------------------------------------------------------
-const MAX_CONCURRENCY   = Math.max(1, Number(process.env.EXECUTOR_CONCURRENCY  || 4));
-const MAX_FLOW_NODES    = Number(process.env.MAX_FLOW_NODES               || 500);
-const GLOBAL_FLOW_TIMEOUT   = Number(process.env.GLOBAL_FLOW_TIMEOUT         || 300_000); // 5 min
+const MAX_CONCURRENCY       = Math.max(1, Number(process.env.EXECUTOR_CONCURRENCY   || 4));
+const MAX_FLOW_NODES        = Number(process.env.MAX_FLOW_NODES                || 500);
+const GLOBAL_FLOW_TIMEOUT   = Number(process.env.GLOBAL_FLOW_TIMEOUT          || 300_000); // 5 min
 const NODE_EXECUTION_TIMEOUT_MS = Number(process.env.NODE_EXECUTION_TIMEOUT_MS || 180_000);
 
 // ---------------------------------------------------------------------------
@@ -32,9 +44,6 @@ type PartialRuntimeEvent =
   | { type: 'result'; output: any }
   | { type: 'error'; message: string; nodeId?: string }
   | { type: 'done'; output: any };
-
-/** Per-node execution status used internally by the scheduler. */
-type NodeStatus = 'pending' | 'running' | 'success' | 'skipped' | 'error';
 
 // ---------------------------------------------------------------------------
 // Event helpers
@@ -55,204 +64,6 @@ function makeEvents(isSilent: boolean, handler?: EventHandler) {
 }
 
 // ---------------------------------------------------------------------------
-// Graph construction helpers
-// ---------------------------------------------------------------------------
-
-/** Build look-up maps (inDegree, adjacency, etc.) from raw node/edge arrays. */
-function buildGraphMaps(nodes: FlowNode[], edges: FlowEdge[]) {
-  const nodeById    = new Map<string, FlowNode>(nodes.map(n => [n.id, n]));
-  const nonGroupCount = nodes.filter(n => n.type !== 'cyberGroup').length;
-
-  const inDegree    = new Map<string, number>();   // real dependency count
-  const outgoingMap = new Map<string, string[]>(); // nodeId -> child nodeIds
-  const incomingMap = new Map<string, FlowEdge[]>(); // nodeId -> incoming edges
-
-  nodes.forEach(n => {
-    if (n.type !== 'cyberGroup') {
-      inDegree.set(n.id, 0);
-      outgoingMap.set(n.id, []);
-    }
-  });
-
-  edges.forEach(edg => {
-    if (inDegree.has(edg.target)) {
-      inDegree.set(edg.target, (inDegree.get(edg.target) || 0) + 1);
-    }
-    const out = outgoingMap.get(edg.source);
-    if (out) out.push(edg.target);
-
-    const inc = incomingMap.get(edg.target) || [];
-    inc.push(edg);
-    incomingMap.set(edg.target, inc);
-  });
-
-  return { nodeById, nonGroupCount, inDegree, outgoingMap, incomingMap };
-}
-
-/**
- * Kahn's algorithm for topological sort + cycle detection.
- * Returns sorted list of node IDs; throws on cycle.
- */
-function performTopologicalSort(
-  inDegree: Map<string, number>,
-  outgoingMap: Map<string, string[]>,
-  nonGroupCount: number,
-): string[] {
-  const degree = new Map(inDegree);
-  const queue: string[] = [];
-  degree.forEach((d, id) => { if (d === 0) queue.push(id); });
-
-  const sorted: string[] = [];
-  while (queue.length > 0) {
-    const cur = queue.shift()!;
-    sorted.push(cur);
-    for (const nbr of (outgoingMap.get(cur) || [])) {
-      const nd = (degree.get(nbr) ?? 1) - 1;
-      degree.set(nbr, nd);
-      if (nd === 0) queue.push(nbr);
-    }
-  }
-
-  if (sorted.length !== nonGroupCount) {
-    throw new Error('Cycle detected in the flow! Cannot execute.');
-  }
-  return sorted;
-}
-
-// ---------------------------------------------------------------------------
-// Input resolution helpers
-// ---------------------------------------------------------------------------
-
-/**
- * Collect data inputs for a target node from its incoming edges, applying:
- *   - Dead-Path Elimination (DPE): skip values from skipped/error nodes
- *   - ConditionComponent routing: only pass the edge that matches the result
- *   - Dynamic node-output referencing: resolve {{nodes.ID.field}} placeholders
- */
-function collectNodeInputs(
-  nodeId: string,
-  incomingMap: Map<string, FlowEdge[]>,
-  nodeById: Map<string, FlowNode>,
-  nodeResults: Map<string, unknown>,
-  nodeStatus: Map<string, NodeStatus>,
-  inputMessage?: string,
-): Record<string, unknown[]> {
-  const incoming = incomingMap.get(nodeId) || [];
-  const inputs: Record<string, unknown[]> = {};
-
-  for (const edg of incoming) {
-    // DPE: ignore data coming from a skipped source
-    const srcStatus = nodeStatus.get(edg.source);
-    if (srcStatus === 'skipped') continue;
-
-    const key = edg.targetHandle || edg.source;
-    if (!inputs[key]) inputs[key] = [];
-
-    const val = nodeResults.get(edg.source);
-    const srcNode = nodeById.get(edg.source);
-
-    // ConditionComponent: only accept the matching branch handle
-    if (srcNode?.data?.type === 'ConditionComponent') {
-      if (String(val) !== edg.sourceHandle) continue;
-    }
-
-    inputs[key].push(val);
-  }
-
-  if (inputMessage) {
-    if (!inputs['inputMessage']) inputs['inputMessage'] = [];
-    inputs['inputMessage'].push(inputMessage);
-  }
-
-  return inputs;
-}
-
-/**
- * Resolve static variable placeholders in node params/configSchema,
- * AND dynamic node-output references: {{nodes.NODE_ID}} or {{nodes.NODE_ID.fieldName}}.
- */
-function resolveNodeConfig(
-  node: FlowNode,
-  globalVariables: any[],
-  nodeResults: Map<string, unknown>,
-): FlowNode {
-  // Build extra lookup for dynamic references
-  const nodeResultsObj = Object.fromEntries(nodeResults.entries());
-
-  const resolveDynamic = (value: unknown): unknown => {
-    // First pass: static globals + env secrets
-    const afterStatic = resolveVariablePlaceholders(value, globalVariables) as unknown;
-
-    // Second pass: {{nodes.ID}} / {{nodes.ID.field}}
-    if (typeof afterStatic !== 'string') return afterStatic;
-    return afterStatic.replace(/\{\{\s*nodes\.([^.}\s]+)(?:\.([^}\s]+))?\s*\}\}/g, (_m, id, field) => {
-      const nodeOutput = nodeResultsObj[id];
-      if (nodeOutput === undefined) return _m;
-      if (!field) return String(nodeOutput ?? '');
-      if (nodeOutput && typeof nodeOutput === 'object') {
-        return String((nodeOutput as Record<string, unknown>)[field] ?? '');
-      }
-      return _m;
-    });
-  };
-
-  return {
-    ...node,
-    data: {
-      ...node.data,
-      params: resolveDynamic(node.data?.params || {}) as Record<string, unknown>,
-      configSchema: node.data?.configSchema?.map((field: any) => ({
-        ...field,
-        value: resolveDynamic(field.value),
-      })),
-    },
-  };
-}
-
-// ---------------------------------------------------------------------------
-// Dead-Path Elimination (DPE)
-// ---------------------------------------------------------------------------
-
-/**
- * Determines whether a node should be SKIPPED based on its incoming edges:
- * - A node is skipped when ALL active (non-skipped) source nodes have been
- *   resolved AND none of them contributed a live input value to this node.
- *   (i.e. every possible input was pruned away by ConditionComponent routing)
- *
- * Returns true  → skip this node
- * Returns false → execute this node normally
- */
-function shouldSkipNode(
-  nodeId: string,
-  incomingMap: Map<string, FlowEdge[]>,
-  nodeById: Map<string, FlowNode>,
-  nodeResults: Map<string, unknown>,
-  nodeStatus: Map<string, NodeStatus>,
-): boolean {
-  const incoming = incomingMap.get(nodeId) || [];
-  if (incoming.length === 0) return false; // root node → never skip
-
-  // Count how many edges would actually deliver a value
-  let activeInputCount = 0;
-  for (const edg of incoming) {
-    const srcStatus = nodeStatus.get(edg.source);
-    if (srcStatus === 'skipped') continue; // DPE: skip propagates
-
-    const val = nodeResults.get(edg.source);
-    const srcNode = nodeById.get(edg.source);
-
-    if (srcNode?.data?.type === 'ConditionComponent') {
-      if (String(val) === edg.sourceHandle) activeInputCount++;
-      // else: wrong branch → still not an active input
-    } else {
-      activeInputCount++; // normal edge → active
-    }
-  }
-
-  return activeInputCount === 0;
-}
-
-// ---------------------------------------------------------------------------
 // Main execution engine
 // ---------------------------------------------------------------------------
 
@@ -260,6 +71,7 @@ export async function executeFlowOnServer({
   nodes = [],
   edges = [],
   inputMessage,
+  chatHistory = [],
   isSilent = false,
   apiKey,
   onEvent,
@@ -385,6 +197,7 @@ export async function executeFlowOnServer({
         log,
         globalVariables,
         onEvent,
+        chatHistory,
       };
 
       result = await withTimeout(
@@ -450,7 +263,6 @@ export async function executeFlowOnServer({
   // parallel siblings before their own children can start.
   // ---------------------------------------------------------------------------
 
-  // Separate ready queue into two tiers so we can drain efficiently
   const readyQueue: string[] = sortedIds.filter(id => (pendingCount.get(id) ?? 0) === 0);
   const inFlight = new Set<string>();
   let firstError: Error | null = null;

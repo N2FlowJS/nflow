@@ -1,18 +1,25 @@
-import prisma from "../lib/prisma";
+import { prisma } from "../lib/prisma";
 import { parseJsonSafely } from '../utils/common';
 import { createLogger } from '../utils/logger';
 
 const logger = createLogger('FlowStorage');
 
-type FlowRow = { id: string; name: string; createdAt: Date; updatedAt: Date };
+type FlowRow = { id: string; name: string; createdAt: Date; updatedAt: Date; data: string };
+
+const countJsonArray = (json: string, key: string): number => {
+  try {
+    const parsed = JSON.parse(json);
+    return Array.isArray(parsed?.[key]) ? parsed[key].length : 0;
+  } catch { return 0; }
+};
 
 const mapFlowRow = (f: FlowRow) => ({
   id: f.id,
   name: f.name,
   updatedAt: f.updatedAt.getTime(),
   createdAt: f.createdAt.getTime(),
-  nodeCount: 0,
-  edgeCount: 0,
+  nodeCount: countJsonArray(f.data, 'nodes'),
+  edgeCount: countJsonArray(f.data, 'edges'),
 });
 
 const parseFlowData = (raw: string): any => {
@@ -33,14 +40,37 @@ export class FlowStorageService {
   static async listFlowsForUser(userId: string) {
     const flows = await prisma.flow.findMany({
       where: { userId },
-      select: { id: true, name: true, createdAt: true, updatedAt: true },
+      select: { id: true, name: true, createdAt: true, updatedAt: true, data: true },
       orderBy: { updatedAt: 'desc' },
     });
     return flows.map(mapFlowRow);
   }
 
-  static async listFlowsScoped(u?: string) {
-    return this.listFlowsForUser(this.requireUserId(u));
+  static async listFlowsScoped(u?: string): Promise<ReturnType<typeof mapFlowRow>[]>;
+  static async listFlowsScoped(
+    u: string | undefined,
+    pagination: { limit: number; offset: number },
+  ): Promise<{ flows: ReturnType<typeof mapFlowRow>[]; total: number }>;
+  static async listFlowsScoped(
+    u?: string,
+    pagination?: { limit: number; offset: number },
+  ): Promise<ReturnType<typeof mapFlowRow>[] | { flows: ReturnType<typeof mapFlowRow>[]; total: number }> {
+    const userId = this.requireUserId(u);
+    if (!pagination) {
+      return this.listFlowsForUser(userId);
+    }
+    const { limit, offset } = pagination;
+    const [total, flows] = await Promise.all([
+      prisma.flow.count({ where: { userId } }),
+      prisma.flow.findMany({
+        where: { userId },
+        select: { id: true, name: true, createdAt: true, updatedAt: true, data: true },
+        orderBy: { updatedAt: 'desc' },
+        take: limit,
+        skip: offset,
+      }),
+    ]);
+    return { flows: flows.map(mapFlowRow), total };
   }
 
 

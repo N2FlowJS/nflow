@@ -75,18 +75,26 @@ export default function Home() {
         throw new Error(fullResponse.error || "Failed to fetch full flow data");
 
       const fullFlow = fullResponse.data;
+      const newId = `flow-${Date.now()}`;
 
-      const newFlow: SavedFlow = {
-        ...fullFlow,
-        id: `flow-${Date.now()}`,
+      const response = await apiService.post("/api/flows", {
+        id: newId,
         name: `${fullFlow.name} (copy)`,
-        updatedAt: Date.now(),
-      };
-
-      const response = await apiService.post("/api/flows", newFlow);
+        nodes: fullFlow.data?.nodes || [],
+        edges: fullFlow.data?.edges || [],
+        viewport: fullFlow.data?.viewport,
+        globalVariables: fullFlow.data?.globalVariables || [],
+      });
 
       if (response.ok) {
-        setFlows([newFlow, ...flows]);
+        const duplicatedFlow = {
+          id: newId,
+          name: `${fullFlow.name} (copy)`,
+          updatedAt: Date.now(),
+          nodeCount: fullFlow.data?.nodes?.length || 0,
+          edgeCount: fullFlow.data?.edges?.length || 0,
+        };
+        setFlows([duplicatedFlow as any, ...flows]);
       }
     } catch (err) {
       console.error("Failed to duplicate flow:", err);
@@ -98,7 +106,14 @@ export default function Home() {
     if (!newFlow) return;
 
     try {
-      const response = await apiService.post("/api/flows", newFlow);
+      const response = await apiService.post("/api/flows", {
+        id: newFlow.id,
+        name: newFlow.name,
+        nodes: newFlow.data?.nodes || [],
+        edges: newFlow.data?.edges || [],
+        viewport: newFlow.data?.viewport,
+        globalVariables: newFlow.data?.globalVariables || [],
+      });
 
       if (response.ok) {
         navigate(`/flow/${newFlow.id}`);

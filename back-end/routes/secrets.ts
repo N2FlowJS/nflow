@@ -8,6 +8,29 @@ import { successResponse, errorResponse, asyncHandler } from '../utils/apiRespon
 const router = Router();
 const logger = createLogger('Secrets');
 
+/**
+ * @openapi
+ * /api/secrets:
+ *   post:
+ *     summary: Create a new secret
+ *     tags: [Secrets]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [name, key]
+ *             properties:
+ *               name: { type: string }
+ *               key: { type: string }
+ *               label: { type: string }
+ *     responses:
+ *       200:
+ *         description: Secret created successfully
+ */
 router.post('/secrets', asyncHandler(async (req: AuthRequest, res: Response) => {
   const userId = req.userId;
   if (!userId) {
@@ -24,6 +47,18 @@ router.post('/secrets', asyncHandler(async (req: AuthRequest, res: Response) => 
   res.json(successResponse(secret));
 }));
 
+/**
+ * @openapi
+ * /api/secrets:
+ *   get:
+ *     summary: List all secrets for the authenticated user
+ *     tags: [Secrets]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of secrets retrieved
+ */
 router.get('/secrets', asyncHandler(async (req: AuthRequest, res: Response) => {
   const userId = req.userId;
   if (!userId) {

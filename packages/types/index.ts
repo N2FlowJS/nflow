@@ -152,6 +152,14 @@ export interface FlowRuntimeEvent {
 }
 
 /**
+ * Chat history message structure
+ */
+export type ChatMessage = {
+  role: 'user' | 'assistant' | 'system';
+  text: string;
+};
+
+/**
  * Regular expression for placeholders like {{variable}}
  */
 export const PLACEHOLDER_REGEX = /\{\{\s*([^{}]+?)\s*\}\}/g;

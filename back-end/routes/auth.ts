@@ -16,8 +16,28 @@ const asyncHandler = (fn: any) => (req: Request, res: Response, next: any) =>
   });
 
 /**
- * Register new user
- * POST /api/auth/register
+ * @openapi
+ * /api/auth/register:
+ *   post:
+ *     summary: Register a new user
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email, username, password]
+ *             properties:
+ *               email: { type: string }
+ *               username: { type: string }
+ *               password: { type: string }
+ *               name: { type: string }
+ *     responses:
+ *       200:
+ *         description: User registered successfully
+ *       400:
+ *         description: Invalid input or user already exists
  */
 router.post('/register', asyncHandler(async (req: Request, res: Response) => {
   const { email, username, password, name } = req.body;
@@ -32,8 +52,26 @@ router.post('/register', asyncHandler(async (req: Request, res: Response) => {
 }));
 
 /**
- * Login user
- * POST /api/auth/login
+ * @openapi
+ * /api/auth/login:
+ *   post:
+ *     summary: Login user
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email, password]
+ *             properties:
+ *               email: { type: string }
+ *               password: { type: string }
+ *     responses:
+ *       200:
+ *         description: Login successful
+ *       401:
+ *         description: Invalid credentials
  */
 router.post('/login', asyncHandler(async (req: Request, res: Response) => {
   const { email, password } = req.body;
@@ -48,8 +86,18 @@ router.post('/login', asyncHandler(async (req: Request, res: Response) => {
 }));
 
 /**
- * Get current user profile
- * GET /api/auth/profile
+ * @openapi
+ * /api/auth/profile:
+ *   get:
+ *     summary: Get current user profile
+ *     tags: [Authentication]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: User profile retrieved
+ *       401:
+ *         description: Not authenticated
  */
 router.get('/profile', authMiddleware, asyncHandler(async (req: AuthRequest, res: Response) => {
   if (!req.userId) {
@@ -66,7 +114,16 @@ router.get('/profile', authMiddleware, asyncHandler(async (req: AuthRequest, res
 }));
 
 /**
- * Logout (client-side operation - just returns success)
+ * @openapi
+ * /api/auth/logout:
+ *   post:
+ *     summary: Logout user
+ *     tags: [Authentication]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Logged out successfully
  */
 router.post('/logout', authMiddleware, (req: AuthRequest, res: Response) => {
   res.json({ ok: true, message: 'Logged out successfully' });

@@ -1,8 +1,8 @@
-import { NodeData as BaseNodeData, GlobalVariable, CustomNodeType, CustomEdgeType, FlowRuntimeEvent } from '@n2flow/types';
+import { NodeData as BaseNodeData, GlobalVariable, CustomNodeType, CustomEdgeType, FlowRuntimeEvent, ChatMessage } from '@n2flow/types';
 
 export type NodeData = BaseNodeData;
 
-export type { GlobalVariable, FlowRuntimeEvent };
+export type { GlobalVariable, FlowRuntimeEvent, ChatMessage };
 
 export interface FlowNode extends CustomNodeType {}
 
@@ -14,6 +14,7 @@ export interface ExecuteFlowInput {
   edges: FlowEdge[];
   globalVariables?: GlobalVariable[];
   inputMessage?: string;
+  chatHistory?: ChatMessage[];
   isSilent?: boolean;
   apiKey?: string;
   onEvent?: (event: FlowRuntimeEvent) => void;
