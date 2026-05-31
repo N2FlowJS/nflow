@@ -2,6 +2,7 @@ import { defineConfig } from 'vitepress'
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
+  base: '/nflow/',
   title: "N2FLOW",
   description: "AI-powered flow editor with LLM integration",
   ignoreDeadLinks: true,
