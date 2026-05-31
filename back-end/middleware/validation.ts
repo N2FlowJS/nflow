@@ -51,6 +51,7 @@ export interface ChatMessage {
 export interface FlowExecutionRequest {
   nodes: Node[];
   edges: Edge[];
+  flowId?: string;
   inputMessage?: string;
   chatHistory?: ChatMessage[];
   isSilent?: boolean;
@@ -117,6 +118,7 @@ export const ChatMessageSchema = z.object({
 export const FlowExecutionRequestSchema = z.object({
   nodes: z.array(NodeSchema).min(1, 'At least one node is required'),
   edges: z.array(EdgeSchema),
+  flowId: z.string().optional(),
   inputMessage: z.string().optional(),
   chatHistory: z.array(ChatMessageSchema).optional(),
   isSilent: z.boolean().optional(),

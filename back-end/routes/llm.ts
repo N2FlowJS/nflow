@@ -13,6 +13,28 @@ const asyncHandler = (fn: any) => (req: Request, res: Response, next: any) =>
     res.status(500).json({ ok: false, error: errorMsg });
   });
 
+/**
+ * @openapi
+ * /api/llm/models:
+ *   post:
+ *     summary: Discover available models for a given provider or base URL
+ *     tags: [LLM]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               provider: { type: string, description: "Provider name (e.g., OpenAI, Ollama, Google)" }
+ *               baseUrl: { type: string, description: "Base URL for OpenAI compatible APIs" }
+ *               apiKey: { type: string, description: "API Key (optional if using local Ollama)" }
+ *     responses:
+ *       200:
+ *         description: List of discovered models
+ *       400:
+ *         description: Missing required configuration
+ */
 router.post('/llm/models', asyncHandler(async (req: Request, res: Response) => {
   const { provider, baseUrl, apiKey } = req.body || {};
   if (!baseUrl && !provider) {

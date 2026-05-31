@@ -1,13 +1,30 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { GitBranch, FolderOpen, ShieldCheck, LogOut } from 'lucide-react';
+import { GitBranch, FolderOpen, ShieldCheck, LogOut, Activity } from 'lucide-react';
 import { useAuthUser, useLogout } from '../ProtectedRoute';
+import { apiService } from '../../lib/apiService';
 
 export const GlobalHeader: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const logout = useLogout();
   const user = useAuthUser() as { username?: string; email?: string } | null;
+
+  const [isOnline, setIsOnline] = useState(true);
+
+  useEffect(() => {
+    const checkStatus = async () => {
+      try {
+        const response = await apiService.get('/api/health');
+        setIsOnline(response.ok);
+      } catch {
+        setIsOnline(false);
+      }
+    };
+    const timer = setInterval(checkStatus, 30000);
+    checkStatus();
+    return () => clearInterval(timer);
+  }, []);
 
   const currentPath = location.pathname;
   const isDashboardActive = currentPath === '/' || currentPath.startsWith('/flow/');
@@ -16,7 +33,7 @@ export const GlobalHeader: React.FC = () => {
   return (
     <header className="sticky top-0 z-50 w-full bg-black/60 backdrop-blur-xl border-b border-white/5 shadow-[0_4px_30px_rgba(0,0,0,0.4)]">
       {/* Laser Top Glow Highlight */}
-      <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-cyber-primary via-cyber-secondary to-cyber-primary opacity-80" />
+      <div className={`absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r ${isOnline ? 'from-cyber-primary via-cyber-secondary to-cyber-primary' : 'from-red-500 via-orange-500 to-red-500'} opacity-80`} />
 
       <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
         {/* Left Side: Branding */}
@@ -24,17 +41,25 @@ export const GlobalHeader: React.FC = () => {
           onClick={() => navigate('/')}
           className="flex items-center gap-3 cursor-pointer group select-none"
         >
-          <div className="p-2 bg-cyber-primary/10 rounded-xl border border-cyber-primary/20 relative">
-            <div className="absolute inset-0 bg-cyber-primary/25 rounded-xl blur-sm opacity-50 group-hover:opacity-100 transition-opacity duration-300" />
-            <GitBranch className="text-cyber-primary relative drop-shadow-[0_0_3px_currentColor]" size={18} />
+          <div className={`p-2 ${isOnline ? 'bg-cyber-primary/10 border-cyber-primary/20' : 'bg-red-500/10 border-red-500/20'} rounded-xl border relative`}>
+            <div className={`absolute inset-0 ${isOnline ? 'bg-cyber-primary/25' : 'bg-red-500/25'} rounded-xl blur-sm opacity-50 group-hover:opacity-100 transition-opacity duration-300`} />
+            <GitBranch className={`${isOnline ? 'text-cyber-primary' : 'text-red-500'} relative drop-shadow-[0_0_3px_currentColor]`} size={18} />
           </div>
           <div className="flex flex-col">
             <h1 className="text-lg font-black tracking-widest uppercase text-white transition-colors group-hover:text-cyber-primary">
               n2<span className="text-cyber-primary">flow</span>
             </h1>
-            <span className="text-[7px] text-cyber-muted font-mono tracking-[0.25em] uppercase -mt-0.5">
-              OPERATIONAL_AGENT_ORCHESTRATION
-            </span>
+            <div className="flex items-center gap-1.5 -mt-0.5">
+              <span className="text-[7px] text-cyber-muted font-mono tracking-[0.25em] uppercase">
+                OPERATIONAL_AGENT_ORCHESTRATION
+              </span>
+              <div className="flex items-center gap-1 px-1 py-0.5 bg-white/[0.03] rounded border border-white/5">
+                <span className={`h-1 w-1 rounded-full ${isOnline ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} />
+                <span className={`text-[5px] font-bold uppercase tracking-tighter ${isOnline ? 'text-green-500/70' : 'text-red-500/70'}`}>
+                  {isOnline ? 'Active' : 'Offline'}
+                </span>
+              </div>
+            </div>
           </div>
         </div>
 

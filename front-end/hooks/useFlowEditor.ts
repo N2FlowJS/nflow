@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Node, useReactFlow } from "@xyflow/react";
+import { Node, useReactFlow, Edge } from "@xyflow/react";
 import { toPng } from "html-to-image";
 import {
   AlertTriangle,
@@ -27,8 +27,9 @@ import { useGraphLayout, LayoutMode } from "./useGraphLayout";
 
 import { normalizeModelNode } from "../../back-end/node-registry/utils";
 import { apiService } from "../lib/apiService";
+import { EditorContextProps } from "../types/editor";
 
-export const useFlowEditor = () => {
+export const useFlowEditor = (): EditorContextProps => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { deleteElements } = useReactFlow();
@@ -36,20 +37,17 @@ export const useFlowEditor = () => {
   // 1. UI State
   const ui = useEditorUI();
 
-  // 2. Graph State (needed by execution)
+  // 2. Graph State
+  const notifyRef = useRef<((msg: string, type: 'error' | 'info') => void) | null>(null);
+  const onNotifyStable = useCallback((msg: string, type: 'error' | 'info') => {
+    notifyRef.current?.(msg, type);
+  }, []);
+
   const graph = useGraphState({
-    onNotify: (msg, type) => {
-      if (type === 'error') {
-        execution.setPlaygroundError(msg);
-      }
-      execution.setPlaygroundMessages((prev) => [
-        ...prev,
-        { role: type === 'error' ? 'system' : 'assistant', text: `[System] ${msg}` }
-      ]);
-    }
+    onNotify: onNotifyStable
   });
 
-  // 3. Persistence (needed by execution)
+  // 3. Persistence
   const persistence = useFlowPersistence({
     id,
     reactFlowInstance: graph.reactFlowInstance,
@@ -57,9 +55,9 @@ export const useFlowEditor = () => {
     edges: graph.edges,
     setNodes: graph.setNodes,
     setEdges: graph.setEdges,
-    triggerFitView: () => {
+    triggerFitView: useCallback(() => {
       setTimeout(() => graph.reactFlowInstance?.fitView({ duration: 800 }), 100);
-    }
+    }, [graph.reactFlowInstance])
   });
 
   // 4. Flow Execution
@@ -67,13 +65,24 @@ export const useFlowEditor = () => {
     getNodes: () => graph.nodes,
     getEdges: () => graph.edges,
     getGlobalVariables: () => persistence.globalVariables,
-    runtimeStatus: graph.runtimeStatus as any,
-    setRuntimeStatus: graph.setRuntimeStatus as any,
+    getFlowId: () => persistence.currentFlowId,
+    runtimeStatus: graph.runtimeStatus,
+    setRuntimeStatus: graph.setRuntimeStatus,
     setNodes: graph.setNodes,
     setIsPlaygroundOpen: ui.setIsPlaygroundOpen,
     setActiveDockTab: ui.setActiveDockTab,
     setIsLogsOpenExclusive: ui.setIsLogsOpenExclusive,
   });
+
+  notifyRef.current = (msg, type) => {
+    if (type === 'error') {
+      execution.setPlaygroundError(msg);
+    }
+    execution.setPlaygroundMessages((prev) => [
+      ...prev,
+      { role: type === 'error' ? 'system' : 'assistant', text: `[System] ${msg}` }
+    ]);
+  };
 
   const [highlightedConfigField, setHighlightedConfigField] = useState<string | null>(null);
 
@@ -95,7 +104,7 @@ export const useFlowEditor = () => {
   }, [graph, focusNode, ui]);
 
   // 5. Layout
-  const { runLayout, isLayouting } = useGraphLayout({
+  const { runLayout, isLayouting: _isLayouting } = useGraphLayout({
     nodes: graph.nodes,
     edges: graph.edges,
     setNodes: graph.setNodes,
@@ -248,7 +257,7 @@ export const useFlowEditor = () => {
   const commandInputRef = useRef<HTMLInputElement>(null!);
 
   return {
-    id, navigate, isOnline, dockTabs, renderedEdges,
+    id, navigate, isOnline, setIsOnline, dockTabs, renderedEdges,
     ...ui, ...graph, ...persistence, ...execution, ...hotkeys,
     onLayout, onExport, onImport, onDownloadImage, importInputRef,
     onDragOver, onDrop, onNodeContextMenu, onPaneContextMenu, onClear,
@@ -256,10 +265,10 @@ export const useFlowEditor = () => {
     onNodesChangeWrapper: graph.onNodesChange,
     onEdgesChangeWrapper: graph.onEdgesChange,
     handleConfigParamChange: (name: string, val: any) => {
-      if (graph.configNodeId) graph.handleParamChange(graph.configNodeId, name, val);
+        if (graph.configNodeId) graph.handleParamChange(graph.configNodeId, name, val);
     },
     updateNodeDataById: (data: any) => {
-      if (graph.configNodeId) graph.updateNodeDataById(graph.configNodeId, data);
+        if (graph.configNodeId) graph.updateNodeDataById(graph.configNodeId, data);
     },
     onSelectionChange: ({ nodes: selectedNodes }: { nodes: any[] }) => {
       const activeSelected = selectedNodes.find((n) => n.selected);

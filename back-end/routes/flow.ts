@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import { prisma } from '../lib/prisma';
 import { executeFlowOnServer } from '../services/flowExecutionService';
 import { FlowStorageService } from '../services/flowStorageService';
 import { RequestValidator, TypeConverters } from '../middleware/validation';
@@ -46,6 +47,7 @@ router.post('/flow/execute', async (req: AuthRequest, res: Response) => {
     const result = await executeFlowOnServer({
       nodes: TypeConverters.toFlowNodes(validatedRequest.nodes),
       edges: TypeConverters.toFlowEdges(validatedRequest.edges),
+      flowId: validatedRequest.flowId,
       inputMessage: validatedRequest.inputMessage,
       chatHistory: validatedRequest.chatHistory,
       isSilent: validatedRequest.isSilent || false,
@@ -100,6 +102,7 @@ router.post('/flow/execute/stream', async (req: AuthRequest, res: Response) => {
       const result = await executeFlowOnServer({
         nodes: TypeConverters.toFlowNodes(validatedRequest.nodes),
         edges: TypeConverters.toFlowEdges(validatedRequest.edges),
+        flowId: validatedRequest.flowId,
         inputMessage: validatedRequest.inputMessage,
         chatHistory: validatedRequest.chatHistory,
         isSilent: validatedRequest.isSilent || false,
@@ -321,5 +324,44 @@ router.post('/flows/:id/versions/:versionId/restore', async (req: AuthRequest, r
   }
 });
 
+
+/**
+ * @openapi
+ * /api/flows/{id}/executions:
+ *   get:
+ *     summary: Get execution history for a specific flow
+ *     tags: [Flows]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Execution history retrieved
+ *       404:
+ *         description: Flow not found
+ */
+router.get('/flows/:id/executions', async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.userId;
+    if (!userId) return res.status(401).json(errorResponse('Unauthorized'));
+
+    const executions = await prisma.flowExecution.findMany({
+      where: {
+        flowId: String(req.params.id),
+        flow: { userId } // Ensure ownership
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 50,
+    });
+    
+    res.json(successResponse(executions));
+  } catch (err) {
+    res.status(500).json(errorResponse('Failed to retrieve execution history'));
+  }
+});
 
 export default router;

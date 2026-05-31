@@ -8,7 +8,14 @@ const logger = createLogger('Tools');
 const router = Router();
 
 /**
- * Get list of available tool types
+ * @openapi
+ * /api/tools:
+ *   get:
+ *     summary: List all available system tools
+ *     tags: [Tools]
+ *     responses:
+ *       200:
+ *         description: List of tools retrieved
  */
 router.get('/tools', (req: Request, res: Response) => {
   try {
@@ -29,7 +36,21 @@ router.get('/tools', (req: Request, res: Response) => {
 });
 
 /**
- * Get details about a specific tool
+ * @openapi
+ * /api/tools/{toolId}:
+ *   get:
+ *     summary: Get details for a specific tool
+ *     tags: [Tools]
+ *     parameters:
+ *       - in: path
+ *         name: toolId
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Tool details retrieved
+ *       404:
+ *         description: Tool not found
  */
 router.get('/tools/:toolId', (req: Request, res: Response) => {
   try {

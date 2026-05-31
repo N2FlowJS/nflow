@@ -5,9 +5,7 @@ import {
   addEdge,
   Connection,
   Edge,
-  EdgeChange,
   Node,
-  NodeChange,
   ReactFlowInstance,
   useReactFlow,
 } from "@xyflow/react";
@@ -26,17 +24,18 @@ import {
   inferTargetPortType,
   PortDataType,
 } from "../../../back-end/node-registry/utils";
+import type { GraphState, RuntimeStatus } from '../../types/editor';
 
 interface UseGraphStateOptions {
   onNotify?: (message: string, type: 'error' | 'info') => void;
 }
 
-export const useGraphState = ({ onNotify }: UseGraphStateOptions = {}) => {
+export const useGraphState = ({ onNotify }: UseGraphStateOptions = {}): GraphState => {
   const { deleteElements } = useReactFlow();
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null);
-  const [runtimeStatus, setRuntimeStatus] = useState<string>("idle");
+  const [runtimeStatus, setRuntimeStatus] = useState<RuntimeStatus>("idle");
   const [pendingNodeInsertPosition, setPendingNodeInsertPosition] = useState<{ x: number; y: number } | null>(null);
   
   const [copiedNodes, setCopiedNodes] = useState<Node[]>([]);

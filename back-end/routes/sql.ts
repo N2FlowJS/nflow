@@ -10,6 +10,36 @@ const asyncHandler = (fn: any) => (req: Request, res: Response, next: any) =>
     res.status(500).json({ ok: false, error: errorMsg });
   });
 
+/**
+ * @openapi
+ * /api/sql/query:
+ *   post:
+ *     summary: Execute a SQL query on a MSSQL database
+ *     tags: [SQL]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [server, user, database, query]
+ *             properties:
+ *               server: { type: string }
+ *               port: { type: number, default: 1433 }
+ *               user: { type: string }
+ *               password: { type: string }
+ *               database: { type: string }
+ *               query: { type: string }
+ *               maxRows: { type: number, default: 200 }
+ *               timeoutMs: { type: number, default: 30000 }
+ *     responses:
+ *       200:
+ *         description: Query executed successfully
+ *       400:
+ *         description: Missing required connection parameters
+ *       500:
+ *         description: Query execution failed
+ */
 router.post('/sql/query', asyncHandler(async (req: Request, res: Response) => {
   const {
     server,

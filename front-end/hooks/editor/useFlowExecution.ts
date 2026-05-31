@@ -4,7 +4,8 @@ import type {
   RuntimeStatus, 
   PlaygroundMessage, 
   LogEntry, 
-  PlaygroundWorkerOutput 
+  PlaygroundWorkerOutput,
+  FlowExecutionState
 } from '../../types/editor';
 import { 
   FlowValidationIssue, 
@@ -23,6 +24,7 @@ interface UseFlowExecutionOptions {
   getNodes: () => Node[];
   getEdges: () => Edge[];
   getGlobalVariables: () => any[];
+  getFlowId: () => string | null;
   runtimeStatus: RuntimeStatus;
   setRuntimeStatus: (status: RuntimeStatus) => void;
   setNodes: (updater: (nds: Node[]) => Node[]) => void;
@@ -35,13 +37,14 @@ export const useFlowExecution = ({
   getNodes,
   getEdges,
   getGlobalVariables,
+  getFlowId,
   runtimeStatus,
   setRuntimeStatus,
   setNodes,
   setIsPlaygroundOpen,
   setActiveDockTab,
   setIsLogsOpenExclusive,
-}: UseFlowExecutionOptions) => {
+}: UseFlowExecutionOptions): FlowExecutionState => {
   const [playgroundMessages, setPlaygroundMessages] = useState<PlaygroundMessage[]>(INITIAL_PLAYGROUND_MESSAGES);
   const messagesRef = useRef(playgroundMessages);
   useEffect(() => {
@@ -51,7 +54,7 @@ export const useFlowExecution = ({
   const [playgroundError, setPlaygroundError] = useState<string | null>(null);
   const [executionLogs, setExecutionLogs] = useState<LogEntry[]>([]);
   const [flowIssues, setFlowIssues] = useState<FlowValidationIssue[]>([]);
-  const [validationLocale, setValidationLocale] = useState<ValidationLocale>(
+  const [validationLocale, setValidationLocale] = useState<string>(
     () => typeof navigator !== "undefined" && navigator.language.toLowerCase().startsWith("vi") ? "vi" : "en"
   );
 
@@ -135,6 +138,7 @@ export const useFlowExecution = ({
             body: JSON.stringify({
               nodes: getNodes(),
               edges: getEdges(),
+              flowId: getFlowId(),
               inputMessage,
               chatHistory: historyToSend,
               isSilent,

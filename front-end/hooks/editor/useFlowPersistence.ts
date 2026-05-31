@@ -1,7 +1,7 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ReactFlowInstance, Node, Edge } from '@xyflow/react';
-import type { SavedFlow, FlowVersion, GlobalVariable } from '../../types/editor';
+import type { SavedFlow, FlowVersion, GlobalVariable, FlowPersistenceState } from '../../types/editor';
 import { apiService } from '../../lib/apiService';
 import { normalizeModelNode } from '../../../back-end/node-registry/utils';
 
@@ -23,7 +23,7 @@ export const useFlowPersistence = ({
   setNodes,
   setEdges,
   triggerFitView,
-}: UseFlowPersistenceOptions) => {
+}: UseFlowPersistenceOptions): FlowPersistenceState => {
   const navigate = useNavigate();
   const [currentFlowId, setCurrentFlowId] = useState<string | null>(null);
   const [currentFlowName, setCurrentFlowName] = useState<string>("Untitled Flow");

@@ -78,8 +78,8 @@ export const useGraphLayout = ({
 }: {
   nodes: Node[];
   edges: Edge[];
-  setNodes: (updater: any) => void;
-  setEdges: (updater: any) => void;
+  setNodes: React.Dispatch<React.SetStateAction<Node[]>>;
+  setEdges: React.Dispatch<React.SetStateAction<Edge[]>>;
   reactFlowInstance?: ReactFlowInstance | null;
 }) => {
   const [isLayouting, setIsLayouting] = useState(false);

@@ -1,3 +1,4 @@
+import { prisma } from '../lib/prisma';
 import { Utils } from '@n2flow/types';
 import type {
   ExecuteFlowInput,
@@ -70,6 +71,7 @@ function makeEvents(isSilent: boolean, handler?: EventHandler) {
 export async function executeFlowOnServer({
   nodes = [],
   edges = [],
+  flowId,
   inputMessage,
   chatHistory = [],
   isSilent = false,
@@ -81,6 +83,24 @@ export async function executeFlowOnServer({
   // --- Setup ------------------------------------------------------------------
   const { events, emit, executionId } = makeEvents(isSilent, onEvent);
   const log = (message: string) => emit({ type: 'log', message });
+
+  // Persist execution start if flowId is present
+  let dbExecutionId: string | undefined;
+  if (flowId && !isSilent) {
+    try {
+      const execution = await prisma.flowExecution.create({
+        data: {
+          flowId,
+          status: 'running',
+          input: inputMessage || '',
+          startedAt: new Date(),
+        },
+      });
+      dbExecutionId = execution.id;
+    } catch (err) {
+      console.error('Failed to create execution record:', err);
+    }
+  }
 
   log(`[Server] Initializing flow execution [${executionId}]...`);
 
@@ -113,6 +133,7 @@ export async function executeFlowOnServer({
   sortedIds.forEach(id => nodeStatus.set(id, 'pending'));
 
   let finalOutput = '';
+  let finalError: string | null = null;
   let executedNodeCount = 0;
   const flowStartTime = Date.now();
 
@@ -251,72 +272,88 @@ export async function executeFlowOnServer({
 
   // ---------------------------------------------------------------------------
   // Event-Driven Dynamic Scheduler
-  //
-  // Instead of iterating over levels sequentially, we:
-  //   1. Start with all root nodes (inDegree === 0) in the ready queue.
-  //   2. When a node completes, decrement pendingCount of its children.
-  //   3. Any child that reaches pendingCount === 0 is immediately dispatched.
-  //   4. We maintain a semaphore (running) so we never exceed MAX_CONCURRENCY
-  //      active promises at once.
-  //
-  // This eliminates the level-sync bottleneck: fast nodes never wait for slow
-  // parallel siblings before their own children can start.
   // ---------------------------------------------------------------------------
 
   const readyQueue: string[] = sortedIds.filter(id => (pendingCount.get(id) ?? 0) === 0);
   const inFlight = new Set<string>();
   let firstError: Error | null = null;
 
-  await new Promise<void>((resolve, reject) => {
-    const tryDispatch = () => {
-      if (firstError) {
-        if (inFlight.size === 0) {
-          reject(firstError);
-        }
-        return;
-      }
-
-      while (readyQueue.length > 0 && inFlight.size < MAX_CONCURRENCY) {
-        const nodeId = readyQueue.shift()!;
-        inFlight.add(nodeId);
-
-        processNode(nodeId)
-          .then(() => {
-            inFlight.delete(nodeId);
-
-            // Propagate: decrement children's pending count
-            for (const childId of (outgoingMap.get(nodeId) || [])) {
-              const remaining = (pendingCount.get(childId) ?? 0) - 1;
-              pendingCount.set(childId, remaining);
-              if (remaining <= 0) {
-                readyQueue.push(childId);
-              }
-            }
-
-            tryDispatch(); // re-enter dispatch loop
-          })
-          .catch((err: Error) => {
-            inFlight.delete(nodeId);
-            if (!firstError) {
-              firstError = err;
-              abortAll();
-            }
-            tryDispatch();
-          });
-      }
-
-      // All nodes dispatched and in-flight is empty → we are done
-      if (readyQueue.length === 0 && inFlight.size === 0) {
+  try {
+    await new Promise<void>((resolve, reject) => {
+      const tryDispatch = () => {
         if (firstError) {
-          reject(firstError);
-        } else {
-          resolve();
+          if (inFlight.size === 0) {
+            reject(firstError);
+          }
+          return;
         }
-      }
-    };
 
-    tryDispatch();
-  });
+        while (readyQueue.length > 0 && inFlight.size < MAX_CONCURRENCY) {
+          const nodeId = readyQueue.shift()!;
+          inFlight.add(nodeId);
+
+          processNode(nodeId)
+            .then(() => {
+              inFlight.delete(nodeId);
+
+              for (const childId of (outgoingMap.get(nodeId) || [])) {
+                const remaining = (pendingCount.get(childId) ?? 0) - 1;
+                pendingCount.set(childId, remaining);
+                if (remaining <= 0) {
+                  readyQueue.push(childId);
+                }
+              }
+
+              tryDispatch(); 
+            })
+            .catch((err: Error) => {
+              inFlight.delete(nodeId);
+              if (!firstError) {
+                firstError = err;
+                abortAll();
+              }
+              tryDispatch();
+            });
+        }
+
+        if (readyQueue.length === 0 && inFlight.size === 0) {
+          if (firstError) {
+            reject(firstError);
+          } else {
+            resolve();
+          }
+        }
+      };
+
+      tryDispatch();
+    });
+
+    // Update DB on success
+    if (dbExecutionId) {
+      await prisma.flowExecution.update({
+        where: { id: dbExecutionId },
+        data: {
+          status: 'success',
+          output: finalOutput,
+          endedAt: new Date(),
+        },
+      }).catch(err => console.error('Failed to update execution success:', err));
+    }
+  } catch (err: any) {
+    finalError = err.message || String(err);
+    // Update DB on error
+    if (dbExecutionId) {
+      await prisma.flowExecution.update({
+        where: { id: dbExecutionId },
+        data: {
+          status: 'error',
+          error: finalError,
+          endedAt: new Date(),
+        },
+      }).catch(e => console.error('Failed to update execution error:', e));
+    }
+    throw err;
+  }
 
   // ---------------------------------------------------------------------------
   // Finalise

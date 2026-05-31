@@ -13,6 +13,7 @@ export interface ExecuteFlowInput {
   nodes: FlowNode[];
   edges: FlowEdge[];
   globalVariables?: GlobalVariable[];
+  flowId?: string;
   inputMessage?: string;
   chatHistory?: ChatMessage[];
   isSilent?: boolean;

@@ -1,13 +1,19 @@
 import { useMemo, useEffect, useRef } from 'react';
-import type { CommandAction } from '../../types/editor';
+import type { 
+  CommandAction, 
+  EditorUIState, 
+  GraphState, 
+  FlowPersistenceState, 
+  FlowExecutionState 
+} from '../../types/editor';
 import nodeRegistry from '../../../back-end/node-registry';
 import { prettifyLabel } from '../../lib/utils';
 
 interface UseEditorHotkeysOptions {
-  ui: any;
-  graph: any;
-  persistence: any;
-  execution: any;
+  ui: EditorUIState;
+  graph: GraphState;
+  persistence: FlowPersistenceState;
+  execution: FlowExecutionState;
   onLayout: (mode?: any) => void;
   onExport: () => void;
   importInputRef: React.MutableRefObject<HTMLInputElement>;
@@ -26,7 +32,7 @@ export const useEditorHotkeys = ({
     showCommandPalette, setShowCommandPalette,
     commandQuery, commandIndex, setCommandIndex,
     setIsCanvasSearchOpen, setIsToolsMenuOpen,
-    setShowShortcutHelpExclusive,
+    setShowShortcutHelp,
     setShowMinimap
   } = ui;
 

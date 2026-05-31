@@ -13,6 +13,16 @@ import { swaggerSpec } from './swagger';
 const app = express();
 app.use(helmet());
 
+// Simple request ID generator
+const generateRequestId = () => Math.random().toString(36).substring(2, 15);
+
+app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
+  const requestId = req.headers['x-request-id'] || generateRequestId();
+  (req as any).id = requestId;
+  res.setHeader('x-request-id', requestId);
+  next();
+});
+
 // Swagger Documentation
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 // SERVER_PORT is the canonical name; SQL_SERVER_PORT is kept for backward compatibility.

@@ -1,4 +1,5 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
+import type { EditorUIState } from '../../types/editor';
 
 export type DockTabId =
   | "playground"
@@ -12,8 +13,8 @@ export type DockTabId =
   | "history"
   | "config";
 
-export const useEditorUI = () => {
-  const [activeDockTab, setActiveDockTab] = useState<DockTabId | null>(null);
+export const useEditorUI = (): EditorUIState => {
+  const [activeDockTab, setActiveDockTab] = useState<string | null>(null);
   const [showMinimap, setShowMinimap] = useState(false);
   const [isLiveMode, setIsLiveMode] = useState(false);
   const [isCanvasSearchOpen, setIsCanvasSearchOpen] = useState(false);
@@ -24,7 +25,7 @@ export const useEditorUI = () => {
   const [contextMenu, setContextMenu] = useState<{
     x: number;
     y: number;
-    node?: any;
+    node?: any; // XYFlow Node
   } | null>(null);
 
   const isPlaygroundOpen = activeDockTab === "playground";
