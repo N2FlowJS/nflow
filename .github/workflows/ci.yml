@@ -24,15 +24,25 @@ jobs:
 
     - name: Generate Prisma Client
       run: npm --prefix back-end run db:generate
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
 
     - name: Type check
       run: npm run type-check
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
 
     - name: Build
       run: npm run build
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
 
     - name: Run Backend Tests
       run: npm --prefix back-end run test -- --run
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
+        JWT_SECRET: test-secret
+        ENCRYPTION_KEY: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
 
     - name: Run Frontend Tests
       run: npm --prefix front-end run test -- --run
