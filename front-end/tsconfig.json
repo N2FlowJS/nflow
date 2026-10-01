@@ -1,25 +1,56 @@
 {
   "compilerOptions": {
-    "target": "ES2022",
-    "useDefineForClassFields": true,
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
-    "skipLibCheck": true,
+    /* Language and environment */
+    "target": "ES2023",
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "noEmit": true,
+    "moduleDetection": "force",
     "jsx": "react-jsx",
-    "strict": true,
+    "useDefineForClassFields": true,
+    "types": ["vite/client"],
+
+    /* Emit — Vite/esbuild does the real transform, tsc only type-checks */
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "isolatedModules": true,
+    "resolveJsonModule": true,
+
+    /* Interop */
     "esModuleInterop": true,
-    "skipDefaultLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "allowJs": true,
+    "verbatimModuleSyntax": true,
+    "erasableSyntaxOnly": true,
+
+    /* Paths */
     "paths": {
       "@/*": ["./*"]
     },
-    "types": ["vite/client"]
+
+    /* Strictness: full `strict` family spelled out so removals are explicit */
+    "strict": true,
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "useUnknownInCatchVariables": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "strictPropertyInitialization": true,
+
+    /* Extra safety beyond `strict` */
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false,
+    "forceConsistentCasingInFileNames": true,
+
+    /* Interop with the JS toolchain */
+    "skipLibCheck": true,
+    "skipDefaultLibCheck": true
   },
   "include": [".", "vite-env.d.ts"],
   "exclude": ["node_modules", "dist", "../back-end"]

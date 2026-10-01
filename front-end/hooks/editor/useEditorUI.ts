@@ -1,70 +1,65 @@
-import { useState, useCallback } from 'react';
+import { useState, useMemo, type Dispatch, type SetStateAction } from 'react';
+import type { CustomNodeType } from '@n2flow/types';
 import type { EditorUIState, DockTabId } from '../../types/editor';
+
+export type ContextMenuState = {
+  x: number;
+  y: number;
+  node?: CustomNodeType;
+} | null;
+
+/**
+ * Build a boolean setter that drives one dock tab.
+ *
+ * Only one dock tab can be active at a time, so `true` activates `tab` and
+ * `false` deactivates it — falling back to `null`, or leaving another tab
+ * untouched if it happens to be the active one.
+ *
+ * `value` is resolved exactly the way React resolves a `SetStateAction`, so
+ * callers may pass either a boolean or an updater.
+ */
+const makeTabToggle = (tab: DockTabId) => {
+  return (setActiveDockTab: Dispatch<SetStateAction<DockTabId | null>>) =>
+    (value: SetStateAction<boolean>): void => {
+      setActiveDockTab((prev) => {
+        const isOpen = typeof value === 'function' ? value(prev === tab) : value;
+        return isOpen ? tab : prev === tab ? null : prev;
+      });
+    };
+};
 
 export const useEditorUI = (): EditorUIState => {
   const [activeDockTab, setActiveDockTab] = useState<DockTabId | null>(null);
   const [showMinimap, setShowMinimap] = useState(false);
   const [isLiveMode, setIsLiveMode] = useState(false);
   const [isCanvasSearchOpen, setIsCanvasSearchOpen] = useState(false);
-  const [isToolsMenuOpen, setIsToolsMenuOpen] = useState(false);
   const [showCommandPalette, setShowCommandPalette] = useState(false);
-  const [commandQuery, setCommandQuery] = useState("");
+  const [commandQuery, setCommandQuery] = useState('');
   const [commandIndex, setCommandIndex] = useState(0);
-  const [contextMenu, setContextMenu] = useState<{
-    x: number;
-    y: number;
-    node?: any; // XYFlow Node
-  } | null>(null);
+  const [contextMenu, setContextMenu] = useState<ContextMenuState>(null);
 
-  const isPlaygroundOpen = activeDockTab === "playground";
-  const isFlowManagerOpen = activeDockTab === "flows";
-  const isVariablesPanelOpen = activeDockTab === "variables";
-  const isVersionHistoryOpen = activeDockTab === "history";
-  const showShortcutHelp = activeDockTab === "shortcuts";
-  const isLogsOpen = activeDockTab === "logs";
-  const isNodeConfigOpen = activeDockTab === "config";
+  const isPlaygroundOpen = activeDockTab === 'playground';
+  const isFlowManagerOpen = activeDockTab === 'flows';
+  const isVariablesPanelOpen = activeDockTab === 'variables';
+  const isVersionHistoryOpen = activeDockTab === 'history';
+  const showShortcutHelp = activeDockTab === 'shortcuts';
+  const isLogsOpen = activeDockTab === 'logs';
+  const isNodeConfigOpen = activeDockTab === 'config';
 
-  const setIsPlaygroundOpen: React.Dispatch<React.SetStateAction<boolean>> = useCallback((value: React.SetStateAction<boolean>) => {
-    setActiveDockTab((prev) => {
-      const open = typeof value === 'function' ? (value as any)(prev === "playground") : value;
-      return open ? "playground" : (prev === "playground" ? null : prev);
-    });
-  }, []);
-
-  const setIsFlowManagerOpen: React.Dispatch<React.SetStateAction<boolean>> = useCallback((value: React.SetStateAction<boolean>) => {
-    setActiveDockTab((prev) => {
-      const open = typeof value === 'function' ? (value as any)(prev === "flows") : value;
-      return open ? "flows" : (prev === "flows" ? null : prev);
-    });
-  }, []);
-
-  const setIsVariablesPanelOpen: React.Dispatch<React.SetStateAction<boolean>> = useCallback((value: React.SetStateAction<boolean>) => {
-    setActiveDockTab((prev) => {
-      const open = typeof value === 'function' ? (value as any)(prev === "variables") : value;
-      return open ? "variables" : (prev === "variables" ? null : prev);
-    });
-  }, []);
-
-  const setIsVersionHistoryOpen: React.Dispatch<React.SetStateAction<boolean>> = useCallback((value: React.SetStateAction<boolean>) => {
-    setActiveDockTab((prev) => {
-      const open = typeof value === 'function' ? (value as any)(prev === "history") : value;
-      return open ? "history" : (prev === "history" ? null : prev);
-    });
-  }, []);
-
-  const setShowShortcutHelp: React.Dispatch<React.SetStateAction<boolean>> = useCallback((value: React.SetStateAction<boolean>) => {
-    setActiveDockTab((prev) => {
-      const open = typeof value === 'function' ? (value as any)(prev === "shortcuts") : value;
-      return open ? "shortcuts" : (prev === "shortcuts" ? null : prev);
-    });
-  }, []);
-
-  const setIsLogsOpenExclusive: React.Dispatch<React.SetStateAction<boolean>> = useCallback((value: React.SetStateAction<boolean>) => {
-    setActiveDockTab((prev) => {
-      const open = typeof value === 'function' ? (value as any)(prev === "logs") : value;
-      return open ? "logs" : (prev === "logs" ? null : prev);
-    });
-  }, []);
+  // Memoised together so all six keep a stable identity: they are dependencies of
+  // several `useCallback`s upstream, and re-creating them every render would
+  // re-run those effects.
+  const toggles = useMemo(
+    () => ({
+      setIsPlaygroundOpen: makeTabToggle('playground')(setActiveDockTab),
+      setIsFlowManagerOpen: makeTabToggle('flows')(setActiveDockTab),
+      setIsVariablesPanelOpen: makeTabToggle('variables')(setActiveDockTab),
+      setIsVersionHistoryOpen: makeTabToggle('history')(setActiveDockTab),
+      setShowShortcutHelp: makeTabToggle('shortcuts')(setActiveDockTab),
+      setIsLogsOpenExclusive: makeTabToggle('logs')(setActiveDockTab),
+    }),
+    [setActiveDockTab],
+  );
 
   return {
     activeDockTab,
@@ -75,8 +70,6 @@ export const useEditorUI = (): EditorUIState => {
     setIsLiveMode,
     isCanvasSearchOpen,
     setIsCanvasSearchOpen,
-    isToolsMenuOpen,
-    setIsToolsMenuOpen,
     showCommandPalette,
     setShowCommandPalette,
     commandQuery,
@@ -96,11 +89,6 @@ export const useEditorUI = (): EditorUIState => {
     isNodeConfigOpen,
 
     // Helper setters
-    setIsPlaygroundOpen,
-    setIsFlowManagerOpen,
-    setIsVariablesPanelOpen,
-    setIsVersionHistoryOpen,
-    setShowShortcutHelp,
-    setIsLogsOpenExclusive,
+    ...toggles,
   };
 };

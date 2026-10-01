@@ -1,6 +1,8 @@
 import { GoogleGenAI } from '@google/genai';
-import type { LlmRuntimeConfig, AgentTool } from '../types';
+import type { ChatMessage } from '@n2flow/types';
+import type { AgentTool, LlmRuntimeConfig } from '../types';
 import { parseToolArgs, toGoogleToolDeclarations, createChatOrchestrator } from '../utils';
+import { asRecord } from '../../utils/common';
 
 // ---------------------------------------------------------------------------
 // Model listing
@@ -12,13 +14,18 @@ export const listModels = async (
   if (!cfg.apiKey) return [];
   try {
     const ai = new GoogleGenAI({ apiKey: cfg.apiKey });
-    const resp = await (ai as any).models.list();
-    const items: any[] = resp?.models || resp?.data || [];
-    return items.map((m: any) => ({
-      id: String(m.name || m.id || ''),
-      name: m.displayName || m.name || m.id,
-      description: m.description,
-    }));
+    const resp = asRecord(await ai.models.list());
+    const raw = resp?.['models'] ?? resp?.['data'];
+    const items: Array<Record<string, unknown>> = Array.isArray(raw) ? raw : [];
+    return items.map((m) => {
+      const name = m['displayName'] ?? m['name'] ?? m['id'];
+      const description = typeof m['description'] === 'string' ? m['description'] : undefined;
+      return {
+        id: String(m['name'] || m['id'] || ''),
+        ...(typeof name === 'string' && name !== '' && { name }),
+        ...(description !== undefined && { description }),
+      };
+    });
   } catch {
     return [];
   }
@@ -36,13 +43,14 @@ export const runGoogleChat = async (
   executeToolByName?: (name: string, callArgs: Record<string, string>) => Promise<string>,
   log?: (msg: string) => void,
   onStream?: (chunk: string) => void,
-  chatHistory: any[] = [],
+  chatHistory: ChatMessage[] = [],
 ): Promise<string> => {
   if (!cfg.apiKey) throw new Error('Missing API key for Google GenAI');
 
   const ai = new GoogleGenAI({ apiKey: cfg.apiKey });
   const modelName = String(cfg.model || 'gemini-2.0-flash');
-  const toolsDecl = availableTools.length > 0 ? toGoogleToolDeclarations(availableTools) : undefined;
+  const toolsDecl =
+    availableTools.length > 0 ? toGoogleToolDeclarations(availableTools) : undefined;
   const stream = cfg.stream === true && typeof onStream === 'function';
 
   // Build the message history in a mutable array that the orchestrator loop
@@ -50,7 +58,7 @@ export const runGoogleChat = async (
   const messages: { role: string; content: string }[] = [];
 
   // Map history to internal format
-  chatHistory.forEach((msg: any) => {
+  chatHistory.forEach((msg) => {
     if (msg.role === 'user' || msg.role === 'assistant') {
       messages.push({ role: msg.role, content: msg.text });
     }
@@ -74,20 +82,21 @@ export const runGoogleChat = async (
         nativeContents.push({ role: 'user', parts: [{ text: userPrompt }] });
       }
 
-      const resp = await (ai as any).models.generateContent({
+      const resp = await ai.models.generateContent({
         model: modelName,
         contents: nativeContents,
         config: {
-          systemInstruction: systemPrompt || undefined,
-          temperature: cfg.temperature,
-          maxOutputTokens: cfg.max_tokens,
-          topP: cfg.top_p,
-          topK: cfg.top_k,
-          tools: toolsDecl ? [{ functionDeclarations: toolsDecl }] : undefined,
+          // Optional settings are omitted rather than sent as `undefined`.
+          ...(systemPrompt !== '' && { systemInstruction: systemPrompt }),
+          ...(cfg.temperature !== undefined && { temperature: cfg.temperature }),
+          ...(cfg.max_tokens !== undefined && { maxOutputTokens: cfg.max_tokens }),
+          ...(cfg.top_p !== undefined && { topP: cfg.top_p }),
+          ...(cfg.top_k !== undefined && { topK: cfg.top_k }),
+          ...(toolsDecl !== undefined && { tools: [{ functionDeclarations: toolsDecl }] }),
         },
       });
 
-      let content: string = resp.text ?? '';
+      const content: string = resp.text ?? '';
 
       // Handle streaming if requested (generateContent supports it too via
       // generateContentStream, but here we fall back to a post-hoc split)
@@ -98,11 +107,11 @@ export const runGoogleChat = async (
       }
 
       // Extract function calls from the response
-      const rawFunctionCalls: any[] = resp.functionCalls ?? [];
-      const toolCalls = rawFunctionCalls.map((fc: any, idx: number) => ({
+      const rawFunctionCalls = resp.functionCalls ?? [];
+      const toolCalls = rawFunctionCalls.map((fc, idx) => ({
         id: fc.id ?? `tool_call_${idx + 1}`,
         name: fc.name ?? '',
-        args: parseToolArgs(fc.args ?? fc.arguments),
+        args: parseToolArgs(fc.args ?? fc.args),
       }));
 
       // Append assistant turn to history for multi-turn tool loops
@@ -124,7 +133,7 @@ export const runGoogleChat = async (
 export const embedText = async (cfg: LlmRuntimeConfig, input: string): Promise<number[]> => {
   if (!cfg.apiKey) throw new Error('Missing API key for Google GenAI');
   const ai = new GoogleGenAI({ apiKey: cfg.apiKey });
-  const embedResp = await (ai as any).models.embedContent({
+  const embedResp = await ai.models.embedContent({
     model: cfg.model || 'text-embedding-004',
     contents: input,
   });

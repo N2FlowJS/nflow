@@ -35,7 +35,8 @@ export const validateFlowGraph = (
         ...issue,
         level: ruleConfig.level || issue.level,
         message: (() => {
-          const tmpl = (locale === 'vi' ? ruleConfig.messageVi : ruleConfig.messageEn) || ruleConfig.message;
+          const tmpl =
+            (locale === 'vi' ? ruleConfig.messageVi : ruleConfig.messageEn) || ruleConfig.message;
           if (!tmpl) return issue.message;
 
           const values: Record<string, string> = {

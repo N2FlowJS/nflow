@@ -1,0 +1,17 @@
+model FlowExecution {
+  id        NVARCHAR(1000) @id @default(uuid()) @description("Primary key (auto-generated UUID)")
+  flowId    NVARCHAR(1000)  @description("Flow that was executed")
+  flow      Flow           @relation(fields: [flowId], references: [id]) @description("The executed flow")
+  status    NVARCHAR(50)   @default("idle") @description("Execution status: idle, running, success or error")
+  input     NVARCHAR(MAX)? @description("Serialized execution input")
+  output    NVARCHAR(MAX)? @description("Serialized execution output")
+  error     NVARCHAR(MAX)? @description("Error message when the execution failed")
+  startedAt DATETIME2?     @description("Timestamp when the execution started")
+  endedAt   DATETIME2?     @description("Timestamp when the execution finished")
+  createdAt DATETIME2      @default(now()) @description("Timestamp when the execution was recorded")
+
+  @@index([flowId])
+  @@map("flow_executions")
+  @@schema("public")
+  @@description("A single run of a flow.")
+}

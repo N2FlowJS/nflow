@@ -1,12 +1,23 @@
 import { Utils } from '@n2flow/types';
+import type { ConfigSchemaField } from '@n2flow/types';
 import type { FlowNode } from '../flowTypes';
 import type { GlobalVariable } from '../flowTypes';
+
+/**
+ * Narrow an untrusted value (request body, provider response, ...) to a plain
+ * record, or `undefined` when it is a primitive, `null`, or an array.
+ */
+export const asRecord = (value: unknown): Record<string, unknown> | undefined =>
+  typeof value === 'object' && value !== null && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : undefined;
 
 export const getNodeFieldValue = (
   node: FlowNode | undefined,
   key: string,
 ): string | number | boolean | undefined => {
-  const configValue = node?.data?.configSchema?.find((field: any) => field.name === key)?.value;
+  const configValue = node?.data?.configSchema?.find((field: ConfigSchemaField) => field.name === key)
+    ?.value;
   if (configValue !== undefined) return configValue;
   return node?.data?.params?.[key] as string | number | boolean | undefined;
 };
@@ -23,7 +34,10 @@ export const formatValidationMessage = (
   template: string,
   values: Record<string, string>,
 ): string => {
-  return template.replace(/\{(label|type|nodeId|field|level|ruleKey|defaultMessage)\}/g, (_, k) => values[k] || '');
+  return template.replace(
+    /\{(label|type|nodeId|field|level|ruleKey|defaultMessage)\}/g,
+    (_, k) => values[k] || '',
+  );
 };
 
 export const resolveVariablePlaceholders = (
@@ -31,10 +45,10 @@ export const resolveVariablePlaceholders = (
   globalVariables: GlobalVariable[] = [],
 ): unknown => {
   if (Array.isArray(value)) {
-    return value.map(v => resolveVariablePlaceholders(v, globalVariables));
+    return value.map((v) => resolveVariablePlaceholders(v, globalVariables));
   }
   if (value && typeof value === 'object') {
-    const resolved: Record<string, any> = {};
+    const resolved: Record<string, unknown> = {};
     for (const [k, v] of Object.entries(value)) {
       resolved[k] = resolveVariablePlaceholders(v, globalVariables);
     }
@@ -43,7 +57,7 @@ export const resolveVariablePlaceholders = (
   if (typeof value !== 'string') {
     return value;
   }
-  
+
   // First resolve global variables {{VAR}}
   let result = value;
   if (globalVariables.length > 0) {
@@ -60,7 +74,10 @@ export const resolveVariablePlaceholders = (
 
   // Then resolve environment secrets {{SECRET}} if {{ is still present
   if (result.includes('{{')) {
-    result = result.replace(/\{\{\s*([^{}]+?)\s*\}\}/g, (m, n) => process.env[String(n).trim()] ?? m);
+    result = result.replace(
+      /\{\{\s*([^{}]+?)\s*\}\}/g,
+      (m, n) => process.env[String(n).trim()] ?? m,
+    );
   }
 
   return result;
@@ -83,18 +100,19 @@ export const serializeToolResult = (value: unknown): string => {
   } catch {
     // Handle circular structures safely
     const seen = new WeakSet();
-    return JSON.stringify(value, (key, val) => {
-      if (typeof val === 'object' && val !== null) {
-        if (seen.has(val)) return '[Circular]';
-        seen.add(val);
-      }
-      return val;
-    }, 2);
+    return JSON.stringify(
+      value,
+      (_key, val) => {
+        if (typeof val === 'object' && val !== null) {
+          if (seen.has(val)) return '[Circular]';
+          seen.add(val);
+        }
+        return val;
+      },
+      2,
+    );
   }
 };
-
-
-
 
 /** Extract a plain error message string from any caught value. */
 export const toErrorMessage = Utils.toErrorMessage;

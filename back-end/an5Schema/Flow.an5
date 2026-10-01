@@ -1,0 +1,15 @@
+model Flow {
+  id          NVARCHAR(1000) @id @default(uuid()) @description("Primary key (auto-generated UUID)")
+  name        NVARCHAR(255)  @description("Human readable flow name")
+  data        NVARCHAR(MAX)  @description("Serialized JSON payload holding nodes and edges")
+  userId      NVARCHAR(1000)  @description("Owner of the flow")
+  user        User           @relation(fields: [userId], references: [id]) @description("The user who owns this flow")
+  executions  FlowExecution[]
+  createdAt   DATETIME2      @default(now()) @description("Timestamp when the flow was created")
+  updatedAt   DATETIME2      @updatedAt @description("Timestamp of the last save")
+
+  @@index([userId])
+  @@map("flows")
+  @@schema("public")
+  @@description("A saved flow graph. The graph itself is stored as a JSON document.")
+}

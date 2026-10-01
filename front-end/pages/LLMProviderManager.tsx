@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Plus, 
-  Search, 
+import {
+  Plus,
+  Search,
   Cpu,
   Check,
   X,
@@ -11,7 +11,7 @@ import {
   Key,
   Zap,
   Activity,
-  Server
+  Server,
 } from 'lucide-react';
 import { apiService } from '../lib/apiService';
 import { Input } from '../components/ui';
@@ -63,13 +63,13 @@ const LLMProviderManager: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    loadProviders();
+    void loadProviders();
   }, []);
 
   const loadProviders = async () => {
     try {
       setLoading(true);
-      const response = await apiService.get('/api/llm-providers');
+      const response = await apiService.get<LLMProvider[]>('/api/llm-providers');
       if (response.ok) {
         setProviders(response.data || []);
         setError(null);
@@ -119,7 +119,7 @@ const LLMProviderManager: React.FC = () => {
       if (response.ok) {
         setSuccess(isEditing ? 'Provider updated' : 'Provider created');
         setTimeout(() => setSuccess(null), 3000);
-        loadProviders();
+        void loadProviders();
         setShowModal(false);
       } else {
         setError(response.error || 'Failed to save provider');
@@ -134,7 +134,7 @@ const LLMProviderManager: React.FC = () => {
     try {
       const response = await apiService.delete(`/api/llm-providers/${id}`);
       if (response.ok) {
-        loadProviders();
+        void loadProviders();
       } else {
         setError(response.error || 'Failed to delete provider');
       }
@@ -147,9 +147,12 @@ const LLMProviderManager: React.FC = () => {
     try {
       setTestingId(id);
       setError(null);
-      const response = await apiService.post(`/api/llm-providers/${id}/test`, {});
+      const response = await apiService.post<{ models: unknown[] }>(
+        `/api/llm-providers/${id}/test`,
+        {},
+      );
       if (response.ok) {
-        setSuccess(`Connection successful! Found ${response.models?.length || 0} models.`);
+        setSuccess(`Connection successful! Found ${response.data?.models?.length || 0} models.`);
         setTimeout(() => setSuccess(null), 5000);
       } else {
         setError(response.error || 'Connection failed');
@@ -161,9 +164,10 @@ const LLMProviderManager: React.FC = () => {
     }
   };
 
-  const filteredProviders = providers.filter(p => 
-    p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    p.provider.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredProviders = providers.filter(
+    (p) =>
+      p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      p.provider.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   return (
@@ -222,15 +226,22 @@ const LLMProviderManager: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {loading ? (
             Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="h-56 bg-white/5 border border-white/5 rounded-2xl animate-pulse" />
+              <div
+                key={i}
+                className="h-56 bg-white/5 border border-white/5 rounded-2xl animate-pulse"
+              />
             ))
           ) : filteredProviders.length === 0 ? (
             <div className="col-span-full py-20 flex flex-col items-center justify-center border-2 border-dashed border-white/5 rounded-3xl bg-black/20">
               <div className="p-5 bg-white/5 rounded-full mb-4 text-gray-600">
                 <Cpu size={40} />
               </div>
-              <p className="text-gray-500 font-bold uppercase tracking-widest text-sm">No Providers</p>
-              <p className="text-gray-600 text-xs mt-1">Add your first LLM provider to get started.</p>
+              <p className="text-gray-500 font-bold uppercase tracking-widest text-sm">
+                No Providers
+              </p>
+              <p className="text-gray-600 text-xs mt-1">
+                Add your first LLM provider to get started.
+              </p>
             </div>
           ) : (
             filteredProviders.map((p) => (
@@ -277,7 +288,9 @@ const LLMProviderManager: React.FC = () => {
 
                   <div className="pt-4 border-t border-white/5 flex items-center justify-between">
                     <div className="flex flex-col">
-                      <span className="text-[9px] text-gray-600 font-bold uppercase tracking-tighter">Status</span>
+                      <span className="text-[9px] text-gray-600 font-bold uppercase tracking-tighter">
+                        Status
+                      </span>
                       <span className="text-[10px] font-mono text-white/60 flex items-center gap-1">
                         <Activity size={10} />
                         Ready
@@ -321,7 +334,9 @@ const LLMProviderManager: React.FC = () => {
               <div className="p-6 space-y-5">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-cyber-primary/70 ml-1">Friendly Name</label>
+                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-cyber-primary/70 ml-1">
+                      Friendly Name
+                    </label>
                     <Input
                       placeholder="e.g. My OpenAI"
                       value={formData.name}
@@ -329,21 +344,27 @@ const LLMProviderManager: React.FC = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-cyber-primary/70 ml-1">Type</label>
+                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-cyber-primary/70 ml-1">
+                      Type
+                    </label>
                     <select
                       value={formData.provider}
                       onChange={(e) => setFormData({ ...formData, provider: e.target.value })}
                       className="w-full h-11 px-4 bg-black/60 border border-white/10 rounded-xl focus:outline-none focus:border-cyber-primary/50 text-xs text-white appearance-none cursor-pointer"
                     >
-                      {PROVIDER_TYPES.map(t => (
-                        <option key={t.value} value={t.value}>{t.label}</option>
+                      {PROVIDER_TYPES.map((t) => (
+                        <option key={t.value} value={t.value}>
+                          {t.label}
+                        </option>
                       ))}
                     </select>
                   </div>
                 </div>
-                
+
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-cyber-primary/70 ml-1">Base URL (Optional)</label>
+                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-cyber-primary/70 ml-1">
+                    Base URL (Optional)
+                  </label>
                   <Input
                     icon={Server}
                     placeholder="https://api.openai.com/v1"
@@ -353,10 +374,12 @@ const LLMProviderManager: React.FC = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-cyber-primary/70 ml-1">API Key</label>
+                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-cyber-primary/70 ml-1">
+                    API Key
+                  </label>
                   <div className="relative">
                     <textarea
-                      placeholder={isEditing ? "••••••••••••••••" : "Paste your API key here"}
+                      placeholder={isEditing ? '••••••••••••••••' : 'Paste your API key here'}
                       value={formData.apiKey}
                       onChange={(e) => setFormData({ ...formData, apiKey: e.target.value })}
                       className="w-full px-4 py-3 bg-black/60 border border-white/10 rounded-xl focus:outline-none focus:border-cyber-primary/50 text-xs text-white font-mono min-h-[80px] resize-none pr-10 shadow-inner"

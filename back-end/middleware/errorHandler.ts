@@ -1,26 +1,43 @@
-import { Request, Response, NextFunction } from 'express';
+import { type Request, type Response, type NextFunction } from 'express';
 import { errorResponse } from '../utils/apiResponse';
 import { createLogger } from '../utils/logger';
 
 const logger = createLogger('ErrorHandler');
 
 /**
+ * An error thrown anywhere in the request pipeline. Express does not type the
+ * error argument, so we narrow it here instead of trusting `any`.
+ */
+type HttpError = Error & {
+  status?: number;
+  statusCode?: number;
+};
+
+const toHttpError = (err: unknown): HttpError => {
+  if (err instanceof Error) return err;
+  // Non-Error throws stay masked, exactly as before: surfacing a raw thrown
+  // string/object to the client would leak internals.
+  return new Error('Internal Server Error');
+};
+
+/**
  * Global Error Handling middleware
  */
 export const globalErrorHandler = (
-  err: any,
+  err: unknown,
   req: Request,
   res: Response,
-  next: NextFunction
+  _next: NextFunction,
 ) => {
-  const status = err.status || err.statusCode || 500;
-  const message = err.message || 'Internal Server Error';
+  const error = toHttpError(err);
+  const status = error.status ?? error.statusCode ?? 500;
+  const message = error.message || 'Internal Server Error';
 
   // Log detailed error for debugging
   logger.error(`${req.method} ${req.url} - Error: ${message}`, {
-    stack: err.stack,
-    userId: (req as any).userId,
-    body: req.body
+    stack: error.stack,
+    userId: (req as Request & { userId?: string }).userId,
+    body: req.body,
   });
 
   // Return standardized error response

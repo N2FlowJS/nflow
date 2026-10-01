@@ -5,7 +5,7 @@
   --cyber-panel-bg: rgba(6, 6, 6, 0.7);
   --cyber-glass-bg: rgba(10, 10, 10, 0.6);
   --cyber-border-color: rgba(255, 255, 255, 0.06);
-  
+
   /* Cyber Colors */
   --cyber-cyan: #00f0ff;
   --cyber-purple: #9d4edd;
@@ -19,7 +19,11 @@
 body {
   background-color: var(--cyber-dark-bg);
   color: #e0e0e0;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family:
+    'Inter',
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
   overflow-x: hidden;
   position: relative;
 }
@@ -27,7 +31,7 @@ body {
 /* 1. Cyber Matrix Blueprint Grid Pattern */
 .cyber-grid {
   background-size: 32px 32px;
-  background-image: 
+  background-image:
     linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
   background-position: center center;
@@ -35,7 +39,7 @@ body {
 }
 
 .cyber-grid::before {
-  content: "";
+  content: '';
   position: absolute;
   inset: 0;
   background: radial-gradient(circle at 50% 50%, transparent 20%, var(--cyber-dark-bg) 80%);
@@ -50,13 +54,20 @@ body {
 }
 
 .cyber-scanlines::after {
-  content: " ";
+  content: ' ';
   display: block;
   position: absolute;
-  top: 0; left: 0; bottom: 0; right: 0;
-  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background:
+    linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
+    linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
   z-index: 2;
-  background-size: 100% 4px, 6px 100%;
+  background-size:
+    100% 4px,
+    6px 100%;
   pointer-events: none;
 }
 
@@ -101,9 +112,15 @@ body {
 
 /* Floating Animation */
 @keyframes cyber-float {
-  0% { transform: translateY(0px); }
-  50% { transform: translateY(-6px); }
-  100% { transform: translateY(0px); }
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
 }
 
 .animate-cyber-float {
@@ -112,8 +129,13 @@ body {
 
 /* Cyber Pulse Glow */
 @keyframes cyber-pulse-glow {
-  0%, 100% { opacity: 0.3; }
-  50% { opacity: 0.6; }
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.6;
+  }
 }
 
 .animate-pulse-glow {
@@ -128,7 +150,9 @@ body {
 .cyber-hover-card:hover {
   transform: translateY(-4px) scale(1.015);
   border-color: rgba(0, 240, 255, 0.35) !important;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 240, 255, 0.1) !important;
+  box-shadow:
+    0 20px 40px rgba(0, 0, 0, 0.5),
+    0 0 20px rgba(0, 240, 255, 0.1) !important;
 }
 
 /* 7. Double-gradient Border accent */

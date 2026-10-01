@@ -1,5 +1,5 @@
-import { FlowNode } from '../flowTypes';
-import { ExecutionOptions, ToolDefinition, ToolHandler, ToolRegistry } from './registry';
+import { type FlowNode } from '../flowTypes';
+import { type ExecutionOptions, ToolRegistry } from './registry';
 import { parseJsonSafely } from '../utils/common';
 import { mssqlHandler } from './mssql';
 import { elasticsearchHandler } from './elasticsearch';
@@ -16,33 +16,33 @@ export type { ToolDefinition, ExecutionOptions, ToolHandler } from './registry';
 export { ToolRegistry } from './registry';
 
 // Register tool handlers
-ToolRegistry.register('MSSQLPyODBCComponent', { 
-  handler: mssqlHandler, 
+ToolRegistry.register('MSSQLPyODBCComponent', {
+  handler: mssqlHandler,
   resultParser: (r) => parseJsonSafely(r) ?? r,
   metadata: {
     category: 'Database',
     description: 'Execute SQL queries against MSSQL databases',
-    requiredParams: ['server', 'database', 'user', 'password']
-  }
+    requiredParams: ['server', 'database', 'user', 'password'],
+  },
 });
-ToolRegistry.register('elasticsearch_search', { 
-  handler: elasticsearchHandler, 
+ToolRegistry.register('elasticsearch_search', {
+  handler: elasticsearchHandler,
   requiresEmbedding: true,
   metadata: {
     category: 'Search',
     description: 'Search documents in Elasticsearch indices',
-    requiredParams: ['endpoint', 'index']
-  }
+    requiredParams: ['endpoint', 'index'],
+  },
 });
 ToolRegistry.register('GitHubMergeRequestComponent', githubHandler, {
   category: 'VCS',
   description: 'Interact with GitHub repositories',
-  requiredParams: ['owner', 'repo']
+  requiredParams: ['owner', 'repo'],
 });
 ToolRegistry.register('GitLabMergeRequestComponent', gitlabHandler, {
   category: 'VCS',
   description: 'Interact with GitLab merge requests',
-  requiredParams: ['project_id', 'merge_request_iid', 'baseUrl']
+  requiredParams: ['project_id', 'merge_request_iid', 'baseUrl'],
 });
 ToolRegistry.register('FileSystemComponent', filesystemHandler, {
   category: 'System',
@@ -51,27 +51,27 @@ ToolRegistry.register('FileSystemComponent', filesystemHandler, {
 ToolRegistry.register('ImageGenerationComponent', imageGenerationHandler, {
   category: 'AI',
   description: 'Generate images using DALL-E or other models',
-  requiredParams: ['prompt']
+  requiredParams: ['prompt'],
 });
 ToolRegistry.register('CodeExecutionComponent', codeExecutionHandler, {
   category: 'Execution',
   description: 'Execute JavaScript code with timeout protection',
-  requiredParams: ['code']
+  requiredParams: ['code'],
 });
 ToolRegistry.register('HTTPRequestComponent', httpHandler, {
   category: 'Integration',
   description: 'Make HTTP requests to external APIs',
-  requiredParams: ['method', 'url']
+  requiredParams: ['method', 'url'],
 });
 ToolRegistry.register('SerperSearchComponent', serperHandler, {
   category: 'Search',
   description: 'Web search using Serper API',
-  requiredParams: ['query', 'apiKey']
+  requiredParams: ['query', 'apiKey'],
 });
 ToolRegistry.register('ConditionComponent', conditionHandler, {
   category: 'Logic',
   description: 'Branch flow based on conditions',
-  requiredParams: ['condition']
+  requiredParams: ['condition'],
 });
 
 export const executeToolNode = async (

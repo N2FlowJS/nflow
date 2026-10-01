@@ -1,4 +1,4 @@
-import { Router, Request, Response } from 'express';
+import { Router, type Request, type Response } from 'express';
 import { ToolRegistry } from '../tools';
 import { createLogger } from '../utils/logger';
 import { toErrorMessage } from '../utils/common';
@@ -17,7 +17,7 @@ const router = Router();
  *       200:
  *         description: List of tools retrieved
  */
-router.get('/tools', (req: Request, res: Response) => {
+router.get('/tools', (_req: Request, res: Response) => {
   try {
     const types = ToolRegistry.listRegisteredTypes();
     const tools = types.map((name) => {

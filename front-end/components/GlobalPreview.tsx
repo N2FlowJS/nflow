@@ -40,7 +40,7 @@ const GlobalPreview: React.FC = () => {
         icon={Eye}
         onClose={() => setIsOpen(false)}
         className="shadow-[0_0_20px_rgba(0,0,0,0.45)] border-cyber-primary/20 h-full rounded-none border-y-0 border-r-0 bg-black/80 backdrop-blur-xl"
-        maxHeight={"100%"}
+        maxHeight={'100%'}
         scrollable={false}
       >
         <div className="p-1 max-h-[70vh] overflow-auto scrollbar-hide">

@@ -14,7 +14,8 @@ interface AuthFormData {
 export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
-  const redirectPath = (location.state as any)?.from?.pathname || '/';
+  const redirectPath = (location.state as { from?: { pathname?: string } } | null)?.from
+    ?.pathname || '/';
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   const [checkingSession, setCheckingSession] = useState(true);
@@ -37,7 +38,7 @@ export default function Login() {
       }
 
       if (session.authenticated) {
-        navigate(redirectPath, { replace: true });
+        void navigate(redirectPath, { replace: true });
         return;
       }
 
@@ -53,7 +54,7 @@ export default function Login() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
@@ -81,22 +82,23 @@ export default function Login() {
             password: formData.password,
           };
 
-      const result = await apiService.post(endpoint, payload);
+      const result = await apiService.post<{ token: string; user?: unknown }>(endpoint, payload);
+      const session = result.data;
 
       if (!result.ok) {
         setError(result.error || 'Authentication failed');
         return;
       }
 
-      if (!result.token || !result.user) {
+      if (!session?.token || !session.user) {
         setError('Authentication response is missing session data');
         return;
       }
 
-      setAuthSession(result.token, result.user);
+      setAuthSession(session.token, session.user);
 
       // Redirect to previous page or home
-      navigate(redirectPath, { replace: true });
+      void navigate(redirectPath, { replace: true });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Network error');
     } finally {
@@ -120,7 +122,10 @@ export default function Login() {
       {/* Premium Blurred Glow Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-[10%] right-[15%] w-96 h-96 bg-cyber-primary/10 rounded-full blur-[120px] animate-pulse-glow"></div>
-        <div className="absolute bottom-[10%] left-[15%] w-96 h-96 bg-cyber-secondary/15 rounded-full blur-[120px] animate-pulse-glow" style={{ animationDelay: '1.5s' }}></div>
+        <div
+          className="absolute bottom-[10%] left-[15%] w-96 h-96 bg-cyber-secondary/15 rounded-full blur-[120px] animate-pulse-glow"
+          style={{ animationDelay: '1.5s' }}
+        ></div>
       </div>
 
       {/* Glassmorphic Cyber Card */}
@@ -128,7 +133,7 @@ export default function Login() {
         <div className="cyber-glass neon-glow-purple rounded-2xl p-8 border border-white/10 relative overflow-hidden bg-black/40 backdrop-blur-xl">
           {/* Futuristic top-bar highlight */}
           <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-cyber-primary via-cyber-secondary to-cyber-primary" />
-          
+
           {/* Header */}
           <div className="text-center mb-8">
             <div className="flex justify-center mb-4">
@@ -203,9 +208,9 @@ export default function Login() {
               </button>
             </div>
 
-            <Button 
-              type="submit" 
-              loading={loading} 
+            <Button
+              type="submit"
+              loading={loading}
               className="mt-6 w-full py-2.5 bg-gradient-to-r from-cyber-primary to-cyber-primary/80 hover:from-cyber-primary hover:to-cyan-400 text-black font-black uppercase text-[10px] tracking-[0.2em] rounded-xl hover:shadow-[0_0_20px_rgba(0,240,255,0.3)] transition-all transform active:scale-95"
             >
               {isLogin ? 'INITIALIZE GATEWAY' : 'PROVISION INTERFACE'}
@@ -215,7 +220,7 @@ export default function Login() {
           {/* Toggle Form */}
           <div className="mt-6 text-center border-t border-white/5 pt-5">
             <p className="text-white/40 text-xs">
-              {isLogin ? "No active operator interface?" : 'Access existing gateway?'}
+              {isLogin ? 'No active operator interface?' : 'Access existing gateway?'}
               <Button
                 variant="ghost"
                 className="ml-1 text-cyber-primary hover:text-cyber-primary/80 hover:underline text-xs !px-1.5 !py-0.5 inline-block"
@@ -232,7 +237,9 @@ export default function Login() {
 
           {/* Demo Info */}
           <div className="mt-5 p-3.5 bg-black/40 border border-white/5 rounded-xl text-[10px] text-white/40 font-mono">
-            <p className="font-bold text-cyber-primary/80 uppercase tracking-widest mb-1.5">Default Gate Credentials:</p>
+            <p className="font-bold text-cyber-primary/80 uppercase tracking-widest mb-1.5">
+              Default Gate Credentials:
+            </p>
             <div className="flex justify-between border-b border-white/5 pb-1 mb-1">
               <span>Email:</span>
               <span className="text-white/60">demo@example.com</span>

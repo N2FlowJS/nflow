@@ -18,9 +18,15 @@ function run() {
       process.exit(code);
     }
 
-    const child = spawn(process.execPath, ['--enable-source-maps', distIndex], { stdio: 'inherit' });
+    const child = spawn(process.execPath, ['--enable-source-maps', distIndex], {
+      stdio: 'inherit',
+    });
     const forwardSignal = (sig) => {
-      try { child.kill(sig); } catch (e) {}
+      try {
+        child.kill(sig);
+      } catch {
+        // The process may already be gone; nothing to do.
+      }
     };
     process.on('SIGINT', forwardSignal);
     process.on('SIGTERM', forwardSignal);

@@ -9,20 +9,19 @@
     "build": "tsc && node scripts/postbuild.cjs",
     "test": "vitest run",
     "type-check": "tsc --noEmit",
-    "start": "node --enable-source-maps dist/index.js",
-    "db:studio": "prisma studio --config prisma.config.ts",
-    "db:migrate": "prisma migrate dev --config prisma.config.ts",
-    "db:generate": "prisma generate --config prisma.config.ts",
-    "db:push": "prisma db push --config prisma.config.ts",
-    "db:reset": "prisma migrate reset --config prisma.config.ts",
-    "db:seed": "tsx scripts/migrateFlows.ts"
+    "start": "node --enable-source-maps dist/back-end/index.js",
+    "db:generate": "tsx scripts/generate-an5-client.ts",
+    "db:migrate": "tsx scripts/migrate.ts apply",
+    "db:migrate:status": "tsx scripts/migrate.ts status",
+    "db:reset": "tsx scripts/migrate.ts reset",
+    "db:seed": "tsx scripts/seed.ts"
   },
   "dependencies": {
+    "@an5/adapters": "^0.2.6",
+    "@an5/orm": "^1.0.9",
     "@anthropic-ai/sdk": "^0.80.0",
     "@elastic/elasticsearch": "^9.1.1",
     "@google/genai": "^1.42.0",
-    "@prisma/adapter-pg": "^7.7.0",
-    "@prisma/client": "^7.7.0",
     "@types/node": "^22.14.0",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
@@ -46,11 +45,10 @@
     "@types/swagger-ui-express": "^4.1.8",
     "@xyflow/react": "^12.10.2",
     "concurrently": "^9.2.1",
-    "prisma": "^7.6.0",
     "swagger-jsdoc": "^6.3.0",
     "swagger-ui-express": "^5.0.1",
     "tsx": "^4.20.5",
-    "typescript": "~5.8.2",
+    "typescript": "^7.0.2",
     "vitest": "^1.0.0"
   }
 }

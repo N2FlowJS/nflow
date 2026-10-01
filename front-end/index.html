@@ -1,18 +1,30 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>N2Flow</title>
-    
+
     <!-- React Flow CSS loaded via CDN -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@xyflow/react@12.0.0/dist/style.css" />
-    
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@xyflow/react@12.0.0/dist/style.css"
+    />
+
     <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
     <script>
       tailwind.config = {
         theme: {
           extend: {
+            animation: {
+              'spin-reverse': 'spin-reverse 1s linear infinite',
+            },
+            keyframes: {
+              'spin-reverse': {
+                from: { transform: 'rotate(360deg)' },
+                to: { transform: 'rotate(0deg)' },
+              },
+            },
             colors: {
               cyber: {
                 dark: '#0a0a0a',
@@ -22,8 +34,8 @@
                 secondary: '#7000ff', // Purple
                 success: '#00ff9f', // Greenish
                 text: '#e0e0e0',
-                muted: '#6b7280'
-              }
+                muted: '#6b7280',
+              },
             },
             fontFamily: {
               sans: ['Inter', 'sans-serif'],
@@ -31,7 +43,7 @@
             },
           },
         },
-      }
+      };
     </script>
     <style>
       @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap');
@@ -43,7 +55,7 @@
         height: 100%;
         margin: 0;
       }
-      
+
       body {
         background-color: #050505;
         color: #e0e0e0;
@@ -54,13 +66,13 @@
         background: rgba(0, 0, 0, 0.5) !important;
         color: #666 !important;
       }
-      
+
       .react-flow__controls button {
         background: #1a1a1a;
         border-bottom: 1px solid #333;
         fill: #888;
       }
-      
+
       .react-flow__controls button:hover {
         background: #252525;
         fill: #fff;
@@ -110,22 +122,22 @@
         outline: none;
       }
     </style>
-  <script type="importmap">
-{
-  "imports": {
-    "react": "https://esm.sh/react@18.3.1",
-    "react/": "https://esm.sh/react@18.3.1/",
-    "react-dom": "https://esm.sh/react-dom@18.3.1",
-    "react-dom/": "https://esm.sh/react-dom@18.3.1/",
-    "lucide-react": "https://esm.sh/lucide-react@0.300.0",
-    "@xyflow/react": "https://esm.sh/@xyflow/react@12.0.0?deps=react@18.3.1,react-dom@18.3.1"
-  }
-}
-</script>
-<link rel="stylesheet" href="index.css">
-</head>
+    <script type="importmap">
+      {
+        "imports": {
+          "react": "https://esm.sh/react@18.3.1",
+          "react/": "https://esm.sh/react@18.3.1/",
+          "react-dom": "https://esm.sh/react-dom@18.3.1",
+          "react-dom/": "https://esm.sh/react-dom@18.3.1/",
+          "lucide-react": "https://esm.sh/lucide-react@0.300.0",
+          "@xyflow/react": "https://esm.sh/@xyflow/react@12.0.0?deps=react@18.3.1,react-dom@18.3.1"
+        }
+      }
+    </script>
+    <link rel="stylesheet" href="index.css" />
+  </head>
   <body>
     <div id="root"></div>
-  <script type="module" src="index.tsx"></script>
-</body>
+    <script type="module" src="index.tsx"></script>
+  </body>
 </html>

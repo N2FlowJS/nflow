@@ -1,12 +1,17 @@
 import { getNodeFieldValue } from '../utils/common';
-import { NodeHandler, FlowRuntimeContext } from './registry';
+import { type NodeHandler } from './registry';
 
 export const currentTimeHandler: NodeHandler = async () => {
   return new Date().toLocaleString();
 };
 
 export const chatInputHandler: NodeHandler = async (ctx) => {
-  return ctx.inputs.inputMessage?.[0] || ctx.inputs.response?.[0] || Object.values(ctx.inputs).flat()[0] || '';
+  return (
+    ctx.inputs.inputMessage?.[0] ||
+    ctx.inputs.response?.[0] ||
+    Object.values(ctx.inputs).flat()[0] ||
+    ''
+  );
 };
 
 /**
@@ -27,7 +32,7 @@ export const textInputHandler: NodeHandler = async (ctx) => {
   if (nodeName === 'VariableComponent') {
     const name = getNodeFieldValue(ctx.node, 'variableName');
     if (name && ctx.globalVariables?.length) {
-      const globalVar = ctx.globalVariables.find(v => v.name === name);
+      const globalVar = ctx.globalVariables.find((v) => v.name === name);
       if (globalVar) return globalVar.value;
     }
   }

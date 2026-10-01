@@ -1,7 +1,7 @@
-import React from "react";
-import { Trash2, FolderOpen, Plus } from "lucide-react";
-import { SavedFlow } from "../../types/editor";
-import { CyberAction, CyberEmptyState, CyberListItem, CyberPanel } from "../shared/CyberUI";
+import React from 'react';
+import { Trash2, FolderOpen, Plus } from 'lucide-react';
+import { type SavedFlow } from '../../types/editor';
+import { CyberAction, CyberEmptyState, CyberListItem, CyberPanel } from '../shared/CyberUI';
 
 interface FlowManagerProps {
   isFlowManagerOpen: boolean;
@@ -9,7 +9,6 @@ interface FlowManagerProps {
   savedFlows: SavedFlow[];
   onDeleteFlow: (id: string) => void;
   navigate: (path: string) => void;
-  
 }
 
 const FlowManager: React.FC<FlowManagerProps> = (props) => {
@@ -32,7 +31,7 @@ const FlowManager: React.FC<FlowManagerProps> = (props) => {
           showLabel={false}
           className="h-6 w-6 justify-center border-none bg-transparent opacity-50 hover:opacity-100"
           onClick={() => {
-            navigate("/flow/new");
+            navigate('/flow/new');
             closeManager();
           }}
         />
@@ -58,7 +57,7 @@ const FlowManager: React.FC<FlowManagerProps> = (props) => {
                   className="h-5 w-5 justify-center border-none bg-transparent opacity-0 group-hover:opacity-100"
                   onClick={(event) => {
                     event.stopPropagation();
-                    if (confirm(`Delete \"${flow.name}\"?`)) onDeleteFlow(flow.id);
+                    if (confirm(`Delete "${flow.name}"?`)) onDeleteFlow(flow.id);
                   }}
                 />
               }

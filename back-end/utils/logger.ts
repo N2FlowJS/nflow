@@ -7,12 +7,14 @@
  * - Easy migration to external services (ELK, Datadog, etc.)
  */
 
-export enum LogLevel {
-  DEBUG = 'DEBUG',
-  INFO = 'INFO',
-  WARN = 'WARN',
-  ERROR = 'ERROR',
-}
+export const LogLevel = {
+  DEBUG: 'DEBUG',
+  INFO: 'INFO',
+  WARN: 'WARN',
+  ERROR: 'ERROR',
+} as const;
+
+export type LogLevel = (typeof LogLevel)[keyof typeof LogLevel];
 
 export interface LogEntry {
   timestamp: string;
@@ -20,11 +22,11 @@ export interface LogEntry {
   module: string;
   message: string;
   data?: unknown;
-  error?: string;
+  error?: string | undefined;
 }
 
 export class Logger {
-  private static minLevel = LogLevel.INFO;
+  private static minLevel: LogLevel = LogLevel.INFO;
 
   private static readonly LEVEL_VALUES: Record<LogLevel, number> = {
     [LogLevel.DEBUG]: 0,
@@ -56,26 +58,42 @@ export class Logger {
     return output;
   }
 
-  private static emit(level: LogLevel, moduleName: string, message: string, data?: unknown, errorMsg?: string) {
+  private static emit(
+    level: LogLevel,
+    moduleName: string,
+    message: string,
+    data?: unknown,
+    errorMsg?: string,
+  ) {
     if (!Logger.shouldLog(level)) return;
-    Logger.CONSOLE_FNS[level](Logger.formatEntry({
-      timestamp: new Date().toISOString(),
-      level,
-      module: moduleName,
-      message,
-      data,
-      error: errorMsg,
-    }));
+    Logger.CONSOLE_FNS[level](
+      Logger.formatEntry({
+        timestamp: new Date().toISOString(),
+        level,
+        module: moduleName,
+        message,
+        data,
+        error: errorMsg,
+      }),
+    );
   }
 
   static createLogger(moduleName: string) {
     return {
-      debug: (message: string, data?: unknown) => Logger.emit(LogLevel.DEBUG, moduleName, message, data),
-      info:  (message: string, data?: unknown) => Logger.emit(LogLevel.INFO,  moduleName, message, data),
-      warn:  (message: string, data?: unknown) => Logger.emit(LogLevel.WARN,  moduleName, message, data),
+      debug: (message: string, data?: unknown) =>
+        Logger.emit(LogLevel.DEBUG, moduleName, message, data),
+      info: (message: string, data?: unknown) =>
+        Logger.emit(LogLevel.INFO, moduleName, message, data),
+      warn: (message: string, data?: unknown) =>
+        Logger.emit(LogLevel.WARN, moduleName, message, data),
       error: (message: string, error?: unknown, data?: unknown) =>
-        Logger.emit(LogLevel.ERROR, moduleName, message, data,
-          error instanceof Error ? error.message : String(error)),
+        Logger.emit(
+          LogLevel.ERROR,
+          moduleName,
+          message,
+          data,
+          error instanceof Error ? error.message : String(error),
+        ),
     };
   }
 }

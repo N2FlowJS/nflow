@@ -1,4 +1,4 @@
-import { ToolHandler } from './registry';
+import { type ToolHandler } from './registry';
 import { isInternalUrl, extractNodeConfig } from './utils';
 
 export const httpHandler: ToolHandler = async (node, args, options) => {
@@ -20,7 +20,7 @@ export const httpHandler: ToolHandler = async (node, args, options) => {
         'User-Agent': 'n2flow-runtime/1.0',
       },
       // Forward AbortSignal for instant cancellation
-      signal: options?.signal,
+      ...(options?.signal ? { signal: options.signal } : {}),
     });
     return await res.text();
   } catch (e) {

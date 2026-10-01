@@ -1,16 +1,20 @@
-import { Router, Request, Response } from 'express';
+import { Router, type Request, type Response, type NextFunction } from 'express';
 import { listModels } from '../llm';
 import { createLogger } from '../utils/logger';
 import { toErrorMessage } from '../utils/common';
 import { LLMProviderService } from '../services/llmProviderService';
-import { AuthRequest } from '../middleware/auth';
+import { type AuthRequest } from '../middleware/auth';
 import { authMiddleware } from '../middleware/auth';
 
 const router = Router();
 const logger = createLogger('LLMRoute');
 
-const asyncHandler = (fn: any) => (req: Request, res: Response, next: any) => 
-  Promise.resolve(fn(req, res, next)).catch(err => {
+// Not the shared `asyncHandler`: this variant answers 500 itself with a sanitized
+// message instead of forwarding to the global error handler.
+const asyncHandler =
+  (fn: (req: Request, res: Response, next: NextFunction) => Promise<unknown>) =>
+  (req: Request, res: Response, next: NextFunction): void =>
+  void Promise.resolve(fn(req, res, next)).catch((err: unknown) => {
     const errorMsg = toErrorMessage(err);
     logger.error('LLM Route error', err);
     res.status(500).json({ ok: false, error: errorMsg });
@@ -39,35 +43,39 @@ const asyncHandler = (fn: any) => (req: Request, res: Response, next: any) =>
  *       400:
  *         description: Missing required configuration
  */
-router.post('/llm/models', authMiddleware, asyncHandler(async (req: AuthRequest, res: Response) => {
-  let { provider, baseUrl, apiKey, providerId } = req.body || {};
+router.post(
+  '/llm/models',
+  authMiddleware,
+  asyncHandler(async (req: AuthRequest, res: Response) => {
+    let { provider, baseUrl, apiKey, providerId } = req.body || {};
 
-  if (providerId) {
-    try {
-      const resolved = await LLMProviderService.resolveProvider(req.userId!, providerId);
-      provider = resolved.provider;
-      if (resolved.apiKey) apiKey = resolved.apiKey;
-      if (resolved.baseUrl) baseUrl = resolved.baseUrl;
-    } catch (err) {
-      logger.error(`Failed to resolve provider ${providerId} for model scanning`, err);
+    if (providerId) {
+      try {
+        const resolved = await LLMProviderService.resolveProvider(req.userId!, providerId);
+        provider = resolved.provider;
+        if (resolved.apiKey) apiKey = resolved.apiKey;
+        if (resolved.baseUrl) baseUrl = resolved.baseUrl;
+      } catch (err) {
+        logger.error(`Failed to resolve provider ${providerId} for model scanning`, err);
+      }
     }
-  }
 
-  if (!baseUrl && !provider) {
-    return res.status(400).json({ ok: false, error: 'Missing baseUrl or provider' });
-  }
+    if (!baseUrl && !provider) {
+      return res.status(400).json({ ok: false, error: 'Missing baseUrl or provider' });
+    }
 
-  const cfg = { 
-    provider: provider || '', 
-    model: '', 
-    apiKey: apiKey || '', 
-    baseUrl: baseUrl || '' 
-  };
-  
-  logger.debug('Fetching models', { provider, baseUrl: baseUrl?.substring(0, 50), providerId });
-  
-  const models = await listModels(cfg);
-  res.json({ ok: true, models });
-}));
+    const cfg = {
+      provider: provider || '',
+      model: '',
+      apiKey: apiKey || '',
+      baseUrl: baseUrl || '',
+    };
+
+    logger.debug('Fetching models', { provider, baseUrl: baseUrl?.substring(0, 50), providerId });
+
+    const models = await listModels(cfg);
+    return res.json({ ok: true, models });
+  }),
+);
 
 export default router;

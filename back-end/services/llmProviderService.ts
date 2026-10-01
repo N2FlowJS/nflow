@@ -1,4 +1,4 @@
-import { prisma } from '../lib/prisma';
+import { db } from '../lib/db';
 import { SecretService } from './secretService';
 import { listModels } from '../llm';
 import { createLogger } from '../utils/logger';
@@ -15,44 +15,48 @@ export interface LLMProviderInput {
 
 export class LLMProviderService {
   private static async requireProvider(userId: string, providerId: string) {
-    const provider = await prisma.lLMProvider.findFirst({ where: { id: providerId, userId } });
+    const provider = await db.llmProvider.findFirst({ where: { id: providerId, userId } });
     if (!provider) throw new Error('LLM Provider not found');
     return provider;
   }
 
   static async listProviders(userId: string) {
-    const providers = await prisma.lLMProvider.findMany({
+    const providers = await db.llmProvider.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' },
     });
-    return providers.map((p: any) => ({
+    return providers.map((p) => ({
       ...p,
-      apiKey: p.apiKey ? '****' + SecretService.decryptSecret(p.apiKey).slice(-4) : undefined
+      apiKey: p.apiKey ? '****' + SecretService.decryptSecret(p.apiKey).slice(-4) : undefined,
     }));
   }
 
   static async createProvider(userId: string, input: LLMProviderInput) {
-    return prisma.lLMProvider.create({
+    return db.llmProvider.create({
       data: {
         userId,
         name: input.name,
         provider: input.provider,
-        baseUrl: input.baseUrl,
+        ...(input.baseUrl !== undefined && { baseUrl: input.baseUrl }),
         apiKey: input.apiKey ? SecretService.encryptSecret(input.apiKey) : null,
-        config: input.config,
+        ...(input.config !== undefined && { config: input.config }),
       },
     });
   }
 
-  static async updateProvider(userId: string, providerId: string, input: Partial<LLMProviderInput>) {
+  static async updateProvider(
+    userId: string,
+    providerId: string,
+    input: Partial<LLMProviderInput>,
+  ) {
     await this.requireProvider(userId, providerId);
-    
-    const updateData: any = { ...input };
+
+    const updateData: Partial<LLMProviderInput> = { ...input };
     if (input.apiKey) {
       updateData.apiKey = SecretService.encryptSecret(input.apiKey);
     }
 
-    return prisma.lLMProvider.update({
+    return db.llmProvider.update({
       where: { id: providerId },
       data: updateData,
     });
@@ -60,7 +64,7 @@ export class LLMProviderService {
 
   static async deleteProvider(userId: string, providerId: string) {
     await this.requireProvider(userId, providerId);
-    return prisma.lLMProvider.delete({ where: { id: providerId } });
+    return db.llmProvider.delete({ where: { id: providerId } });
   }
 
   static async testConnection(userId: string, providerId: string) {

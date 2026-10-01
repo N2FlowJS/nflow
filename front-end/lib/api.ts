@@ -5,11 +5,19 @@ export const AUTH_STATE_CHANGED_EVENT = 'auth:changed';
 /**
  * API Response type
  */
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   ok: boolean;
-  error?: string;
-  message?: string;
-  [key: string]: any; // Allow other properties like 'secret', 'secrets', 'key', etc.
+  data?: T;
+  error?: string | undefined;
+  message?: string | undefined;
+  /*
+   * The backend returns endpoint-specific extras alongside `data` (a bare
+   * `secret`, a `secrets` array, a regenerated `key`, ...). Until every endpoint
+   * has a declared response type this stays open, which is why the default `T`
+   * is `any` rather than `unknown` — switching the default would push a type
+   * annotation onto every call site at once.
+   */
+  [key: string]: unknown;
 }
 
 export interface AuthStateChangeDetail {
@@ -39,7 +47,9 @@ function readStoredUser(): unknown {
 let bootstrapAuthSessionPromise: Promise<AuthSessionResult> | null = null;
 
 function notifyAuthStateChanged(detail: AuthStateChangeDetail): void {
-  window.dispatchEvent(new CustomEvent<AuthStateChangeDetail>(AUTH_STATE_CHANGED_EVENT, { detail }));
+  window.dispatchEvent(
+    new CustomEvent<AuthStateChangeDetail>(AUTH_STATE_CHANGED_EVENT, { detail }),
+  );
 }
 
 export function getAuthToken(): string | null {
@@ -81,6 +91,49 @@ export function setAuthSession(token: string, user: unknown): void {
   localStorage.setItem('authToken', token);
   setCurrentUser(user);
   notifyAuthStateChanged({ authenticated: true, user });
+}
+
+export type HealthStatus = {
+  /** The backend answered at all. */
+  reachable: boolean;
+  /** The backend reported its database as usable. */
+  databaseConnected: boolean;
+  /** 'unreachable' when the backend did not answer, 'disconnected' when the database is down. */
+  reason: 'ok' | 'unreachable' | 'disconnected';
+};
+
+/**
+ * The backend answers 503 with `{ ok: false, database: 'disconnected' }` when
+ * it is up but cannot reach its database. That is a very different problem from
+ * the backend not running, so the two are reported separately instead of
+ * collapsing into a single boolean.
+ */
+export async function getHealthStatus(): Promise<HealthStatus> {
+  try {
+    const response = await fetch(`${API_BASE}/api/health`);
+
+    let body: { ok?: boolean; database?: string } | null = null;
+    try {
+      body = await response.json();
+    } catch {
+      // A non-JSON body still proves the backend is reachable.
+    }
+
+    const databaseConnected = body?.database === 'connected';
+    return {
+      reachable: true,
+      databaseConnected,
+      reason: response.ok && body?.ok === true && databaseConnected ? 'ok' : 'disconnected',
+    };
+  } catch {
+    return { reachable: false, databaseConnected: false, reason: 'unreachable' };
+  }
+}
+
+/** True only when the backend is up *and* its database is reachable. */
+export async function checkHealth(): Promise<boolean> {
+  const status = await getHealthStatus();
+  return status.reason === 'ok';
 }
 
 export async function bootstrapAuthSession(): Promise<AuthSessionResult> {
@@ -133,13 +186,13 @@ export async function logoutAuthSession(): Promise<void> {
 /**
  * Authenticated fetch wrapper that includes JWT token and parses JSON
  */
-export async function fetchWithAuth<T = any>(
+export async function fetchWithAuth<T = unknown>(
   url: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
 ): Promise<ApiResponse<T>> {
   const token = getAuthToken();
-  
-  const headers: any = {
+
+  const headers: Record<string, string> = {
     'Content-Type': 'application/json',
   };
 

@@ -1,7 +1,8 @@
 import { Script, createContext } from 'node:vm';
 import { isIP } from 'node:net';
-import { ToolHandler } from './registry';
-import { getNodeFieldValue, parseJsonSafely, serializeToolResult } from '../utils/common';
+import { type ToolHandler } from './registry';
+import { getNodeFieldValue, serializeToolResult } from '../utils/common';
+import type { FlowNode } from '../flowTypes';
 
 /**
  * SSRF Protection: Check if a URL points to an internal resource.
@@ -23,7 +24,7 @@ export const isInternalUrl = (urlStr: string): boolean => {
       // 172.16.0.0/12
       if (host.startsWith('172.')) {
         const parts = host.split('.');
-        const second = parseInt(parts[1], 10);
+        const second = parseInt(parts[1] ?? '', 10);
         if (second >= 16 && second <= 31) return true;
       }
       // 192.168.0.0/16
@@ -42,7 +43,7 @@ export const isInternalUrl = (urlStr: string): boolean => {
  * Configuration Helper: Extract multiple fields from a node's configSchema or params.
  */
 export const extractNodeConfig = <T extends Record<string, string | number | boolean | undefined>>(
-  node: any,
+  node: FlowNode,
   keys: (keyof T)[],
 ): T => {
   const config = {} as T;
@@ -69,12 +70,12 @@ export const fetchToolJson = async (
 
   const response = await fetch(url, {
     method,
-    headers: { 
+    headers: {
       'User-Agent': 'n2flow-runtime/1.0',
-      ...headers, 
-      ...(body ? { 'Content-Type': 'application/json' } : {}) 
+      ...headers,
+      ...(body ? { 'Content-Type': 'application/json' } : {}),
     },
-    body: body ? JSON.stringify(body) : undefined,
+    ...(body ? { body: JSON.stringify(body) } : {}),
   });
   if (!response.ok) {
     const text = await response.text().catch(() => '');
@@ -110,4 +111,3 @@ export const conditionHandler: ToolHandler = async (node, args) => {
     return `Error evaluating condition: ${String(err)}`;
   }
 };
-

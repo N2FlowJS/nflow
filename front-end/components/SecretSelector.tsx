@@ -48,7 +48,7 @@ export const SecretSelector: React.FC<SecretSelectorProps> = ({
             {label}
           </label>
         )}
-        
+
         {allowCustomInput && (
           <div className="flex gap-0.5 p-0.5 bg-black/40 rounded-md border border-white/5 h-6">
             <CyberAction
@@ -123,7 +123,9 @@ export const SecretSelector: React.FC<SecretSelectorProps> = ({
       )}
 
       <div className="flex items-center gap-1.5 px-1 opacity-50">
-        <div className={`h-1 w-1 rounded-full ${isCustom ? 'bg-amber-500' : 'bg-cyber-primary shadow-[0_0_4px_currentColor]'}`} />
+        <div
+          className={`h-1 w-1 rounded-full ${isCustom ? 'bg-amber-500' : 'bg-cyber-primary shadow-[0_0_4px_currentColor]'}`}
+        />
         <span className="text-[8px] text-gray-500 font-black uppercase tracking-tighter">
           {isCustom ? 'Insecure Plaintext' : 'Encrypted Reference'}
         </span>

@@ -1,9 +1,9 @@
-import React, { useMemo, useState } from "react";
-import * as Icons from "lucide-react";
-import nodeRegistry from "../../back-end/node-registry";
-import { prettifyLabel } from "../lib/utils";
-import { Input } from "./ui";
-import { CyberAction, CyberListItem, CyberSectionLabel } from "./shared/CyberUI";
+import React, { useMemo, useState } from 'react';
+import * as Icons from 'lucide-react';
+import nodeRegistry from '../../back-end/node-registry';
+import { prettifyLabel } from '../lib/utils';
+import { Input } from './ui';
+import { CyberAction, CyberListItem, CyberSectionLabel } from './shared/CyberUI';
 
 type NodeTemplate = {
   label: string;
@@ -33,54 +33,58 @@ const SidebarNodeItem = ({
       draggable
       onDragStart={(event) => onDragStart(event, node.type, node.label)}
       onClick={() => onAddNode(node.type, node.label)}
-      accentClassName={isFavorite ? "bg-yellow-500" : "bg-cyber-primary"}
+      accentClassName={isFavorite ? 'bg-yellow-500' : 'bg-cyber-primary'}
       className={`items-center gap-3 rounded p-1.5 ${
-        isFavorite ? "hover:bg-yellow-500/10 active:cursor-grabbing" : "hover:bg-white/5 active:cursor-grabbing"
+        isFavorite
+          ? 'hover:bg-yellow-500/10 active:cursor-grabbing'
+          : 'hover:bg-white/5 active:cursor-grabbing'
       } cursor-grab`}
       action={
         showFavoriteAction ? (
           <CyberAction
             icon={Icons.Star}
             showLabel={false}
-            colorClass={isFavorite ? "text-yellow-500" : "text-white"}
+            colorClass={isFavorite ? 'text-yellow-500' : 'text-white'}
             className={`h-5 w-5 justify-center border-none bg-transparent group-hover/sidebar:block hidden ${
-              isFavorite ? "opacity-100" : "opacity-0 group-hover:opacity-40 hover:!opacity-100 hover:text-yellow-500"
+              isFavorite
+                ? 'opacity-100'
+                : 'opacity-0 group-hover:opacity-40 hover:!opacity-100 hover:text-yellow-500'
             }`}
             onClick={(event) => onToggleFavorite(event, node.type)}
           />
         ) : undefined
       }
     >
-      <div className={`shrink-0 flex h-6 w-6 items-center justify-center ${isFavorite ? "text-yellow-500" : "text-white/40 group-hover:text-cyber-primary transition-colors"}`}>
+      <div
+        className={`shrink-0 flex h-6 w-6 items-center justify-center ${isFavorite ? 'text-yellow-500' : 'text-white/40 group-hover:text-cyber-primary transition-colors'}`}
+      >
         <node.icon size={14} />
       </div>
-      <span className={`truncate flex-1 group-hover/sidebar:block hidden ${isFavorite ? "text-[10px] font-bold text-gray-200" : "text-[10px] font-medium text-gray-400 group-hover:text-white transition-colors"}`}>
+      <span
+        className={`truncate flex-1 group-hover/sidebar:block hidden ${isFavorite ? 'text-[10px] font-bold text-gray-200' : 'text-[10px] font-medium text-gray-400 group-hover:text-white transition-colors'}`}
+      >
         {node.label}
       </span>
     </CyberListItem>
   );
 };
 
-export function Sidebar({
-  onAddNode,
-}: {
-  onAddNode: (type: string, label: string) => void;
-}) {
-  const [searchTerm, setSearchTerm] = useState("");
+export function Sidebar({ onAddNode }: { onAddNode: (type: string, label: string) => void }) {
+  const [searchTerm, setSearchTerm] = useState('');
   const [favorites, setFavorites] = useState<string[]>(() => {
-    const saved = localStorage.getItem("cyber-node-favorites");
+    const saved = localStorage.getItem('cyber-node-favorites');
     return saved ? JSON.parse(saved) : [];
   });
 
   const nodeTemplates: NodeTemplate[] = useMemo(() => {
     return Object.entries(nodeRegistry).map(([type, entry]) => {
-      const iconName = entry?.icon || "Star";
+      const iconName = entry?.icon || 'Star';
       const IconComponent =
         ((Icons as Record<string, unknown>)[iconName] as React.ComponentType<
           Record<string, unknown>
         >) || Icons.Star;
       const label = prettifyLabel(type);
-      const category = entry?.category || "";
+      const category = entry?.category || '';
       return {
         label,
         type,
@@ -97,19 +101,15 @@ export function Sidebar({
       ? favorites.filter((f) => f !== type)
       : [...favorites, type];
     setFavorites(newFavorites);
-    localStorage.setItem("cyber-node-favorites", JSON.stringify(newFavorites));
+    localStorage.setItem('cyber-node-favorites', JSON.stringify(newFavorites));
   };
 
-  const onDragStart = (
-    event: React.DragEvent,
-    nodeType: string,
-    nodeLabel: string,
-  ) => {
+  const onDragStart = (event: React.DragEvent, nodeType: string, nodeLabel: string) => {
     event.dataTransfer.setData(
-      "application/reactflow",
+      'application/reactflow',
       JSON.stringify({ type: nodeType, label: nodeLabel }),
     );
-    event.dataTransfer.effectAllowed = "move";
+    event.dataTransfer.effectAllowed = 'move';
   };
 
   const filteredNodes = useMemo(() => {
@@ -125,7 +125,7 @@ export function Sidebar({
     return Object.entries(
       filteredNodes.reduce(
         (acc, node) => {
-          const bundle = node.bundle || "Others";
+          const bundle = node.bundle || 'Others';
           if (!acc[bundle]) acc[bundle] = [] as NodeTemplate[];
           acc[bundle].push(node);
           return acc;
@@ -142,8 +142,6 @@ export function Sidebar({
   return (
     <div className="w-9 hover:w-60 border-r border-cyber-border bg-black/60 backdrop-blur-xl transition-all duration-300 ease-in-out flex flex-col z-10 overflow-hidden group/sidebar h-full">
       <div className="flex flex-1 flex-col gap-3 min-w-[240px] h-full min-h-0">
-       
-
         <div className="p-4 group-hover/sidebar:block hidden animate-in fade-in duration-500">
           <Input
             icon={Icons.Search}
@@ -179,10 +177,7 @@ export function Sidebar({
 
           {groupedNodes.map(([bundle, nodes]) => (
             <div key={bundle} className="space-y-1">
-              <CyberSectionLabel
-                label={bundle}
-                className="hidden group-hover/sidebar:block"
-              />
+              <CyberSectionLabel label={bundle} className="hidden group-hover/sidebar:block" />
               <div className="grid grid-cols-1 gap-0.5">
                 {nodes.map((node) => (
                   <SidebarNodeItem
@@ -203,6 +198,5 @@ export function Sidebar({
     </div>
   );
 }
-                    
 
 export default Sidebar;

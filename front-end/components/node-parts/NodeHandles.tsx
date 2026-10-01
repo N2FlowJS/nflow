@@ -1,11 +1,11 @@
-import React, { CSSProperties } from 'react';
+import React, { type CSSProperties } from 'react';
 import { Handle, Position } from '@xyflow/react';
 import type { NodeData } from '@n2flow/types';
 import type {
   NodeInputHandleConfig,
   NodeSourceHandleConfig,
 } from '../../../back-end/node-registry';
-import { PortDataType, readPortType } from '../../../back-end/node-registry/utils';
+import { type PortDataType, readPortType } from '../../../back-end/node-registry/utils';
 import { CyberBadge } from '../shared/CyberUI';
 
 type RegistryHandleConfig = NodeInputHandleConfig | NodeSourceHandleConfig;
@@ -13,14 +13,14 @@ type RegistryHandleConfig = NodeInputHandleConfig | NodeSourceHandleConfig;
 export interface NamedHandleRenderOptions {
   kind: 'source' | 'target';
   position: Position;
-  id?: string;
+  id?: string | undefined;
   portType: PortDataType;
-  style?: CSSProperties;
-  borderClass?: string;
-  hoverBorderClass?: string;
-  badgeParamKey?: string;
-  badgeFallback?: PortDataType;
-  badgeClassName?: string;
+  style?: CSSProperties | undefined;
+  borderClass?: string | undefined;
+  hoverBorderClass?: string | undefined;
+  badgeParamKey?: string | undefined;
+  badgeFallback?: PortDataType | undefined;
+  badgeClassName?: string | undefined;
   index: number;
 }
 
@@ -53,9 +53,6 @@ interface NodeHandlesProps {
   data: NodeData;
   registryInputHandles: NodeInputHandleConfig[];
   registrySourceHandles: NodeSourceHandleConfig[];
-  isLLM: boolean;
-  isInput: boolean;
-  isOutput: boolean;
   isPromptTemplate: boolean;
   promptVariables: string[];
   renderNamedHandle: (options: NamedHandleRenderOptions) => React.ReactNode;
@@ -63,16 +60,18 @@ interface NodeHandlesProps {
   handleBaseClasses: string;
   setHoveredHandle: (handle: string | null) => void;
   hoveredHandle: string | null;
-  renderOutputTypeBadge: (paramKey: string, fallback: PortDataType, className: string, isHovered: boolean) => React.ReactNode;
+  renderOutputTypeBadge: (
+    paramKey: string,
+    fallback: PortDataType,
+    className: string,
+    isHovered: boolean,
+  ) => React.ReactNode;
 }
 
 export const NodeHandles = ({
   data,
   registryInputHandles,
   registrySourceHandles,
-  isLLM,
-  isInput,
-  isOutput,
   isPromptTemplate,
   promptVariables,
   renderNamedHandle,
@@ -80,7 +79,7 @@ export const NodeHandles = ({
   handleBaseClasses,
   setHoveredHandle,
   hoveredHandle,
-  renderOutputTypeBadge
+  renderOutputTypeBadge,
 }: NodeHandlesProps) => {
   if (isPromptTemplate) {
     return (
@@ -89,7 +88,11 @@ export const NodeHandles = ({
           <Handle
             type="target"
             position={Position.Left}
-            className={getHandleClass('target', 'text', `!w-2.5 !h-2.5 !bg-cyber-panel !border-2 !border-cyber-muted hover:!border-cyber-primary transition-colors ${handleBaseClasses}`)}
+            className={getHandleClass(
+              'target',
+              'text',
+              `!w-2.5 !h-2.5 !bg-cyber-panel !border-2 !border-cyber-muted hover:!border-cyber-primary transition-colors ${handleBaseClasses}`,
+            )}
           />
         ) : (
           promptVariables.map((varName, index) => {
@@ -110,11 +113,15 @@ export const NodeHandles = ({
                   style={{ top: `${top}%` }}
                   onMouseEnter={() => setHoveredHandle(varName)}
                   onMouseLeave={() => setHoveredHandle(null)}
-                  className={getHandleClass('target', 'text', `!w-2.5 !h-2.5 !bg-cyber-panel !border-2 !border-green-500 hover:!border-green-400 transition-colors ${handleBaseClasses}`)}
+                  className={getHandleClass(
+                    'target',
+                    'text',
+                    `!w-2.5 !h-2.5 !bg-cyber-panel !border-2 !border-green-500 hover:!border-green-400 transition-colors ${handleBaseClasses}`,
+                  )}
                 />
                 {isHovered && (
-                    <div
-                      className="absolute -left-40 px-2 py-1 rounded-md border border-cyber-primary/40 bg-cyber-panel/90 backdrop-blur-sm text-[10px] font-mono text-cyber-primary shadow-[0_0_6px_rgba(0,240,255,0.12)] pointer-events-none whitespace-nowrap"
+                  <div
+                    className="absolute -left-40 px-2 py-1 rounded-md border border-cyber-primary/40 bg-cyber-panel/90 backdrop-blur-sm text-[10px] font-mono text-cyber-primary shadow-[0_0_6px_rgba(0,240,255,0.12)] pointer-events-none whitespace-nowrap"
                     style={{ top: `${top}%`, transform: 'translateY(-50%)' }}
                   >
                     Variable: {`{${varName}}`}
@@ -125,20 +132,21 @@ export const NodeHandles = ({
           })
         )}
         {registrySourceHandles.length > 0 ? (
-          registrySourceHandles.map((handle, index) => 
-            renderNamedHandle({
-              kind: 'source',
-              position: resolveHandlePosition(handle.position),
-              id: handle.id,
-              portType: handle.portType,
-              style: resolveHandleStyle(handle),
-              borderClass: handle.borderClass,
-              hoverBorderClass: handle.hoverBorderClass,
-              badgeParamKey: handle.badgeParamKey,
-              badgeFallback: handle.badgeFallback,
-              badgeClassName: handle.badgeClassName,
-              index,
-            }) || <React.Fragment key={`registry-source-${index}`} />
+          registrySourceHandles.map(
+            (handle, index) =>
+              renderNamedHandle({
+                kind: 'source',
+                position: resolveHandlePosition(handle.position),
+                id: handle.id,
+                portType: handle.portType,
+                style: resolveHandleStyle(handle),
+                borderClass: handle.borderClass,
+                hoverBorderClass: handle.hoverBorderClass,
+                badgeParamKey: handle.badgeParamKey,
+                badgeFallback: handle.badgeFallback,
+                badgeClassName: handle.badgeClassName,
+                index,
+              }) || <React.Fragment key={`registry-source-${index}`} />,
           )
         ) : (
           <>
@@ -148,14 +156,23 @@ export const NodeHandles = ({
               id="prompt-output"
               onMouseEnter={() => setHoveredHandle('prompt-output')}
               onMouseLeave={() => setHoveredHandle(null)}
-              className={getHandleClass('source', readPortType(data, 'output_type', 'text'), `!w-2.5 !h-2.5 !bg-cyber-panel !border-2 hover:!border-cyber-primary transition-colors ${handleBaseClasses}`)}
+              className={getHandleClass(
+                'source',
+                readPortType(data, 'output_type', 'text'),
+                `!w-2.5 !h-2.5 !bg-cyber-panel !border-2 hover:!border-cyber-primary transition-colors ${handleBaseClasses}`,
+              )}
             />
             {hoveredHandle === 'prompt-output' && (
               <div className="absolute -right-44 top-1/2 -translate-y-1/2 px-2 py-1 rounded-md border border-cyber-primary/40 bg-cyber-panel/90 backdrop-blur-sm text-[10px] font-mono text-cyber-primary shadow-[0_0_6px_rgba(0,240,255,0.12)] pointer-events-none whitespace-nowrap">
                 Prompt output
               </div>
             )}
-            {renderOutputTypeBadge('output_type', 'text', '-right-1.5 top-1/2 -translate-y-1/2 text-cyber-primary border-cyber-primary/60 bg-black/70', hoveredHandle === 'prompt-output')}
+            {renderOutputTypeBadge(
+              'output_type',
+              'text',
+              '-right-1.5 top-1/2 -translate-y-1/2 text-cyber-primary border-cyber-primary/60 bg-black/70',
+              hoveredHandle === 'prompt-output',
+            )}
           </>
         )}
       </>
@@ -164,32 +181,34 @@ export const NodeHandles = ({
 
   return (
     <>
-      {registryInputHandles.map((handle, index) => 
-        renderNamedHandle({
-          kind: 'target',
-          position: resolveHandlePosition(handle.position),
-          id: handle.id,
-          portType: handle.portType,
-          style: resolveHandleStyle(handle),
-          borderClass: handle.borderClass,
-          hoverBorderClass: handle.hoverBorderClass,
-          index,
-        }) || <React.Fragment key={`registry-target-${index}`} />
+      {registryInputHandles.map(
+        (handle, index) =>
+          renderNamedHandle({
+            kind: 'target',
+            position: resolveHandlePosition(handle.position),
+            id: handle.id,
+            portType: handle.portType,
+            style: resolveHandleStyle(handle),
+            borderClass: handle.borderClass,
+            hoverBorderClass: handle.hoverBorderClass,
+            index,
+          }) || <React.Fragment key={`registry-target-${index}`} />,
       )}
-      {registrySourceHandles.map((handle, index) => 
-        renderNamedHandle({
-          kind: 'source',
-          position: resolveHandlePosition(handle.position),
-          id: handle.id,
-          portType: handle.portType,
-          style: resolveHandleStyle(handle),
-          borderClass: handle.borderClass,
-          hoverBorderClass: handle.hoverBorderClass,
-          badgeParamKey: handle.badgeParamKey,
-          badgeFallback: handle.badgeFallback,
-          badgeClassName: handle.badgeClassName,
-          index,
-        }) || <React.Fragment key={`registry-source-${index}`} />
+      {registrySourceHandles.map(
+        (handle, index) =>
+          renderNamedHandle({
+            kind: 'source',
+            position: resolveHandlePosition(handle.position),
+            id: handle.id,
+            portType: handle.portType,
+            style: resolveHandleStyle(handle),
+            borderClass: handle.borderClass,
+            hoverBorderClass: handle.hoverBorderClass,
+            badgeParamKey: handle.badgeParamKey,
+            badgeFallback: handle.badgeFallback,
+            badgeClassName: handle.badgeClassName,
+            index,
+          }) || <React.Fragment key={`registry-source-${index}`} />,
       )}
     </>
   );

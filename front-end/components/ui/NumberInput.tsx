@@ -33,9 +33,11 @@ const NumberInput: React.FC<NumberInputProps> = ({
     setInternal(value === undefined || value === null ? '' : String(value));
   }, [value]);
 
+  // Runs once on mount: `ref.current` is not a valid dependency (mutating a ref
+  // does not re-render), and this only needs to publish the node when it appears.
   useEffect(() => {
     if (inputRef) inputRef(ref.current);
-  }, [ref.current]);
+  }, [inputRef]);
 
   const parseVal = (v: string) => {
     if (v === '' || v === '-' || v === '.' || v === '-.') return NaN;
@@ -64,7 +66,7 @@ const NumberInput: React.FC<NumberInputProps> = ({
   const inc = (dir = 1) => {
     const cur = parseVal(internal);
     const base = Number.isNaN(cur) ? 0 : cur;
-    const next = +(base + dir * step).toFixed(10);
+    const next = Number((base + dir * step).toFixed(10));
     if (max !== undefined && next > max) return;
     if (min !== undefined && next < min) return;
     setInternal(String(next));

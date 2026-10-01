@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { prisma } from '../lib/prisma';
+import { db } from '../lib/db';
 import { createLogger } from '../utils/logger';
 import { toErrorMessage } from '../utils/common';
 
@@ -36,7 +36,12 @@ function normalizeUsername(username: string): string {
 }
 
 function mapUser(user: { id: string; email: string; username: string; name: string | null }) {
-  return { id: user.id, email: user.email, username: user.username, name: user.name || undefined };
+  return {
+    id: user.id,
+    email: user.email,
+    username: user.username,
+    ...(user.name ? { name: user.name } : {}),
+  };
 }
 
 export class AuthService {
@@ -81,7 +86,7 @@ export class AuthService {
     email: string,
     username: string,
     password: string,
-    name?: string
+    name?: string,
   ): Promise<AuthResponse> {
     try {
       const normalizedEmail = normalizeEmail(email);
@@ -97,7 +102,7 @@ export class AuthService {
       }
 
       // Check if user already exists
-      const existingUser = await prisma.user.findFirst({
+      const existingUser = await db.user.findFirst({
         where: {
           OR: [{ email: normalizedEmail }, { username: normalizedUsername }],
         },
@@ -106,7 +111,10 @@ export class AuthService {
       if (existingUser) {
         return {
           ok: false,
-          error: existingUser.email === normalizedEmail ? 'Email already registered' : 'Username already taken',
+          error:
+            existingUser.email === normalizedEmail
+              ? 'Email already registered'
+              : 'Username already taken',
         };
       }
 
@@ -114,7 +122,7 @@ export class AuthService {
       const hashedPassword = await this.hashPassword(password);
 
       // Create user
-      const user = await prisma.user.create({
+      const user = await db.user.create({
         data: {
           email: normalizedEmail,
           username: normalizedUsername,
@@ -150,7 +158,7 @@ export class AuthService {
       }
 
       // Find user by email
-      const user = await prisma.user.findUnique({
+      const user = await db.user.findUnique({
         where: { email: normalizedEmail },
       });
 
@@ -184,7 +192,7 @@ export class AuthService {
    */
   static async getUserById(userId: string) {
     try {
-      return await prisma.user.findUnique({
+      return await db.user.findUnique({
         where: { id: userId },
         select: {
           id: true,

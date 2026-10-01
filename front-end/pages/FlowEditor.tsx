@@ -1,35 +1,33 @@
 import {
   Background,
   BackgroundVariant,
-  Controls,
-  EdgeTypes,
+  type EdgeTypes,
   MiniMap,
-  Node,
-  NodeTypes,
+  type NodeTypes,
   ReactFlow,
   ReactFlowProvider,
-} from "@xyflow/react";
-import React from "react";
-import CyberEdge from "../components/CyberEdge";
-import CyberGroupNode from "../components/CyberGroupNode";
-import CyberNode from "../components/CyberNode";
-import CyberNoteNode from "../components/CyberNoteNode";
-import CanvasSearch from "../components/editor/CanvasSearch";
-import CommandPalette from "../components/editor/CommandPalette";
-import ContextMenu from "../components/editor/ContextMenu";
-import EditorDock, { type EditorDockTab } from "../components/editor/EditorDock";
-import FlowHeader from "../components/editor/FlowHeader";
-import DockContentPanel from "../components/editor/DockContentPanel";
-import { Sidebar } from "../components/Sidebar";
-import { useFlowEditor, type DockTabId } from "../hooks/useFlowEditor";
-import type { CustomNodeType } from "@n2flow/types";
+} from '@xyflow/react';
+import CyberEdge from '../components/CyberEdge';
+import CyberGroupNode from '../components/CyberGroupNode';
+import CyberNode from '../components/CyberNode';
+import CyberNoteNode from '../components/CyberNoteNode';
+import CanvasSearch from '../components/editor/CanvasSearch';
+import CommandPalette from '../components/editor/CommandPalette';
+import ContextMenu from '../components/editor/ContextMenu';
+import EditorDock from '../components/editor/EditorDock';
+import FlowHeader from '../components/editor/FlowHeader';
+import DockContentPanel from '../components/editor/DockContentPanel';
+import { Sidebar } from '../components/Sidebar';
+import { type DockTabId } from '../hooks/useFlowEditor';
+import { isLayoutMode } from '../hooks/useGraphLayout';
+import type { CustomNodeType } from '@n2flow/types';
 
-import { EditorProvider, useEditor } from "../context/EditorContext";
+import { EditorProvider, useEditor } from '../context/EditorContext';
 
 const nodeTypes: NodeTypes = {
-  cyberNode: CyberNode as any,
-  cyberGroup: CyberGroupNode as any,
-  cyberNote: CyberNoteNode as any,
+  cyberNode: CyberNode,
+  cyberGroup: CyberGroupNode,
+  cyberNote: CyberNoteNode,
 };
 
 const edgeTypes: EdgeTypes = {
@@ -39,7 +37,6 @@ const edgeTypes: EdgeTypes = {
 const Flow = () => {
   const editor = useEditor();
   const { executeNodeSubgraph } = editor;
-
 
   return (
     <div className="w-full h-screen min-h-0 bg-cyber-dark text-white overflow-hidden flex flex-col">
@@ -54,31 +51,16 @@ const Flow = () => {
         setIsFlowManagerOpen={editor.setIsFlowManagerOpen}
         setIsVariablesPanelOpen={editor.setIsVariablesPanelOpen}
         setIsVersionHistoryOpen={editor.setIsVersionHistoryOpen}
-        validationLocale={editor.validationLocale}
-        setValidationLocale={editor.setValidationLocale}
         setShowShortcutHelp={editor.setShowShortcutHelp}
-        setShowCommandPalette={editor.setShowCommandPalette}
-        importInputRef={editor.importInputRef}
-        onImport={editor.onImport}
-        onExport={editor.onExport}
         onCopy={editor.onCopy}
         onPaste={editor.onPaste}
-        onDuplicate={editor.onDuplicate}
         undo={editor.undo}
-        redo={editor.redo}
-        onLayout={editor.onLayoutHandler}
-        onGroupNodes={editor.onGroupNodes}
-        onUngroupNodes={editor.onUngroupNodes}
+        onLayoutHandler={editor.onLayoutHandler}
+        onExport={editor.onExport}
         onDownloadImage={editor.onDownloadImage}
         onClear={editor.onClear}
-        setShowMinimap={editor.setShowMinimap}
-        setIsLiveMode={editor.setIsLiveMode}
-        isLiveMode={editor.isLiveMode}
-        reactFlowInstance={editor.reactFlowInstance}
-        navigate={editor.navigate}
         lastAutoSave={editor.lastAutoSave}
         isAutoSaving={editor.isAutoSaving}
-        isOnline={editor.isOnline}
       />
 
       <div className="flex-1 flex overflow-hidden relative">
@@ -113,9 +95,9 @@ const Flow = () => {
             minZoom={0.1}
             maxZoom={4}
             defaultEdgeOptions={{
-              type: "cyberEdge",
+              type: 'cyberEdge',
               animated: true,
-              style: { stroke: "rgba(0, 240, 255, 0.2)", strokeWidth: 1 },
+              style: { stroke: 'rgba(0, 240, 255, 0.2)', strokeWidth: 1 },
             }}
           >
             <Background
@@ -130,13 +112,13 @@ const Flow = () => {
               <MiniMap
                 nodeStrokeWidth={3}
                 nodeColor={(n) => {
-                  if (n.type === "cyberGroup") return "rgba(255, 255, 255, 0.02)";
+                  if (n.type === 'cyberGroup') return 'rgba(255, 255, 255, 0.02)';
                   const node = n as CustomNodeType;
-                  const type = node.data.type || "";
-                  if (type === "Agent") return "#7000ff";
-                  if (type.includes("LLM") || type.includes("LanguageModel")) return "#a855f7";
-                  if (type.includes("Tool")) return "#f59e0b";
-                  return "#00f0ff";
+                  const type = node.data.type || '';
+                  if (type === 'Agent') return '#7000ff';
+                  if (type.includes('LLM') || type.includes('LanguageModel')) return '#a855f7';
+                  if (type.includes('Tool')) return '#f59e0b';
+                  return '#00f0ff';
                 }}
                 maskColor="rgba(0, 0, 0, 0.8)"
                 className="!bg-black/40 !backdrop-blur-md !border-white/5 !rounded-lg !bottom-4 !right-4 !shadow-none !w-[140px] !h-[100px] opacity-40 hover:opacity-100 transition-opacity"
@@ -191,7 +173,7 @@ const Flow = () => {
             onRun: () => {
               const node = editor.contextMenu?.node;
               if (node) {
-                executeNodeSubgraph(node.id);
+                void executeNodeSubgraph(node.id);
                 editor.setContextMenu(null);
               }
             },
@@ -250,22 +232,22 @@ const Flow = () => {
             },
             onUngroup: () => {
               const node = editor.contextMenu?.node;
-              if (node && node.type === "cyberGroup") {
+              if (node && node.type === 'cyberGroup') {
                 editor.onUngroupNodes(node.id);
               }
             },
             onLayout: (type?: string) => {
-              if (type) {
-                editor.onLayout(type as any);
+              if (type && isLayoutMode(type)) {
+                editor.onLayout(type);
               } else {
-                editor.onLayout("LR");
+                editor.onLayout('LR');
               }
             },
             onAddNode: (pos) => {
               if (editor.reactFlowInstance) {
                 const project = editor.reactFlowInstance.screenToFlowPosition(pos);
                 editor.setPendingNodeInsertPosition(project);
-                editor.setCommandQuery("add node ");
+                editor.setCommandQuery('add node ');
                 editor.setCommandIndex(0);
                 editor.setShowCommandPalette(true);
               }
@@ -273,11 +255,11 @@ const Flow = () => {
             onAddNote: (pos) => {
               if (editor.reactFlowInstance) {
                 const project = editor.reactFlowInstance.screenToFlowPosition(pos);
-                const newNode: Node = {
+                const newNode: CustomNodeType = {
                   id: `note-${Date.now()}`,
-                  type: "cyberNote",
+                  type: 'cyberNote',
                   position: project,
-                  data: { label: "", type: "cyberNote", status: "idle" },
+                  data: { label: '', type: 'cyberNote', status: 'idle' },
                 };
                 editor.takeSnapshot();
                 editor.setNodes((nds) => nds.concat(newNode));

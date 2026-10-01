@@ -1,8 +1,10 @@
-import express from 'express';
+import express, { type NextFunction, type Response } from 'express';
+import type { AuthRequest } from '../middleware/auth';
+import type { ApiResponse } from '../utils/apiResponse';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-// SecretService uses prisma.userSecret (not prisma.secret)
-const prismaMock = {
+// SecretService uses db.userSecret (not db.secret)
+const dbMock = {
   userSecret: {
     findMany: vi.fn(),
     findFirst: vi.fn(),
@@ -12,8 +14,8 @@ const prismaMock = {
   },
 };
 
-vi.mock('../lib/prisma', () => ({
-  prisma: prismaMock,
+vi.mock('../lib/db', () => ({
+  db: dbMock,
 }));
 
 const { default: secretsRoute } = await import('../routes/secrets');
@@ -22,7 +24,7 @@ function createTestApp() {
   const app = express();
   app.use(express.json());
   // Inject userId to simulate authenticated session
-  app.use((req: any, _res: any, next: any) => {
+  app.use((req: AuthRequest, _res: Response, next: NextFunction) => {
     req.userId = 'test-user-id';
     next();
   });
@@ -33,7 +35,9 @@ function createTestApp() {
 async function withTestServer<T>(run: (baseUrl: string) => Promise<T>): Promise<T> {
   const app = createTestApp();
   return new Promise<T>((resolve, reject) => {
-    const server = app.listen(0, async () => {
+    // The listener is intentionally not `async`: an async callback would return a
+    // promise nobody awaits, so a throw here would become an unhandled rejection.
+    const server = app.listen(0, () => {
       const address = server.address();
       if (!address || typeof address === 'string') {
         server.close();
@@ -41,12 +45,10 @@ async function withTestServer<T>(run: (baseUrl: string) => Promise<T>): Promise<
         return;
       }
       const baseUrl = `http://127.0.0.1:${address.port}`;
-      try {
-        const result = await run(baseUrl);
-        server.close(() => resolve(result));
-      } catch (err) {
-        server.close(() => reject(err));
-      }
+      run(baseUrl).then(
+        (result) => server.close(() => resolve(result)),
+        (err: unknown) => server.close(() => reject(err)),
+      );
     });
   });
 }
@@ -70,19 +72,21 @@ describe('Secrets API Routes', () => {
         lastUsedAt: null,
       },
     ];
-    prismaMock.userSecret.findMany.mockResolvedValue(mockSecrets);
+    dbMock.userSecret.findMany.mockResolvedValue(mockSecrets);
 
     await withTestServer(async (baseUrl) => {
       const response = await fetch(`${baseUrl}/api/secrets`);
-      const body = await response.json() as any;
+      const body = (await response.json()) as ApiResponse<
+        Array<{ name: string; keyPreview: string }>
+      >;
 
       expect(response.status).toBe(200);
       expect(body.ok).toBe(true);
       expect(body.data).toHaveLength(1);
-      expect(body.data[0].name).toBe('API_KEY');
+      expect(body.data?.[0]?.name).toBe('API_KEY');
       // keyPreview should show last 4 chars: "1234"
-      expect(body.data[0].keyPreview).toBe('****1234');
-      expect(prismaMock.userSecret.findMany).toHaveBeenCalled();
+      expect(body.data?.[0]?.keyPreview).toBe('****1234');
+      expect(dbMock.userSecret.findMany).toHaveBeenCalled();
     });
   });
 
@@ -97,8 +101,8 @@ describe('Secrets API Routes', () => {
       lastUsedAt: null,
     };
     // createSecret first checks for duplicate name (findFirst → null), then creates
-    prismaMock.userSecret.findFirst.mockResolvedValue(null);
-    prismaMock.userSecret.create.mockResolvedValue(createdSecret);
+    dbMock.userSecret.findFirst.mockResolvedValue(null);
+    dbMock.userSecret.create.mockResolvedValue(createdSecret);
 
     await withTestServer(async (baseUrl) => {
       const response = await fetch(`${baseUrl}/api/secrets`, {
@@ -107,11 +111,11 @@ describe('Secrets API Routes', () => {
         // secrets route expects: name + key (not "value")
         body: JSON.stringify({ name: 'NEW_KEY', key: 'secret-value-1234' }),
       });
-      const body = await response.json() as any;
+      const body = (await response.json()) as ApiResponse;
 
       expect(response.status).toBe(200);
       expect(body.ok).toBe(true);
-      expect(prismaMock.userSecret.create).toHaveBeenCalled();
+      expect(dbMock.userSecret.create).toHaveBeenCalled();
     });
   });
 
@@ -125,18 +129,18 @@ describe('Secrets API Routes', () => {
       lastUsedAt: null,
     };
     // deleteSecret calls requireSecret (findFirst) then delete
-    prismaMock.userSecret.findFirst.mockResolvedValue(existingSecret);
-    prismaMock.userSecret.delete.mockResolvedValue(existingSecret);
+    dbMock.userSecret.findFirst.mockResolvedValue(existingSecret);
+    dbMock.userSecret.delete.mockResolvedValue(existingSecret);
 
     await withTestServer(async (baseUrl) => {
       const response = await fetch(`${baseUrl}/api/secrets/secret-1`, {
         method: 'DELETE',
       });
-      const body = await response.json() as any;
+      const body = (await response.json()) as ApiResponse;
 
       expect(response.status).toBe(200);
       expect(body.ok).toBe(true);
-      expect(prismaMock.userSecret.delete).toHaveBeenCalled();
+      expect(dbMock.userSecret.delete).toHaveBeenCalled();
     });
   });
 });

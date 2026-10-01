@@ -1,6 +1,32 @@
-import type { LlmRuntimeConfig, AgentTool } from '../types';
-import { parseToolArgs, clampToolResult, toAnthropicToolDeclarations, createChatOrchestrator, tryFetchModelsFromBase } from '../utils';
-import * as AnthropicModule from '@anthropic-ai/sdk';
+import type { ChatMessage } from '@n2flow/types';
+import type { AgentTool, LlmRuntimeConfig } from '../types';
+import {
+  parseToolArgs,
+  toAnthropicToolDeclarations,
+  createChatOrchestrator,
+  tryFetchModelsFromBase,
+  type NormalizedToolCall,
+} from '../utils';
+import { asRecord } from '../../utils/common';
+
+/** The subset of Anthropic's message/content-block shapes this adapter uses. */
+type AnthropicTextBlock = { type: 'text'; text: string };
+type AnthropicToolResultBlock = { type: 'tool_result'; tool_use_id: string; content: string };
+type AnthropicBlock = AnthropicTextBlock | AnthropicToolUseBlock | AnthropicToolResultBlock;
+type AnthropicToolUseBlock = {
+  type: 'tool_use';
+  id: string;
+  name: string;
+  input: Record<string, unknown>;
+};
+type AnthropicMessageParam = { role: 'user' | 'assistant'; content: AnthropicBlock[] };
+
+const textBlock = (text: string): AnthropicTextBlock => ({ type: 'text', text });
+const toolUseBlock = (
+  id: string,
+  name: string,
+  input: Record<string, unknown>,
+): AnthropicToolUseBlock => ({ type: 'tool_use', id, name, input });
 
 export const runAnthropicChat = async (
   cfg: LlmRuntimeConfig,
@@ -10,26 +36,27 @@ export const runAnthropicChat = async (
   executeToolByName: (name: string, callArgs: Record<string, string>) => Promise<string>,
   log: (msg: string) => void,
   onStream?: (chunk: string) => void,
-  chatHistory: any[] = [],
+  chatHistory: ChatMessage[] = [],
 ) => {
   const apiKey = String(cfg.apiKey || '');
   if (!apiKey) throw new Error('Missing Anthropic API Key.');
   const stream = cfg.stream === true && typeof onStream === 'function';
-  const toolsDecl = availableTools.length > 0 ? toAnthropicToolDeclarations(availableTools) : undefined;
-  
-  const messages: any[] = [];
+  const toolsDecl =
+    availableTools.length > 0 ? toAnthropicToolDeclarations(availableTools) : undefined;
+
+  const messages: AnthropicMessageParam[] = [];
 
   // Map history to Anthropic format
-  chatHistory.forEach((msg: any) => {
+  chatHistory.forEach((msg) => {
     if (msg.role === 'user' || msg.role === 'assistant') {
-      messages.push({ role: msg.role, content: msg.text });
+      messages.push({ role: msg.role, content: [textBlock(msg.text)] });
     }
   });
 
   // Always include the current user turn if not already in history
-  const lastHistory = chatHistory[chatHistory.length - 1];
+  const lastHistory = chatHistory.at(-1);
   if (!lastHistory || lastHistory.text !== userPrompt) {
-    messages.push({ role: 'user', content: userPrompt });
+    messages.push({ role: 'user', content: [textBlock(userPrompt)] });
   }
 
   // 2. Use Orchestrator for manual loop
@@ -63,7 +90,7 @@ export const runAnthropicChat = async (
       }
 
       let content = '';
-      let tool_calls: any[] = [];
+      let toolCalls: NormalizedToolCall[] = [];
 
       if (stream) {
         const reader = response.body?.getReader();
@@ -84,29 +111,42 @@ export const runAnthropicChat = async (
                 content += data.delta.text;
                 onStream(data.delta.text);
               }
-            } catch {}
+            } catch {
+              // Streaming is best-effort; a mid-stream failure just ends the stream.
+            }
           }
         }
       } else {
-        const data = (await response.json()) as any;
-        content = data.content?.find((c: any) => c.type === 'text')?.text || '';
-        tool_calls = data.content?.filter((c: any) => c.type === 'tool_use') || [];
+        // Anthropic returns a content-block array; a text block carries the
+        // message and tool_use blocks carry the tool calls.
+        const data = asRecord(await response.json());
+        const blocks = Array.isArray(data?.['content']) ? data['content'] : [];
+        content = blocks
+          .map((b) => asRecord(b))
+          .filter((b) => b?.['type'] === 'text')
+          .map((b) => String(b?.['text'] ?? ''))
+          .join('');
+        toolCalls = blocks
+          .map((b) => asRecord(b))
+          .filter((b) => b?.['type'] === 'tool_use')
+          .map((b) => ({
+            id: String(b?.['id'] ?? ''),
+            name: String(b?.['name'] ?? ''),
+            args: parseToolArgs(b?.['input']),
+            raw: b,
+          }));
       }
 
-      if (tool_calls.length > 0) {
-        messages.push({ role: 'assistant', content, tool_calls });
+      if (toolCalls.length > 0) {
+        messages.push({
+          role: 'assistant',
+          content: [textBlock(content), ...toolCalls.map((tc) => toolUseBlock(tc.id, tc.name, tc.args))],
+        });
       } else {
-        messages.push({ role: 'assistant', content });
+        messages.push({ role: 'assistant', content: [textBlock(content)] });
       }
 
-      return {
-        content,
-        toolCalls: tool_calls.map((tc: any) => ({
-          id: tc.id,
-          name: tc.name,
-          args: parseToolArgs(tc.input)
-        }))
-      };
+      return { content, toolCalls };
     },
     onToolResult: (tc, result) => {
       messages.push({
@@ -119,17 +159,18 @@ export const runAnthropicChat = async (
           },
         ],
       });
-    }
+    },
   });
 };
 
-export const listModels = async (cfg: LlmRuntimeConfig): Promise<Array<{ id: string; name?: string; description?: string }>> => {
+export const listModels = async (
+  cfg: LlmRuntimeConfig,
+): Promise<Array<{ id: string; name?: string; description?: string }>> => {
   return tryFetchModelsFromBase('https://api.anthropic.com', cfg.apiKey);
 };
 
-export const embedText = async (cfg: LlmRuntimeConfig, input: string): Promise<number[]> => {
-  throw new Error("Anthropic does not currently support native text embeddings.");
+export const embedText = async (): Promise<number[]> => {
+  throw new Error('Anthropic does not currently support native text embeddings.');
 };
 
 export default { runAnthropicChat, listModels, embedText };
-

@@ -1,11 +1,16 @@
 /**
  * Validation schemas for N2Flow API.
- * 
+ *
  * These schemas ensure data integrity and prevent injection attacks.
  * Using simple validation without Zod to minimize dependencies.
  */
 
-import type { FlowNode, FlowEdge, NodeData, GlobalVariable as FlowGlobalVariable } from '../flowTypes';
+import type {
+  FlowNode,
+  FlowEdge,
+  NodeData,
+  GlobalVariable as FlowGlobalVariable,
+} from '../flowTypes';
 import { validatePlaceholdersInString } from '@n2flow/types';
 import { z } from 'zod';
 
@@ -18,7 +23,7 @@ export interface Node {
   id: string;
   type: string;
   position: NodePosition;
-  data?: Record<string, any>;
+  data?: Record<string, unknown>;
   selected?: boolean;
   dragging?: boolean;
   isConnectable?: boolean;
@@ -32,14 +37,14 @@ export interface Edge {
   sourceHandle?: string;
   targetHandle?: string;
   type?: string;
-  data?: Record<string, any>;
-  style?: Record<string, any>;
+  data?: Record<string, unknown>;
+  style?: Record<string, unknown>;
   animated?: boolean;
 }
 
 export interface GlobalVariable {
   name: string;
-  value: any;
+  value: unknown;
   type?: 'string' | 'number' | 'boolean' | 'object';
 }
 
@@ -65,7 +70,7 @@ export interface FlowSaveRequest {
   description?: string;
   nodes: Node[];
   edges: Edge[];
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   globalVariables?: GlobalVariable[];
   versionLabel?: string;
   isAutoSave?: boolean;
@@ -85,7 +90,7 @@ export const NodeSchema = z.object({
   id: z.string(),
   type: z.string(),
   position: NodePositionSchema,
-  data: z.record(z.string(), z.any()).optional(),
+  data: z.record(z.string(), z.unknown()).optional(),
   selected: z.boolean().optional(),
   dragging: z.boolean().optional(),
   isConnectable: z.boolean().optional(),
@@ -99,14 +104,14 @@ export const EdgeSchema = z.object({
   sourceHandle: z.string().optional(),
   targetHandle: z.string().optional(),
   type: z.string().optional(),
-  data: z.record(z.string(), z.any()).optional(),
-  style: z.record(z.string(), z.any()).optional(),
+  data: z.record(z.string(), z.unknown()).optional(),
+  style: z.record(z.string(), z.unknown()).optional(),
   animated: z.boolean().optional(),
 });
 
 export const GlobalVariableSchema = z.object({
   name: z.string(),
-  value: z.any(),
+  value: z.unknown(),
   type: z.enum(['string', 'number', 'boolean', 'object']).optional(),
 });
 
@@ -132,26 +137,37 @@ export const FlowSaveRequestSchema = z.object({
   description: z.string().optional(),
   nodes: z.array(NodeSchema),
   edges: z.array(EdgeSchema),
-  metadata: z.record(z.string(), z.any()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
   globalVariables: z.array(GlobalVariableSchema).optional(),
   versionLabel: z.string().optional(),
   isAutoSave: z.boolean().optional(),
-  viewport: z.object({
-    x: z.number(),
-    y: z.number(),
-    zoom: z.number(),
-  }).optional(),
+  viewport: z
+    .object({
+      x: z.number(),
+      y: z.number(),
+      zoom: z.number(),
+    })
+    .optional(),
 });
 
 /**
- * Validates if a string contains placeholders that can be resolved either by 
+ * Validates if a string contains placeholders that can be resolved either by
  * global variables or by server environment variables.
  * Returns null if valid, or an error message if missing.
  */
-export const validatePlaceholder = (value: string, globalVariables: GlobalVariable[] = []): string | null => {
-  const variableNames = new Set(globalVariables.map(v => v.name.trim()));
+export const validatePlaceholder = (
+  value: string,
+  globalVariables: GlobalVariable[] = [],
+): string | null => {
+  const variableNames = new Set(globalVariables.map((v) => v.name.trim()));
   return validatePlaceholdersInString(value, variableNames, true);
 };
+
+/** Narrow an untrusted value to a plain record, or `undefined` if it isn't one. */
+const asRecord = (value: unknown): Record<string, unknown> | undefined =>
+  typeof value === 'object' && value !== null && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : undefined;
 
 /**
  * Validation utility to safely parse and validate requests
@@ -165,18 +181,20 @@ export class RequestValidator {
     return FlowSaveRequestSchema.parse(data) as FlowSaveRequest;
   }
 
-  static validateGlobalVariables(vars: any[]): string[] {
+  static validateGlobalVariables(vars: readonly unknown[]): string[] {
     const errors: string[] = [];
     const names = new Set<string>();
 
     for (const [index, variable] of vars.entries()) {
       const result = GlobalVariableSchema.safeParse(variable);
       if (!result.success) {
-        errors.push(`Global variable ${index}: ${result.error.issues.map((e: any) => e.message).join(', ')}`);
+        errors.push(
+          `Global variable ${index}: ${result.error.issues.map((e) => e.message).join(', ')}`,
+        );
         continue;
       }
 
-      const name = variable.name.trim();
+      const name = String(asRecord(variable)?.name ?? '').trim();
       if (names.has(name)) {
         errors.push(`Duplicate global variable name: ${name}`);
       } else {
@@ -187,60 +205,61 @@ export class RequestValidator {
     return errors;
   }
 
-  static validateNodes(nodes: any[]): string[] {
+  static validateNodes(nodes: readonly unknown[]): string[] {
     const errors: string[] = [];
-
-    if (!Array.isArray(nodes)) {
-      return ['nodes must be an array'];
-    }
 
     for (const [index, node] of nodes.entries()) {
       const result = NodeSchema.safeParse(node);
       if (!result.success) {
-        errors.push(`Node ${index}: ${result.error.issues.map((e: any) => e.message).join(', ')}`);
+        errors.push(`Node ${index}: ${result.error.issues.map((e) => e.message).join(', ')}`);
       }
     }
 
     return errors;
   }
 
-  static validateEdges(nodes: any[], edges: any[]): string[] {
+  static validateEdges(nodes: readonly unknown[], edges: readonly unknown[]): string[] {
     const errors: string[] = [];
-    const nodeIds = new Set(nodes.map(n => n.id));
+    const nodeIds = new Set(
+      nodes.map((n) => asRecord(n)?.['id']).filter((id): id is string => typeof id === 'string'),
+    );
 
-    if (!Array.isArray(edges)) {
-      return ['edges must be an array'];
-    }
+    const edgeKey = (edge: Record<string, unknown>): string =>
+      `${String(edge['source'] ?? '')}|${String(edge['sourceHandle'] ?? '')}=>` +
+      `${String(edge['target'] ?? '')}|${String(edge['targetHandle'] ?? '')}`;
 
     // Check for missing references
-    for (const [index, edge] of edges.entries()) {
-      const result = EdgeSchema.safeParse(edge);
+    for (const [index, raw] of edges.entries()) {
+      const result = EdgeSchema.safeParse(raw);
       if (!result.success) {
-        errors.push(`Edge ${index}: ${result.error.issues.map((e: any) => e.message).join(', ')}`);
+        errors.push(`Edge ${index}: ${result.error.issues.map((e) => e.message).join(', ')}`);
         continue;
       }
-      if (!edge.source || !nodeIds.has(edge.source)) {
-        errors.push(`Edge: references non-existent source node: ${edge.source}`);
+      const edge = asRecord(raw) ?? {};
+      if (!edge['source'] || !nodeIds.has(String(edge['source']))) {
+        errors.push(`Edge: references non-existent source node: ${String(edge['source'])}`);
       }
-      if (!edge.target || !nodeIds.has(edge.target)) {
-        errors.push(`Edge: references non-existent target node: ${edge.target}`);
+      if (!edge['target'] || !nodeIds.has(String(edge['target']))) {
+        errors.push(`Edge: references non-existent target node: ${String(edge['target'])}`);
       }
     }
 
     // Check for duplicate edges
-    const edgeSet = new Set();
-    for (const edge of edges) {
-      const key = `${edge.source}|${edge.sourceHandle || ''}=>${edge.target}|${edge.targetHandle || ''}`;
-      if (edgeSet.has(key)) {
-        errors.push(`Duplicate edge: ${edge.source} -> ${edge.target}`);
+    const seen = new Set<string>();
+    for (const raw of edges) {
+      const edge = asRecord(raw);
+      if (!edge) continue;
+      const key = edgeKey(edge);
+      if (seen.has(key)) {
+        errors.push(`Duplicate edge: ${String(edge['source'])} -> ${String(edge['target'])}`);
       }
-      edgeSet.add(key);
+      seen.add(key);
     }
 
     return errors;
   }
 
-  static validateResolvablePlaceholders(nodes: any[], vars: any[]): string[] {
+  static validateResolvablePlaceholders(nodes: readonly unknown[], vars: GlobalVariable[]): string[] {
     const errors: string[] = [];
 
     const visit = (value: unknown, path: string) => {
@@ -263,8 +282,9 @@ export class RequestValidator {
     };
 
     nodes.forEach((node, index) => {
-      visit(node?.data?.params, `nodes[${index}].data.params`);
-      visit(node?.data?.configSchema, `nodes[${index}].data.configSchema`);
+      const data = asRecord(asRecord(node)?.data);
+      visit(data?.['params'], `nodes[${index}].data.params`);
+      visit(data?.['configSchema'], `nodes[${index}].data.configSchema`);
     });
 
     return Array.from(new Set(errors));
@@ -299,12 +319,12 @@ export class TypeConverters {
       id: edge.id,
       source: edge.source,
       target: edge.target,
-      sourceHandle: edge.sourceHandle,
-      targetHandle: edge.targetHandle,
+      sourceHandle: edge.sourceHandle ?? null,
+      targetHandle: edge.targetHandle ?? null,
       type: edge.type,
-      data: edge.data,
-      style: edge.style,
-      animated: edge.animated,
+      ...(edge.data !== undefined && { data: edge.data }),
+      ...(edge.style !== undefined && { style: edge.style }),
+      ...(edge.animated !== undefined && { animated: edge.animated }),
     }));
   }
 

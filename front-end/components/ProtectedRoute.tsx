@@ -50,6 +50,6 @@ export function useLogout() {
 
   return async () => {
     await logoutAuthSession();
-    navigate('/login', { replace: true });
+    void navigate('/login', { replace: true });
   };
 }

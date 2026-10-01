@@ -1,6 +1,6 @@
 import { Client as ElasticClient } from '@elastic/elasticsearch';
-import { ToolHandler } from './registry';
-import { trimTrailingSlash } from '../utils/common';
+import { type ToolHandler } from './registry';
+import { asRecord, trimTrailingSlash } from '../utils/common';
 import { embedText } from '../llm';
 import { isInternalUrl, extractNodeConfig } from './utils';
 
@@ -13,11 +13,10 @@ const compactElasticSource = (source: unknown, vectorField: string): Record<stri
 
   const sanitize = (value: unknown): unknown => {
     if (Array.isArray(value)) {
-      const isLargeNumericArray = value.length > 32 && value.every((item) => typeof item === 'number');
+      const isLargeNumericArray =
+        value.length > 32 && value.every((item) => typeof item === 'number');
       if (isLargeNumericArray) return undefined;
-      return value
-        .map((item) => sanitize(item))
-        .filter((item) => item !== undefined);
+      return value.map((item) => sanitize(item)).filter((item) => item !== undefined);
     }
 
     if (!value || typeof value !== 'object') {
@@ -48,7 +47,7 @@ const compactElasticSource = (source: unknown, vectorField: string): Record<stri
 };
 
 export const elasticsearchHandler: ToolHandler = async (node, args, options) => {
-  const { toolDef, log } = options;
+  const { log } = options;
   const config = extractNodeConfig(node, ['endpoint', 'index', 'vectorField', 'apiKey']);
   const endpoint = String(config.endpoint || '');
   const index = String(config.index || '');
@@ -62,24 +61,26 @@ export const elasticsearchHandler: ToolHandler = async (node, args, options) => 
 
   const esClient = new ElasticClient({
     node: trimTrailingSlash(endpoint),
-    auth: esApiKey ? { apiKey: esApiKey } : undefined,
+    ...(esApiKey ? { auth: { apiKey: esApiKey } } : {}),
   });
 
-  let body: Record<string, unknown> = { query: { multi_match: { query: args.query, fields: ['*'] } } };
-  
-  let embeddingCfg = options.inputs?.['embedding_model']?.[0] as Record<string, any> | undefined;
+  let body: Record<string, unknown> = {
+    query: { multi_match: { query: args.query, fields: ['*'] } },
+  };
 
-  if (embeddingCfg?.model && args.query) {
-      try {
-        const vector = await embedText(
-          {
-            provider: embeddingCfg.provider || 'Google',
-            model: embeddingCfg.model,
-            apiKey: String(embeddingCfg.apiKey || ''),
-            baseUrl: String(embeddingCfg.baseUrl || ''),
-          },
-          args.query,
-        );
+  const embeddingCfg = asRecord(options.inputs?.['embedding_model']?.[0]);
+
+  if (embeddingCfg?.['model'] && args.query) {
+    try {
+      const vector = await embedText(
+        {
+          provider: typeof embeddingCfg['provider'] === 'string' ? embeddingCfg['provider'] : 'Google',
+          model: String(embeddingCfg['model'] ?? ''),
+          apiKey: String(embeddingCfg['apiKey'] ?? ''),
+          baseUrl: String(embeddingCfg['baseUrl'] ?? ''),
+        },
+        args.query,
+      );
       if (Array.isArray(vector) && vector.length > 0) {
         body = {
           knn: {
@@ -100,7 +101,7 @@ export const elasticsearchHandler: ToolHandler = async (node, args, options) => 
     const searchParams: Record<string, unknown> = { ...body };
     if (index) searchParams.index = index;
 
-    const resp = await esClient.search(searchParams as any);
+    const resp = await esClient.search(searchParams);
     const data = (resp as { hits?: { hits?: Array<{ _source?: unknown; _score?: number }> } }).hits;
     const hits = data?.hits || [];
     if (hits.length === 0) return 'No results found.';

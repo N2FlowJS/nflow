@@ -2,7 +2,7 @@ import express from 'express';
 import jwt from 'jsonwebtoken';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-const prismaMock = {
+const dbMock = {
   user: {
     findUnique: vi.fn(),
     findFirst: vi.fn(),
@@ -10,15 +10,23 @@ const prismaMock = {
   },
 };
 
-vi.mock('../lib/prisma', () => ({
-  prisma: prismaMock,
+vi.mock('../lib/db', () => ({
+  db: dbMock,
 }));
 
 const { AuthService } = await import('../services/authService');
 const { default: authRoute } = await import('../routes/auth');
 
+/** Fields the assertions below read off an auth response. */
+type AuthPayload = {
+  ok: boolean;
+  token?: string;
+  error?: string;
+  user?: { id: string; email: string; username: string };
+};
+
 async function readJson<T>(response: Response): Promise<T> {
-  return await response.json() as T;
+  return (await response.json()) as T;
 }
 
 function createTestApp() {
@@ -31,8 +39,10 @@ function createTestApp() {
 async function withTestServer<T>(run: (baseUrl: string) => Promise<T>): Promise<T> {
   const app = createTestApp();
 
-  return await new Promise<T>((resolve, reject) => {
-    const server = app.listen(0, async () => {
+  // The listener is intentionally not `async`: an async callback would return a
+  // promise nobody awaits, so a throw here would become an unhandled rejection.
+  return new Promise<T>((resolve, reject) => {
+    const server = app.listen(0, () => {
       const address = server.address();
       if (!address || typeof address === 'string') {
         server.close();
@@ -42,18 +52,12 @@ async function withTestServer<T>(run: (baseUrl: string) => Promise<T>): Promise<
 
       const baseUrl = `http://127.0.0.1:${address.port}`;
 
-      try {
-        const result = await run(baseUrl);
-        server.close((closeErr) => {
-          if (closeErr) {
-            reject(closeErr);
-            return;
-          }
-          resolve(result);
-        });
-      } catch (error) {
-        server.close(() => reject(error));
-      }
+      run(baseUrl).then(
+        (result) => {
+          server.close((closeErr) => (closeErr ? reject(closeErr) : resolve(result)));
+        },
+        (err: unknown) => server.close(() => reject(err)),
+      );
     });
   });
 }
@@ -70,7 +74,7 @@ describe('auth route flows', () => {
   it('logs in successfully with valid credentials', async () => {
     const hashedPassword = await AuthService.hashPassword('password123');
 
-    prismaMock.user.findUnique.mockResolvedValue({
+    dbMock.user.findUnique.mockResolvedValue({
       id: 'user-1',
       email: 'user@example.com',
       username: 'tester',
@@ -90,7 +94,7 @@ describe('auth route flows', () => {
         }),
       });
 
-      const payload = await readJson<any>(response);
+      const payload = await readJson<AuthPayload>(response);
 
       expect(response.status).toBe(200);
       expect(payload.ok).toBe(true);
@@ -101,7 +105,7 @@ describe('auth route flows', () => {
         username: 'tester',
         name: 'Tester',
       });
-      expect(prismaMock.user.findUnique).toHaveBeenCalledWith({
+      expect(dbMock.user.findUnique).toHaveBeenCalledWith({
         where: { email: 'user@example.com' },
       });
     });
@@ -125,7 +129,7 @@ describe('auth route flows', () => {
         },
       });
 
-      const payload = await readJson<any>(response);
+      const payload = await readJson<AuthPayload>(response);
 
       expect(response.status).toBe(401);
       expect(payload).toMatchObject({
@@ -146,7 +150,7 @@ describe('auth route flows', () => {
         },
       });
 
-      const payload = await readJson<any>(response);
+      const payload = await readJson<AuthPayload>(response);
 
       expect(response.status).toBe(200);
       expect(payload).toMatchObject({
@@ -175,7 +179,7 @@ describe('auth route flows', () => {
         },
       });
 
-      const payload = await readJson<any>(response);
+      const payload = await readJson<AuthPayload>(response);
 
       expect(response.status).toBe(401);
       expect(payload).toMatchObject({

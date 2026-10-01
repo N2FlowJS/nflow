@@ -1,6 +1,7 @@
-import { prisma } from "../lib/prisma";
+import { db } from '../lib/db';
 import { parseJsonSafely } from '../utils/common';
 import { createLogger } from '../utils/logger';
+import { asRecord } from '../utils/common';
 
 const logger = createLogger('FlowStorage');
 
@@ -10,21 +11,21 @@ const countJsonArray = (json: string, key: string): number => {
   try {
     const parsed = typeof json === 'string' ? JSON.parse(json) : json;
     if (!parsed) return 0;
-    
+
     // Check if the key exists and is an array
     if (Array.isArray(parsed[key])) {
       return parsed[key].length;
     }
-    
+
     // Handle cases where nodes/edges might be inside a 'data' property
     if (parsed.data && Array.isArray(parsed.data[key])) {
       return parsed.data[key].length;
     }
 
     return 0;
-  } catch (e) { 
+  } catch (e) {
     logger.error(`Error counting ${key} in JSON`, { error: String(e) });
-    return 0; 
+    return 0;
   }
 };
 
@@ -37,10 +38,27 @@ const mapFlowRow = (f: FlowRow) => ({
   edgeCount: countJsonArray(f.data, 'edges'),
 });
 
-const parseFlowData = (raw: string): any => {
-  const parsed = parseJsonSafely(raw);
-  if (!parsed || typeof parsed !== 'object') throw new Error('Corrupted flow data');
-  return parsed;
+type StoredFlowData = {
+  description?: unknown;
+  nodes?: unknown[];
+  edges?: unknown[];
+  globalVariables?: unknown;
+  viewport?: unknown;
+  versions?: StoredFlowVersion[];
+};
+
+type StoredFlowVersion = {
+  id: string;
+  timestamp: number;
+  label?: string;
+  isAutoSave?: boolean;
+  data?: unknown;
+};
+
+const parseFlowData = (raw: string): StoredFlowData => {
+  const parsed = asRecord(parseJsonSafely(raw));
+  if (!parsed) throw new Error('Corrupted flow data');
+  return parsed as unknown as StoredFlowData;
 };
 
 export class FlowStorageService {
@@ -53,7 +71,7 @@ export class FlowStorageService {
    * List all flows for a user
    */
   static async listFlowsForUser(userId: string) {
-    const flows = await prisma.flow.findMany({
+    const flows = await db.flow.findMany({
       where: { userId },
       select: { id: true, name: true, createdAt: true, updatedAt: true, data: true },
       orderBy: { updatedAt: 'desc' },
@@ -69,15 +87,17 @@ export class FlowStorageService {
   static async listFlowsScoped(
     u?: string,
     pagination?: { limit: number; offset: number },
-  ): Promise<ReturnType<typeof mapFlowRow>[] | { flows: ReturnType<typeof mapFlowRow>[]; total: number }> {
+  ): Promise<
+    ReturnType<typeof mapFlowRow>[] | { flows: ReturnType<typeof mapFlowRow>[]; total: number }
+  > {
     const userId = this.requireUserId(u);
     if (!pagination) {
       return this.listFlowsForUser(userId);
     }
     const { limit, offset } = pagination;
     const [total, flows] = await Promise.all([
-      prisma.flow.count({ where: { userId } }),
-      prisma.flow.findMany({
+      db.flow.count({ where: { userId } }),
+      db.flow.findMany({
         where: { userId },
         select: { id: true, name: true, createdAt: true, updatedAt: true, data: true },
         orderBy: { updatedAt: 'desc' },
@@ -88,12 +108,11 @@ export class FlowStorageService {
     return { flows: flows.map(mapFlowRow), total };
   }
 
-
   /**
    * Get a specific flow by ID
    */
   static async getFlow(id: string, userId?: string) {
-    const flow = await prisma.flow.findUnique({ where: { id } });
+    const flow = await db.flow.findUnique({ where: { id } });
     const ownerId = this.requireUserId(userId);
 
     if (!flow || flow.userId !== ownerId) {
@@ -110,11 +129,10 @@ export class FlowStorageService {
     };
   }
 
-
   /**
    * Save or update a flow
    */
-  static async saveFlow(flow: any) {
+  static async saveFlow(flow: Record<string, unknown>) {
     if (!flow.id) {
       throw new Error('Flow ID is required');
     }
@@ -125,7 +143,7 @@ export class FlowStorageService {
     // Get existing flow if it exists
     let existingFlow = null;
     try {
-      existingFlow = await prisma.flow.findUnique({
+      existingFlow = await db.flow.findUnique({
         where: { id: flow.id },
       });
 
@@ -140,18 +158,20 @@ export class FlowStorageService {
       }
     }
 
-    const ownerId = flow.userId || existingFlow?.userId || this.requireUserId(flow.userId);
+    const flowUserId = typeof flow.userId === 'string' ? flow.userId : undefined;
+    const ownerId = flowUserId || existingFlow?.userId || this.requireUserId(flowUserId);
 
-    const currentFlowData = flow.data && typeof flow.data === 'object'
-      ? flow.data
-      : {
-          nodes: flow.nodes || [],
-          edges: flow.edges || [],
-          globalVariables: flow.globalVariables || [],
-          viewport: flow.viewport,
-          metadata: flow.metadata,
-          description: flow.description,
-        };
+    const currentFlowData =
+      flow.data && typeof flow.data === 'object'
+        ? flow.data
+        : {
+            nodes: flow.nodes || [],
+            edges: flow.edges || [],
+            globalVariables: flow.globalVariables || [],
+            viewport: flow.viewport,
+            metadata: flow.metadata,
+            description: flow.description,
+          };
 
     // Prepare versions
     let versions = [];
@@ -190,16 +210,16 @@ export class FlowStorageService {
     delete flow.versionLabel;
 
     // Save to database
-    const savedFlow = await prisma.flow.upsert({
-      where: { id: flow.id },
+    const savedFlow = await db.flow.upsert({
+      where: { id: String(flow.id) },
       create: {
-        id: flow.id,
-        name: flow.name || flow.id,
+        id: String(flow.id),
+        name: typeof flow.name === 'string' ? flow.name : String(flow.id),
         userId: ownerId,
         data: JSON.stringify(flowData),
       },
       update: {
-        name: flow.name || flow.id,
+        name: typeof flow.name === 'string' ? flow.name : String(flow.id),
         data: JSON.stringify(flowData),
       },
     });
@@ -213,7 +233,7 @@ export class FlowStorageService {
   static async deleteFlow(id: string, userId?: string) {
     try {
       // Get flow to verify ownership
-      const flow = await prisma.flow.findUnique({
+      const flow = await db.flow.findUnique({
         where: { id },
       });
 
@@ -227,7 +247,7 @@ export class FlowStorageService {
         throw new Error('Forbidden: User does not own this flow');
       }
 
-      await prisma.flow.delete({
+      await db.flow.delete({
         where: { id },
       });
 
@@ -250,7 +270,7 @@ export class FlowStorageService {
     const data = flow.data;
     const versions = data.versions || [];
 
-    return versions.map((v: any) => ({
+    return versions.map((v) => ({
       id: v.id,
       timestamp: v.timestamp,
       label: v.label || `Version ${new Date(v.timestamp).toLocaleString()}`,
@@ -265,7 +285,7 @@ export class FlowStorageService {
     const flow = await this.getFlow(id, userId);
     const data = flow.data;
     const versions = data.versions || [];
-    const version = versions.find((v: any) => v.id === versionId);
+    const version = versions.find((v) => v.id === versionId);
 
     if (!version) {
       return null;
@@ -284,7 +304,7 @@ export class FlowStorageService {
    */
   static async restoreFlowVersion(id: string, versionId: string, userId?: string) {
     const ownerId = this.requireUserId(userId);
-    const flow = await prisma.flow.findUnique({
+    const flow = await db.flow.findUnique({
       where: { id },
     });
 
@@ -298,7 +318,7 @@ export class FlowStorageService {
 
     const data = parseFlowData(flow.data);
     const versions = data.versions || [];
-    const version = versions.find((v: any) => v.id === versionId);
+    const version = versions.find((v) => v.id === versionId);
 
     if (!version) {
       throw new Error(`Version ${versionId} not found`);
@@ -316,13 +336,14 @@ export class FlowStorageService {
 
     // Update versions list
     data.versions = [restoredVersion, ...versions].slice(0, 50);
-    data.nodes = version.data.nodes;
-    data.edges = version.data.edges;
-    data.globalVariables = version.data.globalVariables || data.globalVariables || [];
-    data.viewport = version.data.viewport || data.viewport;
+    const restored = asRecord(version.data) ?? {};
+    data.nodes = Array.isArray(restored['nodes']) ? restored['nodes'] : [];
+    data.edges = Array.isArray(restored['edges']) ? restored['edges'] : [];
+    data.globalVariables = restored['globalVariables'] ?? data.globalVariables ?? [];
+    data.viewport = restored['viewport'] ?? data.viewport;
 
     // Save restored flow
-    await prisma.flow.update({
+    await db.flow.update({
       where: { id },
       data: {
         data: JSON.stringify(data),

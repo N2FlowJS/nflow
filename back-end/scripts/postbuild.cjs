@@ -28,7 +28,7 @@ function fixImportsInFile(filePath) {
   });
 
   // dynamic import('...')
-  const re2 = /(import\s*\(\s*)(['"])(\.{1,2}\/[^'"\)]+)\2(\s*\))/gm;
+  const re2 = /(import\s*\(\s*)(['"])(\.{1,2}\/[^'")]+)\2(\s*\))/gm;
   s = s.replace(re2, (m, p1, q, rel, p4) => {
     if (rel.match(/\.(js|json|css|mjs|cjs)$/)) return m;
     const abs = path.resolve(dir, rel);

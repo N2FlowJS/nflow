@@ -1,36 +1,21 @@
-import { prisma } from '../lib/prisma';
+import { db } from '../lib/db';
 import { Utils } from '@n2flow/types';
-import type {
-  ExecuteFlowInput,
-  ExecuteFlowResult,
-  FlowNode,
-  FlowEdge,
-  FlowRuntimeEvent,
-  NodeData,
-} from '../flowTypes';
-import { executeNode, FlowRuntimeContext, NodeExecutionError } from '../nodes';
-import { ToolDefinition, executeToolNode } from '../tools';
-import { AgentTool } from '../llm';
+import type { ExecuteFlowInput, ExecuteFlowResult, FlowRuntimeEvent } from '../flowTypes';
+import { executeNode, type FlowRuntimeContext, NodeExecutionError } from '../nodes';
+import { type ToolDefinition, executeToolNode } from '../tools';
+import { type AgentTool } from '../llm';
 import { withTimeout } from '../utils/common';
 
 // Engine modules
-import {
-  buildGraphMaps,
-  performTopologicalSort,
-  type NodeStatus,
-} from './engine/graphBuilder';
-import {
-  collectNodeInputs,
-  resolveNodeConfig,
-  shouldSkipNode,
-} from './engine/inputResolver';
+import { buildGraphMaps, performTopologicalSort, type NodeStatus } from './engine/graphBuilder';
+import { collectNodeInputs, resolveNodeConfig, shouldSkipNode } from './engine/inputResolver';
 
 // ---------------------------------------------------------------------------
 // Circuit-breaker constants (env-configurable)
 // ---------------------------------------------------------------------------
-const MAX_CONCURRENCY       = Math.max(1, Number(process.env.EXECUTOR_CONCURRENCY   || 4));
-const MAX_FLOW_NODES        = Number(process.env.MAX_FLOW_NODES                || 500);
-const GLOBAL_FLOW_TIMEOUT   = Number(process.env.GLOBAL_FLOW_TIMEOUT          || 300_000); // 5 min
+const MAX_CONCURRENCY = Math.max(1, Number(process.env.EXECUTOR_CONCURRENCY || 4));
+const MAX_FLOW_NODES = Number(process.env.MAX_FLOW_NODES || 500);
+const GLOBAL_FLOW_TIMEOUT = Number(process.env.GLOBAL_FLOW_TIMEOUT || 300_000); // 5 min
 const NODE_EXECUTION_TIMEOUT_MS = Number(process.env.NODE_EXECUTION_TIMEOUT_MS || 180_000);
 
 // ---------------------------------------------------------------------------
@@ -38,13 +23,7 @@ const NODE_EXECUTION_TIMEOUT_MS = Number(process.env.NODE_EXECUTION_TIMEOUT_MS |
 // ---------------------------------------------------------------------------
 type EventHandler = (event: FlowRuntimeEvent) => void;
 
-type PartialRuntimeEvent =
-  | { type: 'log'; message: string }
-  | { type: 'ping' }
-  | { type: 'nodeUpdate'; nodeId: string; data: Partial<NodeData> }
-  | { type: 'result'; output: any }
-  | { type: 'error'; message: string; nodeId?: string }
-  | { type: 'done'; output: any };
+type PartialRuntimeEvent = Omit<FlowRuntimeEvent, 'timestamp'>;
 
 // ---------------------------------------------------------------------------
 // Event helpers
@@ -55,9 +34,18 @@ function makeEvents(isSilent: boolean, handler?: EventHandler) {
 
   const emit = (partialEvent: PartialRuntimeEvent) => {
     const event = { ...partialEvent, timestamp: Date.now() } as FlowRuntimeEvent;
-    if (!isSilent || event.type === 'node_end' || event.type === 'node_error' || event.type === 'checkpoint') {
+    if (
+      !isSilent ||
+      event.type === 'node_end' ||
+      event.type === 'node_error' ||
+      event.type === 'checkpoint'
+    ) {
       if (!handler) events.push(event);
-      try { handler?.(event); } catch { /* never crash the engine */ }
+      try {
+        handler?.(event);
+      } catch {
+        /* never crash the engine */
+      }
     }
   };
 
@@ -76,7 +64,6 @@ export async function executeFlowOnServer({
   inputMessage,
   chatHistory = [],
   isSilent = false,
-  apiKey,
   onEvent,
   shouldStop,
   globalVariables = [],
@@ -89,7 +76,7 @@ export async function executeFlowOnServer({
   let dbExecutionId: string | undefined;
   if (flowId && !isSilent) {
     try {
-      const execution = await prisma.flowExecution.create({
+      const execution = await db.flowExecution.create({
         data: {
           flowId,
           status: 'running',
@@ -120,18 +107,20 @@ export async function executeFlowOnServer({
   };
 
   // --- Graph setup ------------------------------------------------------------
-  const { nodeById, nonGroupCount, inDegree, outgoingMap, incomingMap } =
-    buildGraphMaps(nodes, edges);
+  const { nodeById, nonGroupCount, inDegree, outgoingMap, incomingMap } = buildGraphMaps(
+    nodes,
+    edges,
+  );
 
   // Topological sort + cycle detection (still needed to compute initial queue)
   const sortedIds = performTopologicalSort(inDegree, outgoingMap, nonGroupCount);
 
   // --- Runtime state ----------------------------------------------------------
-  const nodeResults  = new Map<string, unknown>();
-  const nodeStatus   = new Map<string, NodeStatus>();
+  const nodeResults = new Map<string, unknown>();
+  const nodeStatus = new Map<string, NodeStatus>();
   const pendingCount = new Map<string, number>(inDegree); // mutable copy
 
-  sortedIds.forEach(id => nodeStatus.set(id, 'pending'));
+  sortedIds.forEach((id) => nodeStatus.set(id, 'pending'));
 
   let finalOutput = '';
   let finalError: string | null = null;
@@ -183,22 +172,35 @@ export async function executeFlowOnServer({
     emit({
       type: 'nodeUpdate',
       nodeId,
-      data: { status: 'running', lastInput: undefined, lastOutput: undefined, errorMessage: undefined },
+      data: {
+        status: 'running',
+        lastInput: undefined,
+        lastOutput: undefined,
+        errorMessage: undefined,
+      },
     });
 
     // Resolve config with dynamic node-output references
     const resolvedNode = resolveNodeConfig(node, globalVariables, nodeResults);
 
     // Collect live inputs (DPE-aware)
-    const inputs = collectNodeInputs(nodeId, incomingMap, nodeById, nodeResults, nodeStatus, inputMessage);
+    const inputs = collectNodeInputs(
+      nodeId,
+      incomingMap,
+      nodeById,
+      nodeResults,
+      nodeStatus,
+      inputMessage,
+    );
 
     let result: unknown = null;
     try {
-      const availableTools = ((inputs.tools || []) as AgentTool[])
-        .filter(t => t?.type === 'tool') as unknown as ToolDefinition[];
+      const availableTools = ((inputs.tools || []) as AgentTool[]).filter(
+        (t) => t?.type === 'tool',
+      ) as unknown as ToolDefinition[];
 
       const executeToolByName = async (name: string, callArgs: Record<string, string>) => {
-        const toolDef = availableTools.find(t => t.name === name);
+        const toolDef = availableTools.find((t) => t.name === name);
         if (!toolDef) return `Error: tool "${name}" not registered.`;
         const toolNode = nodeById.get(String(toolDef.nodeId || ''));
         if (!toolNode) return 'Error: tool node not found in graph.';
@@ -210,13 +212,13 @@ export async function executeFlowOnServer({
         inputs,
         node: resolvedNode,
         isStopped,
-        signal,              // AbortSignal for cancellable fetch / LLM calls
+        signal, // AbortSignal for cancellable fetch / LLM calls
         emit,
         executeToolByName,
         availableTools,
         incomingMap,
         nodeById,
-        nodeResults,         // Live results for dynamic resolution
+        nodeResults, // Live results for dynamic resolution
         log,
         globalVariables,
         onEvent,
@@ -252,10 +254,18 @@ export async function executeFlowOnServer({
       });
       emit({ type: 'error', message: `Node [${node.data.label}] failed: ${message}`, nodeId });
 
-      relatedNodeIds.forEach(relatedNodeId => {
+      relatedNodeIds.forEach((relatedNodeId) => {
         const relatedNode = nodeById.get(relatedNodeId);
-        emit({ type: 'nodeUpdate', nodeId: relatedNodeId, data: { status: 'error', errorMessage: message } });
-        emit({ type: 'error', message: `Node [${relatedNode?.data?.label || relatedNodeId}] failed: ${message}`, nodeId: relatedNodeId });
+        emit({
+          type: 'nodeUpdate',
+          nodeId: relatedNodeId,
+          data: { status: 'error', errorMessage: message },
+        });
+        emit({
+          type: 'error',
+          message: `Node [${relatedNode?.data?.label || relatedNodeId}] failed: ${message}`,
+          nodeId: relatedNodeId,
+        });
       });
 
       nodeStatus.set(nodeId, 'error');
@@ -276,7 +286,7 @@ export async function executeFlowOnServer({
   // Event-Driven Dynamic Scheduler
   // ---------------------------------------------------------------------------
 
-  const readyQueue: string[] = sortedIds.filter(id => (pendingCount.get(id) ?? 0) === 0);
+  const readyQueue: string[] = sortedIds.filter((id) => (pendingCount.get(id) ?? 0) === 0);
   const inFlight = new Set<string>();
   let firstError: Error | null = null;
 
@@ -298,7 +308,7 @@ export async function executeFlowOnServer({
             .then(() => {
               inFlight.delete(nodeId);
 
-              for (const childId of (outgoingMap.get(nodeId) || [])) {
+              for (const childId of outgoingMap.get(nodeId) || []) {
                 const remaining = (pendingCount.get(childId) ?? 0) - 1;
                 pendingCount.set(childId, remaining);
                 if (remaining <= 0) {
@@ -306,7 +316,7 @@ export async function executeFlowOnServer({
                 }
               }
 
-              tryDispatch(); 
+              tryDispatch();
             })
             .catch((err: Error) => {
               inFlight.delete(nodeId);
@@ -332,27 +342,31 @@ export async function executeFlowOnServer({
 
     // Update DB on success
     if (dbExecutionId) {
-      await prisma.flowExecution.update({
-        where: { id: dbExecutionId },
-        data: {
-          status: 'success',
-          output: finalOutput,
-          endedAt: new Date(),
-        },
-      }).catch(err => console.error('Failed to update execution success:', err));
+      await db.flowExecution
+        .update({
+          where: { id: dbExecutionId },
+          data: {
+            status: 'success',
+            output: finalOutput,
+            endedAt: new Date(),
+          },
+        })
+        .catch((err) => console.error('Failed to update execution success:', err));
     }
-  } catch (err: any) {
-    finalError = err.message || String(err);
+  } catch (err) {
+    finalError = err instanceof Error ? err.message : String(err);
     // Update DB on error
     if (dbExecutionId) {
-      await prisma.flowExecution.update({
-        where: { id: dbExecutionId },
-        data: {
-          status: 'error',
-          error: finalError,
-          endedAt: new Date(),
-        },
-      }).catch(e => console.error('Failed to update execution error:', e));
+      await db.flowExecution
+        .update({
+          where: { id: dbExecutionId },
+          data: {
+            status: 'error',
+            error: finalError,
+            endedAt: new Date(),
+          },
+        })
+        .catch((e) => console.error('Failed to update execution error:', e));
     }
     throw err;
   }

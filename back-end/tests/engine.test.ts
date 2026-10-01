@@ -1,14 +1,29 @@
 import { describe, expect, it } from 'vitest';
 import { buildGraphMaps, performTopologicalSort } from '../services/engine/graphBuilder';
-import { FlowNode, FlowEdge } from '../flowTypes';
+import { type FlowNode, type FlowEdge } from '../flowTypes';
 
 describe('Graph Builder & Topological Sort', () => {
   describe('buildGraphMaps', () => {
     it('should correctly build maps for a simple DAG', () => {
       const nodes: FlowNode[] = [
-        { id: 'n1', type: 'standard', position: { x: 0, y: 0 }, data: { label: 'Node 1', type: 'standard' } },
-        { id: 'n2', type: 'standard', position: { x: 0, y: 0 }, data: { label: 'Node 2', type: 'standard' } },
-        { id: 'n3', type: 'standard', position: { x: 0, y: 0 }, data: { label: 'Node 3', type: 'standard' } },
+        {
+          id: 'n1',
+          type: 'standard',
+          position: { x: 0, y: 0 },
+          data: { label: 'Node 1', type: 'standard' },
+        },
+        {
+          id: 'n2',
+          type: 'standard',
+          position: { x: 0, y: 0 },
+          data: { label: 'Node 2', type: 'standard' },
+        },
+        {
+          id: 'n3',
+          type: 'standard',
+          position: { x: 0, y: 0 },
+          data: { label: 'Node 3', type: 'standard' },
+        },
       ];
       const edges: FlowEdge[] = [
         { id: 'e1', source: 'n1', target: 'n2' },
@@ -19,7 +34,7 @@ describe('Graph Builder & Topological Sort', () => {
 
       expect(maps.nodeById.size).toBe(3);
       expect(maps.nonGroupCount).toBe(3);
-      
+
       expect(maps.inDegree.get('n1')).toBe(0);
       expect(maps.inDegree.get('n2')).toBe(1);
       expect(maps.inDegree.get('n3')).toBe(1);
@@ -29,13 +44,23 @@ describe('Graph Builder & Topological Sort', () => {
       expect(maps.outgoingMap.get('n3')).toEqual([]);
 
       expect(maps.incomingMap.get('n2')).toHaveLength(1);
-      expect(maps.incomingMap.get('n2')![0].source).toBe('n1');
+      expect(maps.incomingMap.get('n2')![0]!.source).toBe('n1');
     });
 
     it('should ignore cyberGroup nodes in inDegree and adjacency maps', () => {
       const nodes: FlowNode[] = [
-        { id: 'n1', type: 'standard', position: { x: 0, y: 0 }, data: { label: 'Node 1', type: 'standard' } },
-        { id: 'g1', type: 'cyberGroup', position: { x: 0, y: 0 }, data: { label: 'Group 1', type: 'cyberGroup' } },
+        {
+          id: 'n1',
+          type: 'standard',
+          position: { x: 0, y: 0 },
+          data: { label: 'Node 1', type: 'standard' },
+        },
+        {
+          id: 'g1',
+          type: 'cyberGroup',
+          position: { x: 0, y: 0 },
+          data: { label: 'Group 1', type: 'cyberGroup' },
+        },
       ];
       const edges: FlowEdge[] = [];
 
@@ -50,9 +75,24 @@ describe('Graph Builder & Topological Sort', () => {
   describe('performTopologicalSort', () => {
     it('should return nodes in correct order for a simple linear graph', () => {
       const nodes: FlowNode[] = [
-        { id: 'n1', type: 'standard', position: { x: 0, y: 0 }, data: { label: '1', type: 'standard' } },
-        { id: 'n2', type: 'standard', position: { x: 0, y: 0 }, data: { label: '2', type: 'standard' } },
-        { id: 'n3', type: 'standard', position: { x: 0, y: 0 }, data: { label: '3', type: 'standard' } },
+        {
+          id: 'n1',
+          type: 'standard',
+          position: { x: 0, y: 0 },
+          data: { label: '1', type: 'standard' },
+        },
+        {
+          id: 'n2',
+          type: 'standard',
+          position: { x: 0, y: 0 },
+          data: { label: '2', type: 'standard' },
+        },
+        {
+          id: 'n3',
+          type: 'standard',
+          position: { x: 0, y: 0 },
+          data: { label: '3', type: 'standard' },
+        },
       ];
       const edges: FlowEdge[] = [
         { id: 'e1', source: 'n1', target: 'n2' },
@@ -66,13 +106,33 @@ describe('Graph Builder & Topological Sort', () => {
     });
 
     it('should handle branched graphs', () => {
-       // n1 -> n2 -> n4
-       // n1 -> n3 -> n4
-       const nodes: FlowNode[] = [
-        { id: 'n1', type: 'standard', position: { x: 0, y: 0 }, data: { label: '1', type: 'standard' } },
-        { id: 'n2', type: 'standard', position: { x: 0, y: 0 }, data: { label: '2', type: 'standard' } },
-        { id: 'n3', type: 'standard', position: { x: 0, y: 0 }, data: { label: '3', type: 'standard' } },
-        { id: 'n4', type: 'standard', position: { x: 0, y: 0 }, data: { label: '4', type: 'standard' } },
+      // n1 -> n2 -> n4
+      // n1 -> n3 -> n4
+      const nodes: FlowNode[] = [
+        {
+          id: 'n1',
+          type: 'standard',
+          position: { x: 0, y: 0 },
+          data: { label: '1', type: 'standard' },
+        },
+        {
+          id: 'n2',
+          type: 'standard',
+          position: { x: 0, y: 0 },
+          data: { label: '2', type: 'standard' },
+        },
+        {
+          id: 'n3',
+          type: 'standard',
+          position: { x: 0, y: 0 },
+          data: { label: '3', type: 'standard' },
+        },
+        {
+          id: 'n4',
+          type: 'standard',
+          position: { x: 0, y: 0 },
+          data: { label: '4', type: 'standard' },
+        },
       ];
       const edges: FlowEdge[] = [
         { id: 'e1', source: 'n1', target: 'n2' },
@@ -93,8 +153,18 @@ describe('Graph Builder & Topological Sort', () => {
 
     it('should throw an error if a cycle is detected', () => {
       const nodes: FlowNode[] = [
-        { id: 'n1', type: 'standard', position: { x: 0, y: 0 }, data: { label: '1', type: 'standard' } },
-        { id: 'n2', type: 'standard', position: { x: 0, y: 0 }, data: { label: '2', type: 'standard' } },
+        {
+          id: 'n1',
+          type: 'standard',
+          position: { x: 0, y: 0 },
+          data: { label: '1', type: 'standard' },
+        },
+        {
+          id: 'n2',
+          type: 'standard',
+          position: { x: 0, y: 0 },
+          data: { label: '2', type: 'standard' },
+        },
       ];
       const edges: FlowEdge[] = [
         { id: 'e1', source: 'n1', target: 'n2' },
@@ -102,9 +172,9 @@ describe('Graph Builder & Topological Sort', () => {
       ];
 
       const maps = buildGraphMaps(nodes, edges);
-      
-      expect(() => 
-        performTopologicalSort(maps.inDegree, maps.outgoingMap, maps.nonGroupCount)
+
+      expect(() =>
+        performTopologicalSort(maps.inDegree, maps.outgoingMap, maps.nonGroupCount),
       ).toThrow('Cycle detected in the flow! Cannot execute.');
     });
   });

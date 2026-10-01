@@ -1,4 +1,4 @@
-import { Router, Response } from 'express';
+import { Router, type Response } from 'express';
 import { FLOW_TEMPLATES } from '../flow-templates';
 import { successResponse, errorResponse } from '../utils/apiResponse';
 

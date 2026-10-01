@@ -37,9 +37,10 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }
 
       <div className="relative z-10 w-[min(95%,900px)] max-h-[90vh] overflow-auto bg-cyber-panel/95 border-2 border-white/5 rounded-lg shadow-2xl">
         <div className="flex items-center justify-between px-4 py-3 border-b border-white/5 bg-gradient-to-r from-white/5 to-transparent">
-          <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-cyber-primary">{title || 'Preview'}</div>
+          <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-cyber-primary">
+            {title || 'Preview'}
+          </div>
           <Button
-        
             variant="ghost"
             onClick={onClose}
             aria-label="Close"

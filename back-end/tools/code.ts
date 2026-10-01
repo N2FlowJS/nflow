@@ -1,16 +1,25 @@
 import { Script, createContext } from 'node:vm';
-import { ToolHandler, ExecutionOptions } from './registry';
+import { type ToolHandler, type ExecutionOptions } from './registry';
 import { serializeToolResult } from '../utils/common';
 import { extractNodeConfig } from './utils';
 
-const executeJsTool = (code: string, input: string, args: Record<string, string>, options: ExecutionOptions): string => {
+const executeJsTool = (
+  code: string,
+  input: string,
+  args: Record<string, string>,
+  options: ExecutionOptions,
+): string => {
   if (!code.trim()) {
     return 'Error: JavaScript code is empty. Set the "code" parameter in JS Code node.';
   }
 
   const { log } = options;
-  const makeConsoleMethod = (tag: string) => (...msg: any[]) =>
-    log(`[JS:${tag}] ${msg.map(m => typeof m === 'object' ? JSON.stringify(m) : String(m)).join(' ')}`);
+  const makeConsoleMethod =
+    (tag: string) =>
+    (...msg: unknown[]) =>
+      log(
+        `[JS:${tag}] ${msg.map((m) => (typeof m === 'object' ? JSON.stringify(m) : String(m))).join(' ')}`,
+      );
 
   const sandbox: Record<string, unknown> = {
     input,

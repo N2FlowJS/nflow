@@ -1,5 +1,5 @@
 import sql from 'mssql';
-import { ToolHandler } from './registry';
+import { type ToolHandler } from './registry';
 import { extractNodeConfig } from './utils';
 
 const runMssqlQuery = async (config: {
@@ -13,7 +13,7 @@ const runMssqlQuery = async (config: {
   timeoutMs: number;
   maxRows: number;
   query: string;
-  params: Record<string, any>;
+  params: Record<string, string | number | boolean | null>;
 }) => {
   let pool: sql.ConnectionPool | null = null;
   const startedAt = Date.now();
@@ -53,7 +53,11 @@ const runMssqlQuery = async (config: {
     };
   } finally {
     if (pool) {
-      try { await pool.close(); } catch {}
+      try {
+        await pool.close();
+      } catch {
+        // The pool may already be closed; nothing useful to do here.
+      }
     }
   }
 };
@@ -70,7 +74,7 @@ export const mssqlHandler: ToolHandler = async (node, args) => {
     'encrypt',
     'trustServerCertificate',
     'timeoutMs',
-    'maxRows'
+    'maxRows',
   ]);
 
   const queryTemplate = String(configValues.query || args.query || '');
@@ -96,9 +100,10 @@ export const mssqlHandler: ToolHandler = async (node, args) => {
   }
 
   // Parameterize the query: replace {var} with @var for safe binding
-  const params: Record<string, any> = {};
+  const params: Record<string, string | number | boolean | null> = {};
   const safeQuery = queryTemplate.replace(/\{\s*([a-zA-Z0-9_]+)\s*\}/g, (_m, key) => {
-    if (/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(key)) {  // Validate parameter name format
+    if (/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(key)) {
+      // Validate parameter name format
       const value = args[key];
       if (value !== undefined) {
         params[key] = value;

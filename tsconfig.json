@@ -1,17 +1,5 @@
 {
-  "compilerOptions": {
-    "target": "ES2022",
-    "module": "ESNext",
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "moduleResolution": "bundler",
-    "resolveJsonModule": true,
-    "allowJs": true
-  },
+  "//": "Solution-style root config. Each workspace owns its own strict tsconfig; this file only exists so editors can discover the projects. Use `npm run type-check` to actually type-check.",
   "files": [],
-  "references": [
-    { "path": "./back-end" },
-    { "path": "./front-end" }
-  ]
+  "references": [{ "path": "./back-end" }, { "path": "./front-end" }]
 }

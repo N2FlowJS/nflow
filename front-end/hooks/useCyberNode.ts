@@ -5,10 +5,8 @@ import {
   AGENT_TEMPLATE_CUSTOM,
   getAgentInstructionByTemplate,
 } from '../../back-end/agent-templates';
-import {
-  getNodeFieldValue,
-  setNodeFieldValueInSchema,
-} from '../../back-end/node-registry';
+import { setNodeFieldValueInSchema } from '../../back-end/node-registry';
+import type { ConfigFieldValue } from '../types/editor';
 
 type CyberNodeTransientData = CustomNodeType['data'] & {
   __openConfigToken?: number;
@@ -32,7 +30,9 @@ export const useCyberNode = (id: string, data: CustomNodeType['data']) => {
 
   const highlightTimeoutRef = useRef<number | null>(null);
   const copiedDataTimeoutRef = useRef<number | null>(null);
-  const configFieldRefs = useRef<Record<string, HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement | null>>({});
+  const configFieldRefs = useRef<
+    Record<string, HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement | null>
+  >({});
 
   const openConfigToken = transientData.__openConfigToken;
   const openDataToken = transientData.__openDataToken;
@@ -91,38 +91,55 @@ export const useCyberNode = (id: string, data: CustomNodeType['data']) => {
     };
   }, []);
 
-  const updateNodeData = useCallback((newData: Partial<any>) => {
-    setNodes((nds) => nds.map((n) => (n.id === id ? { ...n, data: { ...n.data, ...newData } } : n)));
-  }, [id, setNodes]);
+  const updateNodeData = useCallback(
+    (newData: Partial<CustomNodeType['data']>) => {
+      setNodes((nds) =>
+        nds.map((n) => (n.id === id ? { ...n, data: { ...n.data, ...newData } } : n)),
+      );
+    },
+    [id, setNodes],
+  );
 
-  const handleParamChange = useCallback((name: string, value: any) => {
-    let updatedSchema = setNodeFieldValueInSchema(data.configSchema, name, value);
-    
-    if (data.type === 'Agent' && name === 'agentTemplate') {
-      const templateName = String(value || '');
-      const templateInstruction = getAgentInstructionByTemplate(templateName);
-      if (templateName !== AGENT_TEMPLATE_CUSTOM && templateInstruction) {
-        updatedSchema = setNodeFieldValueInSchema(updatedSchema, 'instruction', templateInstruction);
+  const handleParamChange = useCallback(
+    (name: string, value: ConfigFieldValue) => {
+      let updatedSchema = setNodeFieldValueInSchema(data.configSchema, name, value);
+
+      if (data.type === 'Agent' && name === 'agentTemplate') {
+        const templateName = String(value || '');
+        const templateInstruction = getAgentInstructionByTemplate(templateName);
+        if (templateName !== AGENT_TEMPLATE_CUSTOM && templateInstruction) {
+          updatedSchema = setNodeFieldValueInSchema(
+            updatedSchema,
+            'instruction',
+            templateInstruction,
+          );
+        }
       }
-    }
-    
-    updateNodeData({ configSchema: updatedSchema });
-  }, [data.type, data.configSchema, updateNodeData]);
 
+      updateNodeData({ configSchema: updatedSchema });
+    },
+    [data.type, data.configSchema, updateNodeData],
+  );
 
-  const onRun = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    updateNodeData({ status: 'running' });
-    setTimeout(() => {
-      updateNodeData({ status: 'success' });
-      setTimeout(() => updateNodeData({ status: 'idle' }), 3000);
-    }, 1500);
-  }, [updateNodeData]);
+  const onRun = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      updateNodeData({ status: 'running' });
+      setTimeout(() => {
+        updateNodeData({ status: 'success' });
+        setTimeout(() => updateNodeData({ status: 'idle' }), 3000);
+      }, 1500);
+    },
+    [updateNodeData],
+  );
 
-  const onDelete = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    deleteElements({ nodes: [{ id }] });
-  }, [id, deleteElements]);
+  const onDelete = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      void deleteElements({ nodes: [{ id }] });
+    },
+    [id, deleteElements],
+  );
 
   const copyJsonValue = async (value: unknown, key: 'input' | 'output') => {
     const payload = typeof value === 'string' ? value : JSON.stringify(value, null, 2);
@@ -146,11 +163,16 @@ export const useCyberNode = (id: string, data: CustomNodeType['data']) => {
   };
 
   return {
-    isConfigOpen, setIsConfigOpen,
-    isDataOpen, setIsDataOpen,
-    hoveredHandle, setHoveredHandle,
-    highlightedField, setHighlightedField,
-    showFullError, setShowFullError,
+    isConfigOpen,
+    setIsConfigOpen,
+    isDataOpen,
+    setIsDataOpen,
+    hoveredHandle,
+    setHoveredHandle,
+    highlightedField,
+    setHighlightedField,
+    showFullError,
+    setShowFullError,
     copiedDataKey,
     configFieldRefs,
     updateNodeData,
@@ -159,6 +181,6 @@ export const useCyberNode = (id: string, data: CustomNodeType['data']) => {
     onDelete,
     copyJsonValue,
     edges,
-    updateNodeInternals
+    updateNodeInternals,
   };
 };

@@ -10,7 +10,7 @@ import {
   validateHttpRequestNode,
   validateMssqlNode,
   validateSerperApiKeyNode,
-  validateGitHubNode
+  validateGitHubNode,
 } from './rules/tools';
 
 export const validatorsByRuleKey: Record<NodeValidationRuleKey, NodeValidator> = {

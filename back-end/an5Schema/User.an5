@@ -1,0 +1,16 @@
+model User {
+  id        NVARCHAR(1000) @id @default(uuid()) @description("Primary key (auto-generated UUID)")
+  email     NVARCHAR(255)  @unique @description("Unique email address used for login")
+  username  NVARCHAR(255)  @unique @description("Unique username used for login")
+  password  NVARCHAR(255)  @description("Hashed password")
+  name      NVARCHAR(255)? @description("Display name")
+  flows     Flow[]
+  secrets   UserSecret[]
+  providers LLMProvider[]
+  createdAt DATETIME2      @default(now()) @description("Timestamp when the user was created")
+  updatedAt DATETIME2      @updatedAt @description("Timestamp of the last update")
+
+  @@map("users")
+  @@schema("public")
+  @@description("A registered user of the N2Flow application.")
+}

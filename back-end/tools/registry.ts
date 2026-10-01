@@ -9,11 +9,11 @@ export type ToolDefinition = {
 };
 
 export type ExecutionOptions = {
-  toolDef?: ToolDefinition;
+  toolDef?: ToolDefinition | undefined;
   log: (msg: string) => void;
-  inputs?: Record<string, unknown[]>;
+  inputs?: Record<string, unknown[]> | undefined;
   /** AbortSignal from the flow engine – forward to fetch / network calls */
-  signal?: AbortSignal;
+  signal?: AbortSignal | undefined;
 };
 
 export type ToolHandler = (
@@ -24,19 +24,25 @@ export type ToolHandler = (
 
 export interface ToolRegistration {
   handler: ToolHandler;
-  requiresEmbedding?: boolean;
-  resultParser?: (result: string) => any;
-  metadata?: {
-    category?: string;
-    description?: string;
-    requiredParams?: string[];
-  };
+  requiresEmbedding?: boolean | undefined;
+  resultParser?: ((result: string) => unknown) | undefined;
+  metadata?:
+    | {
+        category?: string | undefined;
+        description?: string | undefined;
+        requiredParams?: string[] | undefined;
+      }
+    | undefined;
 }
 
 export class ToolRegistry {
   private static registeredTools: Record<string, ToolRegistration> = {};
 
-  static register(type: string, registration: ToolRegistration | ToolHandler, metadata?: ToolRegistration['metadata']) {
+  static register(
+    type: string,
+    registration: ToolRegistration | ToolHandler,
+    metadata?: ToolRegistration['metadata'],
+  ) {
     if (typeof registration === 'function') {
       this.registeredTools[type] = { handler: registration, metadata };
     } else {

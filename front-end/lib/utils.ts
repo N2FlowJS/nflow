@@ -1,4 +1,4 @@
-import { Utils } from "@n2flow/types";
+import { Utils } from '@n2flow/types';
 
 /** Convert an internal component type name to a human-readable label.
  *  e.g. "ChatModelComponent" → "Chat Model"

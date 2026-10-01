@@ -2,7 +2,7 @@ import React from 'react';
 import {
   BaseEdge,
   EdgeLabelRenderer,
-  EdgeProps,
+  type EdgeProps,
   getSmoothStepPath,
   useReactFlow,
 } from '@xyflow/react';
@@ -35,11 +35,11 @@ export default function CyberEdge({
   });
 
   // Extract color from style for the label border/text match
-  const strokeColor = selected ? '#00f0ff' : (style.stroke || '#64748b');
+  const strokeColor = selected ? '#00f0ff' : style.stroke || '#64748b';
   const edgeStyle = {
     ...style,
     stroke: strokeColor,
-    strokeWidth: selected ? 3 : (style.strokeWidth || 1.5),
+    strokeWidth: selected ? 3 : style.strokeWidth || 1.5,
     filter: selected ? 'drop-shadow(0 0 3px rgba(0, 240, 255, 0.25))' : 'none',
   };
 
@@ -51,7 +51,7 @@ export default function CyberEdge({
 
   return (
     <>
-      <BaseEdge path={edgePath} markerEnd={markerEnd} style={edgeStyle} />
+      <BaseEdge path={edgePath} {...(markerEnd ? { markerEnd } : {})} style={edgeStyle} />
       <EdgeLabelRenderer>
         <div
           className="nodrag nopan group flex items-center gap-1 absolute pointer-events-auto"
@@ -60,12 +60,12 @@ export default function CyberEdge({
           }}
         >
           {label && (
-            <div 
+            <div
               className="px-2 py-1 rounded bg-black/80 backdrop-blur-sm border shadow-[0_0_6px_rgba(0,0,0,0.35)] transition-all group-hover:scale-105"
-              style={{ 
+              style={{
                 borderColor: strokeColor as string,
                 color: (labelStyle?.fill as string) || '#e0e0e0',
-                borderWidth: '1px'
+                borderWidth: '1px',
               }}
             >
               <div className="text-[10px] font-bold font-mono tracking-wide uppercase whitespace-nowrap">

@@ -1,6 +1,6 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { ToolHandler } from './registry';
+import { type ToolHandler } from './registry';
 import { extractNodeConfig } from './utils';
 
 const WORKSPACE_ROOT = path.resolve(process.cwd(), 'storage');
@@ -17,11 +17,14 @@ export const filesystemHandler: ToolHandler = async (node, args) => {
   const config = extractNodeConfig(node, ['action', 'path', 'content']);
   const action = String(config.action || 'Read').toLowerCase();
   const rawPath = String(config.path || args.path || './output.txt');
-  const content = String(args.query || args.content || config.content || '').replace('{query}', args.query || '');
+  const content = String(args.query || args.content || config.content || '').replace(
+    '{query}',
+    args.query || '',
+  );
 
   try {
     const finalPath = safeResolve(rawPath);
-    
+
     // Ensure parent directory exists for write/append
     if (action === 'write' || action === 'append') {
       await fs.mkdir(path.dirname(finalPath), { recursive: true });

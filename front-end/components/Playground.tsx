@@ -1,5 +1,15 @@
-import React, { useRef, useEffect, useState } from 'react';
-import { Send, Terminal, User, Bot, Sparkles, AlertCircle, X, Trash2, MessageSquare } from 'lucide-react';
+import { useRef, useEffect, useState } from 'react';
+import {
+  Send,
+  Terminal,
+  User,
+  Bot,
+  Sparkles,
+  AlertCircle,
+  X,
+  Trash2,
+  MessageSquare,
+} from 'lucide-react';
 import Markdown from 'react-markdown';
 import { extractErrorMessage } from '../lib/utils';
 import { CyberPanel, CyberAction, StatusIndicator } from './shared/CyberUI';
@@ -11,9 +21,9 @@ type PlaygroundMessage = {
 
 type RuntimeStatus = 'idle' | 'running' | 'success' | 'error' | 'cancelled';
 
-export default function Playground({ 
-  isOpen, 
-  onClose, 
+export default function Playground({
+  isOpen,
+  onClose,
   messages,
   isTyping,
   runtimeStatus,
@@ -21,7 +31,7 @@ export default function Playground({
   onErrorDismiss,
   onSendMessage,
   onClearMessages,
-}: { 
+}: {
   isOpen: boolean;
   onClose: () => void;
   messages: PlaygroundMessage[];
@@ -41,12 +51,15 @@ export default function Playground({
   useEffect(() => {
     const textarea = textareaRef.current;
     if (!textarea) return;
-    textarea.style.height = "auto";
+    textarea.style.height = 'auto';
     textarea.style.height = `${Math.min(textarea.scrollHeight, 120)}px`;
   }, [input]);
 
   const errorSummary = error
-    ? (() => { const msg = extractErrorMessage(error); return msg.length > 200 ? `${msg.slice(0, 200)}…` : msg; })()
+    ? (() => {
+        const msg = extractErrorMessage(error);
+        return msg.length > 200 ? `${msg.slice(0, 200)}…` : msg;
+      })()
     : null;
 
   useEffect(() => {
@@ -62,7 +75,7 @@ export default function Playground({
   if (!isOpen) return null;
 
   const effectiveStatus: RuntimeStatus = runtimeStatus || 'idle';
-  const statusMap: Record<RuntimeStatus, "idle" | "running" | "success" | "error"> = {
+  const statusMap: Record<RuntimeStatus, 'idle' | 'running' | 'success' | 'error'> = {
     idle: 'idle',
     running: 'running',
     success: 'success',
@@ -74,7 +87,6 @@ export default function Playground({
   const visibleMessages = showSystemMessages
     ? messages
     : messages.filter((m) => m.role !== 'system');
-  const isDock = true;
 
   return (
     <div className="h-full w-full min-h-0">
@@ -83,7 +95,7 @@ export default function Playground({
         icon={MessageSquare}
         onClose={onClose}
         className="h-full rounded-none border-y-0 border-r-0"
-        maxHeight={"100%"}
+        maxHeight={'100%'}
         scrollable={false}
         actions={
           <div className="flex items-center gap-2">
@@ -124,42 +136,59 @@ export default function Playground({
           )}
 
           {/* Messages */}
-          <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-6 space-y-6 custom-scrollbar">
+          <div
+            ref={scrollRef}
+            className="flex-1 overflow-y-auto px-4 py-6 space-y-6 custom-scrollbar"
+          >
             {visibleMessages.length === 0 ? (
               <div className="h-full flex flex-col items-center justify-center opacity-20 gap-3">
                 <Bot size={48} />
-                <span className="text-[10px] uppercase font-black tracking-[0.3em]">Ready for Input</span>
+                <span className="text-[10px] uppercase font-black tracking-[0.3em]">
+                  Ready for Input
+                </span>
               </div>
             ) : (
               visibleMessages.map((m, i) => {
                 const isUser = m.role === 'user';
                 const isSystem = m.role === 'system';
-                
+
                 if (isSystem) {
                   return (
-                    <div key={i} className="flex gap-2 items-start opacity-40 bg-black/20 p-2 rounded border border-white/5">
+                    <div
+                      key={i}
+                      className="flex gap-2 items-start opacity-40 bg-black/20 p-2 rounded border border-white/5"
+                    >
                       <Terminal size={10} className="mt-1 shrink-0" />
-                      <span className="text-[10px] font-mono break-all leading-relaxed">{m.text}</span>
+                      <span className="text-[10px] font-mono break-all leading-relaxed">
+                        {m.text}
+                      </span>
                     </div>
                   );
                 }
 
                 return (
-                  <div key={i} className={`flex flex-col gap-2 ${isUser ? 'items-end' : 'items-start'}`}>
+                  <div
+                    key={i}
+                    className={`flex flex-col gap-2 ${isUser ? 'items-end' : 'items-start'}`}
+                  >
                     <div className="flex items-center gap-2 px-1">
-                      {isUser ? <User size={10} className="text-cyber-primary" /> : <Bot size={10} className="text-purple-400" />}
+                      {isUser ? (
+                        <User size={10} className="text-cyber-primary" />
+                      ) : (
+                        <Bot size={10} className="text-purple-400" />
+                      )}
                       <span className="text-[9px] font-black uppercase tracking-widest text-white/30">
                         {isUser ? 'Operator' : 'AI-Agent'}
                       </span>
                     </div>
-                    <div className={`max-w-[90%] px-3 py-2 rounded-xl text-[12px] leading-relaxed shadow-sm ${
-                      isUser 
-                        ? 'bg-cyber-primary/10 border border-cyber-primary/20 text-cyber-primary rounded-tr-none' 
-                        : 'bg-white/5 border border-white/10 text-gray-200 rounded-tl-none'
-                    }`}>
-                      <Markdown >
-                        {m.text}
-                      </Markdown>
+                    <div
+                      className={`max-w-[90%] px-3 py-2 rounded-xl text-[12px] leading-relaxed shadow-sm ${
+                        isUser
+                          ? 'bg-cyber-primary/10 border border-cyber-primary/20 text-cyber-primary rounded-tr-none'
+                          : 'bg-white/5 border border-white/10 text-gray-200 rounded-tl-none'
+                      }`}
+                    >
+                      <Markdown>{m.text}</Markdown>
                     </div>
                   </div>
                 );
@@ -168,7 +197,9 @@ export default function Playground({
             {isTyping && (
               <div className="flex items-center gap-2 text-cyber-primary animate-pulse px-1">
                 <Sparkles size={12} />
-                <span className="text-[10px] font-black uppercase tracking-widest">Processing...</span>
+                <span className="text-[10px] font-black uppercase tracking-widest">
+                  Processing...
+                </span>
               </div>
             )}
           </div>

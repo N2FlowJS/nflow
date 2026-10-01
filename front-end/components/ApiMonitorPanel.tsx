@@ -8,9 +8,10 @@ export const ApiMonitorPanel: React.FC<{ onClose: () => void }> = ({ onClose }) 
   const { activities, clear } = useApiMonitor(100);
   const [filter, setFilter] = React.useState<string>('');
 
-  const filtered = activities.filter(a => 
-    a.url.toLowerCase().includes(filter.toLowerCase()) || 
-    a.method.toLowerCase().includes(filter.toLowerCase())
+  const filtered = activities.filter(
+    (a) =>
+      a.url.toLowerCase().includes(filter.toLowerCase()) ||
+      a.method.toLowerCase().includes(filter.toLowerCase()),
   );
 
   return (
@@ -23,7 +24,10 @@ export const ApiMonitorPanel: React.FC<{ onClose: () => void }> = ({ onClose }) 
         maxHeight="450px"
         actions={
           <div className="flex items-center gap-1">
-            <StatusBadge label={`${activities.length} REQS`} status={activities.some(a => !a.ok) ? "offline" : "online"} />
+            <StatusBadge
+              label={`${activities.length} REQS`}
+              status={activities.some((a) => !a.ok) ? 'offline' : 'online'}
+            />
             <CyberAction
               icon={Trash2}
               label="Clear"
@@ -37,11 +41,11 @@ export const ApiMonitorPanel: React.FC<{ onClose: () => void }> = ({ onClose }) 
         <div className="flex flex-col h-full bg-black/20">
           {/* Toolbar */}
           <div className="p-2 border-b border-white/5 bg-black/40">
-            <Input 
+            <Input
               icon={Search}
-              placeholder="Filter vault activity..." 
+              placeholder="Filter vault activity..."
               value={filter}
-              onChange={e => setFilter(e.target.value)}
+              onChange={(e) => setFilter(e.target.value)}
               className="bg-black/20 border-white/5 h-8 text-[11px]"
             />
           </div>
@@ -51,20 +55,32 @@ export const ApiMonitorPanel: React.FC<{ onClose: () => void }> = ({ onClose }) 
             {filtered.length === 0 ? (
               <div className="h-40 flex flex-col items-center justify-center text-gray-600 gap-2">
                 <Activity size={24} className="opacity-10" />
-                <span className="text-[10px] uppercase font-black tracking-widest opacity-30">No Data Captured</span>
+                <span className="text-[10px] uppercase font-black tracking-widest opacity-30">
+                  No Data Captured
+                </span>
               </div>
             ) : (
               <div className="divide-y divide-white/5">
                 {filtered.map((activity) => (
-                  <div key={activity.id} className="flex items-center gap-3 px-3 py-2 hover:bg-cyber-primary/5 group transition-colors">
-                    <div className={`text-[9px] font-black w-10 uppercase ${getMethodColor(activity.method)}`}>
+                  <div
+                    key={activity.id}
+                    className="flex items-center gap-3 px-3 py-2 hover:bg-cyber-primary/5 group transition-colors"
+                  >
+                    <div
+                      className={`text-[9px] font-black w-10 uppercase ${getMethodColor(activity.method)}`}
+                    >
                       {activity.method}
                     </div>
-                    <div className={`text-[10px] font-mono w-8 ${activity.ok ? 'text-green-500' : 'text-red-500'}`}>
+                    <div
+                      className={`text-[10px] font-mono w-8 ${activity.ok ? 'text-green-500' : 'text-red-500'}`}
+                    >
                       {activity.status || 'ERR'}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="text-[11px] text-gray-300 truncate font-medium" title={activity.url}>
+                      <div
+                        className="text-[11px] text-gray-300 truncate font-medium"
+                        title={activity.url}
+                      >
                         {activity.url.split('/').pop() || activity.url}
                       </div>
                       <div className="text-[8px] text-gray-600 truncate font-mono uppercase tracking-tighter">
@@ -87,11 +103,15 @@ export const ApiMonitorPanel: React.FC<{ onClose: () => void }> = ({ onClose }) 
 
 function getMethodColor(method: string) {
   switch (method.toUpperCase()) {
-    case 'GET': return 'text-blue-400';
-    case 'POST': return 'text-green-400';
-    case 'PUT': return 'text-yellow-400';
-    case 'DELETE': return 'text-red-400';
-    default: return 'text-gray-400';
+    case 'GET':
+      return 'text-blue-400';
+    case 'POST':
+      return 'text-green-400';
+    case 'PUT':
+      return 'text-yellow-400';
+    case 'DELETE':
+      return 'text-red-400';
+    default:
+      return 'text-gray-400';
   }
 }
-

@@ -1,6 +1,6 @@
 /**
  * Logger sanitizer to prevent API keys, passwords, and secrets from being logged.
- * 
+ *
  * Masks:
  * - Secret placeholders: {{SECRET_NAME}}
  * - Common patterns: "password=...", "token=...", "key=..."
@@ -26,21 +26,23 @@ export class LogSanitizer {
   /**
    * Sanitize a log message by masking secrets and sensitive data
    */
-  static sanitize(message: string | any): string {
+  static sanitize(message: unknown): string {
     if (!message) return '';
-    let text = typeof message === 'string' ? message : JSON.stringify(message);
+    const text = typeof message === 'string' ? message : JSON.stringify(message);
 
-    return this.SECRET_PATTERNS.reduce((acc, pattern) => 
-      acc.replace(pattern, (m) => m.length > 4 ? m[0] + '***' + m[m.length - 1] : '***'), 
-      text
+    return this.SECRET_PATTERNS.reduce(
+      (acc, pattern) =>
+        acc.replace(pattern, (m) => (m.length > 4 ? m[0] + '***' + m[m.length - 1] : '***')),
+      text,
     );
   }
 
   /**
    * Sanitize error message for user consumption (remove implementation details)
    */
-  static sanitizeError(error: Error | string): string {
-    const message = typeof error === 'string' ? error : error.message || String(error);
+  static sanitizeError(error: unknown): string {
+    const message =
+      error instanceof Error ? error.message : typeof error === 'string' ? error : String(error);
     const sanitized = this.sanitize(message);
 
     // For user-facing errors, don't expose database names or file paths
@@ -53,18 +55,22 @@ export class LogSanitizer {
   /**
    * Safe JSON stringify that sanitizes all values
    */
-  static stringifyWithMask(obj: any, space?: number): string {
+  static stringifyWithMask(obj: unknown, space?: number): string {
     try {
-      const json = JSON.stringify(obj, (key, value) => {
-        if (typeof value === 'string') {
-          // Check if this key looks sensitive
-          if (/password|secret|token|key|auth|apikey|credential/i.test(key)) {
-            return '***';
+      const json = JSON.stringify(
+        obj,
+        (key, value) => {
+          if (typeof value === 'string') {
+            // Check if this key looks sensitive
+            if (/password|secret|token|key|auth|apikey|credential/i.test(key)) {
+              return '***';
+            }
+            return this.sanitize(value);
           }
-          return this.sanitize(value);
-        }
-        return value;
-      }, space);
+          return value;
+        },
+        space,
+      );
       return json;
     } catch (err) {
       return this.sanitize(String(obj));
@@ -75,7 +81,7 @@ export class LogSanitizer {
    * Create a safe logger function
    */
   static createSafeLogger(baseLog: (msg: string) => void) {
-    return (msg: string | any) => {
+    return (msg: unknown) => {
       const sanitized = this.sanitize(msg);
       baseLog(sanitized);
     };
@@ -90,18 +96,18 @@ export function installGlobalLogSanitizer() {
   const originalError = console.error;
   const originalWarn = console.warn;
 
-  console.log = (...args: any[]) => {
-    const sanitized = args.map(arg => LogSanitizer.sanitize(arg));
+  console.log = (...args: unknown[]) => {
+    const sanitized = args.map((arg) => LogSanitizer.sanitize(arg));
     originalLog(...sanitized);
   };
 
-  console.error = (...args: any[]) => {
-    const sanitized = args.map(arg => LogSanitizer.sanitizeError(arg));
+  console.error = (...args: unknown[]) => {
+    const sanitized = args.map((arg) => LogSanitizer.sanitizeError(arg));
     originalError(...sanitized);
   };
 
-  console.warn = (...args: any[]) => {
-    const sanitized = args.map(arg => LogSanitizer.sanitize(arg));
+  console.warn = (...args: unknown[]) => {
+    const sanitized = args.map((arg) => LogSanitizer.sanitize(arg));
     originalWarn(...sanitized);
   };
 }

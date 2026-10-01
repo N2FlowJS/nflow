@@ -9,5 +9,8 @@ if (!process.env.DATABASE_URL) {
   process.exit(1);
 }
 const cwd = path.resolve(__dirname, '..');
-const res = spawnSync('npx', ['prisma', 'generate', '--config', 'prisma.config.ts'], { stdio: 'inherit', cwd });
+const res = spawnSync('npx', ['prisma', 'generate', '--config', 'prisma.config.ts'], {
+  stdio: 'inherit',
+  cwd,
+});
 process.exit(res.status);

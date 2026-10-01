@@ -1,11 +1,11 @@
 import type { Edge, Node } from '@xyflow/react';
-import type { CustomNodeType } from '@n2flow/types';
+import type { ConfigSchemaField, CustomNodeType } from '@n2flow/types';
 import type { FlowValidationIssue } from './types';
 
 export const readParamString = (node: CustomNodeType, key: string) =>
   String(
-    node.data.configSchema?.find((f: any) => f.name === key)?.value ??
-      (node.data as any).params?.[key] ??
+    node.data.configSchema?.find((f: ConfigSchemaField) => f.name === key)?.value ??
+      node.data.params?.[key] ??
       '',
   ).trim();
 
@@ -29,17 +29,12 @@ export const validateSingleParam = (
   level: FlowValidationIssue['level'],
   message: string,
 ): FlowValidationIssue[] =>
-  readParamString(node, field)
-    ? []
-    : [{ level, nodeId: node.id, fieldName: field, message }];
+  readParamString(node, field) ? [] : [{ level, nodeId: node.id, fieldName: field, message }];
 
 /**
  * Check for orphaned nodes (nodes with no incoming or outgoing connections)
  */
-export const validateNodeConnectivity = (
-  nodes: Node[],
-  edges: Edge[],
-): FlowValidationIssue[] => {
+export const validateNodeConnectivity = (nodes: Node[], edges: Edge[]): FlowValidationIssue[] => {
   const connectedNodeIds = new Set(edges.flatMap((e) => [e.source, e.target]));
 
   return nodes
@@ -59,11 +54,13 @@ export const validateNodeConnectivity = (
 /**
  * Validate that all tool nodes have required inputs connected
  */
-export const validateToolConnectivity = (
-  nodes: Node[],
-  edges: Edge[],
-): FlowValidationIssue[] => {
-  const toolTypes = ['HTTPRequestComponent', 'MSSQLComponent', 'elasticsearch_search', 'CodeExecutionComponent'];
+export const validateToolConnectivity = (nodes: Node[], edges: Edge[]): FlowValidationIssue[] => {
+  const toolTypes = [
+    'HTTPRequestComponent',
+    'MSSQLComponent',
+    'elasticsearch_search',
+    'CodeExecutionComponent',
+  ];
 
   return nodes
     .filter((node) => {

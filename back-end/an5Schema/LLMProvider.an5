@@ -1,0 +1,17 @@
+model LLMProvider {
+  id        NVARCHAR(1000) @id @default(uuid()) @description("Primary key (auto-generated UUID)")
+  userId    NVARCHAR(1000)  @description("Owner of the provider configuration")
+  user      User           @relation(fields: [userId], references: [id]) @description("The user who owns this provider")
+  name      NVARCHAR(255)  @description("User defined name for the provider")
+  provider  NVARCHAR(100)  @description("Provider identifier, e.g. OpenAI, Anthropic, Ollama, NVIDIA")
+  baseUrl   NVARCHAR(500)? @description("Custom endpoint, when the provider needs one")
+  apiKey    NVARCHAR(MAX)? @description("Encrypted API key")
+  config    NVARCHAR(MAX)? @description("Optional JSON blob with extra settings")
+  createdAt DATETIME2      @default(now()) @description("Timestamp when the provider was created")
+  updatedAt DATETIME2      @updatedAt @description("Timestamp of the last update")
+
+  @@index([userId])
+  @@map("llm_providers")
+  @@schema("public")
+  @@description("A configured LLM provider belonging to a user.")
+}

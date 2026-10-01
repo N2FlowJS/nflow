@@ -1,17 +1,23 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ReactFlowInstance, Node, Edge } from '@xyflow/react';
-import type { SavedFlow, FlowVersion, GlobalVariable, FlowPersistenceState } from '../../types/editor';
+import type { ReactFlowInstance } from '@xyflow/react';
+import type { CustomNodeType, CustomEdgeType } from '@n2flow/types';
+import type {
+  SavedFlow,
+  FlowVersion,
+  GlobalVariable,
+  FlowPersistenceState,
+} from '../../types/editor';
 import { apiService } from '../../lib/apiService';
 import { normalizeModelNode } from '../../../back-end/node-registry/utils';
 
 interface UseFlowPersistenceOptions {
-  id?: string;
-  reactFlowInstance: ReactFlowInstance | null;
-  nodes: Node[];
-  edges: Edge[];
-  setNodes: (nodes: Node[]) => void;
-  setEdges: (edges: Edge[]) => void;
+  id?: string | undefined;
+  reactFlowInstance: ReactFlowInstance<CustomNodeType, CustomEdgeType> | null;
+  nodes: CustomNodeType[];
+  edges: CustomEdgeType[];
+  setNodes: (nodes: CustomNodeType[]) => void;
+  setEdges: (edges: CustomEdgeType[]) => void;
   triggerFitView: () => void;
 }
 
@@ -26,7 +32,7 @@ export const useFlowPersistence = ({
 }: UseFlowPersistenceOptions): FlowPersistenceState => {
   const navigate = useNavigate();
   const [currentFlowId, setCurrentFlowId] = useState<string | null>(null);
-  const [currentFlowName, setCurrentFlowName] = useState<string>("Untitled Flow");
+  const [currentFlowName, setCurrentFlowName] = useState<string>('Untitled Flow');
   const [savedFlows, setSavedFlows] = useState<SavedFlow[]>([]);
   const [flowVersions, setFlowVersions] = useState<FlowVersion[]>([]);
   const [globalVariables, setGlobalVariables] = useState<GlobalVariable[]>([]);
@@ -37,22 +43,22 @@ export const useFlowPersistence = ({
 
   const fetchFlows = useCallback(async () => {
     try {
-      const response = await apiService.get('/api/flows');
+      const response = await apiService.get<SavedFlow[]>('/api/flows');
       if (response.ok) {
         const flows = Array.isArray(response.data) ? response.data : [];
         setSavedFlows(flows);
         return flows;
       }
     } catch (err) {
-      console.error("Failed to fetch flows", err);
+      console.error('Failed to fetch flows', err);
     }
     return [];
   }, []);
 
   const onSave = useCallback(
     async (name: string, versionLabel?: string, isAutoSave: boolean = false) => {
-      if (!reactFlowInstance) return "";
-      
+      if (!reactFlowInstance) return '';
+
       if (!isAutoSave) setIsSaving(true);
       const flow = reactFlowInstance.toObject();
       const flowId = currentFlowId || `flow-${Date.now()}`;
@@ -66,35 +72,37 @@ export const useFlowPersistence = ({
           viewport: flow.viewport,
           globalVariables,
           versionLabel,
-          isAutoSave
+          isAutoSave,
         });
 
         if (response.ok) {
           setCurrentFlowId(flowId);
           setCurrentFlowName(name || currentFlowName);
-          fetchFlows();
+          void fetchFlows();
 
-          const updatedResponse = await apiService.get(`/api/flows/${flowId}/versions`);
+          const updatedResponse = await apiService.get<FlowVersion[]>(
+            `/api/flows/${flowId}/versions`,
+          );
           if (updatedResponse.ok) {
             setFlowVersions(updatedResponse.data || []);
           }
 
           if (!currentFlowId) {
-            navigate(`/flow/${flowId}`);
+            void navigate(`/flow/${flowId}`);
           }
-          
+
           setLastAutoSave(Date.now());
           return flowId;
         }
       } catch (err) {
-        console.error("Failed to save flow", err);
+        console.error('Failed to save flow', err);
         // Fallback to localStorage logic could go here, but focusing on API first
       } finally {
         setIsSaving(false);
       }
-      return "";
+      return '';
     },
-    [reactFlowInstance, currentFlowId, currentFlowName, globalVariables, fetchFlows, navigate]
+    [reactFlowInstance, currentFlowId, currentFlowName, globalVariables, fetchFlows, navigate],
   );
 
   const onLoadVersion = useCallback(
@@ -103,7 +111,10 @@ export const useFlowPersistence = ({
 
       setIsRestoringVersion(true);
       try {
-        const response = await apiService.post(`/api/flows/${currentFlowId}/versions/${version.id}/restore`, {});
+        const response = await apiService.post<{ flow: SavedFlow }>(
+          `/api/flows/${currentFlowId}/versions/${version.id}/restore`,
+          {},
+        );
         if (!response.ok || !response.data?.flow) {
           throw new Error(response.error || 'Failed to restore version');
         }
@@ -123,22 +134,22 @@ export const useFlowPersistence = ({
         setIsRestoringVersion(false);
       }
     },
-    [currentFlowId, currentFlowName, setNodes, setEdges, triggerFitView]
+    [currentFlowId, currentFlowName, setNodes, setEdges, triggerFitView],
   );
 
   useEffect(() => {
     const loadFlow = async () => {
-      if (id && id !== "new") {
+      if (id && id !== 'new') {
         try {
-          const response = await apiService.get(`/api/flows/${id}`);
+          const response = await apiService.get<SavedFlow>(`/api/flows/${id}`);
           if (response.ok && response.data) {
             const flow = response.data;
             if (flow && flow.data) {
               setNodes((flow.data.nodes || []).map(normalizeModelNode));
               setEdges(flow.data.edges || []);
               setGlobalVariables(flow.data.globalVariables || []);
-              
-              const versionsResp = await apiService.get(`/api/flows/${id}/versions`);
+
+              const versionsResp = await apiService.get<FlowVersion[]>(`/api/flows/${id}/versions`);
               if (versionsResp.ok) {
                 setFlowVersions(versionsResp.data || []);
               }
@@ -149,18 +160,18 @@ export const useFlowPersistence = ({
             }
           }
         } catch (err) {
-          console.error("Error loading flow", err);
+          console.error('Error loading flow', err);
         }
-      } else if (id === "new") {
+      } else if (id === 'new') {
         setNodes([]);
         setEdges([]);
         setCurrentFlowId(null);
-        setCurrentFlowName("Untitled Flow");
+        setCurrentFlowName('Untitled Flow');
         setGlobalVariables([]);
       }
     };
-    loadFlow();
-    fetchFlows();
+    void loadFlow();
+    void fetchFlows();
   }, [id, setNodes, setEdges, fetchFlows, triggerFitView]);
 
   const onDeleteFlow = useCallback(
@@ -168,13 +179,13 @@ export const useFlowPersistence = ({
       try {
         const response = await apiService.delete(`/api/flows/${flowId}`);
         if (response.ok) {
-          fetchFlows();
+          void fetchFlows();
           if (currentFlowId === flowId) {
-            navigate("/flow/new");
+            void navigate('/flow/new');
           }
         }
       } catch (err) {
-        console.error("Failed to delete flow", err);
+        console.error('Failed to delete flow', err);
       }
     },
     [currentFlowId, navigate, fetchFlows],
@@ -199,7 +210,16 @@ export const useFlowPersistence = ({
     }, 5000);
 
     return () => clearTimeout(timeout);
-  }, [nodes, edges, globalVariables, reactFlowInstance, currentFlowId, id, onSave, currentFlowName]);
+  }, [
+    nodes,
+    edges,
+    globalVariables,
+    reactFlowInstance,
+    currentFlowId,
+    id,
+    onSave,
+    currentFlowName,
+  ]);
 
   return {
     currentFlowId,

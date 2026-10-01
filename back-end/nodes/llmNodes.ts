@@ -1,5 +1,5 @@
 import { getNodeFieldValue, resolveVariablePlaceholders } from '../utils/common';
-import { NodeHandler } from './registry';
+import { type NodeHandler } from './registry';
 import { runChat } from '../llm';
 import { NodeExecutionError } from './errors';
 import { LLMProviderService } from '../services/llmProviderService';
@@ -62,13 +62,13 @@ export const agentHandler: NodeHandler = async (ctx) => {
     model: 'gemini-2.0-flash',
     kind: 'llm_chat',
   };
-  
+
   if (llmCfg?.kind === 'llm_embedding') {
     throw new Error('Agent only supports chat model.');
   }
 
   const incomingForNode = ctx.incomingMap.get(node.id) || [];
-  const llmEdge = incomingForNode.find((e: any) => e.targetHandle === 'agent_llm');
+  const llmEdge = incomingForNode.find((e) => e.targetHandle === 'agent_llm');
   const llmNodeId = llmEdge?.source;
   const llmNode = llmNodeId ? ctx.nodeById.get(llmNodeId) : undefined;
 
@@ -91,30 +91,47 @@ export const agentHandler: NodeHandler = async (ctx) => {
     if (/^error\b/i.test(normalizedToolResult)) {
       const toolDef = ctx.availableTools.find((t) => t.name === name);
       const toolNode = toolDef ? ctx.nodeById.get(String(toolDef.nodeId || '')) : undefined;
-      
+
       const relatedNodeIds: string[] = [];
       if (toolNode) {
         relatedNodeIds.push(toolNode.id);
         const incomingForTool = ctx.incomingMap.get(toolNode.id) || [];
-        const embeddingEdge = incomingForTool.find((e: any) => e.targetHandle === 'embedding_model');
+        const embeddingEdge = incomingForTool.find(
+          (e) => e.targetHandle === 'embedding_model',
+        );
         if (embeddingEdge?.source) relatedNodeIds.push(embeddingEdge.source);
       }
 
       const sourceLabel = toolNode?.data?.label || toolNode?.data?.type || 'Tool node';
-      throw new NodeExecutionError(`${sourceLabel} failed: ${normalizedToolResult}`, relatedNodeIds);
+      throw new NodeExecutionError(
+        `${sourceLabel} failed: ${normalizedToolResult}`,
+        relatedNodeIds,
+      );
     }
 
     return toolResult;
   };
 
   try {
-    return await runChat(runtimeCfg, systemPrompt, userPrompt, ctx.availableTools, executeToolByNameWithContext, ctx.log, (chunk) => {
-      ctx.onEvent?.({ type: 'llm_chunk', nodeId: node.id, chunk });
-    }, ctx.chatHistory);
+    return await runChat(
+      runtimeCfg,
+      systemPrompt,
+      userPrompt,
+      ctx.availableTools,
+      executeToolByNameWithContext,
+      ctx.log,
+      (chunk) => {
+        ctx.onEvent?.({ type: 'llm_chunk', nodeId: node.id, chunk });
+      },
+      ctx.chatHistory,
+    );
   } catch (err) {
     if (err instanceof NodeExecutionError) throw err;
     const rawMessage = err instanceof Error ? err.message : String(err);
     const llmLabel = llmNode?.data?.label || (llmNode && llmNode.data?.type) || 'LLM node';
-    throw new NodeExecutionError(`LLM "${llmLabel}" failed: ${rawMessage}`, llmNodeId ? [llmNodeId] : []);
+    throw new NodeExecutionError(
+      `LLM "${llmLabel}" failed: ${rawMessage}`,
+      llmNodeId ? [llmNodeId] : [],
+    );
   }
 };

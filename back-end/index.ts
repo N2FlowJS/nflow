@@ -5,10 +5,13 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import rootRouter from './routes';
 import { authMiddleware } from './middleware/auth';
-import { LogSanitizer, installGlobalLogSanitizer } from './middleware/logSanitizer';
+import { installGlobalLogSanitizer } from './middleware/logSanitizer';
 import { globalErrorHandler, notFoundHandler } from './middleware/errorHandler';
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './swagger';
+import { createLogger } from './utils/logger';
+
+const logger = createLogger('Server');
 
 const app = express();
 app.use(helmet());
@@ -17,8 +20,9 @@ app.use(helmet());
 const generateRequestId = () => Math.random().toString(36).substring(2, 15);
 
 app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
-  const requestId = req.headers['x-request-id'] || generateRequestId();
-  (req as any).id = requestId;
+  const header = req.headers['x-request-id'];
+  const requestId = (Array.isArray(header) ? header[0] : header) || generateRequestId();
+  (req as express.Request & { id?: string }).id = requestId;
   res.setHeader('x-request-id', requestId);
   next();
 });
@@ -85,11 +89,13 @@ const authLimiter = rateLimit({
 });
 
 // Security: CORS configuration
-app.use(cors({
-  origin: process.env.ALLOWED_ORIGINS?.split(',') || '*',
-  credentials: false,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-}));
+app.use(
+  cors({
+    origin: process.env.ALLOWED_ORIGINS?.split(',') || '*',
+    credentials: false,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  }),
+);
 
 // Security: JSON parser with content-type check
 app.use((req, res, next) => {
@@ -116,6 +122,7 @@ app.get('/api/flows', authMiddleware);
 app.get('/api/flows/:id', authMiddleware);
 app.get('/api/flows/:id/versions', authMiddleware);
 app.get('/api/flows/:id/versions/:versionId', authMiddleware);
+app.get('/api/flows/:id/executions', authMiddleware);
 app.post('/api/flows', authMiddleware);
 app.post('/api/flows/:id/versions/:versionId/restore', authMiddleware);
 app.delete('/api/flows/:id', authMiddleware);
@@ -129,23 +136,23 @@ app.use(notFoundHandler);
 app.use(globalErrorHandler);
 
 const server = app.listen(port, () => {
-  console.log(`[n2flow] SQL server is running at http://localhost:${port}`);
-  console.log(`[n2flow] API Documentation available at http://localhost:${port}/api-docs`);
+  logger.info(`SQL server is running at http://localhost:${port}`);
+  logger.info(`API Documentation available at http://localhost:${port}/api-docs`);
 });
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
-  console.log('SIGTERM signal received: closing HTTP server');
+  logger.info('SIGTERM signal received: closing HTTP server');
   server.close(() => {
-    console.log('HTTP server closed');
+    logger.info('HTTP server closed');
     process.exit(0);
   });
 });
 
 process.on('SIGINT', () => {
-  console.log('SIGINT signal received: closing HTTP server');
+  logger.info('SIGINT signal received: closing HTTP server');
   server.close(() => {
-    console.log('HTTP server closed');
+    logger.info('HTTP server closed');
     process.exit(0);
   });
 });

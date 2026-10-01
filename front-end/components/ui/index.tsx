@@ -39,7 +39,19 @@ interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
 }
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ label, icon: Icon, error, helperText, className = '', variant = 'default', endAdornment, ...props }, ref) => {
+  (
+    {
+      label,
+      icon: Icon,
+      error,
+      helperText,
+      className = '',
+      variant = 'default',
+      endAdornment,
+      ...props
+    },
+    ref,
+  ) => {
     return (
       <div className="space-y-1.5 w-full">
         {label && (
@@ -63,16 +75,14 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             {...props}
           />
           {endAdornment && (
-            <div className="absolute right-2 top-1/2 -translate-y-1/2">
-              {endAdornment}
-            </div>
+            <div className="absolute right-2 top-1/2 -translate-y-1/2">{endAdornment}</div>
           )}
         </div>
         {error && <p className="text-[10px] text-red-400">{error}</p>}
         {!error && helperText && <p className="text-[10px] text-gray-500">{helperText}</p>}
       </div>
     );
-  }
+  },
 );
 
 Input.displayName = 'Input';
@@ -97,12 +107,24 @@ export const TextArea = React.forwardRef<HTMLTextAreaElement, TextAreaProps>(
         {!error && helperText && <p className="text-[10px] text-gray-500">{helperText}</p>}
       </div>
     );
-  }
+  },
 );
 TextArea.displayName = 'TextArea';
 
 export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
-  ({ label, error, helperText, icon: Icon, className = '', children, variant = 'default', ...props }, ref) => {
+  (
+    {
+      label,
+      error,
+      helperText,
+      icon: Icon,
+      className = '',
+      children,
+      variant = 'default',
+      ...props
+    },
+    ref,
+  ) => {
     return (
       <div className="space-y-1.5 w-full">
         {label && (
@@ -126,8 +148,20 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
             {children}
           </select>
           <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
-            <svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            <svg
+              width="10"
+              height="6"
+              viewBox="0 0 10 6"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M1 1L5 5L9 1"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
             </svg>
           </div>
         </div>
@@ -135,7 +169,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
         {!error && helperText && <p className="text-[10px] text-gray-500">{helperText}</p>}
       </div>
     );
-  }
+  },
 );
 Select.displayName = 'Select';
 
@@ -149,12 +183,14 @@ export const Button = ({
   loading?: boolean;
   variant?: 'primary' | 'ghost' | 'outline' | 'danger';
 }) => {
-
   const variants = {
-    primary: 'bg-cyber-primary text-black hover:bg-cyber-primary/90 font-bold shadow-[0_0_8px_rgba(0,240,255,0.08)]',
+    primary:
+      'bg-cyber-primary text-black hover:bg-cyber-primary/90 font-bold shadow-[0_0_8px_rgba(0,240,255,0.08)]',
     ghost: 'text-cyber-primary hover:bg-cyber-primary/10 font-bold',
-    outline: 'border border-cyber-primary/30 text-cyber-primary hover:bg-cyber-primary/10 font-bold',
-    danger: 'bg-red-500/10 border border-red-500/30 text-red-500 hover:bg-red-500 hover:text-white font-bold',
+    outline:
+      'border border-cyber-primary/30 text-cyber-primary hover:bg-cyber-primary/10 font-bold',
+    danger:
+      'bg-red-500/10 border border-red-500/30 text-red-500 hover:bg-red-500 hover:text-white font-bold',
   };
 
   return (

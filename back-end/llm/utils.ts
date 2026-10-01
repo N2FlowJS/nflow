@@ -1,4 +1,9 @@
-import { trimTrailingSlash, parseJsonSafely, normalizeApiKey } from '../utils/common';
+import {
+  asRecord,
+  trimTrailingSlash,
+  parseJsonSafely,
+  normalizeApiKey,
+} from '../utils/common';
 import type { AgentTool } from './types';
 export { trimTrailingSlash };
 
@@ -21,9 +26,14 @@ export const ensureOpenAiBaseUrl = (url: string | undefined, provider: string): 
   return base;
 };
 
-export const validateLlmConfig = (cfg: { apiKey?: string; provider?: string }, logPrefix: string) => {
+export const validateLlmConfig = (
+  cfg: { apiKey?: string; provider?: string },
+  logPrefix: string,
+) => {
   if (hasTemplatePlaceholder(cfg.apiKey)) {
-    throw new Error(`${logPrefix} API key placeholder was not resolved. Check the selected Global Variable name.`);
+    throw new Error(
+      `${logPrefix} API key placeholder was not resolved. Check the selected Global Variable name.`,
+    );
   }
   const normalized = normalizeApiKey(cfg.apiKey);
   if (!normalized && cfg.provider !== 'Ollama') {
@@ -32,33 +42,50 @@ export const validateLlmConfig = (cfg: { apiKey?: string; provider?: string }, l
   return normalized;
 };
 
-export const normalizeModelsJson = (payload: any): Array<{ id: string; name?: string; description?: string }> => {
+export const normalizeModelsJson = (
+  payload: unknown,
+): Array<{ id: string; name?: string; description?: string }> => {
   if (!payload) return [];
 
-  let arr: any[] = [];
+  const body = asRecord(payload);
+  let arr: unknown[] = [];
   if (Array.isArray(payload)) arr = payload;
-  else if (Array.isArray(payload.data)) arr = payload.data;
-  else if (Array.isArray(payload.models)) arr = payload.models;
-  else if (Array.isArray(payload.modelSpecs)) arr = payload.modelSpecs;
-  else if (typeof payload === 'object') {
-    const keys = Object.keys(payload || {});
-    const maybeModels = keys.filter(k => typeof (payload as any)[k] === 'object');
+  else if (Array.isArray(body?.['data'])) arr = body['data'] as unknown[];
+  else if (Array.isArray(body?.['models'])) arr = body['models'] as unknown[];
+  else if (Array.isArray(body?.['modelSpecs'])) arr = body['modelSpecs'] as unknown[];
+  else if (body) {
+    // Some gateways key the model list by model id instead of returning an array.
+    const maybeModels = Object.keys(body).filter((k) => asRecord(body[k]) !== undefined);
     if (maybeModels.length > 0) {
-      arr = maybeModels.map(k => ({ id: k, ...(payload as any)[k] }));
+      arr = maybeModels.map((k) => ({ id: k, ...(body[k] as Record<string, unknown>) }));
     }
   }
 
   return arr
-    .map((entry) => {
+    .map((entry): { id: string; name?: string; description?: string } | null => {
       if (!entry) return null;
       if (typeof entry === 'string') return { id: entry, name: entry };
-      const id = String(entry.id || entry.name || entry.model || entry.modelId || entry.key || entry.model_name || '') || '';
-      const name = String(entry.name || entry.title || entry.id || id || '');
-      const description = entry.description || entry.summary || undefined;
+      // Gateways disagree on the id field, so every known spelling is accepted.
+      const record = asRecord(entry) ?? {};
+      const id = String(
+        record['id'] ??
+          record['name'] ??
+          record['model'] ??
+          record['modelId'] ??
+          record['key'] ??
+          record['model_name'] ??
+          '',
+      );
+      const name = String(record['name'] ?? record['title'] ?? record['id'] ?? id);
+      const description = record['description'] ?? record['summary'];
       if (!id && !name) return null;
-      return { id, name, description };
+      return {
+        id,
+        name,
+        ...(typeof description === 'string' && description !== '' && { description }),
+      };
     })
-    .filter(Boolean) as Array<{ id: string; name?: string; description?: string }>;
+    .filter((entry): entry is { id: string; name?: string; description?: string } => entry !== null);
 };
 
 export const tryFetchModelsFromBase = async (baseUrl: string, apiKey?: string) => {
@@ -102,7 +129,9 @@ export const tryFetchModelsFromBase = async (baseUrl: string, apiKey?: string) =
       const normalized = normalizeModelsJson(json);
       if (normalized.length > 0) return normalized;
     }
-  } catch (err) {}
+  } catch (err) {
+    // A non-JSON body is not fatal; callers fall back to the raw text.
+  }
 
   return [] as Array<{ id: string; name?: string; description?: string }>;
 };
@@ -124,37 +153,50 @@ export const clampToolResult = (value: string): string => {
   return `${value.slice(0, MAX_TOOL_RESULT_CHARS)}\n...[truncated ${value.length - MAX_TOOL_RESULT_CHARS} chars]`;
 };
 
-export const extractOllamaToolCalls = (payload: any) => {
-  const candidates: any[] = [];
-  if (payload?.message && typeof payload.message === 'object') {
-    const msg = payload.message;
-    if (Array.isArray(msg.tool_calls)) candidates.push(...msg.tool_calls);
-    if (msg.function_call && typeof msg.function_call === 'object') candidates.push(msg.function_call);
+export const extractOllamaToolCalls = (payload: unknown): NormalizedToolCall[] => {
+  const candidates: unknown[] = [];
+  const body = asRecord(payload);
+  const message = asRecord(body?.['message']);
+  if (message) {
+    if (Array.isArray(message['tool_calls'])) candidates.push(...message['tool_calls']);
+    const fnCall = asRecord(message['function_call']);
+    if (fnCall) candidates.push(fnCall);
   }
-  if (Array.isArray(payload?.tool_calls)) candidates.push(...payload.tool_calls);
-  if (payload?.function_call && typeof payload.function_call === 'object') candidates.push(payload.function_call);
+  if (Array.isArray(body?.['tool_calls'])) candidates.push(...body['tool_calls']);
+  const topLevelFnCall = asRecord(body?.['function_call']);
+  if (topLevelFnCall) candidates.push(topLevelFnCall);
 
   return candidates
-    .map((entry, index) => {
-      if (!entry || typeof entry !== 'object') return null;
-      const raw = entry;
-      const fnContainer = (raw.function && typeof raw.function === 'object') ? raw.function : raw;
-      const fnName = String(fnContainer.name || raw.name || '').trim();
+    .map((entry, index): NormalizedToolCall | null => {
+      const raw = asRecord(entry);
+      if (!raw) return null;
+      // Ollama nests the callable under `function`; some builds put it at the top level.
+      const fnContainer = asRecord(raw['function']) ?? raw;
+      const fnName = String(fnContainer['name'] ?? raw['name'] ?? '')
+        .trim();
       if (!fnName) return null;
-      const rawArgs = fnContainer.arguments ?? fnContainer.args ?? fnContainer.parameters ?? raw.arguments ?? raw.args ?? raw.parameters;
+      const rawArgs =
+        fnContainer['arguments'] ??
+        fnContainer['args'] ??
+        fnContainer['parameters'] ??
+        raw['arguments'] ??
+        raw['args'] ??
+        raw['parameters'];
       return {
-        id: String(raw.id || fnContainer.id || `tool_call_${index + 1}`),
+        id: String(raw['id'] ?? fnContainer['id'] ?? `tool_call_${index + 1}`),
         name: fnName,
         args: parseToolArgs(rawArgs),
         raw,
       };
     })
-    .filter(Boolean) as Array<{ id: string; name: string; args: Record<string, string>; raw: Record<string, unknown> }>;
+    .filter((c) => c !== null);
 };
 
+// `as const` on the discriminant keeps `type` assignable to the SDK's
+// `ChatCompletionTool['type']`, which is the literal `'function'`.
 export const toOpenAiToolDeclarations = (tools: AgentTool[]) =>
-  tools.map(t => ({
-    type: 'function',
+  tools.map((t) => ({
+    type: 'function' as const,
     function: {
       name: t.name,
       description: t.description,
@@ -163,14 +205,14 @@ export const toOpenAiToolDeclarations = (tools: AgentTool[]) =>
   }));
 
 export const toAnthropicToolDeclarations = (tools: AgentTool[]) =>
-  tools.map(t => ({
+  tools.map((t) => ({
     name: t.name,
     description: t.description,
     input_schema: t.parameters,
   }));
 
 export const toGoogleToolDeclarations = (tools: AgentTool[]) =>
-  tools.map(t => ({
+  tools.map((t) => ({
     name: t.name,
     description: t.description,
     parameters: t.parameters,
@@ -180,7 +222,7 @@ export type NormalizedToolCall = {
   id: string;
   name: string;
   args: Record<string, string>;
-  raw?: any; // The original provider-specific tool call object (needed for message history)
+  raw?: unknown; // The original provider-specific tool call object (needed for message history)
 };
 
 /**
@@ -194,6 +236,48 @@ export type StepResult = {
 /**
  * Orchestrates multi-step tool loops (ReAct/Agentic loops) across LLM providers.
  */
+/**
+ * Normalize an OpenAI-shaped chat completion (from OpenAI, NVIDIA NIM, or any
+ * compatible gateway) into the orchestrator's step result.
+ *
+ * Gateways are inconsistent about `content` (string vs. array of parts) and
+ * about which optional fields are present, so everything is narrowed defensively
+ * rather than trusted.
+ */
+export const normalizeChatCompletion = (completion: unknown): StepResult => {
+  const body = asRecord(completion);
+  const choices = body?.['choices'];
+  const choice = asRecord(Array.isArray(choices) ? choices[0] : undefined);
+  const message = asRecord(choice?.['message']);
+  const content = message?.['content'];
+
+  const text =
+    typeof content === 'string'
+      ? content
+      : Array.isArray(content)
+        ? (content as Array<{ text?: unknown }>)
+            .map((part) => (typeof part?.text === 'string' ? part.text : ''))
+            .join('')
+        : '';
+
+  const rawToolCalls = Array.isArray(message?.['tool_calls'])
+    ? (message['tool_calls'] as Array<Record<string, unknown>>)
+    : [];
+
+  return {
+    content: text,
+    toolCalls: rawToolCalls.map((tc) => {
+      const fn = asRecord(tc['function']);
+      return {
+        id: String(tc['id'] ?? ''),
+        name: String(fn?.['name'] ?? ''),
+        args: parseToolArgs(fn?.['arguments']),
+        raw: tc,
+      };
+    }),
+  };
+};
+
 export const createChatOrchestrator = async (options: {
   maxSteps?: number;
   log: (msg: string) => void;
@@ -232,6 +316,7 @@ export default {
   parseToolArgs,
   clampToolResult,
   extractOllamaToolCalls,
+  normalizeChatCompletion,
   toOpenAiToolDeclarations,
   createChatOrchestrator,
 };

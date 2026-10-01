@@ -1,4 +1,4 @@
-import { Node, Edge } from '@xyflow/react';
+import { type Node, type Edge } from '@xyflow/react';
 import type { NodeData } from '@n2flow/types';
 import {
   AGENT_TEMPLATE_OPTIONS,
@@ -8,14 +8,14 @@ import {
 
 export const initialNodes: Node<NodeData>[] = [
   {
-    id: "Agent-zYJXW",
-    type: "cyberNode",
-    position: { x: 600, y: 300 }, 
+    id: 'Agent-zYJXW',
+    type: 'cyberNode',
+    position: { x: 600, y: 300 },
     data: {
-      label: "Agent Core",
-      type: "Agent",
-      description: "Brain of the operation. Orchestrates tools and LLM responses.",
-      status: "idle",
+      label: 'Agent Core',
+      type: 'Agent',
+      description: 'Brain of the operation. Orchestrates tools and LLM responses.',
+      status: 'idle',
       configSchema: [
         {
           label: 'Agent Template',
@@ -24,144 +24,170 @@ export const initialNodes: Node<NodeData>[] = [
           options: AGENT_TEMPLATE_OPTIONS,
           value: DEFAULT_AGENT_TEMPLATE,
         },
-        { label: 'System Instruction', name: 'instruction', type: 'textarea', value: DEFAULT_AGENT_INSTRUCTION },
-        { label: 'Stream Response', name: 'stream', type: 'boolean', value: false }
-      ]
-    }
+        {
+          label: 'System Instruction',
+          name: 'instruction',
+          type: 'textarea',
+          value: DEFAULT_AGENT_INSTRUCTION,
+        },
+        { label: 'Stream Response', name: 'stream', type: 'boolean', value: false },
+      ],
+    },
   },
   {
-    id: "LanguageModelComponent-AGUsx",
-    type: "cyberNode",
+    id: 'LanguageModelComponent-AGUsx',
+    type: 'cyberNode',
     position: { x: 615, y: -50 },
     data: {
-      label: "vLLM Model",
-      type: "LanguageModelComponent",
-      description: "Primary LLM provider configuration.",
-      status: "idle",
+      label: 'vLLM Model',
+      type: 'LanguageModelComponent',
+      description: 'Primary LLM provider configuration.',
+      status: 'idle',
       configSchema: [
-        { label: 'Model Type', name: 'modelType', type: 'select', options: ['Chat', 'Embedding'], value: 'Chat' },
-        { label: 'Provider', name: 'provider', type: 'select', options: ['Google', 'OpenAI', 'Anthropic'] },
-        { label: 'Model Version', name: 'model', type: 'text', value: 'gemini-3-flash-preview' }
-      ]
-    }
+        {
+          label: 'Model Type',
+          name: 'modelType',
+          type: 'select',
+          options: ['Chat', 'Embedding'],
+          value: 'Chat',
+        },
+        {
+          label: 'Provider',
+          name: 'provider',
+          type: 'select',
+          options: ['Google', 'OpenAI', 'Anthropic'],
+        },
+        { label: 'Model Version', name: 'model', type: 'text', value: 'gemini-3-flash-preview' },
+      ],
+    },
   },
   {
-    id: "MSSQLPyODBCComponent-8WC7c",
-    type: "cyberNode",
+    id: 'MSSQLPyODBCComponent-8WC7c',
+    type: 'cyberNode',
     position: { x: 350, y: 650 },
     data: {
-      label: "SQL Server",
-      type: "MSSQLPyODBCComponent",
-      description: "Database execution layer for QC records.",
-      status: "idle",
+      label: 'SQL Server',
+      type: 'MSSQLPyODBCComponent',
+      description: 'Database execution layer for QC records.',
+      status: 'idle',
       configSchema: [
-        { label: "Server Host", name: "server", type: "text", value: "localhost" },
-        { label: "Port", name: "port", type: "number", value: 1433 },
-        { label: "DB User", name: "user", type: "text", value: "sa" },
-        { label: "DB Password", name: "password", type: "password", value: "" },
-        { label: "Database", name: "database", type: "text", value: "QC_Records" },
-        { label: "Query Template", name: "query", type: "textarea", value: "SELECT TOP 20 * FROM YourTable WHERE name LIKE '%{query}%'" }
-      ]
-    }
+        { label: 'Server Host', name: 'server', type: 'text', value: 'localhost' },
+        { label: 'Port', name: 'port', type: 'number', value: 1433 },
+        { label: 'DB User', name: 'user', type: 'text', value: 'sa' },
+        { label: 'DB Password', name: 'password', type: 'password', value: '' },
+        { label: 'Database', name: 'database', type: 'text', value: 'QC_Records' },
+        {
+          label: 'Query Template',
+          name: 'query',
+          type: 'textarea',
+          value: "SELECT TOP 20 * FROM YourTable WHERE name LIKE '%{query}%'",
+        },
+      ],
+    },
   },
   {
-    id: "PromptTemplate-System",
-    type: "cyberNode",
+    id: 'PromptTemplate-System',
+    type: 'cyberNode',
     position: { x: 200, y: 150 },
     data: {
-      label: "System Prompt",
-      type: "Prompt Template",
-      description: "Instructions to guide the agent behavior.",
-      status: "idle",
+      label: 'System Prompt',
+      type: 'Prompt Template',
+      description: 'Instructions to guide the agent behavior.',
+      status: 'idle',
       configSchema: [
-        { label: 'Prompt Template', name: 'template', type: 'textarea', value: "You are a QC Assistant. Current time: {time}" }
-      ]
-    }
+        {
+          label: 'Prompt Template',
+          name: 'template',
+          type: 'textarea',
+          value: 'You are a QC Assistant. Current time: {time}',
+        },
+      ],
+    },
   },
   {
-    id: "CurrentTime-Node",
-    type: "cyberNode",
+    id: 'CurrentTime-Node',
+    type: 'cyberNode',
     position: { x: -80, y: 150 },
     data: {
-      label: "Time Stream",
-      type: "CurrentTime",
-      description: "Dynamic clock provider.",
-      status: "idle"
-    }
+      label: 'Time Stream',
+      type: 'CurrentTime',
+      description: 'Dynamic clock provider.',
+      status: 'idle',
+    },
   },
   {
-    id: "ChatInput-kXQ19",
-    type: "cyberNode",
+    id: 'ChatInput-kXQ19',
+    type: 'cyberNode',
     position: { x: 200, y: 450 },
     data: {
-      label: "User Input",
-      type: "ChatInput",
-      description: "Messages from Playground stream.",
-      status: "idle"
-    }
+      label: 'User Input',
+      type: 'ChatInput',
+      description: 'Messages from Playground stream.',
+      status: 'idle',
+    },
   },
   {
-    id: "ChatOutput-JRYtT",
-    type: "cyberNode",
+    id: 'ChatOutput-JRYtT',
+    type: 'cyberNode',
     position: { x: 1050, y: 300 },
     data: {
-      label: "Agent Output",
-      type: "ChatOutput",
-      description: "Interface with UI/UX display.",
-      status: "idle"
-    }
-  }
+      label: 'Agent Output',
+      type: 'ChatOutput',
+      description: 'Interface with UI/UX display.',
+      status: 'idle',
+    },
+  },
 ];
 
 export const initialEdges: Edge[] = [
   {
-    id: "e-llm",
-    source: "LanguageModelComponent-AGUsx",
-    target: "Agent-zYJXW",
-    targetHandle: "agent_llm",
-    type: "cyberEdge",
+    id: 'e-llm',
+    source: 'LanguageModelComponent-AGUsx',
+    target: 'Agent-zYJXW',
+    targetHandle: 'agent_llm',
+    type: 'cyberEdge',
     animated: true,
-    style: { stroke: '#a855f7', strokeWidth: 2 }
+    style: { stroke: '#a855f7', strokeWidth: 2 },
   },
   {
-    id: "e-sql",
-    source: "MSSQLPyODBCComponent-8WC7c",
-    target: "Agent-zYJXW",
-    targetHandle: "tools",
-    type: "cyberEdge",
-    style: { stroke: '#f59e0b', strokeDasharray: '5,5' }
+    id: 'e-sql',
+    source: 'MSSQLPyODBCComponent-8WC7c',
+    target: 'Agent-zYJXW',
+    targetHandle: 'tools',
+    type: 'cyberEdge',
+    style: { stroke: '#f59e0b', strokeDasharray: '5,5' },
   },
   {
-    id: "e-prompt",
-    source: "PromptTemplate-System",
-    target: "Agent-zYJXW",
-    targetHandle: "system_prompt",
-    type: "cyberEdge",
-    style: { stroke: '#64748b', strokeWidth: 1.5 }
+    id: 'e-prompt',
+    source: 'PromptTemplate-System',
+    target: 'Agent-zYJXW',
+    targetHandle: 'system_prompt',
+    type: 'cyberEdge',
+    style: { stroke: '#64748b', strokeWidth: 1.5 },
   },
   {
-    id: "e-time",
-    source: "CurrentTime-Node",
-    target: "PromptTemplate-System",
-    type: "cyberEdge",
-    style: { stroke: '#64748b' }
+    id: 'e-time',
+    source: 'CurrentTime-Node',
+    target: 'PromptTemplate-System',
+    type: 'cyberEdge',
+    style: { stroke: '#64748b' },
   },
   {
-    id: "e-input",
-    source: "ChatInput-kXQ19",
-    target: "Agent-zYJXW",
-    targetHandle: "input_value",
-    type: "cyberEdge",
+    id: 'e-input',
+    source: 'ChatInput-kXQ19',
+    target: 'Agent-zYJXW',
+    targetHandle: 'input_value',
+    type: 'cyberEdge',
     animated: true,
-    style: { stroke: '#00ff9f', strokeWidth: 2 }
+    style: { stroke: '#00ff9f', strokeWidth: 2 },
   },
   {
-    id: "e-output",
-    source: "Agent-zYJXW",
-    target: "ChatOutput-JRYtT",
-    sourceHandle: "response",
-    type: "cyberEdge",
+    id: 'e-output',
+    source: 'Agent-zYJXW',
+    target: 'ChatOutput-JRYtT',
+    sourceHandle: 'response',
+    type: 'cyberEdge',
     animated: true,
-    style: { stroke: '#00f0ff', strokeWidth: 2 }
-  }
+    style: { stroke: '#00f0ff', strokeWidth: 2 },
+  },
 ];

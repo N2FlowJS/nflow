@@ -1,7 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { Copy, Info } from 'lucide-react';
 import type { CustomNodeType } from '@n2flow/types';
-import { CyberAction, CyberEmptyState, CyberMetaText, CyberPanel, CyberSectionLabel } from '../shared/CyberUI';
+import {
+  CyberAction,
+  CyberEmptyState,
+  CyberPanel,
+  CyberSectionLabel,
+} from '../shared/CyberUI';
 
 type ExecDetail = { data?: CustomNodeType['data']; title?: string; nodeId?: string };
 
@@ -59,13 +64,16 @@ const NodeDataModal: React.FC = () => {
         icon={Info}
         onClose={() => setIsOpen(false)}
         className="shadow-[0_0_20px_rgba(0,0,0,0.45)] border-cyber-primary/20 h-full rounded-none border-y-0 border-r-0 bg-black/80 backdrop-blur-xl"
-        maxHeight={"100%"}
+        maxHeight={'100%'}
         scrollable={false}
       >
         <div className="p-4 space-y-4">
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <CyberSectionLabel label="Input Data" className="border-none p-0 pb-0 text-[8px] text-white/30" />
+              <CyberSectionLabel
+                label="Input Data"
+                className="border-none p-0 pb-0 text-[8px] text-white/30"
+              />
               <CyberAction
                 icon={Copy}
                 showLabel
@@ -78,7 +86,10 @@ const NodeDataModal: React.FC = () => {
               {data.lastInput ? (
                 JSON.stringify(data.lastInput, null, 2)
               ) : (
-                <CyberEmptyState label="Empty_Input" className="justify-start text-gray-600 opacity-50 tracking-[0.3em]" />
+                <CyberEmptyState
+                  label="Empty_Input"
+                  className="justify-start text-gray-600 opacity-50 tracking-[0.3em]"
+                />
               )}
             </div>
           </div>
@@ -86,7 +97,10 @@ const NodeDataModal: React.FC = () => {
           {data.lastOutput !== undefined && data.lastOutput !== null && (
             <div className="space-y-2 pt-2 border-t border-white/5">
               <div className="flex items-center justify-between">
-                <CyberSectionLabel label="Output Results" className="border-none p-0 pb-0 text-[8px] text-white/30" />
+                <CyberSectionLabel
+                  label="Output Results"
+                  className="border-none p-0 pb-0 text-[8px] text-white/30"
+                />
                 <CyberAction
                   icon={Copy}
                   showLabel
@@ -96,7 +110,9 @@ const NodeDataModal: React.FC = () => {
                 />
               </div>
               <div className="bg-black/40 border border-white/5 rounded-lg p-3 text-[11px] text-cyber-primary font-mono break-all whitespace-pre-wrap leading-relaxed shadow-inner">
-                {typeof data.lastOutput === 'string' ? data.lastOutput : JSON.stringify(data.lastOutput, null, 2)}
+                {typeof data.lastOutput === 'string'
+                  ? data.lastOutput
+                  : JSON.stringify(data.lastOutput, null, 2)}
               </div>
             </div>
           )}

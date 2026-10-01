@@ -1,16 +1,24 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useReactFlow, Node } from '@xyflow/react';
+import { useReactFlow } from '@xyflow/react';
+import type { CustomNodeType } from '@n2flow/types';
 import { Search, X, ChevronUp, ChevronDown } from 'lucide-react';
-import { CyberAction, CyberMetaText, CyberPanel, CyberPanelFooter, CyberPanelSection } from '../shared/CyberUI';
+import {
+  CyberAction,
+  CyberMetaText,
+  CyberPanel,
+  CyberPanelFooter,
+  CyberPanelSection,
+} from '../shared/CyberUI';
 import { Input } from '../ui/index';
 
-const ACTIVE_NODE_CLASS = ' outline outline-4 outline-cyber-primary shadow-[0_0_12px_rgba(0,240,255,0.25)]';
+const ACTIVE_NODE_CLASS =
+  ' outline outline-4 outline-cyber-primary shadow-[0_0_12px_rgba(0,240,255,0.25)]';
 
 interface CanvasSearchProps {
   isOpen: boolean;
   onClose: () => void;
-  nodes: Node[];
-  setNodes: React.Dispatch<React.SetStateAction<Node[]>>;
+  nodes: CustomNodeType[];
+  setNodes: React.Dispatch<React.SetStateAction<CustomNodeType[]>>;
 }
 
 export default function CanvasSearch({ isOpen, onClose, nodes, setNodes }: CanvasSearchProps) {
@@ -23,16 +31,15 @@ export default function CanvasSearch({ isOpen, onClose, nodes, setNodes }: Canva
     if (!searchTerm) return [];
     const term = searchTerm.toLowerCase();
     return nodes.filter((n) => {
-      const label = String(n.data?.label || "").toLowerCase();
-      const type = String(n.data?.type || "").toLowerCase();
-      const description = String(n.data?.description || "").toLowerCase();
+      const label = String(n.data?.label || '').toLowerCase();
+      const type = String(n.data?.type || '').toLowerCase();
+      const description = String(n.data?.description || '').toLowerCase();
 
-      if (label.includes(term) || type.includes(term) || description.includes(term))
-        return true;
+      if (label.includes(term) || type.includes(term) || description.includes(term)) return true;
 
       if (n.data?.configSchema && Array.isArray(n.data.configSchema)) {
-        return n.data.configSchema.some((field: any) => {
-          const val = String(field.value || "").toLowerCase();
+        return n.data.configSchema.some((field) => {
+          const val = String(field.value || '').toLowerCase();
           return val.includes(term);
         });
       }
@@ -40,14 +47,21 @@ export default function CanvasSearch({ isOpen, onClose, nodes, setNodes }: Canva
     });
   }, [nodes, searchTerm]);
 
-  const moveMatchIndex = React.useCallback((direction: 1 | -1) => {
-    setCurrentIndex((prev) => {
-      if (matchingNodes.length === 0) return 0;
-      return direction < 0
-        ? (prev > 0 ? prev - 1 : Math.max(0, matchingNodes.length - 1))
-        : (prev < matchingNodes.length - 1 ? prev + 1 : 0);
-    });
-  }, [matchingNodes.length]);
+  const moveMatchIndex = React.useCallback(
+    (direction: 1 | -1) => {
+      setCurrentIndex((prev) => {
+        if (matchingNodes.length === 0) return 0;
+        return direction < 0
+          ? prev > 0
+            ? prev - 1
+            : Math.max(0, matchingNodes.length - 1)
+          : prev < matchingNodes.length - 1
+            ? prev + 1
+            : 0;
+      });
+    },
+    [matchingNodes.length],
+  );
 
   useEffect(() => {
     if (isOpen) {
@@ -56,10 +70,12 @@ export default function CanvasSearch({ isOpen, onClose, nodes, setNodes }: Canva
       setCurrentIndex(0);
     } else {
       setNodes((nds) =>
-        nds.map((n) => ({
-          ...n,
-          className: n.className?.replace(ACTIVE_NODE_CLASS, ''),
-        }))
+        nds.map((n) => {
+          if (!n.className) return n;
+          const { className, ...rest } = n;
+          const next = className.replace(ACTIVE_NODE_CLASS, '');
+          return next ? { ...rest, className: next } : rest;
+        }),
       );
     }
   }, [isOpen, setNodes]);
@@ -70,7 +86,7 @@ export default function CanvasSearch({ isOpen, onClose, nodes, setNodes }: Canva
 
   useEffect(() => {
     if (!isOpen || matchingNodes.length === 0) return;
-    
+
     const targetNode = matchingNodes[currentIndex];
     if (targetNode) {
       setNodes((nds) =>
@@ -83,14 +99,14 @@ export default function CanvasSearch({ isOpen, onClose, nodes, setNodes }: Canva
             };
           }
           return { ...n, className: baseClass };
-        })
+        }),
       );
 
       const x = targetNode.position.x + (targetNode.measured?.width || 200) / 2;
       const y = targetNode.position.y + (targetNode.measured?.height || 100) / 2;
-      setCenter(x, y, { zoom: Math.max(1.2, getZoom()), duration: 300 });
+      void setCenter(x, y, { zoom: Math.max(1.2, getZoom()), duration: 300 });
     }
-  }, [currentIndex, searchTerm, isOpen]);
+  }, [currentIndex, searchTerm, isOpen, matchingNodes, setNodes, setCenter, getZoom]);
 
   if (!isOpen) return null;
 
@@ -133,17 +149,19 @@ export default function CanvasSearch({ isOpen, onClose, nodes, setNodes }: Canva
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             onKeyDown={handleKeyDown}
-            endAdornment={searchTerm ? (
-              <button 
-                onClick={() => setSearchTerm('')}
-                className="text-white/20 hover:text-white"
-                type="button"
-              >
-                <X size={16} />
-              </button>
-            ) : undefined}
+            endAdornment={
+              searchTerm ? (
+                <button
+                  onClick={() => setSearchTerm('')}
+                  className="text-white/20 hover:text-white"
+                  type="button"
+                >
+                  <X size={16} />
+                </button>
+              ) : undefined
+            }
           />
-          
+
           <CyberPanelFooter className="bg-transparent px-0 pb-0 pt-2">
             <div className="flex gap-1">
               <CyberAction

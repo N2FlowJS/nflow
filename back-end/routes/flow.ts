@@ -1,10 +1,10 @@
-import { Router, Request, Response } from 'express';
-import { prisma } from '../lib/prisma';
+import { Router, type Response } from 'express';
+import { db } from '../lib/db';
 import { executeFlowOnServer } from '../services/flowExecutionService';
 import { FlowStorageService } from '../services/flowStorageService';
 import { RequestValidator, TypeConverters } from '../middleware/validation';
 import { LogSanitizer } from '../middleware/logSanitizer';
-import { AuthRequest } from '../middleware/auth';
+import { type AuthRequest } from '../middleware/auth';
 import { toErrorMessage } from '../utils/common';
 import { createLogger } from '../utils/logger';
 import { successResponse, errorResponse } from '../utils/apiResponse';
@@ -70,7 +70,6 @@ router.post('/flow/execute', async (req: AuthRequest, res: Response) => {
   }
 });
 
-
 router.post('/flow/execute/stream', async (req: AuthRequest, res: Response) => {
   try {
     // Validate request payload
@@ -113,7 +112,7 @@ router.post('/flow/execute/stream', async (req: AuthRequest, res: Response) => {
         shouldStop: () => clientDisconnected,
         globalVariables: TypeConverters.toGlobalVariables(validatedRequest.globalVariables || []),
       });
-      
+
       if (req.userId) {
         logger.info('Flow executed (streaming)', { userId: req.userId });
       }
@@ -139,7 +138,6 @@ router.post('/flow/execute/stream', async (req: AuthRequest, res: Response) => {
     res.status(400).json({ error: sanitized });
   }
 });
-
 
 /**
  * @openapi
@@ -168,18 +166,20 @@ router.get('/flows', async (req: AuthRequest, res: Response) => {
     // Parse pagination parameters
     const limit = Math.min(Math.max(parseInt(String(req.query.limit)) || 20, 1), 100);
     const offset = Math.max(parseInt(String(req.query.offset)) || 0, 0);
-    
+
     const { flows, total } = await FlowStorageService.listFlowsScoped(userId, { limit, offset });
-    
-    res.json(successResponse(flows, {
-      limit,
-      offset,
-      total,
-      hasMore: offset + limit < total,
-    }));
+
+    return res.json(
+      successResponse(flows, {
+        limit,
+        offset,
+        total,
+        hasMore: offset + limit < total,
+      }),
+    );
   } catch (err) {
     logger.error('List flows error', err);
-    res.status(500).json(errorResponse('Failed to list flows'));
+    return res.status(500).json(errorResponse('Failed to list flows'));
   }
 });
 
@@ -208,9 +208,9 @@ router.get('/flows/:id', async (req: AuthRequest, res: Response) => {
     if (!userId) return res.status(401).json(errorResponse('Unauthorized'));
 
     const data = await FlowStorageService.getFlow(String(req.params.id), userId);
-    res.json(successResponse(data));
+    return res.json(successResponse(data));
   } catch (err) {
-    res.status(404).json(errorResponse('Flow not found'));
+    return res.status(404).json(errorResponse('Flow not found'));
   }
 });
 
@@ -249,12 +249,12 @@ router.post('/flows', async (req: AuthRequest, res: Response) => {
       ...validatedRequest,
       userId, // Add user context
     });
-    res.json(successResponse({ id }));
+    return res.json(successResponse({ id }));
   } catch (err) {
     const errorMsg = toErrorMessage(err, 'Failed to save flow');
     const sanitized = LogSanitizer.sanitize(errorMsg);
     logger.error('Save flow error', err, { userId: req.userId });
-    res.status(400).json(errorResponse(sanitized));
+    return res.status(400).json(errorResponse(sanitized));
   }
 });
 
@@ -264,15 +264,14 @@ router.delete('/flows/:id', async (req: AuthRequest, res: Response) => {
     if (!userId) return res.status(401).json(errorResponse('Unauthorized'));
 
     await FlowStorageService.deleteFlow(String(req.params.id), userId);
-    res.json(successResponse({ ok: true }));
+    return res.json(successResponse({ ok: true }));
   } catch (err) {
     const errorMsg = toErrorMessage(err, 'Failed to delete flow');
     const sanitized = LogSanitizer.sanitize(errorMsg);
     logger.error('Delete flow error', err, { userId: req.userId });
-    res.status(500).json(errorResponse(sanitized));
+    return res.status(500).json(errorResponse(sanitized));
   }
 });
-
 
 // Version history endpoints
 router.get('/flows/:id/versions', async (req: AuthRequest, res: Response) => {
@@ -281,9 +280,9 @@ router.get('/flows/:id/versions', async (req: AuthRequest, res: Response) => {
     if (!userId) return res.status(401).json(errorResponse('Unauthorized'));
 
     const versions = await FlowStorageService.getFlowVersions(String(req.params.id), userId);
-    res.json(successResponse(versions || []));
+    return res.json(successResponse(versions || []));
   } catch (err) {
-    res.status(404).json(errorResponse('Flow not found'));
+    return res.status(404).json(errorResponse('Flow not found'));
   }
 });
 
@@ -301,9 +300,9 @@ router.get('/flows/:id/versions/:versionId', async (req: AuthRequest, res: Respo
       res.status(404).json(errorResponse('Version not found'));
       return;
     }
-    res.json(successResponse(flow));
+    return res.json(successResponse(flow));
   } catch (err) {
-    res.status(500).json(errorResponse('Failed to retrieve version'));
+    return res.status(500).json(errorResponse('Failed to retrieve version'));
   }
 });
 
@@ -315,17 +314,16 @@ router.post('/flows/:id/versions/:versionId/restore', async (req: AuthRequest, r
     const flow = await FlowStorageService.restoreFlowVersion(
       String(req.params.id),
       String(req.params.versionId),
-      userId
+      userId,
     );
-    res.json(successResponse({ flow }));
+    return res.json(successResponse({ flow }));
   } catch (err) {
     const errorMsg = toErrorMessage(err, 'Failed to restore version');
     const sanitized = LogSanitizer.sanitize(errorMsg);
     logger.error('Restore version error', err, { userId: req.userId });
-    res.status(400).json(errorResponse(sanitized));
+    return res.status(400).json(errorResponse(sanitized));
   }
 });
-
 
 /**
  * @openapi
@@ -351,18 +349,24 @@ router.get('/flows/:id/executions', async (req: AuthRequest, res: Response) => {
     const userId = req.userId;
     if (!userId) return res.status(401).json(errorResponse('Unauthorized'));
 
-    const executions = await prisma.flowExecution.findMany({
-      where: {
-        flowId: String(req.params.id),
-        flow: { userId } // Ensure ownership
-      },
+    const flowId = String(req.params.id);
+
+    // Ownership is checked explicitly rather than through a nested relation
+    // filter on the executions query, so an unowned flow yields an empty list.
+    const ownedFlow = await db.flow.findFirst({ where: { id: flowId, userId } });
+    if (!ownedFlow) {
+      return res.json(successResponse([]));
+    }
+
+    const executions = await db.flowExecution.findMany({
+      where: { flowId },
       orderBy: { createdAt: 'desc' },
       take: 50,
     });
-    
-    res.json(successResponse(executions));
+
+    return res.json(successResponse(executions));
   } catch (err) {
-    res.status(500).json(errorResponse('Failed to retrieve execution history'));
+    return res.status(500).json(errorResponse('Failed to retrieve execution history'));
   }
 });
 

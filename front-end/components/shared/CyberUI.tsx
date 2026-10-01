@@ -1,6 +1,6 @@
-import React from "react";
-import { LucideIcon, X } from "lucide-react";
-import { Button } from "../ui";
+import React from 'react';
+import { type LucideIcon, X } from 'lucide-react';
+import { Button } from '../ui';
 
 /**
  * Standardized status dot with ring and glow
@@ -12,10 +12,10 @@ export const StatusIndicator: React.FC<{
   size?: number;
 }> = ({ status, size = 8 }) => {
   const configs: Record<NodeStatus, string> = {
-    idle:    'bg-gray-500/50 border-gray-500/30',
+    idle: 'bg-gray-500/50 border-gray-500/30',
     running: 'bg-yellow-400 border-yellow-400 animate-pulse shadow-[0_0_6px_rgba(250,204,21,0.45)]',
     success: 'bg-green-500 border-green-500 shadow-[0_0_6px_rgba(34,197,94,0.35)]',
-    error:   'bg-red-500 border-red-500 shadow-[0_0_6px_rgba(239,68,68,0.35)]',
+    error: 'bg-red-500 border-red-500 shadow-[0_0_6px_rgba(239,68,68,0.35)]',
     /** Dead-path eliminated – shown as a muted indigo dot */
     skipped: 'bg-indigo-400/40 border-indigo-400/25',
   };
@@ -31,15 +31,15 @@ export const StatusIndicator: React.FC<{
 
 interface CyberActionProps {
   onClick: React.MouseEventHandler<HTMLButtonElement>;
-  icon?: LucideIcon;
-  label?: string;
-  colorClass?: string;
-  title?: string;
-  className?: string;
-  showLabel?: boolean;
-  active?: boolean;
-  disabled?: boolean;
-  children?: React.ReactNode;
+  icon?: LucideIcon | undefined;
+  label?: string | undefined;
+  colorClass?: string | undefined;
+  title?: string | undefined;
+  className?: string | undefined;
+  showLabel?: boolean | undefined;
+  active?: boolean | undefined;
+  disabled?: boolean | undefined;
+  children?: React.ReactNode | undefined;
 }
 
 /**
@@ -49,10 +49,10 @@ interface CyberActionProps {
 export const CyberAction: React.FC<CyberActionProps> = ({
   onClick,
   icon: Icon,
-  label = "",
-  colorClass = "text-cyber-primary",
+  label = '',
+  colorClass = 'text-cyber-primary',
   title,
-  className = "",
+  className = '',
   showLabel = true,
   active = false,
   disabled = false,
@@ -71,15 +71,13 @@ export const CyberAction: React.FC<CyberActionProps> = ({
       title={title || label}
     >
       {Icon && (
-        <Icon 
-          size={14} 
-          className={`${colorClass} group-hover:drop-shadow-[0_0_3px_currentColor] transition-all ${active ? 'drop-shadow-[0_0_3px_currentColor]' : ''}`} 
+        <Icon
+          size={14}
+          className={`${colorClass} group-hover:drop-shadow-[0_0_3px_currentColor] transition-all ${active ? 'drop-shadow-[0_0_3px_currentColor]' : ''}`}
         />
       )}
       {showLabel && label && (
-        <span className="text-[10px] font-bold uppercase tracking-wider truncate">
-          {label}
-        </span>
+        <span className="text-[10px] font-bold uppercase tracking-wider truncate">{label}</span>
       )}
       {children}
     </Button>
@@ -88,13 +86,13 @@ export const CyberAction: React.FC<CyberActionProps> = ({
 
 interface CyberPanelProps {
   title: string;
-  icon?: LucideIcon;
+  icon?: LucideIcon | undefined;
   children: React.ReactNode;
-  onClose?: () => void;
-  actions?: React.ReactNode;
-  className?: string;
-  maxHeight?: string;
-  scrollable?: boolean;
+  onClose?: (() => void) | undefined;
+  actions?: React.ReactNode | undefined;
+  className?: string | undefined;
+  maxHeight?: string | undefined;
+  scrollable?: boolean | undefined;
 }
 
 /**
@@ -107,18 +105,19 @@ export const CyberPanel: React.FC<CyberPanelProps> = ({
   children,
   onClose,
   actions,
-  className = "",
-  maxHeight = "80vh",
+  className = '',
+  maxHeight = '80vh',
   scrollable = true,
 }) => {
   return (
-    <div className={`bg-cyber-panel border border-cyber-primary/20 rounded-xl shadow-xl overflow-hidden flex flex-col bg-black/80 backdrop-blur-xl ${className}`} style={{ maxHeight }}>
+    <div
+      className={`bg-cyber-panel border border-cyber-primary/20 rounded-xl shadow-xl overflow-hidden flex flex-col bg-black/80 backdrop-blur-xl ${className}`}
+      style={{ maxHeight }}
+    >
       <div className="px-3 py-2 border-b border-white/5 flex items-center justify-between bg-black/40">
         <div className="flex items-center gap-2 text-cyber-primary">
           {Icon && <Icon size={14} />}
-          <span className="text-[10px] font-black uppercase tracking-[0.2em]">
-            {title}
-          </span>
+          <span className="text-[10px] font-black uppercase tracking-[0.2em]">{title}</span>
         </div>
         <div className="flex items-center gap-2">
           {actions}
@@ -133,13 +132,9 @@ export const CyberPanel: React.FC<CyberPanelProps> = ({
         </div>
       </div>
       {scrollable ? (
-        <div className="flex-1 overflow-y-auto custom-scrollbar">
-          {children}
-        </div>
+        <div className="flex-1 overflow-y-auto custom-scrollbar">{children}</div>
       ) : (
-        <div className="flex-1 flex flex-col min-h-0">
-          {children}
-        </div>
+        <div className="flex-1 flex flex-col min-h-0">{children}</div>
       )}
     </div>
   );
@@ -147,23 +142,29 @@ export const CyberPanel: React.FC<CyberPanelProps> = ({
 
 interface TooltipBadgeProps {
   label: string;
-  status?: "online" | "offline" | "syncing";
+  status?: 'online' | 'offline' | 'syncing';
   className?: string;
 }
 
 /**
  * A reusable status indicator badge with pulse effects.
  */
-export const StatusBadge: React.FC<TooltipBadgeProps> = ({ label, status = "online", className = "" }) => {
+export const StatusBadge: React.FC<TooltipBadgeProps> = ({
+  label,
+  status = 'online',
+  className = '',
+}) => {
   const statusStyles = {
-    online: "bg-green-500 shadow-[0_0_6px_rgba(34,197,94,0.35)] animate-pulse",
-    offline: "bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.35)]",
-    syncing: "bg-cyber-primary shadow-[0_0_6px_rgba(34,211,238,0.35)] animate-spin-slow",
+    online: 'bg-green-500 shadow-[0_0_6px_rgba(34,197,94,0.35)] animate-pulse',
+    offline: 'bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.35)]',
+    syncing: 'bg-cyber-primary shadow-[0_0_6px_rgba(34,211,238,0.35)] animate-spin-slow',
   };
 
   return (
     <div className={`flex items-center gap-1.5 leading-none ${className}`}>
-      <div className={`w-1.5 h-1.5 rounded-full ${statusStyles[status as keyof typeof statusStyles]}`} />
+      <div
+        className={`w-1.5 h-1.5 rounded-full ${statusStyles[status as keyof typeof statusStyles]}`}
+      />
       <span className="text-[9px] text-white/40 font-black uppercase tracking-[0.2em]">
         {label}
       </span>
@@ -192,7 +193,9 @@ export const CyberBadge: React.FC<{
   };
 
   return (
-    <span className={`inline-flex items-center font-black uppercase tracking-wider rounded border ${variantStyles[variant]} ${sizeStyles[size]} ${className}`}>
+    <span
+      className={`inline-flex items-center font-black uppercase tracking-wider rounded border ${variantStyles[variant]} ${sizeStyles[size]} ${className}`}
+    >
       {label}
     </span>
   );
@@ -201,9 +204,11 @@ export const CyberBadge: React.FC<{
 export const CyberSectionLabel: React.FC<{
   label: string;
   className?: string;
-}> = ({ label, className = "" }) => {
+}> = ({ label, className = '' }) => {
   return (
-    <div className={`border-b border-white/5 px-1 pb-1 text-[7px] font-black uppercase tracking-[0.2em] text-white/20 ${className}`}>
+    <div
+      className={`border-b border-white/5 px-1 pb-1 text-[7px] font-black uppercase tracking-[0.2em] text-white/20 ${className}`}
+    >
       {label}
     </div>
   );
@@ -216,17 +221,12 @@ export const CyberFieldShell: React.FC<{
   children: React.ReactNode;
   className?: string;
   headerClassName?: string;
-}> = ({
-  label,
-  leading,
-  action,
-  children,
-  className = "",
-  headerClassName = "",
-}) => {
+}> = ({ label, leading, action, children, className = '', headerClassName = '' }) => {
   return (
     <div className={`space-y-1 px-0.5 ${className}`}>
-      <div className={`flex items-center justify-between text-[9px] font-bold uppercase tracking-tighter text-white/30 transition-colors ${headerClassName}`}>
+      <div
+        className={`flex items-center justify-between text-[9px] font-bold uppercase tracking-tighter text-white/30 transition-colors ${headerClassName}`}
+      >
         <div className="flex items-center gap-1">
           {leading}
           {label}
@@ -241,20 +241,18 @@ export const CyberFieldShell: React.FC<{
 export const CyberPanelSection: React.FC<{
   children: React.ReactNode;
   className?: string;
-}> = ({ children, className = "" }) => {
-  return (
-    <div className={`bg-black/40 ${className}`}>
-      {children}
-    </div>
-  );
+}> = ({ children, className = '' }) => {
+  return <div className={`bg-black/40 ${className}`}>{children}</div>;
 };
 
 export const CyberPanelFooter: React.FC<{
   children: React.ReactNode;
   className?: string;
-}> = ({ children, className = "" }) => {
+}> = ({ children, className = '' }) => {
   return (
-    <div className={`flex items-center justify-between border-t border-white/5 bg-black/50 px-4 py-2 ${className}`}>
+    <div
+      className={`flex items-center justify-between border-t border-white/5 bg-black/50 px-4 py-2 ${className}`}
+    >
       {children}
     </div>
   );
@@ -264,7 +262,7 @@ export const CyberOverlay: React.FC<{
   children: React.ReactNode;
   className?: string;
   onMouseDown?: React.MouseEventHandler<HTMLDivElement>;
-}> = ({ children, className = "", onMouseDown }) => {
+}> = ({ children, className = '', onMouseDown }) => {
   return (
     <div
       className={`fixed inset-0 bg-black/50 backdrop-blur-md flex items-center justify-center p-4 ${className}`}
@@ -278,9 +276,11 @@ export const CyberOverlay: React.FC<{
 export const CyberEmptyState: React.FC<{
   label: string;
   className?: string;
-}> = ({ label, className = "" }) => {
+}> = ({ label, className = '' }) => {
   return (
-    <div className={`flex items-center justify-center text-white/10 font-black uppercase tracking-[0.5em] text-[8px] ${className}`}>
+    <div
+      className={`flex items-center justify-center text-white/10 font-black uppercase tracking-[0.5em] text-[8px] ${className}`}
+    >
       {label}
     </div>
   );
@@ -289,7 +289,7 @@ export const CyberEmptyState: React.FC<{
 export const CyberMetaText: React.FC<{
   children: React.ReactNode;
   className?: string;
-}> = ({ children, className = "" }) => {
+}> = ({ children, className = '' }) => {
   return (
     <div className={`px-1 text-[8px] font-mono text-white/20 truncate uppercase ${className}`}>
       {children}
@@ -301,15 +301,15 @@ export const CyberToggleSwitch: React.FC<{
   checked: boolean;
   onChange: (checked: boolean) => void;
   className?: string;
-}> = ({ checked, onChange, className = "" }) => {
+}> = ({ checked, onChange, className = '' }) => {
   return (
     <button
       type="button"
       onClick={() => onChange(!checked)}
-      className={`nodrag flex h-4 w-8 items-center rounded-full px-0.5 transition-all ${checked ? "bg-cyber-primary" : "bg-white/10"} ${className}`}
+      className={`nodrag flex h-4 w-8 items-center rounded-full px-0.5 transition-all ${checked ? 'bg-cyber-primary' : 'bg-white/10'} ${className}`}
     >
       <div
-        className={`h-3 w-3 rounded-full bg-white transition-transform ${checked ? "translate-x-4" : "translate-x-0"}`}
+        className={`h-3 w-3 rounded-full bg-white transition-transform ${checked ? 'translate-x-4' : 'translate-x-0'}`}
       />
     </button>
   );
@@ -329,19 +329,21 @@ export const CyberListItem: React.FC<{
   onDragStart,
   draggable = false,
   action,
-  accentClassName = "bg-cyber-primary",
-  className = "",
+  accentClassName = 'bg-cyber-primary',
+  className = '',
 }) => {
   return (
     <div
-      className={`group relative flex transition-all ${onClick ? "cursor-pointer" : ""} ${className}`}
+      className={`group relative flex transition-all ${onClick ? 'cursor-pointer' : ''} ${className}`}
       onClick={onClick}
       onDragStart={onDragStart}
       draggable={draggable}
     >
       {children}
       {action}
-      <div className={`absolute left-0 w-0.5 h-0 group-hover:h-full transition-all duration-300 ${accentClassName}`} />
+      <div
+        className={`absolute left-0 w-0.5 h-0 group-hover:h-full transition-all duration-300 ${accentClassName}`}
+      />
     </div>
   );
 };
@@ -363,20 +365,20 @@ export const CyberMenuItem: React.FC<{
   disabled = false,
   active = false,
   trailing,
-  className = "",
+  className = '',
 }) => {
   const toneClass = danger
-    ? "text-red-400/70 hover:text-red-400 hover:bg-red-500/10"
+    ? 'text-red-400/70 hover:text-red-400 hover:bg-red-500/10'
     : active
-      ? "text-cyber-primary bg-cyber-primary/10"
-      : "text-white/45 hover:text-cyber-primary hover:bg-cyber-primary/10";
+      ? 'text-cyber-primary bg-cyber-primary/10'
+      : 'text-white/45 hover:text-cyber-primary hover:bg-cyber-primary/10';
 
   return (
     <button
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className={`group/item flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left transition-all ${toneClass} ${disabled ? "cursor-not-allowed opacity-20" : "cursor-pointer"} ${className}`}
+      className={`group/item flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left transition-all ${toneClass} ${disabled ? 'cursor-not-allowed opacity-20' : 'cursor-pointer'} ${className}`}
     >
       {Icon && <Icon size={14} className="transition-transform group-hover/item:scale-110" />}
       <span className="flex-1 truncate text-[10px] font-black uppercase tracking-[0.18em]">
@@ -387,12 +389,15 @@ export const CyberMenuItem: React.FC<{
   );
 };
 
-export const CyberMenuSurface = React.forwardRef<HTMLDivElement, {
-  children: React.ReactNode;
-  className?: string;
-  style?: React.CSSProperties;
-  onContextMenu?: React.MouseEventHandler<HTMLDivElement>;
-}>(({ children, className = "", style, onContextMenu }, ref) => {
+export const CyberMenuSurface = React.forwardRef<
+  HTMLDivElement,
+  {
+    children: React.ReactNode;
+    className?: string;
+    style?: React.CSSProperties;
+    onContextMenu?: React.MouseEventHandler<HTMLDivElement>;
+  }
+>(({ children, className = '', style, onContextMenu }, ref) => {
   return (
     <div
       ref={ref}
@@ -405,7 +410,7 @@ export const CyberMenuSurface = React.forwardRef<HTMLDivElement, {
   );
 });
 
-CyberMenuSurface.displayName = "CyberMenuSurface";
+CyberMenuSurface.displayName = 'CyberMenuSurface';
 
 export const CyberIconTile: React.FC<{
   icon: LucideIcon;
@@ -419,16 +424,16 @@ export const CyberIconTile: React.FC<{
   icon: Icon,
   label,
   onClick,
-  colorClass = "text-white/60",
+  colorClass = 'text-white/60',
   active = false,
   indicator,
-  className = "",
+  className = '',
 }) => {
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`group relative flex flex-col items-center justify-center gap-2 rounded-lg border p-3 transition-all ${active ? "border-cyber-primary/20 bg-cyber-primary/10" : "border-transparent hover:border-cyber-primary/20 hover:bg-cyber-primary/10"} ${colorClass} ${className}`}
+      className={`group relative flex flex-col items-center justify-center gap-2 rounded-lg border p-3 transition-all ${active ? 'border-cyber-primary/20 bg-cyber-primary/10' : 'border-transparent hover:border-cyber-primary/20 hover:bg-cyber-primary/10'} ${colorClass} ${className}`}
     >
       <div className="rounded-lg border border-white/5 bg-black/40 p-2 shadow-inner transition-all group-hover:border-cyber-primary/40 group-hover:text-cyber-primary">
         <Icon size={18} />
@@ -444,9 +449,11 @@ export const CyberIconTile: React.FC<{
 export const CyberToolbar: React.FC<{
   children: React.ReactNode;
   className?: string;
-}> = ({ children, className = "" }) => {
-    return (
-      <div className={`flex items-center gap-1 rounded-full border border-white/5 bg-black/40 p-1 shadow-xl backdrop-blur-md ${className}`}>
+}> = ({ children, className = '' }) => {
+  return (
+    <div
+      className={`flex items-center gap-1 rounded-full border border-white/5 bg-black/40 p-1 shadow-xl backdrop-blur-md ${className}`}
+    >
       {children}
     </div>
   );
@@ -454,11 +461,11 @@ export const CyberToolbar: React.FC<{
 
 export const CyberToolbarDivider: React.FC<{
   className?: string;
-}> = ({ className = "" }) => {
+}> = ({ className = '' }) => {
   return <div className={`h-4 w-px bg-white/5 ${className}`} />;
 };
 
-export const PanelSkeleton: React.FC<{ className?: string }> = ({ className = "" }) => {
+export const PanelSkeleton: React.FC<{ className?: string }> = ({ className = '' }) => {
   return (
     <div className={`h-full w-full flex items-center justify-center p-4 ${className}`}>
       <div className="animate-pulse text-white/30 font-black uppercase text-[10px]">Loading…</div>

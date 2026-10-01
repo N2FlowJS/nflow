@@ -1,5 +1,11 @@
-import { FlowNode, GlobalVariable, ChatMessage } from '../flowTypes';
-import { ToolDefinition } from '../tools';
+import {
+  type ChatMessage,
+  type FlowEdge,
+  type FlowNode,
+  type FlowRuntimeEvent,
+  type GlobalVariable,
+} from '../flowTypes';
+import { type ToolDefinition } from '../tools';
 
 export type FlowRuntimeContext = {
   userId: string;
@@ -8,22 +14,20 @@ export type FlowRuntimeContext = {
   isStopped: () => boolean;
   /** AbortSignal that fires when the flow is cancelled or a node fails */
   signal: AbortSignal;
-  emit: (event: any) => void;
+  emit: (event: Omit<FlowRuntimeEvent, 'timestamp'>) => void;
   executeToolByName: (name: string, args: Record<string, string>) => Promise<string>;
   availableTools: ToolDefinition[];
-  incomingMap: Map<string, any[]>;
+  incomingMap: Map<string, FlowEdge[]>;
   nodeById: Map<string, FlowNode>;
   /** Live results map: access completed upstream node outputs */
   nodeResults: Map<string, unknown>;
   log: (msg: string) => void;
   globalVariables: GlobalVariable[];
-  onEvent?: (event: any) => void;
-  chatHistory?: ChatMessage[];
+  onEvent?: ((event: FlowRuntimeEvent) => void) | undefined;
+  chatHistory?: ChatMessage[] | undefined;
 };
 
-export type NodeHandler = (
-  ctx: FlowRuntimeContext
-) => Promise<unknown> | unknown;
+export type NodeHandler = (ctx: FlowRuntimeContext) => Promise<unknown> | unknown;
 
 export class NodeRegistry {
   private static handlers: Record<string, NodeHandler> = {};

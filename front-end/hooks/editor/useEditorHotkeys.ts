@@ -1,10 +1,11 @@
 import { useMemo, useEffect, useRef } from 'react';
-import type { 
-  CommandAction, 
-  EditorUIState, 
-  GraphState, 
-  FlowPersistenceState, 
-  FlowExecutionState 
+import type {
+  CommandAction,
+  EditorUIState,
+  GraphState,
+  FlowPersistenceState,
+  FlowExecutionState,
+  LayoutMode,
 } from '../../types/editor';
 import nodeRegistry from '../../../back-end/node-registry';
 import { prettifyLabel } from '../../lib/utils';
@@ -14,9 +15,7 @@ interface UseEditorHotkeysOptions {
   graph: GraphState;
   persistence: FlowPersistenceState;
   execution: FlowExecutionState;
-  onLayout: (mode?: any) => void;
-  onExport: () => void;
-  importInputRef: React.MutableRefObject<HTMLInputElement>;
+  onLayout: (mode?: LayoutMode) => void;
 }
 
 export const useEditorHotkeys = ({
@@ -25,16 +24,9 @@ export const useEditorHotkeys = ({
   persistence,
   execution,
   onLayout,
-  onExport,
-  importInputRef,
 }: UseEditorHotkeysOptions) => {
-  const {
-    showCommandPalette, setShowCommandPalette,
-    commandQuery, commandIndex, setCommandIndex,
-    setIsCanvasSearchOpen, setIsToolsMenuOpen,
-    setShowShortcutHelp,
-    setShowMinimap
-  } = ui;
+  const { showCommandPalette, setShowCommandPalette, commandQuery, commandIndex, setCommandIndex } =
+    ui;
 
   const commandActions = useMemo<CommandAction[]>(() => {
     const nodeActions: CommandAction[] = Object.keys(nodeRegistry)
@@ -44,16 +36,19 @@ export const useEditorHotkeys = ({
         return {
           id: `add-node-${type}`,
           label: `Add ${label}`,
-          group: "Nodes",
-          shortcut: "-",
+          group: 'Nodes',
+          shortcut: '-',
           keywords: `add node create ${type} ${label.toLowerCase()}`,
           run: () => {
-            const connectFrom = (window as any).__lastConnectionStart;
-            const pos = graph.pendingNodeInsertPosition || { x: Math.random() * 400 + 100, y: Math.random() * 400 + 100 };
-            graph.onAddNode(type, label, pos, connectFrom);
-            
+            const connectFrom = window.__lastConnectionStart;
+            const pos = graph.pendingNodeInsertPosition || {
+              x: Math.random() * 400 + 100,
+              y: Math.random() * 400 + 100,
+            };
+            graph.onAddNode(type, label, pos, connectFrom ?? undefined);
+
             // Clear the temp state
-            (window as any).__lastConnectionStart = null;
+            window.__lastConnectionStart = null;
             graph.setPendingNodeInsertPosition(null);
           },
         };
@@ -61,35 +56,37 @@ export const useEditorHotkeys = ({
 
     return [
       {
-        id: "save",
-        label: "Save Flow",
-        group: "Flow",
-        shortcut: "Ctrl/Cmd+S",
-        keywords: "save flow persist",
-        run: () => persistence.onSave(persistence.currentFlowName),
+        id: 'save',
+        label: 'Save Flow',
+        group: 'Flow',
+        shortcut: 'Ctrl/Cmd+S',
+        keywords: 'save flow persist',
+        run: () => {
+          void persistence.onSave(persistence.currentFlowName);
+        },
       },
       {
-        id: "deploy",
-        label: "Deploy Flow",
-        group: "Flow",
-        shortcut: "Ctrl/Cmd+Enter",
-        keywords: "deploy run execute",
+        id: 'deploy',
+        label: 'Deploy Flow',
+        group: 'Flow',
+        shortcut: 'Ctrl/Cmd+Enter',
+        keywords: 'deploy run execute',
         run: () => void execution.onRunAll(),
       },
       {
-        id: "undo",
-        label: "Undo",
-        group: "Edit",
-        shortcut: "Ctrl/Cmd+Z",
-        keywords: "undo",
+        id: 'undo',
+        label: 'Undo',
+        group: 'Edit',
+        shortcut: 'Ctrl/Cmd+Z',
+        keywords: 'undo',
         run: () => graph.undo(),
       },
       {
-        id: "redo",
-        label: "Redo",
-        group: "Edit",
-        shortcut: "Ctrl/Cmd+Y",
-        keywords: "redo",
+        id: 'redo',
+        label: 'Redo',
+        group: 'Edit',
+        shortcut: 'Ctrl/Cmd+Y',
+        keywords: 'redo',
         run: () => graph.redo(),
       },
       // ... more actions could be added here
@@ -107,14 +104,30 @@ export const useEditorHotkeys = ({
   }, [commandActions, commandQuery]);
 
   const latestRef = useRef({
-    ui, graph, persistence, execution, onLayout, onExport, importInputRef,
-    filteredCommands, commandIndex, setCommandIndex, setShowCommandPalette, showCommandPalette
+    graph,
+    persistence,
+    execution,
+    ui,
+    onLayout,
+    filteredCommands,
+    commandIndex,
+    setCommandIndex,
+    setShowCommandPalette,
+    showCommandPalette,
   });
 
   useEffect(() => {
     latestRef.current = {
-      ui, graph, persistence, execution, onLayout, onExport, importInputRef,
-      filteredCommands, commandIndex, setCommandIndex, setShowCommandPalette, showCommandPalette
+      graph,
+      persistence,
+      execution,
+      ui,
+      onLayout,
+      filteredCommands,
+      commandIndex,
+      setCommandIndex,
+      setShowCommandPalette,
+      showCommandPalette,
     };
   });
 
@@ -122,41 +135,47 @@ export const useEditorHotkeys = ({
     const handleKeyDown = (e: KeyboardEvent) => {
       const isMod = e.ctrlKey || e.metaKey;
       const key = e.key.toLowerCase();
-      const {
-        ui, graph, persistence, execution, onLayout, onExport, importInputRef,
-        filteredCommands, commandIndex, setCommandIndex, setShowCommandPalette, showCommandPalette
-      } = latestRef.current;
+      // Read through the ref so the handler always sees current values. The
+      // members are deliberately not destructured: every name would shadow the
+      // hook's own bindings, and the alias keeps `no-shadow` honest.
+      const latest = latestRef.current;
 
-      if (showCommandPalette) {
-        if (key === "escape") {
+      if (latest.showCommandPalette) {
+        if (key === 'escape') {
           e.preventDefault();
-          setShowCommandPalette(false);
+          latest.setShowCommandPalette(false);
           return;
         }
-        if (key === "arrowdown") {
+        if (key === 'arrowdown') {
           e.preventDefault();
-          setCommandIndex((prev: number) => filteredCommands.length === 0 ? 0 : (prev + 1) % filteredCommands.length);
+          latest.setCommandIndex((prev: number) =>
+            latest.filteredCommands.length === 0 ? 0 : (prev + 1) % latest.filteredCommands.length,
+          );
           return;
         }
-        if (key === "arrowup") {
+        if (key === 'arrowup') {
           e.preventDefault();
-          setCommandIndex((prev: number) => filteredCommands.length === 0 ? 0 : (prev - 1 + filteredCommands.length) % filteredCommands.length);
+          latest.setCommandIndex((prev: number) =>
+            latest.filteredCommands.length === 0
+              ? 0
+              : (prev - 1 + latest.filteredCommands.length) % latest.filteredCommands.length,
+          );
           return;
         }
-        if (key === "enter") {
+        if (key === 'enter') {
           e.preventDefault();
-          const command = filteredCommands[commandIndex];
+          const command = latest.filteredCommands[latest.commandIndex];
           if (command) {
             command.run();
-            setShowCommandPalette(false);
+            latest.setShowCommandPalette(false);
           }
           return;
         }
       }
 
-      if (isMod && key === "k") {
+      if (isMod && key === 'k') {
         e.preventDefault();
-        setShowCommandPalette(!showCommandPalette);
+        latest.setShowCommandPalette(!latest.showCommandPalette);
         return;
       }
 
@@ -168,34 +187,46 @@ export const useEditorHotkeys = ({
         return;
       }
 
-      if (isMod && key === "z") {
+      if (isMod && key === 'z') {
         e.preventDefault();
-        if (e.shiftKey) graph.redo(); else graph.undo();
-      } else if (isMod && key === "s") {
+        if (e.shiftKey) latest.graph.redo();
+        else latest.graph.undo();
+      } else if (isMod && key === 's') {
         e.preventDefault();
-        persistence.onSave(persistence.currentFlowName);
-      } else if (isMod && key === "enter") {
+        void latest.persistence.onSave(latest.persistence.currentFlowName);
+      } else if (isMod && key === 'enter') {
         e.preventDefault();
-        execution.onRunAll();
-      } else if (key === "delete" || key === "backspace") {
+        void latest.execution.onRunAll();
+      } else if (key === 'delete' || key === 'backspace') {
         if (!(e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement)) {
-          graph.onDeleteSelected();
+          latest.graph.onDeleteSelected();
         }
-      } else if (isMod && key === "a") {
+      } else if (isMod && key === 'a') {
         e.preventDefault();
-        graph.onSelectAll();
-      } else if (isMod && key === "c") {
-        graph.onCopy();
-      } else if (isMod && key === "v") {
-        graph.onPaste();
-      } else if (isMod && key === "d") {
+        latest.graph.onSelectAll();
+      } else if (isMod && key === 'c') {
+        latest.graph.onCopy();
+      } else if (isMod && key === 'v') {
+        latest.graph.onPaste();
+      } else if (isMod && key === 'd') {
         e.preventDefault();
-        graph.onDuplicate();
+        latest.graph.onDuplicate();
+      } else if (isMod && e.shiftKey && key === 'm') {
+        // Advertised in the shortcuts panel; the minimap is otherwise unreachable.
+        e.preventDefault();
+        latest.ui.setShowMinimap(!latest.ui.showMinimap);
+      } else if (isMod && e.shiftKey && key === 'l') {
+        // Advertised in the shortcuts panel: auto-layout.
+        e.preventDefault();
+        latest.onLayout('SMART');
+      } else if (isMod && key === 'f') {
+        e.preventDefault();
+        latest.ui.setIsCanvasSearchOpen(!latest.ui.isCanvasSearchOpen);
       }
     };
 
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
   return {

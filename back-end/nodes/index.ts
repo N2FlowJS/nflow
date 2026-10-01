@@ -1,4 +1,4 @@
-import { FlowRuntimeContext, NodeRegistry, NodeHandler } from './registry';
+import { type FlowRuntimeContext, NodeRegistry } from './registry';
 import {
   currentTimeHandler,
   chatInputHandler,
@@ -42,25 +42,24 @@ export const executeNode = async (ctx: FlowRuntimeContext): Promise<unknown> => 
   const toolReg = ToolRegistry.getRegistration(nodeType);
   if (toolReg) {
     const flatInput = String(Object.values(ctx.inputs).flat()[0] || '');
-    
-    // Resolve dynamic embedding model from inputs (pre-calculated by engine)
-    const embeddingModel = ctx.inputs.embedding_model?.[0];
-      
-    const result = await executeToolNode(ctx.node, { query: flatInput }, { 
-      toolDef: (embeddingModel ? { type: 'tool', embeddingModel } as any : undefined), 
+
+    // The embedding model, when one is configured, is pre-calculated by the
+    // engine and reaches the handler through `options.inputs` — no synthetic
+    // `toolDef` is needed.
+    const result = await executeToolNode(ctx.node, { query: flatInput }, {
       log: ctx.log,
-      inputs: { ...ctx.inputs }
+      inputs: { ...ctx.inputs },
     });
-    
+
     if (ctx.isStopped()) {
       throw new Error('Flow execution cancelled by client disconnect.');
     }
-    
+
     // Apply automated result parsing if configured
     if (toolReg.resultParser) {
       return toolReg.resultParser(result);
     }
-    
+
     return result;
   }
 

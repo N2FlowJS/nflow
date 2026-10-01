@@ -12,6 +12,7 @@
     "docs"
   ],
   "scripts": {
+    "postinstall": "node scripts/ensure-lint-typescript.cjs",
     "install:all": "npm install && npm --prefix back-end install && npm --prefix front-end install",
     "dev": "concurrently --names backend,frontend --prefix name \"npm run dev:backend\" \"npm run dev:frontend\"",
     "dev:backend": "npm --prefix back-end run dev",
@@ -26,15 +27,15 @@
     "test:backend": "npm --prefix back-end run test",
     "test:frontend": "npm --prefix front-end run test",
     "preview": "npm --prefix front-end run preview",
-    "db:studio": "npm --prefix back-end run db:studio",
     "db:migrate": "npm --prefix back-end run db:migrate",
+    "db:migrate:status": "npm --prefix back-end run db:migrate:status",
     "db:generate": "npm --prefix back-end run db:generate",
-    "db:push": "npm --prefix back-end run db:push",
     "db:reset": "npm --prefix back-end run db:reset",
     "db:seed": "npm --prefix back-end run db:seed",
     "task:generate-docs": "node task/generate-docs.js",
     "agents:run": "node agents/runner.js",
-    "lint": "eslint . --ext .ts,.tsx",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "gen-key": "node scripts/gen-key.cjs",
     "docs:dev": "npm --prefix docs run dev",
@@ -50,9 +51,7 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.1.1",
-    "prettier": "^3.8.3"
-  },
-  "dependencies": {
-    "@prisma/client": "^7.7.0"
+    "prettier": "^3.8.3",
+    "typescript": "^7.0.2"
   }
 }

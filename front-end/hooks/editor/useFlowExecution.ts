@@ -1,35 +1,43 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { Node, Edge } from '@xyflow/react';
-import type { 
-  RuntimeStatus, 
-  PlaygroundMessage, 
-  LogEntry, 
+import type { CustomNodeType, CustomEdgeType, GlobalVariable } from '@n2flow/types';
+import type {
+  DockTabId,
+  RuntimeStatus,
+  PlaygroundMessage,
+  LogEntry,
   PlaygroundWorkerOutput,
-  FlowExecutionState
+  FlowExecutionState,
 } from '../../types/editor';
-import { 
-  FlowValidationIssue, 
-  ValidationLocale,
-  validateFlowGraph
-} from "../../../back-end/flow-validation";
+import {
+  type FlowValidationIssue,
+  type ValidationLocale,
+  validateFlowGraph,
+} from '../../../back-end/flow-validation';
+
+/** `fetch` reports cancellation as a DOMException named 'AbortError'. */
+const isAbortError = (err: unknown): boolean =>
+  err instanceof DOMException && err.name === 'AbortError';
+
+const toErrorMessage = (err: unknown): string =>
+  err instanceof Error ? err.message : String(err);
 
 export const INITIAL_PLAYGROUND_MESSAGES: PlaygroundMessage[] = [
   {
-    role: "assistant",
-    text: "Protocol initialized. Ready to test the workflow. How can I assist?",
+    role: 'assistant',
+    text: 'Protocol initialized. Ready to test the workflow. How can I assist?',
   },
 ];
 
 interface UseFlowExecutionOptions {
-  getNodes: () => Node[];
-  getEdges: () => Edge[];
-  getGlobalVariables: () => any[];
+  getNodes: () => CustomNodeType[];
+  getEdges: () => CustomEdgeType[];
+  getGlobalVariables: () => GlobalVariable[];
   getFlowId: () => string | null;
   runtimeStatus: RuntimeStatus;
   setRuntimeStatus: (status: RuntimeStatus) => void;
-  setNodes: (updater: (nds: Node[]) => Node[]) => void;
+  setNodes: (updater: (nds: CustomNodeType[]) => CustomNodeType[]) => void;
   setIsPlaygroundOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  setActiveDockTab: (tab: any) => void;
+  setActiveDockTab: (tab: DockTabId | null) => void;
   setIsLogsOpenExclusive: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
@@ -45,7 +53,9 @@ export const useFlowExecution = ({
   setActiveDockTab,
   setIsLogsOpenExclusive,
 }: UseFlowExecutionOptions): FlowExecutionState => {
-  const [playgroundMessages, setPlaygroundMessages] = useState<PlaygroundMessage[]>(INITIAL_PLAYGROUND_MESSAGES);
+  const [playgroundMessages, setPlaygroundMessages] = useState<PlaygroundMessage[]>(
+    INITIAL_PLAYGROUND_MESSAGES,
+  );
   const messagesRef = useRef(playgroundMessages);
   useEffect(() => {
     messagesRef.current = playgroundMessages;
@@ -54,8 +64,10 @@ export const useFlowExecution = ({
   const [playgroundError, setPlaygroundError] = useState<string | null>(null);
   const [executionLogs, setExecutionLogs] = useState<LogEntry[]>([]);
   const [flowIssues, setFlowIssues] = useState<FlowValidationIssue[]>([]);
-  const [validationLocale, setValidationLocale] = useState<string>(
-    () => typeof navigator !== "undefined" && navigator.language.toLowerCase().startsWith("vi") ? "vi" : "en"
+  const [validationLocale, setValidationLocale] = useState<ValidationLocale>(() =>
+    typeof navigator !== 'undefined' && navigator.language.toLowerCase().startsWith('vi')
+      ? 'vi'
+      : 'en',
   );
 
   const executionAbortRef = useRef<AbortController | null>(null);
@@ -64,7 +76,7 @@ export const useFlowExecution = ({
   const appendAssistantOutput = useCallback((output: PlaygroundWorkerOutput) => {
     const text = typeof output === 'string' ? output : output.text || '';
     if (!text) return;
-    
+
     setPlaygroundMessages((prev) => {
       const last = prev[prev.length - 1];
       if (last && last.role === 'assistant') {
@@ -74,19 +86,22 @@ export const useFlowExecution = ({
     });
   }, []);
 
-  const onValidateFlow = useCallback((openDock: boolean = true) => {
-    const errors = validateFlowGraph(getNodes(), getEdges(), { locale: validationLocale as any });
-    setFlowIssues(errors);
-    
-    if (errors.length > 0) {
-      if (openDock) {
-        setActiveDockTab("validation");
+  const onValidateFlow = useCallback(
+    (openDock: boolean = true) => {
+      const errors = validateFlowGraph(getNodes(), getEdges(), { locale: validationLocale });
+      setFlowIssues(errors);
+
+      if (errors.length > 0) {
+        if (openDock) {
+          setActiveDockTab('validation');
+        }
+      } else {
+        setPlaygroundError(null);
       }
-    } else {
-      setPlaygroundError(null);
-    }
-    return errors.length === 0;
-  }, [getNodes, getEdges, setActiveDockTab, validationLocale]);
+      return errors.length === 0;
+    },
+    [getNodes, getEdges, setActiveDockTab, validationLocale],
+  );
 
   // Real-time validation
   useEffect(() => {
@@ -94,14 +109,10 @@ export const useFlowExecution = ({
   }, [getNodes, getEdges, onValidateFlow]);
 
   const executeFlow = useCallback(
-    async (
-      inputMessage?: string,
-      isSilent: boolean = false,
-      options?: { showLogs?: boolean },
-    ) => {
+    async (inputMessage?: string, isSilent: boolean = false, options?: { showLogs?: boolean }) => {
       if (isSilent && isSilentExecutionRunningRef.current) return null;
 
-      const runtimeBaseUrl = (import.meta as any).env?.VITE_RUNTIME_URL || "http://localhost:8787";
+      const runtimeBaseUrl = import.meta.env.VITE_RUNTIME_URL || 'http://localhost:8787';
 
       if (!isSilent) {
         executionAbortRef.current?.abort();
@@ -109,11 +120,11 @@ export const useFlowExecution = ({
 
       const controller = new AbortController();
       executionAbortRef.current = controller;
-      
+
       if (isSilent) {
         isSilentExecutionRunningRef.current = true;
       } else {
-        setRuntimeStatus("running");
+        setRuntimeStatus('running');
         setPlaygroundError(null);
         setExecutionLogs([]);
         if (options?.showLogs !== false) {
@@ -123,34 +134,31 @@ export const useFlowExecution = ({
 
       const addLog = (text: string) => {
         if (!isSilent) {
-          setPlaygroundMessages((prev) => [...prev, { role: "system", text }]);
+          setPlaygroundMessages((prev) => [...prev, { role: 'system', text }]);
         }
       };
 
       try {
-        const historyToSend = [...messagesRef.current.filter(m => m.role !== 'system')];
+        const historyToSend = [...messagesRef.current.filter((m) => m.role !== 'system')];
         // If we have an input message that isn't the last user message in history, add it
-        if (inputMessage && (!historyToSend.length || historyToSend[historyToSend.length - 1].text !== inputMessage)) {
+        if (inputMessage && historyToSend.at(-1)?.text !== inputMessage) {
           historyToSend.push({ role: 'user', text: inputMessage });
         }
 
-        const serverResponse = await fetch(
-          `${runtimeBaseUrl}/api/flow/execute/stream`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            signal: controller.signal,
-            body: JSON.stringify({
-              nodes: getNodes(),
-              edges: getEdges(),
-              flowId: getFlowId(),
-              inputMessage,
-              chatHistory: historyToSend,
-              isSilent,
-              globalVariables: getGlobalVariables(),
-            }),
-          },
-        );
+        const serverResponse = await fetch(`${runtimeBaseUrl}/api/flow/execute/stream`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          signal: controller.signal,
+          body: JSON.stringify({
+            nodes: getNodes(),
+            edges: getEdges(),
+            flowId: getFlowId(),
+            inputMessage,
+            chatHistory: historyToSend,
+            isSilent,
+            globalVariables: getGlobalVariables(),
+          }),
+        });
 
         if (!serverResponse.ok || !serverResponse.body) {
           const payload = await serverResponse.json().catch(() => ({}));
@@ -159,15 +167,15 @@ export const useFlowExecution = ({
 
         const reader = serverResponse.body.getReader();
         const decoder = new TextDecoder();
-        let buffer = "";
-        let finalResultText = "";
+        let buffer = '';
+        let finalResultText = '';
 
         while (true) {
           const { value, done } = await reader.read();
           if (done) break;
           buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split("\n");
-          buffer = lines.pop() ?? "";
+          const lines = buffer.split('\n');
+          buffer = lines.pop() ?? '';
 
           for (const line of lines) {
             const raw = line.trim();
@@ -176,51 +184,59 @@ export const useFlowExecution = ({
               const event = JSON.parse(raw);
               const { type, message, nodeId, data, chunk, output } = event;
 
-              if (type === "log" || type === "error" || type === "nodeUpdate") {
+              if (type === 'log' || type === 'error' || type === 'nodeUpdate') {
                 setExecutionLogs((prev) => [
                   {
                     id: Math.random().toString(36).substr(2, 9),
                     time: new Date().toLocaleTimeString(),
                     type,
-                    message: message || (type === "nodeUpdate" ? `Node ${nodeId} status: ${data?.status}` : ""),
+                    message:
+                      message ||
+                      (type === 'nodeUpdate' ? `Node ${nodeId} status: ${data?.status}` : ''),
                     nodeId,
                   },
                   ...prev.slice(0, 99),
                 ]);
               }
 
-              if (type === "llm_chunk" && chunk && !isSilent) {
+              if (type === 'llm_chunk' && chunk && !isSilent) {
                 appendAssistantOutput(chunk);
               }
 
-              if (type === "done" && output) {
+              if (type === 'done' && output) {
                 finalResultText = typeof output === 'string' ? output : output.text || '';
               }
 
               switch (type) {
-                case "log":
+                case 'log':
                   addLog(message);
                   break;
-                case "nodeUpdate":
+                case 'nodeUpdate':
                   if (!isSilent) {
-                    setNodes((nds) => nds.map((n) => n.id === nodeId ? { ...n, data: { ...n.data, ...data } } : n));
+                    setNodes((nds) =>
+                      nds.map((n) =>
+                        n.id === nodeId ? { ...n, data: { ...n.data, ...data } } : n,
+                      ),
+                    );
                   }
                   break;
-                case "error":
+                case 'error':
                   if (!isSilent) setPlaygroundError(message);
                   break;
               }
-            } catch (e) {}
+            } catch (e) {
+              // Aborting mid-stream is expected; nothing to clean up.
+            }
           }
         }
 
-        if (!isSilent) setRuntimeStatus("success");
+        if (!isSilent) setRuntimeStatus('success');
         return finalResultText;
-      } catch (err: any) {
-        if (err.name === 'AbortError') {
+      } catch (err) {
+        if (isAbortError(err)) {
           setRuntimeStatus('cancelled');
         } else {
-          setPlaygroundError(err.message);
+          setPlaygroundError(toErrorMessage(err));
           setRuntimeStatus('error');
         }
         return null;
@@ -230,12 +246,22 @@ export const useFlowExecution = ({
         }
       }
     },
-    [getNodes, getEdges, getGlobalVariables, setNodes, setIsLogsOpenExclusive, appendAssistantOutput, setRuntimeStatus, setPlaygroundError]
+    [
+      getNodes,
+      getEdges,
+      getGlobalVariables,
+      getFlowId,
+      setNodes,
+      setIsLogsOpenExclusive,
+      appendAssistantOutput,
+      setRuntimeStatus,
+      setPlaygroundError,
+    ],
   );
 
   const onSendMessage = useCallback(
     async (msg: string) => {
-      setPlaygroundMessages((prev) => [...prev, { role: "user", text: msg }]);
+      setPlaygroundMessages((prev) => [...prev, { role: 'user', text: msg }]);
       setIsPlaygroundTyping(true);
 
       const response = await executeFlow(msg, false, { showLogs: false });
@@ -252,24 +278,31 @@ export const useFlowExecution = ({
     setIsPlaygroundOpen(true);
     setPlaygroundMessages((prev) => [
       ...prev,
-      { role: "user", text: "[System: Deploy Flow Triggered]" },
+      { role: 'user', text: '[System: Deploy Flow Triggered]' },
     ]);
 
     const isValid = onValidateFlow(false);
     if (!isValid) {
-      setActiveDockTab("validation");
-      setPlaygroundError("Deploy aborted. Fix validation errors shown on flow and run again.");
+      setActiveDockTab('validation');
+      setPlaygroundError('Deploy aborted. Fix validation errors shown on flow and run again.');
       return;
     }
 
     setIsPlaygroundTyping(true);
     const response = await executeFlow();
     setIsPlaygroundTyping(false);
-    
+
     if (response) {
       appendAssistantOutput(response);
     }
-  }, [executeFlow, appendAssistantOutput, onValidateFlow, setIsPlaygroundOpen, setActiveDockTab, setPlaygroundError]);
+  }, [
+    executeFlow,
+    appendAssistantOutput,
+    onValidateFlow,
+    setIsPlaygroundOpen,
+    setActiveDockTab,
+    setPlaygroundError,
+  ]);
 
   const onClearPlaygroundMessages = useCallback(() => {
     setPlaygroundMessages(INITIAL_PLAYGROUND_MESSAGES);
@@ -287,7 +320,7 @@ export const useFlowExecution = ({
       const globalVariables = getGlobalVariables();
 
       // BFS/DFS backwards from nodeId to collect ancestor node ids
-      const edgesById = new Map<string, Edge[]>();
+      const edgesById = new Map<string, CustomEdgeType[]>();
       edges.forEach((e) => {
         const list = edgesById.get(e.target) ?? [];
         list.push(e);
@@ -304,20 +337,21 @@ export const useFlowExecution = ({
       }
 
       const subNodes = nodes.filter((n) => visited.has(n.id));
-      const subEdges = edges.filter(
-        (e) => visited.has(e.source) && visited.has(e.target),
-      );
+      const subEdges = edges.filter((e) => visited.has(e.source) && visited.has(e.target));
 
       if (subNodes.length === 0) return;
 
       setIsPlaygroundOpen(true);
       setPlaygroundMessages((prev) => [
         ...prev,
-        { role: 'user', text: `[System: Run Node — ${subNodes.find((n) => n.id === nodeId)?.data?.label ?? nodeId}]` },
+        {
+          role: 'user',
+          text: `[System: Run Node — ${subNodes.find((n) => n.id === nodeId)?.data?.label ?? nodeId}]`,
+        },
       ]);
       setIsPlaygroundTyping(true);
 
-      const runtimeBaseUrl = (import.meta as any).env?.VITE_RUNTIME_URL || 'http://localhost:8787';
+      const runtimeBaseUrl = import.meta.env.VITE_RUNTIME_URL || 'http://localhost:8787';
 
       executionAbortRef.current?.abort();
       const controller = new AbortController();
@@ -335,20 +369,17 @@ export const useFlowExecution = ({
       );
 
       try {
-        const serverResponse = await fetch(
-          `${runtimeBaseUrl}/api/flow/execute/stream`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            signal: controller.signal,
-            body: JSON.stringify({
-              nodes: subNodes,
-              edges: subEdges,
-              globalVariables,
-              isSilent: false,
-            }),
-          },
-        );
+        const serverResponse = await fetch(`${runtimeBaseUrl}/api/flow/execute/stream`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          signal: controller.signal,
+          body: JSON.stringify({
+            nodes: subNodes,
+            edges: subEdges,
+            globalVariables,
+            isSilent: false,
+          }),
+        });
 
         if (!serverResponse.ok || !serverResponse.body) {
           const payload = await serverResponse.json().catch(() => ({}));
@@ -381,7 +412,9 @@ export const useFlowExecution = ({
               if (event.type === 'error') {
                 setPlaygroundError(event.message ?? 'Execution error');
               }
-            } catch { /* ignore parse errors */ }
+            } catch {
+              /* ignore parse errors */
+            }
           });
         }
 
@@ -390,9 +423,9 @@ export const useFlowExecution = ({
           ...prev,
           { role: 'system', text: '[System: Node execution completed]' },
         ]);
-      } catch (err: any) {
-        if (err.name !== 'AbortError') {
-          setPlaygroundError(err.message);
+      } catch (err) {
+        if (!isAbortError(err)) {
+          setPlaygroundError(toErrorMessage(err));
           setRuntimeStatus('error');
         } else {
           setRuntimeStatus('cancelled');
@@ -401,7 +434,15 @@ export const useFlowExecution = ({
         setIsPlaygroundTyping(false);
       }
     },
-    [getNodes, getEdges, getGlobalVariables, setNodes, setIsPlaygroundOpen, setRuntimeStatus, setPlaygroundError]
+    [
+      getNodes,
+      getEdges,
+      getGlobalVariables,
+      setNodes,
+      setIsPlaygroundOpen,
+      setRuntimeStatus,
+      setPlaygroundError,
+    ],
   );
 
   return {

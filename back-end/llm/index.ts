@@ -1,9 +1,13 @@
+import type { ChatMessage } from '@n2flow/types';
 import type { LlmRuntimeConfig, AgentTool, LlmProvider } from './types';
-import { runOpenAICompatibleChat, listModels as openaiList, embedText as openaiEmbed } from './openai';
+import {
+  runOpenAICompatibleChat,
+  listModels as openaiList,
+  embedText as openaiEmbed,
+} from './openai';
 import { runOllamaChat, listModels as ollamaList, embedText as ollamaEmbed } from './ollama';
 import { runGoogleChat, listModels as genaiList, embedText as genaiEmbed } from './genai';
-import { runAnthropicChat, listModels as anthropicList, embedText as anthropicEmbed } from './anthropic';
-import { tryFetchModelsFromBase } from './utils';
+import { runAnthropicChat, listModels as anthropicList } from './anthropic';
 
 export type { LlmRuntimeConfig, AgentTool, LlmProvider };
 
@@ -40,10 +44,14 @@ const resolveAdapter = (cfg: LlmRuntimeConfig): Adapter => {
 export const listModels = async (cfg: LlmRuntimeConfig) => {
   const adapter = resolveAdapter(cfg);
   switch (adapter) {
-    case 'anthropic': return anthropicList(cfg);
-    case 'google':    return genaiList(cfg);
-    case 'ollama':    return ollamaList(cfg);
-    default:          return openaiList(cfg);
+    case 'anthropic':
+      return anthropicList(cfg);
+    case 'google':
+      return genaiList(cfg);
+    case 'ollama':
+      return ollamaList(cfg);
+    default:
+      return openaiList(cfg);
   }
 };
 
@@ -55,26 +63,69 @@ export const runChat = async (
   executeToolByName?: (name: string, callArgs: Record<string, string>) => Promise<string>,
   log?: (msg: string) => void,
   onStream?: (chunk: string) => void,
-  chatHistory: any[] = [],
+  chatHistory: ChatMessage[] = [],
 ) => {
   const safeLog = typeof log === 'function' ? log : () => {};
   const exec = executeToolByName || (async () => '');
   const adapter = resolveAdapter(cfg);
 
   switch (adapter) {
-    case 'anthropic':    return runAnthropicChat(cfg, systemPrompt, userPrompt, availableTools, exec, safeLog, onStream, chatHistory);
-    case 'google':       return runGoogleChat(cfg, systemPrompt, userPrompt, availableTools, exec, safeLog, onStream, chatHistory);
-    case 'ollama':       return runOllamaChat(cfg, systemPrompt, userPrompt, availableTools, exec, safeLog, onStream, chatHistory);
-    default:             return runOpenAICompatibleChat(cfg, systemPrompt, userPrompt, availableTools, exec, safeLog, onStream, chatHistory);
+    case 'anthropic':
+      return runAnthropicChat(
+        cfg,
+        systemPrompt,
+        userPrompt,
+        availableTools,
+        exec,
+        safeLog,
+        onStream,
+        chatHistory,
+      );
+    case 'google':
+      return runGoogleChat(
+        cfg,
+        systemPrompt,
+        userPrompt,
+        availableTools,
+        exec,
+        safeLog,
+        onStream,
+        chatHistory,
+      );
+    case 'ollama':
+      return runOllamaChat(
+        cfg,
+        systemPrompt,
+        userPrompt,
+        availableTools,
+        exec,
+        safeLog,
+        onStream,
+        chatHistory,
+      );
+    default:
+      return runOpenAICompatibleChat(
+        cfg,
+        systemPrompt,
+        userPrompt,
+        availableTools,
+        exec,
+        safeLog,
+        onStream,
+        chatHistory,
+      );
   }
 };
 
 export const embedText = async (cfg: LlmRuntimeConfig, input: string) => {
   const adapter = resolveAdapter(cfg);
   switch (adapter) {
-    case 'google': return genaiEmbed(cfg, input);
-    case 'ollama': return ollamaEmbed(cfg, input);
-    default:       return openaiEmbed(cfg, input);
+    case 'google':
+      return genaiEmbed(cfg, input);
+    case 'ollama':
+      return ollamaEmbed(cfg, input);
+    default:
+      return openaiEmbed(cfg, input);
   }
 };
 

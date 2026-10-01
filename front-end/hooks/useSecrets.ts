@@ -20,9 +20,9 @@ export const useSecrets = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await apiService.get('/api/secrets');
+      const response = await apiService.get<Secret[]>('/api/secrets');
       if (response.ok) {
-        const mapped = (response.data || []).map((s: any) => ({
+        const mapped = (response.data || []).map((s: Secret) => ({
           ...s,
           key: s.keyPreview || s.key || '',
         }));
@@ -39,7 +39,7 @@ export const useSecrets = () => {
 
   const getSecretValue = async (secretId: string): Promise<string | null> => {
     try {
-      const response = await apiService.get(`/api/secrets/${secretId}`);
+      const response = await apiService.get<{ key: string }>(`/api/secrets/${secretId}`);
       if (response.ok) {
         return response.data?.key || null;
       }
@@ -63,7 +63,7 @@ export const useSecrets = () => {
   };
 
   useEffect(() => {
-    loadSecrets();
+    void loadSecrets();
   }, []);
 
   return {

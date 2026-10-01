@@ -1,3 +1,5 @@
+import type { NextFunction, Request, Response } from 'express';
+
 /**
  * Standardized API response wrapper
  * Ensures consistent response format across all endpoints
@@ -5,14 +7,16 @@
 
 export interface ApiResponse<T = unknown> {
   ok: boolean;
-  data?: T;
-  error?: string;
-  pagination?: {
-    limit: number;
-    offset: number;
-    total: number;
-    hasMore: boolean;
-  };
+  data?: T | undefined;
+  error?: string | undefined;
+  pagination?:
+    | {
+        limit: number;
+        offset: number;
+        total: number;
+        hasMore: boolean;
+      }
+    | undefined;
 }
 
 export interface ApiError {
@@ -23,7 +27,10 @@ export interface ApiError {
 /**
  * Create a success response
  */
-export const successResponse = <T>(data?: T, pagination?: ApiResponse['pagination']): ApiResponse<T> => ({
+export const successResponse = <T>(
+  data?: T,
+  pagination?: ApiResponse['pagination'],
+): ApiResponse<T> => ({
   ok: true,
   data,
   pagination,
@@ -38,12 +45,14 @@ export const errorResponse = (error: string): ApiError => ({
 });
 
 /**
- * Wrapper for route handlers that automatically formats responses
+ * Wrap an async route handler so a rejected promise is forwarded to Express'
+ * error middleware instead of becoming an unhandled rejection.
+ *
+ * `P` is the request type, so handlers that need an augmented `req` (e.g.
+ * `AuthRequest`) can opt in: `asyncHandler<AuthRequest>(async (req, res) => ...)`.
  */
-export const asyncHandler = (
-  handler: (req: any, res: any, next?: any) => Promise<void>
-) => {
-  return (req: any, res: any, next?: any) => {
-    Promise.resolve(handler(req, res, next)).catch(next);
+export const asyncHandler =
+  <P = Request>(handler: (req: P, res: Response, next: NextFunction) => Promise<void>) =>
+  (req: Request, res: Response, next: NextFunction): void => {
+    void Promise.resolve(handler(req as P, res, next)).catch(next);
   };
-};

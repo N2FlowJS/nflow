@@ -1,9 +1,14 @@
 import { codeExecutionHandler } from './tools/code.js';
+import { createLogger } from './utils/logger';
+import type { FlowNode } from './flowTypes';
+import type { ExecutionOptions } from './tools/registry';
+
+const logger = createLogger('TestSandbox');
 
 async function testVulnerability() {
-  console.log('[Test] Starting infinite loop evaluation...');
+  logger.info('[Test] Starting infinite loop evaluation...');
   const start = Date.now();
-  
+
   // Create a mock node object
   const node = {
     id: 'test-node-1',
@@ -12,28 +17,33 @@ async function testVulnerability() {
     data: {
       type: 'CodeExecutionComponent',
       configSchema: [
-        { name: 'code', value: `
+        {
+          name: 'code',
+          value: `
           while(true) {
             // Infinite loop simulating malicious or locked user code
           }
-        `}
-      ]
-    }
-  } as any;
+        `,
+        },
+      ],
+    },
+  } as unknown as FlowNode;
 
-  const result = await codeExecutionHandler(node, {}, {} as any);
+  const result = await codeExecutionHandler(node, {}, {} as ExecutionOptions);
   const elapsed = Date.now() - start;
-  
-  console.log(`[Test] Completed in ${elapsed}ms`);
-  console.log('[Test] Final Output:', result);
-  
+
+  logger.info(`[Test] Completed in ${elapsed}ms`);
+  logger.info('[Test] Final Output:', result);
+
   if (String(result).includes('Error executing JS code: Error: Script execution timed out')) {
-    console.log('✅ Vulnerability successfully mitigated! The exact 1500ms timeout fired correctly!');
+    logger.info(
+      '✅ Vulnerability successfully mitigated! The exact 1500ms timeout fired correctly!',
+    );
     process.exit(0);
   } else {
-    console.log('❌ Bug still exists. The wrapper failed to timeout or failed differently.');
+    logger.info('❌ Bug still exists. The wrapper failed to timeout or failed differently.');
     process.exit(1);
   }
 }
 
-testVulnerability();
+void testVulnerability();

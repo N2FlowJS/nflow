@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { shouldSkipNode, resolveNodeConfig, collectNodeInputs } from '../services/engine/inputResolver';
-import type { FlowNode, FlowEdge } from '../flowTypes';
+import { shouldSkipNode, resolveNodeConfig } from '../services/engine/inputResolver';
+import type { FlowNode, FlowEdge, GlobalVariable } from '../flowTypes';
 import type { NodeStatus } from '../services/engine/graphBuilder';
 
 describe('inputResolver', () => {
@@ -18,19 +18,25 @@ describe('inputResolver', () => {
     it('should skip node if all incoming branches are inactive (ConditionComponent)', () => {
       const nodeId = 'target';
       const incomingMap = new Map<string, FlowEdge[]>([
-        ['target', [
-          { id: 'e1', source: 'cond', target: 'target', sourceHandle: 'true' } as FlowEdge
-        ]]
+        [
+          'target',
+          [{ id: 'e1', source: 'cond', target: 'target', sourceHandle: 'true' } as FlowEdge],
+        ],
       ]);
       const nodeById = new Map<string, FlowNode>([
-        ['cond', { id: 'cond', position: { x: 0, y: 0 }, data: { label: 'cond', type: 'ConditionComponent' } } as FlowNode]
+        [
+          'cond',
+          {
+            id: 'cond',
+            position: { x: 0, y: 0 },
+            data: { label: 'cond', type: 'ConditionComponent' },
+          } as FlowNode,
+        ],
       ]);
       const nodeResults = new Map<string, unknown>([
-        ['cond', false] // Condition result is false, but edge is for 'true'
+        ['cond', false], // Condition result is false, but edge is for 'true'
       ]);
-      const nodeStatus = new Map<string, NodeStatus>([
-        ['cond', 'success']
-      ]);
+      const nodeStatus = new Map<string, NodeStatus>([['cond', 'success']]);
 
       expect(shouldSkipNode(nodeId, incomingMap, nodeById, nodeResults, nodeStatus)).toBe(true);
     });
@@ -38,19 +44,25 @@ describe('inputResolver', () => {
     it('should not skip node if at least one incoming branch is active', () => {
       const nodeId = 'target';
       const incomingMap = new Map<string, FlowEdge[]>([
-        ['target', [
-          { id: 'e1', source: 'cond', target: 'target', sourceHandle: 'true' } as FlowEdge
-        ]]
+        [
+          'target',
+          [{ id: 'e1', source: 'cond', target: 'target', sourceHandle: 'true' } as FlowEdge],
+        ],
       ]);
       const nodeById = new Map<string, FlowNode>([
-        ['cond', { id: 'cond', position: { x: 0, y: 0 }, data: { label: 'cond', type: 'ConditionComponent' } } as FlowNode]
+        [
+          'cond',
+          {
+            id: 'cond',
+            position: { x: 0, y: 0 },
+            data: { label: 'cond', type: 'ConditionComponent' },
+          } as FlowNode,
+        ],
       ]);
       const nodeResults = new Map<string, unknown>([
-        ['cond', 'true'] // Matches edge handle
+        ['cond', 'true'], // Matches edge handle
       ]);
-      const nodeStatus = new Map<string, NodeStatus>([
-        ['cond', 'success']
-      ]);
+      const nodeStatus = new Map<string, NodeStatus>([['cond', 'success']]);
 
       expect(shouldSkipNode(nodeId, incomingMap, nodeById, nodeResults, nodeStatus)).toBe(false);
     });
@@ -65,15 +77,13 @@ describe('inputResolver', () => {
           label: 'node-2',
           type: 'Agent',
           params: {
-            text: 'Hello {{nodes.node-1.name}}'
-          }
-        }
+            text: 'Hello {{nodes.node-1.name}}',
+          },
+        },
       } as FlowNode;
 
-      const globalVariables: any[] = [];
-      const nodeResults = new Map<string, unknown>([
-        ['node-1', { name: 'World' }]
-      ]);
+      const globalVariables: GlobalVariable[] = [];
+      const nodeResults = new Map<string, unknown>([['node-1', { name: 'World' }]]);
 
       const resolved = resolveNodeConfig(node, globalVariables, nodeResults);
       expect(resolved.data.params?.text).toBe('Hello World');
@@ -87,12 +97,14 @@ describe('inputResolver', () => {
           label: 'node-2',
           type: 'Agent',
           params: {
-            apiKey: '{{MY_KEY}}'
-          }
-        }
+            apiKey: '{{MY_KEY}}',
+          },
+        },
       } as FlowNode;
 
-      const globalVariables = [{ name: 'MY_KEY', value: 'secret-123' }];
+      const globalVariables: GlobalVariable[] = [
+        { id: 'g1', name: 'MY_KEY', value: 'secret-123' },
+      ];
       const nodeResults = new Map<string, unknown>();
 
       const resolved = resolveNodeConfig(node, globalVariables, nodeResults);

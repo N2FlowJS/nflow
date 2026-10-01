@@ -1,26 +1,32 @@
 import type { Node, Edge } from '@xyflow/react';
 
 /**
+ * A single editable field on a node's config schema.
+ */
+export type ConfigSchemaField = {
+  label: string;
+  name: string;
+  type: 'text' | 'password' | 'number' | 'select' | 'textarea' | 'boolean';
+  options?: string[] | undefined;
+  value?: string | number | boolean | undefined;
+  hidden?: boolean | undefined;
+};
+
+/**
  * Shared Node Data structure for both Frontend and Backend
  */
 export type NodeData = {
   label: string;
   type: string;
-  description?: string;
-  status?: 'idle' | 'running' | 'success' | 'error' | 'cancelled';
-  errorMessage?: string;
-  lastInput?: any;
-  lastOutput?: any;
-  params?: Record<string, any>;
-  configSchema?: {
-    label: string;
-    name: string;
-    type: 'text' | 'password' | 'number' | 'select' | 'textarea' | 'boolean';
-    options?: string[];
-    value?: string | number | boolean;
-    hidden?: boolean;
-  }[];
-  [key: string]: any;
+  description?: string | undefined;
+  status?: 'idle' | 'running' | 'success' | 'error' | 'cancelled' | undefined;
+  errorMessage?: string | undefined;
+  lastInput?: unknown;
+  lastOutput?: unknown;
+  params?: Record<string, unknown> | undefined;
+  configSchema?: ConfigSchemaField[] | undefined;
+  /** Frontend-only: a `cyberGroup` node's collapsed state. */
+  isCollapsed?: boolean | undefined;
 };
 
 export type PortDataType =
@@ -31,19 +37,27 @@ export type PortDataType =
   | 'boolean_route'
   | 'any';
 
+export type NodeFieldValue = string | number | boolean;
+
+/** Anything that can supply a node's configured field values. */
+export type NodeConfigSource = {
+  configSchema?: ConfigSchemaField[] | undefined;
+  params?: Record<string, unknown> | undefined;
+};
+
 export interface HandleConfig {
-  id?: string;
+  id?: string | undefined;
   portType: PortDataType;
   position: 'left' | 'right' | 'top' | 'bottom';
-  offsetPercent?: number;
-  borderClass?: string;
-  hoverBorderClass?: string;
-  labelText?: string;
-  labelClassName?: string;
-  badgeParamKey?: string;
-  badgeFallback?: PortDataType;
-  badgeClassName?: string;
-  shouldShow?: (data: any) => boolean;
+  offsetPercent?: number | undefined;
+  borderClass?: string | undefined;
+  hoverBorderClass?: string | undefined;
+  labelText?: string | undefined;
+  labelClassName?: string | undefined;
+  badgeParamKey?: string | undefined;
+  badgeFallback?: PortDataType | undefined;
+  badgeClassName?: string | undefined;
+  shouldShow?: ((data: NodeConfigSource) => boolean) | undefined;
 }
 
 export type GlobalVariable = {
@@ -75,22 +89,22 @@ export interface FlowVersion {
 export interface SavedFlow {
   id: string;
   name: string;
-  data?: FlowData;
-  versions?: FlowVersion[];
-  nodeCount?: number;
-  edgeCount?: number;
+  data?: FlowData | undefined;
+  versions?: FlowVersion[] | undefined;
+  nodeCount?: number | undefined;
+  edgeCount?: number | undefined;
   updatedAt: number;
-  userId?: string;
+  userId?: string | undefined;
 }
 
 /**
  * Unified API Response Structure
  */
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   ok: boolean;
-  data?: T;
-  error?: string;
-  meta?: Record<string, any>;
+  data?: T | undefined;
+  error?: string | undefined;
+  meta?: Record<string, unknown> | undefined;
 }
 
 /**
@@ -139,18 +153,30 @@ export type FlowRuntimeEventType =
   | 'flow_end'
   | 'node_start'
   | 'node_end'
+  | 'nodeUpdate'
   | 'node_error'
   | 'log'
-  | 'checkpoint';
+  | 'checkpoint'
+  // Emitted over the execution SSE stream.
+  | 'ping'
+  | 'result'
+  | 'llm_chunk'
+  | 'error'
+  | 'done';
 
 export interface FlowRuntimeEvent {
   type: FlowRuntimeEventType;
-  timestamp: number;
+  /** Added by the engine's `emit`; events forwarded by a node do not carry one. */
+  timestamp?: number;
   nodeId?: string;
   nodeLabel?: string;
-  data?: any;
+  data?: unknown;
   message?: string;
   executionId?: string;
+  /** Incremental LLM output, carried by `llm_chunk`. */
+  chunk?: string;
+  /** Final flow output, carried by `result` / `done`. */
+  output?: unknown;
 }
 
 /**
@@ -170,9 +196,9 @@ export const PLACEHOLDER_REGEX = /\{\{\s*([^{}]+?)\s*\}\}/g;
  * Common Logic for Placeholder Validation (Server & Client)
  */
 export const validatePlaceholdersInString = (
-  value: string, 
+  value: string,
   availableNames: Set<string>,
-  checkEnv = false
+  checkEnv = false,
 ): string | null => {
   const matches = value.matchAll(PLACEHOLDER_REGEX);
 
@@ -183,10 +209,11 @@ export const validatePlaceholdersInString = (
     const exists = availableNames.has(placeholderName);
     if (!exists) {
       if (checkEnv) {
-         // This check is specific to server environment
-         // We use any type to avoid global process type issues in pure TS
-         const env = (typeof process !== 'undefined' ? process.env : {}) as any;
-         if (env[placeholderName] !== undefined) continue;
+        // Server-side only: a placeholder may also resolve from the environment.
+        // Typed structurally so this package stays free of a Node type dependency.
+        const env: Record<string, string | undefined> =
+          typeof process !== 'undefined' ? (process.env as Record<string, string | undefined>) : {};
+        if (env[placeholderName] !== undefined) continue;
       }
       return `Placeholder "{{${placeholderName}}}" could not be resolved`;
     }
@@ -237,8 +264,8 @@ export const Utils = {
     try {
       const stringified = JSON.stringify(err);
       if (stringified.includes('{"error"')) {
-         const payload = JSON.parse(stringified);
-         return payload.error?.message || payload.error || stringified;
+        const payload = JSON.parse(stringified);
+        return payload.error?.message || payload.error || stringified;
       }
       return stringified;
     } catch {
@@ -253,7 +280,7 @@ export const Utils = {
     // Standard secret patterns (NVIDIA, OpenAI, Github, Gitlab, Google Cloud)
     const isKey = /^(?:Bearer\s+)?(?:nvapi-|sk-|pk-|ghp_|glpat-|AIza|xoxb-|ya29\.)/i.test(s);
     return isKey || s.length >= 32;
-  }
+  },
 };
 
 /**
@@ -261,9 +288,13 @@ export const Utils = {
  */
 export const ValidationRules = {
   /** Check if Agent node has LLM connected */
-  validateAgentNode: (node: any, context: { edges: any[] }): FlowValidationIssue[] => {
+  validateAgentNode: (
+    node: CustomNodeType,
+    context: { edges: CustomEdgeType[] },
+  ): FlowValidationIssue[] => {
     const hasLlm = context.edges.some(
-      (e) => e.target === node.id && (e.targetHandle === 'agent_llm' || e.targetHandle?.includes('llm')),
+      (e) =>
+        e.target === node.id && (e.targetHandle === 'agent_llm' || e.targetHandle?.includes('llm')),
     );
     if (hasLlm) return [];
 
@@ -277,10 +308,10 @@ export const ValidationRules = {
   },
 
   /** Check if mandatory parameters are filled */
-  validateRequiredParams: (node: any, paramKeys: string[]): FlowValidationIssue[] => {
+  validateRequiredParams: (node: CustomNodeType, paramKeys: string[]): FlowValidationIssue[] => {
     const issues: FlowValidationIssue[] = [];
     const params = node.data?.params || {};
-    
+
     for (const key of paramKeys) {
       const val = params[key];
       if (val === undefined || val === null || (typeof val === 'string' && val.trim() === '')) {
@@ -296,17 +327,23 @@ export const ValidationRules = {
   },
 
   /** Check if a specific parameter is filled */
-  validateSingleParam: (node: any, paramKey: string, level: ValidationLevel = 'error', message?: string): FlowValidationIssue[] => {
+  validateSingleParam: (
+    node: CustomNodeType,
+    paramKey: string,
+    level: ValidationLevel = 'error',
+    message?: string,
+  ): FlowValidationIssue[] => {
     const val = node.data?.params?.[paramKey];
     if (val === undefined || val === null || (typeof val === 'string' && val.trim() === '')) {
-      return [{
-        level,
-        nodeId: node.id,
-        fieldName: paramKey,
-        message: message || `Parameter "${paramKey}" is required for ${node.data.label}.`,
-      }];
+      return [
+        {
+          level,
+          nodeId: node.id,
+          fieldName: paramKey,
+          message: message || `Parameter "${paramKey}" is required for ${node.data.label}.`,
+        },
+      ];
     }
     return [];
-  }
+  },
 };
-

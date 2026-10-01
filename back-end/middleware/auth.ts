@@ -1,5 +1,5 @@
-import { Request, Response, NextFunction } from "express";
-import { AuthService } from "../services/authService";
+import { type Request, type Response, type NextFunction } from 'express';
+import { AuthService } from '../services/authService';
 
 /**
  * Authentication middleware for flow execution endpoints.
@@ -33,7 +33,9 @@ function extractBearerToken(req: AuthRequest): string | null {
   return token || null;
 }
 
-function applyAuthContext(req: AuthRequest): { ok: true } | { ok: false; status: number; error: string } {
+function applyAuthContext(
+  req: AuthRequest,
+): { ok: true } | { ok: false; status: number; error: string } {
   const bearerToken = extractBearerToken(req);
   if (bearerToken) {
     const token = bearerToken;
@@ -95,13 +97,13 @@ export const authMiddleware = async (
 
 function extractApiKey(req: AuthRequest): string | null {
   // Try X-API-Key header
-  const apiKeyHeader = req.headers["x-api-key"];
-  if (typeof apiKeyHeader === "string") {
+  const apiKeyHeader = req.headers['x-api-key'];
+  if (typeof apiKeyHeader === 'string') {
     return apiKeyHeader.trim();
   }
 
   // Try body (for POST requests without headers)
-  if (req.body && typeof req.body.apiKey === "string") {
+  if (req.body && typeof req.body.apiKey === 'string') {
     return req.body.apiKey.trim();
   }
 
@@ -116,7 +118,7 @@ function isValidApiKey(apiKey: string): boolean {
   // If VALID_API_KEYS is set, validate against whitelist
   const validKeys = process.env.VALID_API_KEYS;
   if (validKeys) {
-    const keyList = validKeys.split(",").map((k) => k.trim());
+    const keyList = validKeys.split(',').map((k) => k.trim());
     return keyList.includes(apiKey);
   }
 
@@ -133,18 +135,14 @@ function isValidApiKey(apiKey: string): boolean {
 function extractUserIdFromKey(apiKey: string): string {
   // Extract user ID from key structure or return generic ID
   // Format: sk_<environment>_<timestamp>_<hash>
-  const parts = apiKey.split("_");
-  return parts.length > 1 ? parts[1] : "unknown";
+  const parts = apiKey.split('_');
+  return parts[1] ?? 'unknown';
 }
 
 /**
  * Optional: Skip auth for specific routes
  */
-export const optionalAuth = (
-  req: AuthRequest,
-  res: Response,
-  next: NextFunction,
-): void => {
+export const optionalAuth = (req: AuthRequest, res: Response, next: NextFunction): void => {
   const authResult = applyAuthContext(req);
   if (!authResult.ok) {
     res.status(authResult.status).json({

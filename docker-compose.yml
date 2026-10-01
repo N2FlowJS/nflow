@@ -5,13 +5,34 @@ services:
     image: postgres:15-alpine
     restart: always
     environment:
-      POSTGRES_USER: n2flow
-      POSTGRES_PASSWORD: n2flow_password
-      POSTGRES_DB: n2flow_db
+      # Keep these in sync with DATABASE_URL in .env.example / back-end/.env.example
+      POSTGRES_USER: nflow
+      POSTGRES_PASSWORD: nflow123
+      POSTGRES_DB: nflow
     ports:
-      - "5432:5432"
+      - '5432:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U nflow -d nflow']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Applies the SQL migrations in back-end/migrations before the API starts, so
+  # a fresh `docker compose up` comes up with a usable schema.
+  migrate:
+    build:
+      context: .
+      dockerfile: back-end/Dockerfile
+    environment:
+      DATABASE_URL: postgresql://nflow:nflow123@db:5432/nflow
+      NODE_ENV: production
+    command: ['node', 'dist/back-end/scripts/migrate.js', 'apply']
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: 'no'
 
   backend:
     build:
@@ -19,15 +40,18 @@ services:
       dockerfile: back-end/Dockerfile
     restart: always
     environment:
-      DATABASE_URL: postgresql://n2flow:n2flow_password@db:5432/n2flow_db?schema=public
+      DATABASE_URL: postgresql://nflow:nflow123@db:5432/nflow
       SQL_SERVER_PORT: 8787
       JWT_SECRET: super_secret_jwt_key
       ENCRYPTION_KEY: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
       NODE_ENV: production
     ports:
-      - "8787:8787"
+      - '8787:8787'
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
 
   frontend:
     build:
@@ -35,7 +59,7 @@ services:
       dockerfile: front-end/Dockerfile
     restart: always
     ports:
-      - "80:80"
+      - '80:80'
     environment:
       VITE_API_BASE: http://localhost:8787/api
     depends_on:

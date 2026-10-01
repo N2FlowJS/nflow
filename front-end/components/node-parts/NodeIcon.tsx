@@ -1,8 +1,20 @@
 import React from 'react';
-import { 
-  Bot, BrainCircuit, Database, Search, MessageSquare, 
-  Terminal, Clock, Cpu, ArrowRightFromLine, Globe, 
-  GitMerge, FileJson, Type, Plus, LucideProps 
+import {
+  Bot,
+  BrainCircuit,
+  Database,
+  Search,
+  MessageSquare,
+  Terminal,
+  Clock,
+  Cpu,
+  ArrowRightFromLine,
+  Globe,
+  GitMerge,
+  FileJson,
+  Type,
+  Plus,
+  type LucideProps,
 } from 'lucide-react';
 
 export const iconComponents: Record<string, React.ElementType> = {
@@ -23,8 +35,8 @@ export const iconComponents: Record<string, React.ElementType> = {
 };
 
 interface NodeIconProps extends LucideProps {
-  name?: string;
-  fallback?: React.ElementType;
+  name?: string | undefined;
+  fallback?: React.ElementType | undefined;
 }
 
 export const NodeIcon = ({ name, fallback = Cpu, ...props }: NodeIconProps) => {

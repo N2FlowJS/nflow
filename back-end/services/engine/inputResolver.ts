@@ -1,4 +1,5 @@
-import type { FlowNode, FlowEdge } from '../../flowTypes';
+import type { ConfigSchemaField } from '@n2flow/types';
+import type { FlowNode, FlowEdge, GlobalVariable } from '../../flowTypes';
 import { resolveVariablePlaceholders } from '../../utils/common';
 import type { NodeStatus } from './graphBuilder';
 
@@ -60,7 +61,7 @@ export function collectNodeInputs(
  */
 export function resolveNodeConfig(
   node: FlowNode,
-  globalVariables: any[],
+  globalVariables: GlobalVariable[],
   nodeResults: Map<string, unknown>,
 ): FlowNode {
   const nodeResultsObj = Object.fromEntries(nodeResults.entries());
@@ -68,10 +69,10 @@ export function resolveNodeConfig(
   const resolveDynamic = (value: unknown): unknown => {
     // Recursively handle objects and arrays
     if (Array.isArray(value)) {
-      return value.map(v => resolveDynamic(v));
+      return value.map((v) => resolveDynamic(v));
     }
     if (value && typeof value === 'object') {
-      const resolved: Record<string, any> = {};
+      const resolved: Record<string, unknown> = {};
       for (const [k, v] of Object.entries(value)) {
         resolved[k] = resolveDynamic(v);
       }
@@ -83,15 +84,18 @@ export function resolveNodeConfig(
 
     // Second pass: {{nodes.ID}} / {{nodes.ID.field}}
     if (typeof afterStatic !== 'string') return afterStatic;
-    return afterStatic.replace(/\{\{\s*nodes\.([^.}\s]+)(?:\.([^}\s]+))?\s*\}\}/g, (_m, id, field) => {
-      const nodeOutput = nodeResultsObj[id];
-      if (nodeOutput === undefined) return _m;
-      if (!field) return String(nodeOutput ?? '');
-      if (nodeOutput && typeof nodeOutput === 'object') {
-        return String((nodeOutput as Record<string, unknown>)[field] ?? '');
-      }
-      return _m;
-    });
+    return afterStatic.replace(
+      /\{\{\s*nodes\.([^.}\s]+)(?:\.([^}\s]+))?\s*\}\}/g,
+      (_m, id, field) => {
+        const nodeOutput = nodeResultsObj[id];
+        if (nodeOutput === undefined) return _m;
+        if (!field) return String(nodeOutput ?? '');
+        if (nodeOutput && typeof nodeOutput === 'object') {
+          return String((nodeOutput as Record<string, unknown>)[field] ?? '');
+        }
+        return _m;
+      },
+    );
   };
 
   return {
@@ -99,10 +103,18 @@ export function resolveNodeConfig(
     data: {
       ...node.data,
       params: resolveDynamic(node.data?.params || {}) as Record<string, unknown>,
-      configSchema: node.data?.configSchema?.map((field: any) => ({
-        ...field,
-        value: resolveDynamic(field.value),
-      })),
+      configSchema: node.data?.configSchema?.map((field: ConfigSchemaField) => {
+        const resolvedValue = resolveDynamic(field.value);
+        // A schema value is a scalar by contract; anything else (an object or
+        // array from a template) is not a valid field value, so keep the original.
+        const value =
+          typeof resolvedValue === 'string' ||
+          typeof resolvedValue === 'number' ||
+          typeof resolvedValue === 'boolean'
+            ? resolvedValue
+            : field.value;
+        return { ...field, value };
+      }),
     },
   };
 }

@@ -1,4 +1,4 @@
-import { ToolHandler } from './registry';
+import { type ToolHandler } from './registry';
 import { fetchToolJson, extractNodeConfig } from './utils';
 
 const runSerperSearch = async (apiKey: string, query: string) => {
@@ -11,7 +11,7 @@ const runSerperSearch = async (apiKey: string, query: string) => {
       { 'X-API-KEY': apiKey },
       'Serper',
       'POST',
-      { q: query }
+      { q: query },
     );
 
     if (rawResult.startsWith('Error') || rawResult.startsWith('Security Error')) {
@@ -19,11 +19,13 @@ const runSerperSearch = async (apiKey: string, query: string) => {
     }
 
     const data = JSON.parse(rawResult);
-    const organic = (data.organic || []).slice(0, 5).map((item: any) => ({
-      title: item.title,
-      link: item.link,
-      snippet: item.snippet,
-    }));
+    const organic = (data.organic || [])
+      .slice(0, 5)
+      .map((item: Record<string, unknown>) => ({
+        title: item.title,
+        link: item.link,
+        snippet: item.snippet,
+      }));
 
     return JSON.stringify(organic);
   } catch (e) {
@@ -35,5 +37,5 @@ export const serperHandler: ToolHandler = async (node, args) => {
   const config = extractNodeConfig(node, ['apiKey', 'query']);
   const serperApiKey = String(config.apiKey || '');
   const query = String(args.query || config.query || '').replace('{query}', args.query || '');
-  return await runSerperSearch(serperApiKey, query);
+  return runSerperSearch(serperApiKey, query);
 };

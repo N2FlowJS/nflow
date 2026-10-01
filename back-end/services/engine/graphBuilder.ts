@@ -13,21 +13,21 @@ export interface GraphMaps {
 
 /** Build look-up maps (inDegree, adjacency, etc.) from raw node/edge arrays. */
 export function buildGraphMaps(nodes: FlowNode[], edges: FlowEdge[]): GraphMaps {
-  const nodeById    = new Map<string, FlowNode>(nodes.map(n => [n.id, n]));
-  const nonGroupCount = nodes.filter(n => n.type !== 'cyberGroup').length;
+  const nodeById = new Map<string, FlowNode>(nodes.map((n) => [n.id, n]));
+  const nonGroupCount = nodes.filter((n) => n.type !== 'cyberGroup').length;
 
-  const inDegree    = new Map<string, number>();
+  const inDegree = new Map<string, number>();
   const outgoingMap = new Map<string, string[]>();
   const incomingMap = new Map<string, FlowEdge[]>();
 
-  nodes.forEach(n => {
+  nodes.forEach((n) => {
     if (n.type !== 'cyberGroup') {
       inDegree.set(n.id, 0);
       outgoingMap.set(n.id, []);
     }
   });
 
-  edges.forEach(edg => {
+  edges.forEach((edg) => {
     if (inDegree.has(edg.target)) {
       inDegree.set(edg.target, (inDegree.get(edg.target) || 0) + 1);
     }
@@ -53,13 +53,15 @@ export function performTopologicalSort(
 ): string[] {
   const degree = new Map(inDegree);
   const queue: string[] = [];
-  degree.forEach((d, id) => { if (d === 0) queue.push(id); });
+  degree.forEach((d, id) => {
+    if (d === 0) queue.push(id);
+  });
 
   const sorted: string[] = [];
   while (queue.length > 0) {
     const cur = queue.shift()!;
     sorted.push(cur);
-    for (const nbr of (outgoingMap.get(cur) || [])) {
+    for (const nbr of outgoingMap.get(cur) || []) {
       const nd = (degree.get(nbr) ?? 1) - 1;
       degree.set(nbr, nd);
       if (nd === 0) queue.push(nbr);

@@ -5,32 +5,32 @@ import {
   getNodeSourceHandles,
   type NodeHandleContextData,
   normalizeNodeWithRegistry,
-} from "./index";
-import type { FlowNode as CustomNodeType } from "../flowTypes";
-import type { PortDataType } from "@n2flow/types";
+} from './index';
+import type { FlowNode as CustomNodeType } from '../flowTypes';
+import type { PortDataType } from '@n2flow/types';
 
 export type { PortDataType };
 
 export const PORT_TYPE_OPTIONS: PortDataType[] = [
-  "any",
-  "text",
-  "chat_model",
-  "embedding_model",
-  "tool",
-  "boolean_route",
+  'any',
+  'text',
+  'chat_model',
+  'embedding_model',
+  'tool',
+  'boolean_route',
 ];
 
 export const readPortType = (
-  nodeOrData: CustomNodeType | CustomNodeType["data"],
+  nodeOrData: CustomNodeType | CustomNodeType['data'],
   key: string,
   fallback: PortDataType,
 ): PortDataType => {
-  const data = "data" in nodeOrData ? nodeOrData.data : nodeOrData;
+  const data = 'data' in nodeOrData ? nodeOrData.data : nodeOrData;
   const raw = getNodeFieldValue(data as NodeHandleContextData, key);
-  if (typeof raw !== "string") return fallback;
-  
+  if (typeof raw !== 'string') return fallback;
+
   if (PORT_TYPE_OPTIONS.includes(raw as PortDataType)) {
-      return raw as PortDataType;
+    return raw as PortDataType;
   }
   return fallback;
 };
@@ -58,7 +58,7 @@ export const inferSourcePortType = (
     }
   }
 
-  return "any";
+  return 'any';
 };
 
 export const inferTargetPortType = (
@@ -75,8 +75,7 @@ export const inferTargetPortType = (
     }
   }
 
-  return "any";
+  return 'any';
 };
 
-export const normalizeModelNode = <T>(node: T): T =>
-  normalizeNodeWithRegistry(node);
+export const normalizeModelNode = <T>(node: T): T => normalizeNodeWithRegistry(node);

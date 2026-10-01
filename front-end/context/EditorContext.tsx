@@ -1,16 +1,12 @@
-import React, { createContext, useContext, ReactNode } from 'react';
-import { EditorContextProps } from '../types/editor';
+import React, { createContext, useContext, type ReactNode } from 'react';
+import { type EditorContextProps } from '../types/editor';
 import { useFlowEditor } from '../hooks/useFlowEditor';
 
 const EditorContext = createContext<EditorContextProps | null>(null);
 
 export const EditorProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const editor = useFlowEditor();
-  return (
-    <EditorContext.Provider value={editor}>
-      {children}
-    </EditorContext.Provider>
-  );
+  return <EditorContext.Provider value={editor}>{children}</EditorContext.Provider>;
 };
 
 export const useEditor = () => {

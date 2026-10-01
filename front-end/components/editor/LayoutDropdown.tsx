@@ -1,12 +1,12 @@
-import React, { useEffect, useRef, useState } from "react";
-import { ChevronRight, LucideIcon } from "lucide-react";
-import { CyberAction, CyberMenuItem, CyberMenuSurface } from "../shared/CyberUI";
+import React, { useEffect, useRef, useState } from 'react';
+import { ChevronRight, type LucideIcon } from 'lucide-react';
+import { CyberAction, CyberMenuItem, CyberMenuSurface } from '../shared/CyberUI';
 
 export interface DropdownItem {
   id: string;
   label: string;
   icon: LucideIcon;
-  tone?: "default" | "danger";
+  tone?: 'default' | 'danger';
   children?: DropdownItem[];
 }
 
@@ -38,8 +38,8 @@ const LayoutDropdown: React.FC<Props> = ({
         setActiveSubMenu(null);
       }
     };
-    document.addEventListener("mousedown", handle, true);
-    return () => document.removeEventListener("mousedown", handle, true);
+    document.addEventListener('mousedown', handle, true);
+    return () => document.removeEventListener('mousedown', handle, true);
   }, []);
 
   const handleItemClick = (item: DropdownItem) => {
@@ -79,15 +79,20 @@ const LayoutDropdown: React.FC<Props> = ({
                   key={item.id}
                   className="relative"
                   onMouseEnter={() => hasChildren && setActiveSubMenu(item.id)}
-                  onMouseLeave={() => hasChildren && setActiveSubMenu((current) => (current === item.id ? null : current))}
+                  onMouseLeave={() =>
+                    hasChildren &&
+                    setActiveSubMenu((current) => (current === item.id ? null : current))
+                  }
                 >
                   <CyberMenuItem
                     icon={item.icon}
                     label={item.label}
                     onClick={() => handleItemClick(item)}
-                    danger={item.tone === "danger"}
+                    danger={item.tone === 'danger'}
                     active={isSubMenuOpen}
-                    trailing={hasChildren ? <ChevronRight size={12} className="opacity-50" /> : undefined}
+                    trailing={
+                      hasChildren ? <ChevronRight size={12} className="opacity-50" /> : undefined
+                    }
                   />
 
                   {hasChildren && isSubMenuOpen && (
@@ -98,7 +103,7 @@ const LayoutDropdown: React.FC<Props> = ({
                           icon={child.icon}
                           label={child.label}
                           onClick={() => handleItemClick(child)}
-                          danger={child.tone === "danger"}
+                          danger={child.tone === 'danger'}
                         />
                       ))}
                     </CyberMenuSurface>

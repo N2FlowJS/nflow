@@ -3,47 +3,64 @@ import {
   useNodesState,
   useEdgesState,
   addEdge,
-  Connection,
-  Edge,
-  Node,
-  ReactFlowInstance,
+  type Connection,
+  type OnConnectEnd,
+  type OnConnectStart,
+  type ReactFlowInstance,
   useReactFlow,
-} from "@xyflow/react";
-import type { CustomNodeType } from "@n2flow/types";
-import { initialEdges, initialNodes } from "../../data";
+} from '@xyflow/react';
+import type { CustomNodeType, CustomEdgeType } from '@n2flow/types';
+import { initialEdges, initialNodes } from '../../data';
 import {
   AGENT_TEMPLATE_CUSTOM,
   getAgentInstructionByTemplate,
-} from "../../../back-end/agent-templates";
-import {
-  setNodeFieldValueInSchema,
-  createNodeDataByType,
-} from "../../../back-end/node-registry";
+} from '../../../back-end/agent-templates';
+import { setNodeFieldValueInSchema, createNodeDataByType } from '../../../back-end/node-registry';
 import {
   inferSourcePortType,
   inferTargetPortType,
-  PortDataType,
-} from "../../../back-end/node-registry/utils";
-import type { GraphState, RuntimeStatus } from '../../types/editor';
+  type PortDataType,
+} from '../../../back-end/node-registry/utils';
+import type {
+  ConfigFieldValue,
+  GraphState,
+  PendingConnection,
+  RuntimeStatus,
+} from '../../types/editor';
 
 interface UseGraphStateOptions {
   onNotify?: (message: string, type: 'error' | 'info') => void;
 }
 
+/** Canvas coordinates of a mouse or touch gesture. */
+const getEventPoint = (event: MouseEvent | TouchEvent): { x: number; y: number } => {
+  if ('clientX' in event) {
+    return { x: event.clientX, y: event.clientY };
+  }
+  const touch = event.touches[0] ?? event.changedTouches[0];
+  return touch ? { x: touch.clientX, y: touch.clientY } : { x: 0, y: 0 };
+};
+
 export const useGraphState = ({ onNotify }: UseGraphStateOptions = {}): GraphState => {
   const { deleteElements } = useReactFlow();
-  const [nodes, setNodes, onNodesChange] = useNodesState<Node>(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
-  const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null);
-  const [runtimeStatus, setRuntimeStatus] = useState<RuntimeStatus>("idle");
-  const [pendingNodeInsertPosition, setPendingNodeInsertPosition] = useState<{ x: number; y: number } | null>(null);
-  
-  const [copiedNodes, setCopiedNodes] = useState<Node[]>([]);
-  const [copiedEdges, setCopiedEdges] = useState<Edge[]>([]);
+  const [nodes, setNodes, onNodesChange] = useNodesState<CustomNodeType>(initialNodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState<CustomEdgeType>(initialEdges);
+  const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance<
+    CustomNodeType,
+    CustomEdgeType
+  > | null>(null);
+  const [runtimeStatus, setRuntimeStatus] = useState<RuntimeStatus>('idle');
+  const [pendingNodeInsertPosition, setPendingNodeInsertPosition] = useState<{
+    x: number;
+    y: number;
+  } | null>(null);
+
+  const [copiedNodes, setCopiedNodes] = useState<CustomNodeType[]>([]);
+  const [copiedEdges, setCopiedEdges] = useState<CustomEdgeType[]>([]);
 
   // History / Undo-Redo
-  const [past, setPast] = useState<{ nodes: Node[]; edges: Edge[] }[]>([]);
-  const [future, setFuture] = useState<{ nodes: Node[]; edges: Edge[] }[]>([]);
+  const [, setPast] = useState<{ nodes: CustomNodeType[]; edges: CustomEdgeType[] }[]>([]);
+  const [, setFuture] = useState<{ nodes: CustomNodeType[]; edges: CustomEdgeType[] }[]>([]);
   const stateRef = useRef({ nodes, edges });
 
   useEffect(() => {
@@ -61,8 +78,8 @@ export const useGraphState = ({ onNotify }: UseGraphStateOptions = {}): GraphSta
 
   const undo = useCallback(() => {
     setPast((p) => {
-      if (p.length === 0) return p;
-      const previous = p[p.length - 1];
+      const previous = p.at(-1);
+      if (!previous) return p;
       const newPast = p.slice(0, p.length - 1);
 
       setFuture((f) => [stateRef.current, ...f]);
@@ -74,8 +91,8 @@ export const useGraphState = ({ onNotify }: UseGraphStateOptions = {}): GraphSta
 
   const redo = useCallback(() => {
     setFuture((f) => {
-      if (f.length === 0) return f;
       const next = f[0];
+      if (!next) return f;
       const newFuture = f.slice(1);
 
       setPast((p) => [...p, stateRef.current]);
@@ -92,31 +109,49 @@ export const useGraphState = ({ onNotify }: UseGraphStateOptions = {}): GraphSta
     [nodes, configNodeId],
   );
 
-  const updateNodeDataById = useCallback((nodeId: string, newData: Partial<CustomNodeType["data"]>) => {
-    setNodes((nds) => nds.map((n) => (n.id === nodeId ? { ...n, data: { ...n.data, ...newData } } : n)));
-  }, [setNodes]);
+  const updateNodeDataById = useCallback(
+    (nodeId: string, newData: Partial<CustomNodeType['data']>) => {
+      setNodes((nds) =>
+        nds.map((n) => (n.id === nodeId ? { ...n, data: { ...n.data, ...newData } } : n)),
+      );
+    },
+    [setNodes],
+  );
 
-  const handleParamChange = useCallback((nodeId: string, name: string, value: string | number | boolean) => {
-    setNodes((nds) => nds.map((n) => {
-      if (n.id !== nodeId) return n;
-      const data = n.data as CustomNodeType["data"];
-      
-      if (data.type === 'Agent' && name === 'agentTemplate') {
-        const templateName = String(value || '');
-        const configSchema = Array.isArray(data.configSchema) ? data.configSchema : [];
-        let updatedSchema = setNodeFieldValueInSchema(configSchema, 'agentTemplate', templateName);
-        const templateInstruction = getAgentInstructionByTemplate(templateName);
-        if (templateName !== AGENT_TEMPLATE_CUSTOM && templateInstruction) {
-          updatedSchema = setNodeFieldValueInSchema(updatedSchema, 'instruction', templateInstruction);
-        }
-        return { ...n, data: { ...n.data, configSchema: updatedSchema } };
-      }
-      
-      const configSchema = Array.isArray(data.configSchema) ? data.configSchema : undefined;
-      const updatedSchema = setNodeFieldValueInSchema(configSchema, name, value);
-      return { ...n, data: { ...n.data, configSchema: updatedSchema } };
-    }));
-  }, [setNodes]);
+  const handleParamChange = useCallback(
+    (nodeId: string, name: string, value: ConfigFieldValue) => {
+      setNodes((nds) =>
+        nds.map((n) => {
+          if (n.id !== nodeId) return n;
+          const data = n.data as CustomNodeType['data'];
+
+          if (data.type === 'Agent' && name === 'agentTemplate') {
+            const templateName = String(value || '');
+            const configSchema = Array.isArray(data.configSchema) ? data.configSchema : [];
+            let updatedSchema = setNodeFieldValueInSchema(
+              configSchema,
+              'agentTemplate',
+              templateName,
+            );
+            const templateInstruction = getAgentInstructionByTemplate(templateName);
+            if (templateName !== AGENT_TEMPLATE_CUSTOM && templateInstruction) {
+              updatedSchema = setNodeFieldValueInSchema(
+                updatedSchema,
+                'instruction',
+                templateInstruction,
+              );
+            }
+            return { ...n, data: { ...n.data, configSchema: updatedSchema } };
+          }
+
+          const configSchema = Array.isArray(data.configSchema) ? data.configSchema : undefined;
+          const updatedSchema = setNodeFieldValueInSchema(configSchema, name, value);
+          return { ...n, data: { ...n.data, configSchema: updatedSchema } };
+        }),
+      );
+    },
+    [setNodes],
+  );
 
   const onCopy = useCallback(() => {
     const selectedNodes = nodes.filter((n) => n.selected);
@@ -130,42 +165,45 @@ export const useGraphState = ({ onNotify }: UseGraphStateOptions = {}): GraphSta
     }
   }, [nodes, edges]);
 
-  const onPaste = useCallback((targetPos?: { x: number; y: number }) => {
-    if (copiedNodes.length > 0) {
-      takeSnapshot();
-      const idMap = new Map<string, string>();
-      let offset = { x: 50, y: 50 };
-      if (targetPos) {
-        const minX = Math.min(...copiedNodes.map((n) => n.position.x));
-        const minY = Math.min(...copiedNodes.map((n) => n.position.y));
-        offset = { x: targetPos.x - minX, y: targetPos.y - minY };
+  const onPaste = useCallback(
+    (targetPos?: { x: number; y: number }) => {
+      if (copiedNodes.length > 0) {
+        takeSnapshot();
+        const idMap = new Map<string, string>();
+        let offset = { x: 50, y: 50 };
+        if (targetPos) {
+          const minX = Math.min(...copiedNodes.map((n) => n.position.x));
+          const minY = Math.min(...copiedNodes.map((n) => n.position.y));
+          offset = { x: targetPos.x - minX, y: targetPos.y - minY };
+        }
+
+        const newNodes = copiedNodes.map((node) => {
+          const newId = `${node.type}-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
+          idMap.set(node.id, newId);
+          return {
+            ...node,
+            id: newId,
+            position: targetPos
+              ? { x: node.position.x + offset.x, y: node.position.y + offset.y }
+              : { x: node.position.x + 50, y: node.position.y + 50 },
+            selected: true,
+          };
+        });
+
+        const newEdges = copiedEdges.map((edge) => ({
+          ...edge,
+          id: `e-${idMap.get(edge.source)}-${idMap.get(edge.target)}-${Date.now()}`,
+          source: idMap.get(edge.source)!,
+          target: idMap.get(edge.target)!,
+          selected: false,
+        }));
+
+        setNodes((nds) => nds.map((n) => ({ ...n, selected: false })).concat(newNodes));
+        setEdges((eds) => eds.concat(newEdges));
       }
-
-      const newNodes = copiedNodes.map((node) => {
-        const newId = `${node.type}-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
-        idMap.set(node.id, newId);
-        return {
-          ...node,
-          id: newId,
-          position: targetPos
-            ? { x: node.position.x + offset.x, y: node.position.y + offset.y }
-            : { x: node.position.x + 50, y: node.position.y + 50 },
-          selected: true,
-        };
-      });
-
-      const newEdges = copiedEdges.map((edge) => ({
-        ...edge,
-        id: `e-${idMap.get(edge.source)}-${idMap.get(edge.target)}-${Date.now()}`,
-        source: idMap.get(edge.source)!,
-        target: idMap.get(edge.target)!,
-        selected: false,
-      }));
-
-      setNodes((nds) => nds.map((n) => ({ ...n, selected: false })).concat(newNodes));
-      setEdges((eds) => eds.concat(newEdges));
-    }
-  }, [copiedNodes, copiedEdges, setNodes, setEdges, takeSnapshot]);
+    },
+    [copiedNodes, copiedEdges, setNodes, setEdges, takeSnapshot],
+  );
 
   const onDuplicate = useCallback(() => {
     const selectedNodes = nodes.filter((n) => n.selected);
@@ -206,7 +244,7 @@ export const useGraphState = ({ onNotify }: UseGraphStateOptions = {}): GraphSta
     const selectedEdges = edges.filter((e) => e.selected);
     if (selectedNodes.length > 0 || selectedEdges.length > 0) {
       takeSnapshot();
-      deleteElements({ nodes: selectedNodes, edges: selectedEdges });
+      void deleteElements({ nodes: selectedNodes, edges: selectedEdges });
     }
   }, [nodes, edges, deleteElements, takeSnapshot]);
 
@@ -216,11 +254,14 @@ export const useGraphState = ({ onNotify }: UseGraphStateOptions = {}): GraphSta
   }, [setNodes, setEdges]);
 
   const onGroupNodes = useCallback(() => {
-    const selectedNodes = nodes.filter((n) => n.selected && !n.parentId && n.type !== "cyberGroup");
+    const selectedNodes = nodes.filter((n) => n.selected && !n.parentId && n.type !== 'cyberGroup');
     if (selectedNodes.length < 1) return;
     takeSnapshot();
 
-    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    let minX = Infinity,
+      minY = Infinity,
+      maxX = -Infinity,
+      maxY = -Infinity;
     selectedNodes.forEach((node) => {
       minX = Math.min(minX, node.position.x);
       minY = Math.min(minY, node.position.y);
@@ -232,12 +273,12 @@ export const useGraphState = ({ onNotify }: UseGraphStateOptions = {}): GraphSta
 
     const padding = 50;
     const groupId = `group-${Date.now()}`;
-    const groupNode: Node = {
+    const groupNode: CustomNodeType = {
       id: groupId,
-      type: "cyberGroup",
+      type: 'cyberGroup',
       position: { x: minX - padding, y: minY - padding },
       style: { width: maxX - minX + padding * 2, height: maxY - minY + padding * 2 },
-      data: { label: "New Cluster" },
+      data: { label: 'New Cluster', type: 'Group' },
       selected: true,
     };
 
@@ -245,7 +286,7 @@ export const useGraphState = ({ onNotify }: UseGraphStateOptions = {}): GraphSta
       ...node,
       parentId: groupId,
       expandParent: true,
-      extent: "parent" as const,
+      extent: 'parent' as const,
       position: { x: node.position.x - (minX - padding), y: node.position.y - (minY - padding) },
       selected: false,
     }));
@@ -256,58 +297,76 @@ export const useGraphState = ({ onNotify }: UseGraphStateOptions = {}): GraphSta
     });
   }, [nodes, setNodes, takeSnapshot]);
 
-  const onUngroupNodes = useCallback((targetGroupId?: string) => {
-    const selectedGroups = targetGroupId
-      ? nodes.filter((n) => n.id === targetGroupId)
-      : nodes.filter((n) => n.selected && n.type === "cyberGroup");
+  const onUngroupNodes = useCallback(
+    (targetGroupId?: string) => {
+      const selectedGroups = targetGroupId
+        ? nodes.filter((n) => n.id === targetGroupId)
+        : nodes.filter((n) => n.selected && n.type === 'cyberGroup');
 
-    if (selectedGroups.length === 0) return;
-    takeSnapshot();
-    const groupIds = selectedGroups.map((g) => g.id);
+      if (selectedGroups.length === 0) return;
+      takeSnapshot();
+      const groupIds = selectedGroups.map((g) => g.id);
 
-    setNodes((nds) => nds.filter((n) => !groupIds.includes(n.id)).map((n) => {
-      if (n.parentId && groupIds.includes(n.parentId)) {
-        const parent = nds.find((g) => g.id === n.parentId);
-        return {
-          ...n,
-          parentId: undefined,
-          position: { x: n.position.x + (parent?.position.x || 0), y: n.position.y + (parent?.position.y || 0) },
-        };
-      }
-      return n;
-    }));
-  }, [nodes, setNodes, takeSnapshot]);
+      setNodes((nds) =>
+        nds
+          .filter((n) => !groupIds.includes(n.id))
+          .map((n) => {
+            if (n.parentId && groupIds.includes(n.parentId)) {
+              const parent = nds.find((g) => g.id === n.parentId);
+              // Drop the key entirely — React Flow treats a missing parentId as "no parent".
+              const { parentId: _detached, ...detached } = n;
+              return {
+                ...detached,
+                position: {
+                  x: n.position.x + (parent?.position.x || 0),
+                  y: n.position.y + (parent?.position.y || 0),
+                },
+              };
+            }
+            return n;
+          }),
+      );
+    },
+    [nodes, setNodes, takeSnapshot],
+  );
 
-  const connectingHandleRef = useRef<any>(null);
+  const connectingHandleRef = useRef<PendingConnection | null>(null);
 
-  const onConnectStart = useCallback((_: any, { nodeId, handleId, handleType }: any) => {
-    connectingHandleRef.current = { nodeId, handleId, handleType };
+  const onConnectStart: OnConnectStart = useCallback((_, { nodeId, handleId, handleType }) => {
+    connectingHandleRef.current =
+      nodeId !== null && handleId !== null && handleType !== null
+        ? { nodeId, handleId, handleType }
+        : null;
   }, []);
 
-  const onConnectEnd = useCallback((event: any) => {
-    if (!connectingHandleRef.current) return;
+  const onConnectEnd: OnConnectEnd = useCallback(
+    (event) => {
+      if (!connectingHandleRef.current) return;
 
-    const targetIsPane = (event.target as Element).classList.contains('react-flow__pane');
+      const target = event.target;
+      const targetIsPane =
+        target instanceof Element && target.classList.contains('react-flow__pane');
 
-    if (targetIsPane && reactFlowInstance) {
-      const { x, y } = reactFlowInstance.screenToFlowPosition({
-        x: event.clientX,
-        y: event.clientY,
-      });
+      if (targetIsPane && reactFlowInstance) {
+        const { x, y } = reactFlowInstance.screenToFlowPosition(getEventPoint(event));
 
-      setPendingNodeInsertPosition({ x, y });
-      
-      // Store the starting connection info in a ref to be used when a node is added
-      (window as any).__lastConnectionStart = connectingHandleRef.current;
-      
-      // Trigger the command palette to show "Add Node" options
-      window.dispatchEvent(new CustomEvent('openCommandPalette', { 
-        detail: { query: 'add node ', triggerConnection: true } 
-      }));
-    }
+        setPendingNodeInsertPosition({ x, y });
 
-    connectingHandleRef.current = null;
-  }, [reactFlowInstance]);
+        // Store the starting connection info in a ref to be used when a node is added
+        window.__lastConnectionStart = connectingHandleRef.current;
+
+        // Trigger the command palette to show "Add Node" options
+        window.dispatchEvent(
+          new CustomEvent('openCommandPalette', {
+            detail: { query: 'add node ', triggerConnection: true },
+          }),
+        );
+      }
+
+      connectingHandleRef.current = null;
+    },
+    [reactFlowInstance],
+  );
 
   const onConnect = useCallback(
     (params: Connection) => {
@@ -320,73 +379,94 @@ export const useGraphState = ({ onNotify }: UseGraphStateOptions = {}): GraphSta
       const sourcePortType = inferSourcePortType(sourceNode, params.sourceHandle);
       const targetPortType = inferTargetPortType(targetNode, params.targetHandle);
 
-      const isPortCompatible = sourcePortType === "any" || targetPortType === "any" || sourcePortType === targetPortType;
+      const isPortCompatible =
+        sourcePortType === 'any' || targetPortType === 'any' || sourcePortType === targetPortType;
 
       if (!isPortCompatible) {
-        onNotify?.(`Không tương thích type: output ${sourcePortType} không thể nối vào input ${targetPortType}.`, 'error');
+        onNotify?.(
+          `Không tương thích type: output ${sourcePortType} không thể nối vào input ${targetPortType}.`,
+          'error',
+        );
         return;
       }
 
-      if (params.targetHandle === "agent_llm") {
-        if (edges.some((edge) => edge.target === params.target && edge.targetHandle === "agent_llm")) {
-          onNotify?.("Cổng LLM_LINK chỉ nhận 1 Chat Model. Hãy xóa kết nối cũ trước.", 'error');
+      if (params.targetHandle === 'agent_llm') {
+        if (
+          edges.some((edge) => edge.target === params.target && edge.targetHandle === 'agent_llm')
+        ) {
+          onNotify?.('Cổng LLM_LINK chỉ nhận 1 Chat Model. Hãy xóa kết nối cũ trước.', 'error');
           return;
         }
       }
 
-      if (params.targetHandle === "embedding_model") {
-        if (edges.some((edge) => edge.target === params.target && edge.targetHandle === "embedding_model")) {
-          onNotify?.("Cổng EMBEDDING chỉ nhận 1 Embedding Model. Hãy xóa kết nối cũ trước.", 'error');
+      if (params.targetHandle === 'embedding_model') {
+        if (
+          edges.some(
+            (edge) => edge.target === params.target && edge.targetHandle === 'embedding_model',
+          )
+        ) {
+          onNotify?.(
+            'Cổng EMBEDDING chỉ nhận 1 Embedding Model. Hãy xóa kết nối cũ trước.',
+            'error',
+          );
           return;
         }
       }
 
-      if (params.targetHandle === "tools" && params.sourceHandle !== "as_tool") {
-        onNotify?.("Cổng TOOL_BUS chỉ nhận kết nối từ handle AS_TOOL.", 'error');
+      if (params.targetHandle === 'tools' && params.sourceHandle !== 'as_tool') {
+        onNotify?.('Cổng TOOL_BUS chỉ nhận kết nối từ handle AS_TOOL.', 'error');
         return;
       }
 
       takeSnapshot();
       setEdges((eds) => {
-        let stroke = "#4b5563";
+        let stroke = '#4b5563';
         const portColor = (portType: PortDataType) => {
-          if (portType === "text") return "#22c55e";
-          if (portType === "chat_model") return "#a855f7";
-          if (portType === "embedding_model") return "#3b82f6";
-          if (portType === "tool") return "#f59e0b";
-          if (portType === "boolean_route") return "#ec4899";
-          return "#4b5563";
+          if (portType === 'text') return '#22c55e';
+          if (portType === 'chat_model') return '#a855f7';
+          if (portType === 'embedding_model') return '#3b82f6';
+          if (portType === 'tool') return '#f59e0b';
+          if (portType === 'boolean_route') return '#ec4899';
+          return '#4b5563';
         };
 
-        if (params.targetHandle === "tools") stroke = "#f59e0b";
-        else if (params.targetHandle === "agent_llm") stroke = "#a855f7";
-        else if (params.targetHandle === "embedding_model") stroke = "#3b82f6";
-        else if (params.sourceHandle === "true") stroke = "#22c55e";
-        else if (params.sourceHandle === "false") stroke = "#ef4444";
-        else if (params.sourceHandle === "as_tool") stroke = "#f59e0b";
-        else if (params.targetHandle === "system_prompt") stroke = "#64748b";
-        else if (params.targetHandle === "input_value") stroke = "#22c55e";
-        else if (params.sourceHandle === "response") stroke = "#22d3ee";
-        else stroke = portColor(targetPortType !== "any" ? targetPortType : sourcePortType);
+        if (params.targetHandle === 'tools') stroke = '#f59e0b';
+        else if (params.targetHandle === 'agent_llm') stroke = '#a855f7';
+        else if (params.targetHandle === 'embedding_model') stroke = '#3b82f6';
+        else if (params.sourceHandle === 'true') stroke = '#22c55e';
+        else if (params.sourceHandle === 'false') stroke = '#ef4444';
+        else if (params.sourceHandle === 'as_tool') stroke = '#f59e0b';
+        else if (params.targetHandle === 'system_prompt') stroke = '#64748b';
+        else if (params.targetHandle === 'input_value') stroke = '#22c55e';
+        else if (params.sourceHandle === 'response') stroke = '#22d3ee';
+        else stroke = portColor(targetPortType !== 'any' ? targetPortType : sourcePortType);
 
-        return addEdge({
-          ...params,
-          type: "cyberEdge",
-          animated: true,
-          style: { stroke, strokeWidth: 1.5 },
-        }, eds);
+        return addEdge(
+          {
+            ...params,
+            type: 'cyberEdge',
+            animated: true,
+            style: { stroke, strokeWidth: 1.5 },
+          },
+          eds,
+        );
       });
     },
-    [nodes, edges, setEdges, takeSnapshot, onNotify]
+    [nodes, edges, setEdges, takeSnapshot, onNotify],
   );
 
   const onAddNode = useCallback(
-    (type: string, label: string, position?: { x: number; y: number }, connectFrom?: { nodeId: string; handleId: string; handleType: string }) => {
+    (
+      type: string,
+      label: string,
+      position?: { x: number; y: number },
+      connectFrom?: PendingConnection,
+    ) => {
       takeSnapshot();
       const newNodeId = `${type}-${Date.now()}`;
       const newNode: CustomNodeType = {
         id: newNodeId,
-        type: "cyberNode",
+        type: 'cyberNode',
         position: position || { x: Math.random() * 400 + 100, y: Math.random() * 400 + 100 },
         data: createNodeDataByType(type, label),
       };
@@ -400,16 +480,11 @@ export const useGraphState = ({ onNotify }: UseGraphStateOptions = {}): GraphSta
           const sourceHandle = connectFrom.handleType === 'source' ? connectFrom.handleId : null;
           const targetHandle = connectFrom.handleType === 'target' ? connectFrom.handleId : null;
 
-          onConnect({
-            source,
-            target,
-            sourceHandle,
-            targetHandle,
-          } as any);
+          onConnect({ source, target, sourceHandle, targetHandle });
         }, 50);
       }
     },
-    [setNodes, takeSnapshot, onConnect]
+    [setNodes, takeSnapshot, onConnect],
   );
 
   return {

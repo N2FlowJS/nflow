@@ -3,23 +3,35 @@
 ## System Components
 
 - **Backend**: Express app exposing REST endpoints and a streaming NDJSON execution
-	interface. Uses Prisma for persistence and contains a flow execution engine
-	that performs topological sorting, dead-path elimination (DPE), concurrency
-	control, per-node timeouts and streaming events. Includes a centralized 
-	**LLM Provider Service** for managing external model APIs.
+  interface. Uses an5orm for persistence and contains a flow execution engine
+  that performs topological sorting, dead-path elimination (DPE), concurrency
+  control, per-node timeouts and streaming events. Includes a centralized
+  **LLM Provider Service** for managing external model APIs.
 - **Frontend**: React + Vite single-page app with protected routes and a visual
-	flow editor (uses `@xyflow/react`, `dagre`, and `tailwindcss`).
+  flow editor (uses `@xyflow/react`, `dagre`, and `tailwindcss`). Features a
+  **Cyberpunk Glassmorphism** theme and a **Health & Connection Guard** for
+  reliable startup.
 - **Shared Types**: Centralized TypeScript types for flows, nodes and runtime messages.
 
 ## Tech Stack
 
-- **Backend**: Node.js, Express, Prisma (SQLite/PostgreSQL), Zod, Vitest.
+- **Backend**: Node.js, Express, an5orm + @an5/adapters (PostgreSQL), Zod, Vitest.
 - **Frontend**: React, Vite, Tailwind CSS 4, XYFlow.
 - **Shared**: TypeScript, NPM Workspaces.
 
+## Key Architectual Patterns
+
+### Execution Engine
+
+The engine uses Kahn's algorithm for topological sorting and implements a semaphore-based concurrency control. It supports Dead-Path Elimination (DPE) to optimize branching logic.
+
+### Health Monitoring
+
+The frontend implements a pre-flight health check to ensure the backend and database are ready before bootstrapping the authentication session.
+
 ## Project Structure
 
-- `back-end/`: Express server, Prisma DB, Flow Runtime.
+- `back-end/`: Express server, an5orm DB layer, Flow Runtime.
 - `front-end/`: React (Vite), XYFlow editor.
 - `packages/types/`: Shared TypeScript types.
 

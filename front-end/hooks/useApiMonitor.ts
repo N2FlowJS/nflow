@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { apiService, ApiMonitorEvent } from '../lib/apiService';
+import { apiService, type ApiMonitorEvent } from '../lib/apiService';
 
 export interface ApiActivity extends ApiMonitorEvent {
   id: string;
@@ -10,7 +10,7 @@ export function useApiMonitor(limit = 20) {
 
   useEffect(() => {
     const handleEvent = (event: ApiMonitorEvent) => {
-      setActivities(prev => {
+      setActivities((prev) => {
         const newActivity: ApiActivity = {
           ...event,
           id: Math.random().toString(36).substring(7),

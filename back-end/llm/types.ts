@@ -18,23 +18,25 @@ export type LlmRuntimeConfig = {
   model: string;
   apiKey: string;
   baseUrl: string;
-  temperature?: number;
-  max_tokens?: number;
-  top_p?: number;
-  top_k?: number;
-  presence_penalty?: number;
-  frequency_penalty?: number;
-  stream?: boolean;
+  temperature?: number | undefined;
+  max_tokens?: number | undefined;
+  top_p?: number | undefined;
+  top_k?: number | undefined;
+  presence_penalty?: number | undefined;
+  frequency_penalty?: number | undefined;
+  stream?: boolean | undefined;
 };
 
 export interface LlmProvider {
   name: string;
-  listModels: (cfg: LlmRuntimeConfig) => Promise<Array<{ id: string; name?: string; description?: string }>>;
+  listModels: (
+    cfg: LlmRuntimeConfig,
+  ) => Promise<Array<{ id: string; name?: string; description?: string }>>;
   runChat: (
     cfg: LlmRuntimeConfig,
     systemPrompt: string,
     userPrompt: string,
-    availableTools: any[],
+    availableTools: AgentTool[],
     executeToolByName: (name: string, callArgs: Record<string, string>) => Promise<string>,
     log: (msg: string) => void,
     onStream?: (chunk: string) => void,

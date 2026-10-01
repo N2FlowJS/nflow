@@ -7,7 +7,7 @@ and running AI workflows composed of LLM, tool, and agent nodes.
 
 - Node.js 20+
 - npm
-- A database supported by Prisma (see `back-end/prisma/schema.prisma`).
+- PostgreSQL (see `back-end/an5Schema` for the data model and `back-end/migrations` for the DDL).
 
 ## Installation
 

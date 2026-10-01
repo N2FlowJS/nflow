@@ -1,30 +1,29 @@
-import React from "react";
-import { Terminal, Target, Trash2 } from "lucide-react";
-import { LogEntry } from "../../types/editor";
-import { useReactFlow } from "@xyflow/react";
-import { CyberAction, CyberEmptyState, CyberListItem, CyberPanel } from "../shared/CyberUI";
+import React from 'react';
+import { Terminal, Target, Trash2 } from 'lucide-react';
+import { type LogEntry } from '../../types/editor';
+import { useReactFlow } from '@xyflow/react';
+import { CyberAction, CyberEmptyState, CyberListItem, CyberPanel } from '../shared/CyberUI';
 
-const LOG_TYPE_STYLES: Record<
-  string,
-  { bar: string; text: string }
-> = {
+const LOG_TYPE_STYLES: Record<string, { bar: string; text: string }> = {
   error: {
-    bar: "bg-red-500/50",
-    text: "text-red-400/80",
+    bar: 'bg-red-500/50',
+    text: 'text-red-400/80',
   },
   nodeUpdate: {
-    bar: "bg-cyber-primary/50",
-    text: "text-cyber-primary/80",
+    bar: 'bg-cyber-primary/50',
+    text: 'text-cyber-primary/80',
   },
   skipped: {
-    bar: "bg-indigo-400/30",
-    text: "text-indigo-300/50",
+    bar: 'bg-indigo-400/30',
+    text: 'text-indigo-300/50',
   },
   default: {
-    bar: "bg-white/10",
-    text: "text-gray-500",
+    bar: 'bg-white/10',
+    text: 'text-gray-500',
   },
 };
+
+const DEFAULT_LOG_STYLES = { bar: 'bg-white/10', text: 'text-gray-500' } as const;
 
 interface LogViewerProps {
   isLogsOpen: boolean;
@@ -33,14 +32,8 @@ interface LogViewerProps {
   onClear?: () => void;
 }
 
-const LogViewer: React.FC<LogViewerProps> = ({
-  isLogsOpen,
-  setIsLogsOpen,
-  executionLogs,
-  onClear,
-}) => {
+const LogViewer: React.FC<LogViewerProps> = ({ setIsLogsOpen, executionLogs, onClear }) => {
   const { setCenter, getNodes, setNodes } = useReactFlow();
-  const isDock = true;
 
   const zoomToNode = (nodeId?: string) => {
     if (!nodeId) return;
@@ -49,11 +42,9 @@ const LogViewer: React.FC<LogViewerProps> = ({
     if (node) {
       const x = node.position.x + (node.measured?.width || 200) / 2;
       const y = node.position.y + (node.measured?.height || 100) / 2;
-      setCenter(x, y, { zoom: 1.2, duration: 400 });
+      void setCenter(x, y, { zoom: 1.2, duration: 400 });
 
-      setNodes((nds) =>
-        nds.map((n) => (n.id === nodeId ? { ...n, selected: true } : n))
-      );
+      setNodes((nds) => nds.map((n) => (n.id === nodeId ? { ...n, selected: true } : n)));
     }
   };
 
@@ -77,10 +68,13 @@ const LogViewer: React.FC<LogViewerProps> = ({
       >
         <div className="p-2 font-mono text-[9px] space-y-0.5 h-full overflow-y-auto scrollbar-hide min-h-0">
           {executionLogs.length === 0 ? (
-            <CyberEmptyState label="No logs yet" className="h-full text-white/5 tracking-[0.18em]" />
+            <CyberEmptyState
+              label="No logs yet"
+              className="h-full text-white/5 tracking-[0.18em]"
+            />
           ) : (
             executionLogs.map((log) => {
-              const styles = LOG_TYPE_STYLES[log.type] || LOG_TYPE_STYLES.default;
+              const styles = LOG_TYPE_STYLES[log.type] ?? LOG_TYPE_STYLES.default ?? DEFAULT_LOG_STYLES;
 
               return (
                 <CyberListItem
@@ -100,9 +94,7 @@ const LogViewer: React.FC<LogViewerProps> = ({
                   <span className="text-white/10 shrink-0 font-bold w-14">[{log.time}]</span>
                   <div className="flex-1 min-w-0 flex items-center gap-2">
                     <div className={`w-1 h-3 shrink-0 ${styles.bar}`} />
-                    <span className={`truncate font-medium ${styles.text}`}>
-                      {log.message}
-                    </span>
+                    <span className={`truncate font-medium ${styles.text}`}>{log.message}</span>
                   </div>
                 </CyberListItem>
               );
@@ -115,4 +107,3 @@ const LogViewer: React.FC<LogViewerProps> = ({
 };
 
 export default LogViewer;
-

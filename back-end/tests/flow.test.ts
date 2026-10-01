@@ -1,8 +1,10 @@
-import express, { Response } from 'express';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import express, { type NextFunction, type Response } from 'express';
+import type { AuthRequest } from '../middleware/auth';
+import type { ApiResponse } from '../utils/apiResponse';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-// Mock Prisma — must include all methods used by FlowStorageService
-const prismaMock = {
+// Mock the an5 database client — must include all methods used by FlowStorageService
+const dbMock = {
   flow: {
     findMany: vi.fn(),
     findUnique: vi.fn(),
@@ -14,8 +16,8 @@ const prismaMock = {
   },
 };
 
-vi.mock('../lib/prisma', () => ({
-  prisma: prismaMock,
+vi.mock('../lib/db', () => ({
+  db: dbMock,
 }));
 
 // Mock executeFlowOnServer
@@ -25,7 +27,7 @@ vi.mock('../services/flowExecutionService', () => ({
 
 // Mock auth middleware
 vi.mock('../middleware/auth', () => ({
-  requireUserId: (req: any, res: any, next: any) => {
+  requireUserId: (req: AuthRequest, _res: Response, next: NextFunction) => {
     req.userId = 'test-user-id';
     next();
   },
@@ -37,7 +39,7 @@ function createTestApp() {
   const app = express();
   app.use(express.json());
   // Inject userId to simulate authenticated session
-  app.use((req: any, _res: any, next: any) => {
+  app.use((req: AuthRequest, _res: Response, next: NextFunction) => {
     req.userId = 'test-user-id';
     next();
   });
@@ -48,7 +50,9 @@ function createTestApp() {
 async function withTestServer<T>(run: (baseUrl: string) => Promise<T>): Promise<T> {
   const app = createTestApp();
   return new Promise<T>((resolve, reject) => {
-    const server = app.listen(0, async () => {
+    // The listener is intentionally not `async`: an async callback would return a
+    // promise nobody awaits, so a throw here would become an unhandled rejection.
+    const server = app.listen(0, () => {
       const address = server.address();
       if (!address || typeof address === 'string') {
         server.close();
@@ -56,12 +60,10 @@ async function withTestServer<T>(run: (baseUrl: string) => Promise<T>): Promise<
         return;
       }
       const baseUrl = `http://127.0.0.1:${address.port}`;
-      try {
-        const result = await run(baseUrl);
-        server.close(() => resolve(result));
-      } catch (err) {
-        server.close(() => reject(err));
-      }
+      run(baseUrl).then(
+        (result) => server.close(() => resolve(result)),
+        (err: unknown) => server.close(() => reject(err)),
+      );
     });
   });
 }
@@ -73,30 +75,34 @@ describe('Flow API Routes', () => {
 
   it('GET /api/flows - should return list of flows with correct node/edge counts', async () => {
     const now = new Date();
-    const mockFlows = [{ 
-      id: '1', 
-      name: 'Test Flow', 
-      createdAt: now, 
-      updatedAt: now,
-      data: JSON.stringify({
-        nodes: [{ id: 'n1' }, { id: 'n2' }],
-        edges: [{ id: 'e1' }]
-      })
-    }];
-    
-    const expectedData = [{
-      id: '1',
-      name: 'Test Flow',
-      updatedAt: now.getTime(),
-      createdAt: now.getTime(),
-      nodeCount: 2,
-      edgeCount: 1,
-    }];
-    prismaMock.flow.findMany.mockResolvedValue(mockFlows);
+    const mockFlows = [
+      {
+        id: '1',
+        name: 'Test Flow',
+        createdAt: now,
+        updatedAt: now,
+        data: JSON.stringify({
+          nodes: [{ id: 'n1' }, { id: 'n2' }],
+          edges: [{ id: 'e1' }],
+        }),
+      },
+    ];
+
+    const expectedData = [
+      {
+        id: '1',
+        name: 'Test Flow',
+        updatedAt: now.getTime(),
+        createdAt: now.getTime(),
+        nodeCount: 2,
+        edgeCount: 1,
+      },
+    ];
+    dbMock.flow.findMany.mockResolvedValue(mockFlows);
 
     await withTestServer(async (baseUrl) => {
       const response = await fetch(`${baseUrl}/api/flows`);
-      const body = await response.json() as any;
+      const body = (await response.json()) as ApiResponse;
 
       expect(response.status).toBe(200);
       expect(body.ok).toBe(true);
@@ -106,10 +112,17 @@ describe('Flow API Routes', () => {
 
   it('POST /api/flows - should save a new flow', async () => {
     const now = new Date();
-    const savedFlow = { id: 'flow-42', name: 'New Flow', data: '{}', createdAt: now, updatedAt: now, userId: 'test-user-id' };
+    const savedFlow = {
+      id: 'flow-42',
+      name: 'New Flow',
+      data: '{}',
+      createdAt: now,
+      updatedAt: now,
+      userId: 'test-user-id',
+    };
     // saveFlow first calls findUnique (returns null → new flow), then upsert
-    prismaMock.flow.findUnique.mockResolvedValue(null);
-    prismaMock.flow.upsert.mockResolvedValue(savedFlow);
+    dbMock.flow.findUnique.mockResolvedValue(null);
+    dbMock.flow.upsert.mockResolvedValue(savedFlow);
 
     await withTestServer(async (baseUrl) => {
       const response = await fetch(`${baseUrl}/api/flows`, {
@@ -117,12 +130,12 @@ describe('Flow API Routes', () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: 'flow-42', name: 'New Flow', nodes: [], edges: [] }),
       });
-      const body = await response.json() as any;
+      const body = (await response.json()) as ApiResponse<{ id: string }>;
 
       expect(response.status).toBe(200);
       expect(body.ok).toBe(true);
-      expect(body.data.id).toBe('flow-42');
-      expect(prismaMock.flow.upsert).toHaveBeenCalled();
+      expect(body.data?.id).toBe('flow-42');
+      expect(dbMock.flow.upsert).toHaveBeenCalled();
     });
   });
 
@@ -136,16 +149,16 @@ describe('Flow API Routes', () => {
       updatedAt: now,
       userId: 'test-user-id',
     };
-    prismaMock.flow.findUnique.mockResolvedValue(mockFlow);
+    dbMock.flow.findUnique.mockResolvedValue(mockFlow);
 
     await withTestServer(async (baseUrl) => {
       const response = await fetch(`${baseUrl}/api/flows/1`);
-      const body = await response.json() as any;
+      const body = (await response.json()) as ApiResponse<{ id: string; name: string }>;
 
       expect(response.status).toBe(200);
       expect(body.ok).toBe(true);
-      expect(body.data.id).toBe('1');
-      expect(body.data.name).toBe('Test Flow');
+      expect(body.data?.id).toBe('1');
+      expect(body.data?.name).toBe('Test Flow');
     });
   });
 });

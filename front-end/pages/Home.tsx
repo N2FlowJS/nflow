@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Plus,
   FolderOpen,
@@ -10,40 +10,35 @@ import {
   GitCommit,
   Search,
   Sparkles,
-  ShieldCheck,
-} from "lucide-react";
-import {
-  FLOW_TEMPLATES,
-  createSavedFlowFromTemplate,
-} from "../../back-end/flow-templates";
-import type { SavedFlow } from "@n2flow/types";
-import { API_BASE } from "../lib/api";
-import { apiService } from "../lib/apiService";
-import { Button, Input } from "../components/ui";
-import { GlobalHeader } from "../components/shared/GlobalHeader";
+} from 'lucide-react';
+import { FLOW_TEMPLATES, createSavedFlowFromTemplate } from '../../back-end/flow-templates';
+import type { SavedFlow } from '@n2flow/types';
+import { apiService } from '../lib/apiService';
+import { Button, Input } from '../components/ui';
+import { GlobalHeader } from '../components/shared/GlobalHeader';
 
 export default function Home() {
   const navigate = useNavigate();
   const [flows, setFlows] = useState<SavedFlow[]>([]);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     const loadFlows = async () => {
       try {
-        const response = await apiService.get("/api/flows");
+        const response = await apiService.get<SavedFlow[]>('/api/flows');
         if (response.ok) {
           setFlows(response.data || []);
         }
       } catch (err) {
-        console.error("Failed to load flows from server:", err);
+        console.error('Failed to load flows from server:', err);
       }
     };
-    loadFlows();
+    void loadFlows();
   }, []);
 
   const handleDelete = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (confirm("Are you sure you want to delete this flow?")) {
+    if (confirm('Are you sure you want to delete this flow?')) {
       try {
         const response = await apiService.delete(`/api/flows/${id}`);
 
@@ -51,7 +46,7 @@ export default function Home() {
           setFlows(flows.filter((f) => f.id !== id));
         }
       } catch (err) {
-        console.error("Failed to delete flow:", err);
+        console.error('Failed to delete flow:', err);
       }
     }
   };
@@ -59,14 +54,14 @@ export default function Home() {
   const handleDuplicate = async (flow: SavedFlow, e: React.MouseEvent) => {
     e.stopPropagation();
     try {
-      const fullResponse = await apiService.get(`/api/flows/${flow.id}`);
-      if (!fullResponse.ok)
-        throw new Error(fullResponse.error || "Failed to fetch full flow data");
+      const fullResponse = await apiService.get<SavedFlow>(`/api/flows/${flow.id}`);
+      if (!fullResponse.ok) throw new Error(fullResponse.error || 'Failed to fetch full flow data');
 
       const fullFlow = fullResponse.data;
+      if (!fullFlow) throw new Error('Failed to fetch full flow data');
       const newId = `flow-${Date.now()}`;
 
-      const response = await apiService.post("/api/flows", {
+      const response = await apiService.post('/api/flows', {
         id: newId,
         name: `${fullFlow.name} (copy)`,
         nodes: fullFlow.data?.nodes || [],
@@ -82,10 +77,10 @@ export default function Home() {
           updatedAt: Date.now(),
           data: fullFlow.data,
         };
-        setFlows([duplicatedFlow as any, ...flows]);
+        setFlows([duplicatedFlow, ...flows]);
       }
     } catch (err) {
-      console.error("Failed to duplicate flow:", err);
+      console.error('Failed to duplicate flow:', err);
     }
   };
 
@@ -94,26 +89,26 @@ export default function Home() {
     if (!newFlow) return;
 
     try {
-      const response = await apiService.post("/api/flows", {
+      const response = await apiService.post('/api/flows', {
         id: newFlow.id,
         name: newFlow.name,
         nodes: newFlow.data?.nodes || [],
         edges: newFlow.data?.edges || [],
         viewport: newFlow.data?.viewport,
-        globalVariables: (newFlow.data as any)?.globalVariables || [],
+        globalVariables: newFlow.data?.globalVariables || [],
       });
 
       if (response.ok) {
-        navigate(`/flow/${newFlow.id}`);
+        void navigate(`/flow/${newFlow.id}`);
       }
     } catch (err) {
-      console.error("Failed to create flow from template:", err);
+      console.error('Failed to create flow from template:', err);
     }
   };
 
   const formatTime = (ts: number) => {
     const diff = Date.now() - ts;
-    if (diff < 60_000) return "Just now";
+    if (diff < 60_000) return 'Just now';
     if (diff < 3_600_000) return `${Math.floor(diff / 60_000)}m ago`;
     if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)}h ago`;
     return new Date(ts).toLocaleDateString();
@@ -132,7 +127,10 @@ export default function Home() {
       {/* Blurred Ambient Lights */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-[5%] left-[20%] w-[500px] h-[500px] bg-cyber-primary/5 rounded-full blur-[140px] animate-pulse-glow"></div>
-        <div className="absolute bottom-[5%] right-[20%] w-[500px] h-[500px] bg-cyber-secondary/5 rounded-full blur-[140px] animate-pulse-glow" style={{ animationDelay: '2s' }}></div>
+        <div
+          className="absolute bottom-[5%] right-[20%] w-[500px] h-[500px] bg-cyber-secondary/5 rounded-full blur-[140px] animate-pulse-glow"
+          style={{ animationDelay: '2s' }}
+        ></div>
       </div>
 
       <div className="max-w-5xl mx-auto p-8 relative z-10">
@@ -156,7 +154,7 @@ export default function Home() {
               className="w-64 !bg-black/60 focus:!border-cyber-primary focus:!ring-1 focus:!ring-cyber-primary/20 text-white placeholder-white/20 transition-all font-mono"
             />
             <Button
-              onClick={() => navigate("/flow/new")}
+              onClick={() => navigate('/flow/new')}
               className="px-5 py-2 bg-gradient-to-r from-cyber-primary to-cyber-primary/80 hover:from-cyber-primary hover:to-cyan-400 text-black font-black uppercase text-[10px] tracking-[0.18em] rounded-xl hover:shadow-[0_0_15px_rgba(0,240,255,0.25)] transition-all flex items-center gap-2"
             >
               <Plus size={14} className="stroke-[3]" />
@@ -208,7 +206,7 @@ export default function Home() {
               PERSISTED_ACTIVE_WORKFLOWS
             </h2>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredFlows.map((flow) => (
               <div
@@ -269,18 +267,21 @@ export default function Home() {
 
             {filteredFlows.length === 0 && (
               <div className="col-span-full flex flex-col items-center justify-center py-20 text-cyber-muted border border-dashed border-white/10 rounded-2xl bg-black/20 backdrop-blur-md">
-                <FolderOpen size={44} className="mb-4 text-cyber-primary/40 drop-shadow-[0_0_3px_rgba(0,240,255,0.1)]" />
+                <FolderOpen
+                  size={44}
+                  className="mb-4 text-cyber-primary/40 drop-shadow-[0_0_3px_rgba(0,240,255,0.1)]"
+                />
                 <p className="text-base font-bold uppercase tracking-widest text-white/80">
-                  {searchTerm ? "NO_MATCHING_SCHEMAS_PERSISTED" : "DATABASE_EMPTY_NO_FLOWS"}
+                  {searchTerm ? 'NO_MATCHING_SCHEMAS_PERSISTED' : 'DATABASE_EMPTY_NO_FLOWS'}
                 </p>
                 <p className="text-xs mt-1.5 mb-6 text-white/35 font-mono">
                   {searchTerm
-                    ? "RE-QUERY THE REGISTER WITH AN ALTERNATE INDEX"
-                    : "INITIALIZE YOUR OPERATIONAL WORKFLOW TO COMMENCE DATABASE PERSISTENCE"}
+                    ? 'RE-QUERY THE REGISTER WITH AN ALTERNATE INDEX'
+                    : 'INITIALIZE YOUR OPERATIONAL WORKFLOW TO COMMENCE DATABASE PERSISTENCE'}
                 </p>
                 {!searchTerm && (
                   <Button
-                    onClick={() => navigate("/flow/new")}
+                    onClick={() => navigate('/flow/new')}
                     className="px-6 py-2.5 bg-gradient-to-r from-cyber-primary to-cyber-primary/80 hover:from-cyber-primary hover:to-cyan-400 text-black font-black uppercase text-[10px] tracking-[0.2em] rounded-xl hover:shadow-[0_0_15px_rgba(0,240,255,0.25)] transition-all flex items-center gap-2"
                   >
                     <Plus size={14} className="stroke-[3]" />

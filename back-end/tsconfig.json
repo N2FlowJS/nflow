@@ -1,40 +1,63 @@
 {
   "compilerOptions": {
-    "target": "ES2022",
-    "experimentalDecorators": true,
-    "useDefineForClassFields": false,
+    /* Language and environment */
+    "target": "ES2023",
+    "lib": ["ES2023"],
     "module": "ESNext",
-    "lib": ["ES2022"],
-    "skipLibCheck": true,
-    "types": ["node"],
     "moduleResolution": "bundler",
-    "isolatedModules": true,
     "moduleDetection": "force",
-    "allowJs": true,
-    "jsx": "react-jsx",
+    "types": ["node"],
+
+    /* Emit */
     "outDir": "./dist",
     "rootDir": "..",
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
+    "rewriteRelativeImportExtensions": true,
+
+    /* Interop */
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    /*
+     * The an5 generator (scripts/generate-an5-client.ts) post-processes its own
+     * output so `an5Client/` stays compatible with both of these.
+     */
+    "verbatimModuleSyntax": true,
+    "erasableSyntaxOnly": true,
+
+    /* Paths */
     "paths": {
       "@/*": ["./*"]
     },
+
+    /* Strictness: the full `strict` family, spelled out so removals are explicit */
     "strict": true,
     "noImplicitAny": true,
-    "esModuleInterop": true,
+    "noImplicitThis": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "useUnknownInCatchVariables": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "strictPropertyInitialization": true,
+
+    /* Extra safety beyond `strict` */
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false,
+    "forceConsistentCasingInFileNames": true,
+
+    /* Interop with the JS toolchain */
+    "skipLibCheck": true,
     "skipDefaultLibCheck": true
   },
-  "include": [
-    "."
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "../front-end",
-    "flow-templates",
-    "flow-validation",
-    "agent-templates",
-    "lib/prisma-client"
-  ]
+  "include": ["."],
+  "exclude": ["node_modules", "dist", "../front-end"]
 }

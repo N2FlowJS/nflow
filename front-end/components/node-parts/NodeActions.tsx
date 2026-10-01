@@ -16,8 +16,6 @@ export const NodeActions = ({
   onOpenConfig,
   onOpenData,
   onDelete,
-  isConfigOpen,
-  isDataOpen,
 }: NodeActionsProps) => {
   return (
     <div className="absolute -top-12 left-0 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200 z-10 bg-black/60 backdrop-blur-md p-1 rounded-lg border border-white/10 shadow-2xl scale-90 origin-bottom-left group-hover:scale-100">

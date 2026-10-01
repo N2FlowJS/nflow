@@ -1,4 +1,4 @@
-import { API_BASE, getAuthToken, clearAuthData, ApiResponse } from './api';
+import { API_BASE, getAuthToken, clearAuthData, type ApiResponse } from './api';
 
 export type ApiMonitorEvent = {
   url: string;
@@ -6,9 +6,23 @@ export type ApiMonitorEvent = {
   status: number;
   duration: number;
   ok: boolean;
-  error?: string;
+  error?: string | undefined;
   timestamp: number;
 };
+
+/** `HeadersInit` is a union; flatten it to a plain record so we can spread it. */
+function toHeaderRecord(headers: HeadersInit | undefined): Record<string, string> {
+  if (!headers) return {};
+  if (Array.isArray(headers)) return Object.fromEntries(headers);
+  if (typeof (headers as Headers).forEach === 'function') {
+    const out: Record<string, string> = {};
+    (headers as Headers).forEach((value, key) => {
+      out[key] = value;
+    });
+    return out;
+  }
+  return { ...(headers as Record<string, string>) };
+}
 
 type MonitorCallback = (event: ApiMonitorEvent) => void;
 
@@ -21,12 +35,12 @@ class ApiService {
   public subscribe(callback: MonitorCallback) {
     this.listeners.push(callback);
     return () => {
-      this.listeners = this.listeners.filter(l => l !== callback);
+      this.listeners = this.listeners.filter((l) => l !== callback);
     };
   }
 
   private notify(event: ApiMonitorEvent) {
-    this.listeners.forEach(l => {
+    this.listeners.forEach((l) => {
       try {
         l(event);
       } catch (e) {
@@ -38,17 +52,14 @@ class ApiService {
   /**
    * Generic request handler with monitoring
    */
-  public async request<T = any>(
-    path: string,
-    options: RequestInit = {}
-  ): Promise<ApiResponse<T>> {
+  public async request<T = unknown>(path: string, options: RequestInit = {}): Promise<ApiResponse<T>> {
     const start = Date.now();
     const token = getAuthToken();
     const url = path.startsWith('http') ? path : `${API_BASE}${path}`;
 
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      ...(options.headers as any),
+      ...toHeaderRecord(options.headers),
     };
 
     if (token) {
@@ -73,13 +84,13 @@ class ApiService {
       }
 
       const rawData = await response.json();
-      
+
       // Handle the standardized { ok, data, error } format from backend
       const result: ApiResponse<T> = {
         ok: responseOk,
         data: rawData.data ?? rawData, // Fallback if data is not wrapped
         error: rawData.error,
-        ...rawData
+        ...rawData,
       };
 
       if (!result.ok && !result.error) {
@@ -88,7 +99,6 @@ class ApiService {
 
       errorMsg = result.error;
       return result;
-
     } catch (err) {
       responseOk = false;
       errorMsg = err instanceof Error ? err.message : 'Network error';
@@ -105,41 +115,41 @@ class ApiService {
         duration,
         ok: responseOk,
         error: errorMsg,
-        timestamp: start
+        timestamp: start,
       });
     }
   }
 
   // Convenience methods
-  public get<T = any>(path: string, options?: RequestInit) {
+  public get<T = unknown>(path: string, options?: RequestInit) {
     return this.request<T>(path, { ...options, method: 'GET' });
   }
 
-  public post<T = any>(path: string, body: any, options?: RequestInit) {
+  public post<T = unknown>(path: string, body: unknown, options?: RequestInit) {
     return this.request<T>(path, {
       ...options,
       method: 'POST',
-      body: JSON.stringify(body)
+      body: JSON.stringify(body),
     });
   }
 
-  public put<T = any>(path: string, body: any, options?: RequestInit) {
+  public put<T = unknown>(path: string, body: unknown, options?: RequestInit) {
     return this.request<T>(path, {
       ...options,
       method: 'PUT',
-      body: JSON.stringify(body)
+      body: JSON.stringify(body),
     });
   }
 
-  public patch<T = any>(path: string, body: any, options?: RequestInit) {
+  public patch<T = unknown>(path: string, body: unknown, options?: RequestInit) {
     return this.request<T>(path, {
       ...options,
       method: 'PATCH',
-      body: JSON.stringify(body)
+      body: JSON.stringify(body),
     });
   }
 
-  public delete<T = any>(path: string, options?: RequestInit) {
+  public delete<T = unknown>(path: string, options?: RequestInit) {
     return this.request<T>(path, { ...options, method: 'DELETE' });
   }
 }

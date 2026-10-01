@@ -1,6 +1,5 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
-import React from 'react';
 import Modal from './Modal';
 
 describe('Modal Component', () => {
@@ -8,7 +7,7 @@ describe('Modal Component', () => {
     const { container } = render(
       <Modal isOpen={false} onClose={() => {}}>
         <div>Content</div>
-      </Modal>
+      </Modal>,
     );
     expect(container.firstChild).toBeNull();
   });
@@ -17,7 +16,7 @@ describe('Modal Component', () => {
     render(
       <Modal isOpen={true} onClose={() => {}} title="Test Modal">
         <div>Modal Content</div>
-      </Modal>
+      </Modal>,
     );
     expect(screen.getByText('Test Modal')).toBeInTheDocument();
     expect(screen.getByText('Modal Content')).toBeInTheDocument();
@@ -28,9 +27,9 @@ describe('Modal Component', () => {
     render(
       <Modal isOpen={true} onClose={onClose}>
         <div>Content</div>
-      </Modal>
+      </Modal>,
     );
-    
+
     const closeButton = screen.getByLabelText('Close');
     fireEvent.click(closeButton);
     expect(onClose).toHaveBeenCalledTimes(1);

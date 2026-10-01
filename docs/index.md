@@ -2,9 +2,9 @@
 layout: home
 
 hero:
-  name: "N2FLOW"
-  text: "AI-powered flow editor"
-  tagline: "Build, test, and run AI workflows with LLM and agent nodes."
+  name: 'N2FLOW'
+  text: 'AI-powered flow editor'
+  tagline: 'Build, test, and run AI workflows with LLM and agent nodes.'
   actions:
     - theme: brand
       text: Getting Started

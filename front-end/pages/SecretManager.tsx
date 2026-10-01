@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Eye, 
-  Copy, 
-  RefreshCw, 
-  Edit2, 
-  Trash2, 
-  Plus, 
-  Search, 
+import {
+  Eye,
+  Copy,
+  RefreshCw,
+  Edit2,
+  Trash2,
+  Plus,
+  Search,
   ShieldCheck,
   Check,
   X,
   History,
-  Lock
+  Lock,
 } from 'lucide-react';
 import { apiService } from '../lib/apiService';
 import { Input } from '../components/ui';
@@ -52,15 +52,15 @@ const SecretManager: React.FC = () => {
 
   // Load secrets on mount
   useEffect(() => {
-    loadSecrets();
+    void loadSecrets();
   }, []);
 
   const loadSecrets = async () => {
     try {
       setLoading(true);
-      const response = await apiService.get('/api/secrets');
+      const response = await apiService.get<Secret[]>('/api/secrets');
       if (response.ok) {
-        const mapped = (response.data || []).map((s: any) => ({
+        const mapped = (response.data || []).map((s: Secret) => ({
           ...s,
           key: s.keyPreview || s.key || '',
         }));
@@ -115,7 +115,7 @@ const SecretManager: React.FC = () => {
 
       if (response.ok) {
         setError(null);
-        loadSecrets();
+        void loadSecrets();
         handleCloseModal();
       } else {
         setError(response.error || 'Failed to save secret');
@@ -135,7 +135,7 @@ const SecretManager: React.FC = () => {
 
       if (response.ok) {
         setError(null);
-        loadSecrets();
+        void loadSecrets();
       } else {
         setError(response.error || 'Failed to delete secret');
       }
@@ -150,14 +150,14 @@ const SecretManager: React.FC = () => {
     }
 
     try {
-      const response = await apiService.post(`/api/secrets/${id}/regenerate`, {});
+      const response = await apiService.post<{ key: string }>(`/api/secrets/${id}/regenerate`, {});
 
       if (response.ok) {
         setError(null);
         // Show the new key temporarily
-        setShowSecretValue(response.data?.key);
+        setShowSecretValue(response.data?.key ?? null);
         setTimeout(() => setShowSecretValue(null), 10000); // Hide after 10 seconds
-        loadSecrets();
+        void loadSecrets();
       } else {
         setError(response.error || 'Failed to regenerate secret');
       }
@@ -168,9 +168,9 @@ const SecretManager: React.FC = () => {
 
   const handleRevealSecret = async (id: string) => {
     try {
-      const response = await apiService.get(`/api/secrets/${id}`);
+      const response = await apiService.get<{ key: string }>(`/api/secrets/${id}`);
       if (response.ok) {
-        setShowSecretValue(response.data?.key);
+        setShowSecretValue(response.data?.key ?? null);
         // Auto-hide after 30 seconds for security
         setTimeout(() => setShowSecretValue(null), 30000);
       } else {
@@ -183,7 +183,7 @@ const SecretManager: React.FC = () => {
 
   const handleCopyToClipboard = async (id: string) => {
     try {
-      const response = await apiService.get(`/api/secrets/${id}`);
+      const response = await apiService.get<{ key: string }>(`/api/secrets/${id}`);
       if (response.ok) {
         const secretValue = response.data?.key;
         if (secretValue) {
@@ -199,9 +199,10 @@ const SecretManager: React.FC = () => {
     }
   };
 
-  const filteredSecrets = secrets.filter(s => 
-    s.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    s.label?.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredSecrets = secrets.filter(
+    (s) =>
+      s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      s.label?.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   return (
@@ -211,7 +212,10 @@ const SecretManager: React.FC = () => {
       {/* Premium Blurred Glow Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-[10%] right-[15%] w-96 h-96 bg-cyber-primary/5 rounded-full blur-[120px] animate-pulse-glow"></div>
-        <div className="absolute bottom-[10%] left-[15%] w-96 h-96 bg-cyber-secondary/5 rounded-full blur-[120px] animate-pulse-glow" style={{ animationDelay: '1.5s' }}></div>
+        <div
+          className="absolute bottom-[10%] left-[15%] w-96 h-96 bg-cyber-secondary/5 rounded-full blur-[120px] animate-pulse-glow"
+          style={{ animationDelay: '1.5s' }}
+        ></div>
       </div>
 
       <div className="max-w-6xl mx-auto p-6 space-y-8 relative z-10">
@@ -261,14 +265,19 @@ const SecretManager: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {loading ? (
             Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="h-48 bg-white/5 border border-white/5 rounded-2xl animate-pulse" />
+              <div
+                key={i}
+                className="h-48 bg-white/5 border border-white/5 rounded-2xl animate-pulse"
+              />
             ))
           ) : filteredSecrets.length === 0 ? (
             <div className="col-span-full py-20 flex flex-col items-center justify-center border-2 border-dashed border-white/5 rounded-3xl bg-black/20">
               <div className="p-5 bg-white/5 rounded-full mb-4 text-gray-600">
                 <Lock size={40} />
               </div>
-              <p className="text-gray-500 font-bold uppercase tracking-widest text-sm">Vault Empty</p>
+              <p className="text-gray-500 font-bold uppercase tracking-widest text-sm">
+                Vault Empty
+              </p>
               <p className="text-gray-600 text-xs mt-1">No secrets matched your search.</p>
             </div>
           ) : (
@@ -288,6 +297,13 @@ const SecretManager: React.FC = () => {
                       className="w-8 h-8 p-0"
                     />
                     <CyberAction
+                      icon={RefreshCw}
+                      label="Regenerate"
+                      showLabel={false}
+                      onClick={() => handleRegenerateSecret(secret.id)}
+                      className="w-8 h-8 p-0 hover:border-amber-500/50 hover:bg-amber-500/10 text-amber-400"
+                    />
+                    <CyberAction
                       icon={Trash2}
                       label="Delete"
                       showLabel={false}
@@ -305,17 +321,15 @@ const SecretManager: React.FC = () => {
                     </div>
                     <div className="flex items-center gap-2 p-3 bg-black/60 rounded-xl border border-white/5 font-mono text-sm group-hover:border-cyber-primary/20 transition-colors relative overflow-hidden">
                       <Lock size={14} className="text-cyber-primary/50" />
-                      <span className="flex-1 truncate">
-                        {secret.keyPreview || secret.key}
-                      </span>
-                      <button 
+                      <span className="flex-1 truncate">{secret.keyPreview || secret.key}</span>
+                      <button
                         onClick={() => handleRevealSecret(secret.id)}
                         className="text-gray-500 hover:text-cyber-primary transition-colors mr-1"
                         title="Reveal Secret"
                       >
                         <Eye size={14} />
                       </button>
-                      <button 
+                      <button
                         onClick={() => handleCopyToClipboard(secret.id)}
                         className="text-gray-500 hover:text-cyber-primary transition-colors"
                       >
@@ -326,23 +340,29 @@ const SecretManager: React.FC = () => {
 
                   <div className="flex items-center justify-between pt-2 border-t border-white/5">
                     <div className="flex flex-col">
-                      <span className="text-[9px] text-gray-600 font-bold uppercase tracking-tighter">Created</span>
+                      <span className="text-[9px] text-gray-600 font-bold uppercase tracking-tighter">
+                        Created
+                      </span>
                       <span className="text-[10px] font-mono text-white/60">
                         {new Date(secret.createdAt).toLocaleDateString()}
                       </span>
                     </div>
                     <div className="flex flex-col items-end">
-                      <span className="text-[9px] text-gray-600 font-bold uppercase tracking-tighter">Last Usage</span>
+                      <span className="text-[9px] text-gray-600 font-bold uppercase tracking-tighter">
+                        Last Usage
+                      </span>
                       <span className="text-[10px] font-mono text-white/60 flex items-center gap-1">
                         <History size={10} />
-                        {secret.lastUsedAt ? new Date(secret.lastUsedAt).toLocaleDateString() : 'Never'}
+                        {secret.lastUsedAt
+                          ? new Date(secret.lastUsedAt).toLocaleDateString()
+                          : 'Never'}
                       </span>
                     </div>
                   </div>
 
                   {secret.label && (
                     <div className="flex flex-wrap gap-1.5 mt-2">
-                      {secret.label.split(',').map(tag => (
+                      {secret.label.split(',').map((tag) => (
                         <CyberBadge key={tag} label={tag.trim()} variant="info" />
                       ))}
                     </div>
@@ -357,13 +377,16 @@ const SecretManager: React.FC = () => {
         {showSecretValue && (
           <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-in fade-in duration-200">
             <CyberPanel
-                title="Decrypted Secret"
-                icon={Eye}
-                className="w-full max-w-md border-cyber-primary/50 shadow-[0_0_20px_rgba(0,240,255,0.12)]"
-                onClose={() => setShowSecretValue(null)}
+              title="Decrypted Secret"
+              icon={Eye}
+              className="w-full max-w-md border-cyber-primary/50 shadow-[0_0_20px_rgba(0,240,255,0.12)]"
+              onClose={() => setShowSecretValue(null)}
             >
               <div className="p-6 space-y-4">
-                <p className="text-xs text-gray-400 font-medium"> This value is shown temporarily for security. It will auto-hide in 30 seconds.</p>
+                <p className="text-xs text-gray-400 font-medium">
+                  {' '}
+                  This value is shown temporarily for security. It will auto-hide in 30 seconds.
+                </p>
                 <div className="p-4 bg-black rounded-xl border border-cyber-primary/30 font-mono text-sm text-cyber-primary break-all shadow-inner">
                   {showSecretValue}
                 </div>
@@ -371,8 +394,10 @@ const SecretManager: React.FC = () => {
                   icon={Copy}
                   label="Copy to Clipboard"
                   onClick={() => {
-                    navigator.clipboard.writeText(showSecretValue);
-                    setShowSecretValue(null);
+                    void navigator.clipboard
+                      .writeText(showSecretValue)
+                      .catch(() => setError('Clipboard write was blocked by the browser'))
+                      .finally(() => setShowSecretValue(null));
                   }}
                   className="w-full justify-center bg-cyber-primary text-black border-transparent"
                 />
@@ -400,19 +425,23 @@ const SecretManager: React.FC = () => {
             >
               <div className="p-6 space-y-6">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-cyber-primary/70 ml-1">Secret Name</label>
+                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-cyber-primary/70 ml-1">
+                    Secret Name
+                  </label>
                   <Input
                     placeholder="e.g. OPENAI_API_KEY"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   />
                 </div>
-                
+
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-cyber-primary/70 ml-1">Key Value</label>
+                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-cyber-primary/70 ml-1">
+                    Key Value
+                  </label>
                   <div className="relative">
                     <textarea
-                      placeholder={isEditing ? "••••••••••••••••" : "Paste raw secret value here"}
+                      placeholder={isEditing ? '••••••••••••••••' : 'Paste raw secret value here'}
                       value={formData.key}
                       onChange={(e) => setFormData({ ...formData, key: e.target.value })}
                       className="w-full px-4 py-3 bg-black/60 border border-white/10 rounded-xl focus:outline-none focus:border-cyber-primary/50 text-xs text-white font-mono min-h-[100px] resize-none pr-10"
@@ -427,7 +456,9 @@ const SecretManager: React.FC = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-cyber-primary/70 ml-1">Description (Optional)</label>
+                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-cyber-primary/70 ml-1">
+                    Description (Optional)
+                  </label>
                   <Input
                     placeholder="e.g. Production API key for OpenAI"
                     value={formData.label}

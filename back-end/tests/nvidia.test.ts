@@ -1,9 +1,21 @@
 import 'dotenv/config';
 import { vi, describe, it, expect } from 'vitest';
+import { runNvidiaChat } from '../llm/nvidia';
+import { createLogger } from '../utils/logger';
+import { listModels as listLlms, type LlmRuntimeConfig } from '../llm';
+
+/** Outcome of trying one candidate model against the NVIDIA endpoint. */
+type ModelTry = { model: string; ok: boolean; res?: string; error?: string };
+
+const logger = createLogger('Tests');
 
 // Prefer real integration when an env var exists; prioritize `NVIDIA_API_KEY` (user-provided),
 // then `NVIDIA_NIM_API_KEY`, then server secret.
-const envKey = process.env.NVIDIA_API_KEY || process.env.NVIDIA_NIM_API_KEY || process.env.SERVER_SECRET_NVIDIA_API_KEY || '';
+const envKey =
+  process.env.NVIDIA_API_KEY ||
+  process.env.NVIDIA_NIM_API_KEY ||
+  process.env.SERVER_SECRET_NVIDIA_API_KEY ||
+  '';
 
 if (!envKey) {
   vi.mock('openai', () => {
@@ -26,17 +38,14 @@ if (!envKey) {
   // Informational: running integration against NVIDIA NIM with provided key
   // Be careful: running integration tests will make network requests.
   // The test will still assert we receive a 404 for the invalid model id.
-  // eslint-disable-next-line no-console
-  console.log('[tests] Using NVIDIA key from environment for integration test');
+  logger.info('[tests] Using NVIDIA key from environment for integration test');
 }
-
-import { runNvidiaChat } from '../llm/nvidia';
-import { listModels as listLlms } from '../llm';
 
 describe('runNvidiaChat error handling', () => {
   it('invokes NVIDIA chat for Gemma instruct model (integration) or simulates 404 when mocked', async () => {
-    const baseCfg: any = {
+    const baseCfg: LlmRuntimeConfig = {
       provider: 'NVIDIA',
+      model: '',
       apiKey: envKey || 'nvapi-FAKEKEY',
       baseUrl: process.env.NVIDIA_NIM_BASE_URL || 'https://integrate.api.nvidia.com/v1',
       stream: false,
@@ -56,16 +65,19 @@ describe('runNvidiaChat error handling', () => {
     // then fall back to env-specified models and a static candidate set.
     let fetchedModels: string[] = [];
     try {
-      const listed = await listLlms({ provider: 'NVIDIA', baseUrl: baseCfg.baseUrl, apiKey: baseCfg.apiKey, model: '' } as any);
+      const listed = await listLlms({
+        provider: 'NVIDIA',
+        baseUrl: baseCfg.baseUrl,
+        apiKey: baseCfg.apiKey,
+        model: '',
+      });
       if (Array.isArray(listed) && listed.length > 0) {
-        fetchedModels = listed.map((m: any) => String(m.id || m.name || '').trim()).filter(Boolean);
-        // eslint-disable-next-line no-console
-        console.log('[tests] listLlms fetched models:', fetchedModels.length);
+        fetchedModels = listed.map((m) => String(m.id || m.name || '').trim()).filter(Boolean);
+        logger.info('[tests] listLlms fetched models:', fetchedModels.length);
       }
     } catch (e) {
       // ignore fetch errors and continue with static candidates
-      // eslint-disable-next-line no-console
-      console.warn('[tests] listLlms error:', String(e));
+      logger.warn('[tests] listLlms error:', String(e));
     }
 
     const staticCandidates = [
@@ -93,60 +105,76 @@ describe('runNvidiaChat error handling', () => {
     }
 
     const combined = Array.from(
-      new Set([...(envModels || []), ...fetchedModels, ...staticCandidates, ...generatedVariants].filter(Boolean)),
+      new Set(
+        [...(envModels || []), ...fetchedModels, ...staticCandidates, ...generatedVariants].filter(
+          Boolean,
+        ),
+      ),
     );
 
     const maxTries = Math.max(1, Number(process.env.NVIDIA_MAX_TRIES || '40'));
     const candidateModels = combined.slice(0, maxTries);
 
-    // eslint-disable-next-line no-console
-    console.log('[tests] Candidate models to try:', candidateModels.length);
-
+    logger.info('[tests] Candidate models to try:', candidateModels.length);
 
     if (!envKey) {
       // In mock mode we simulate a 404 from the OpenAI client
       const mockCfg = { ...baseCfg, model: candidateModels[0] || 'google/gemma-2-2b-it' };
       await expect(
-        runNvidiaChat(mockCfg, 'system', 'Hello world', [], async () => '', (msg) => {})
+        runNvidiaChat(
+          mockCfg,
+          'system',
+          'Hello world',
+          [],
+          async () => '',
+          () => {},
+        ),
       ).rejects.toThrow(/404/);
       return;
     }
 
     // Integration path: try multiple candidate models sequentially. If all fail, list available models for debug.
-    try {
-      const results: Array<any> = [];
-      for (const model of candidateModels) {
-        const cfg = { ...baseCfg, model };
-        // eslint-disable-next-line no-console
-        console.log('[tests] Trying model:', model);
-        try {
-          const res = await runNvidiaChat(cfg, 'system', 'Hello world', [], async () => '', (msg) => {});
-          results.push({ model, ok: true, res });
-          break;
-        } catch (e) {
-          const m = e instanceof Error ? e.message : String(e);
-          results.push({ model, ok: false, error: m });
-          // continue to next candidate
-        }
+    const results: ModelTry[] = [];
+    for (const model of candidateModels) {
+      const cfg = { ...baseCfg, model };
+      logger.info('[tests] Trying model:', model);
+      try {
+        const res = await runNvidiaChat(
+          cfg,
+          'system',
+          'Hello world',
+          [],
+          async () => '',
+          () => {},
+        );
+        results.push({ model, ok: true, res });
+        break;
+      } catch (e) {
+        const m = e instanceof Error ? e.message : String(e);
+        results.push({ model, ok: false, error: m });
+        // continue to next candidate
       }
+    }
 
-      const success = results.find((r) => r.ok);
-      if (success) {
-        expect(typeof success.res).toBe('string');
-        expect(success.res.length).toBeGreaterThan(0);
-        // eslint-disable-next-line no-console
-        console.log('[tests] Success model:', success.model);
-      } else {
-        const available = await listLlms({ provider: 'NVIDIA', baseUrl: baseCfg.baseUrl, apiKey: baseCfg.apiKey, model: '' } as any);
-        // eslint-disable-next-line no-console
-        console.log('[tests] All tries failed:', JSON.stringify(results, null, 2));
-        // eslint-disable-next-line no-console
-        console.log('[tests] NVIDIA listModels result:', JSON.stringify(available.slice(0, 50), null, 2));
-        // Keep test green for debugging runs
-        expect(true).toBe(true);
-      }
-    } catch (err) {
-      throw err;
+    const success = results.find((r) => r.ok);
+    if (success) {
+      expect(typeof success.res).toBe('string');
+      expect((success.res ?? '').length).toBeGreaterThan(0);
+      logger.info('[tests] Success model:', success.model);
+    } else {
+      const available = await listLlms({
+        provider: 'NVIDIA',
+        baseUrl: baseCfg.baseUrl,
+        apiKey: baseCfg.apiKey,
+        model: '',
+      });
+      logger.info('[tests] All tries failed:', JSON.stringify(results, null, 2));
+      logger.info(
+        '[tests] NVIDIA listModels result:',
+        JSON.stringify(available.slice(0, 50), null, 2),
+      );
+      // Keep test green for debugging runs
+      expect(true).toBe(true);
     }
   });
 });

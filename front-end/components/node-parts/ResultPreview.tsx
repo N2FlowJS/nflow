@@ -1,7 +1,6 @@
-import React from "react";
-import { JsonViewer } from "@textea/json-viewer";
+import { JsonViewer } from '@textea/json-viewer';
 import { stringifyUnknown } from '../../lib/utils';
-import { CyberBadge } from "../shared/CyberUI";
+import { CyberBadge } from '../shared/CyberUI';
 
 interface ResultPreviewProps {
   output: unknown;
@@ -54,7 +53,7 @@ export const ResultPreview = ({ output }: ResultPreviewProps) => {
   const rows = parseRows(output);
 
   // Try to parse as JSON for tree view
-  let jsonObj: any = null;
+  let jsonObj: unknown = null;
   if (typeof output === 'object') {
     jsonObj = output;
   } else if (typeof output === 'string') {
@@ -72,14 +71,17 @@ export const ResultPreview = ({ output }: ResultPreviewProps) => {
     <div className="p-0 max-h-[160px] overflow-auto text-[10px] font-mono custom-scrollbar">
       {(() => {
         if (!output)
-          return <div className="p-2 italic text-gray-600 uppercase tracking-widest text-[9px]">Empty_Result</div>;
+          return (
+            <div className="p-2 italic text-gray-600 uppercase tracking-widest text-[9px]">
+              Empty_Result
+            </div>
+          );
 
         // 0. Detect Image URL
         if (
-          typeof output === "string" &&
-          output.startsWith("http") &&
-          (output.includes("openai.com") ||
-            output.match(/\.(jpeg|jpg|gif|png)$/) !== null)
+          typeof output === 'string' &&
+          output.startsWith('http') &&
+          (output.includes('openai.com') || output.match(/\.(jpeg|jpg|gif|png)$/) !== null)
         ) {
           return (
             <div className="relative group p-1">
@@ -87,7 +89,7 @@ export const ResultPreview = ({ output }: ResultPreviewProps) => {
                 src={output}
                 alt="Generated"
                 className="w-full h-auto rounded border border-white/10 hover:border-cyber-primary/50 transition-all cursor-zoom-in"
-                onClick={() => window.open(output, "_blank")}
+                onClick={() => window.open(output, '_blank')}
               />
               <div className="absolute inset-0 bg-cyber-primary/10 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity" />
             </div>
@@ -95,12 +97,12 @@ export const ResultPreview = ({ output }: ResultPreviewProps) => {
         }
 
         // 1. Detect Boolean
-        if (typeof output === "boolean") {
+        if (typeof output === 'boolean') {
           return (
             <div className="flex items-center justify-center py-4 bg-black/20">
-              <CyberBadge 
-                label={output ? "TRUE" : "FALSE"} 
-                variant={output ? "success" : "error"}
+              <CyberBadge
+                label={output ? 'TRUE' : 'FALSE'}
+                variant={output ? 'success' : 'error'}
                 size="sm"
                 className="px-4 py-1.5"
               />
@@ -128,12 +130,9 @@ export const ResultPreview = ({ output }: ResultPreviewProps) => {
         }
 
         // 3. Detect List Shape
-        if (
-          rows.length > 0 &&
-          isPreviewRow(rows[0])
-        ) {
+        if (rows.length > 0 && isPreviewRow(rows[0])) {
           const r0 = rows[0];
-          if ("title" in r0 || "snippet" in r0 || "text" in r0) {
+          if ('title' in r0 || 'snippet' in r0 || 'text' in r0) {
             return (
               <div className="space-y-2">
                 {rows.slice(0, 3).map((item, i) => (
@@ -170,9 +169,7 @@ export const ResultPreview = ({ output }: ResultPreviewProps) => {
         // 4. Fallback
         const text = stringifyUnknown(output);
         return (
-          <div className="whitespace-pre-wrap line-clamp-[12] break-all leading-normal">
-            {text}
-          </div>
+          <div className="whitespace-pre-wrap line-clamp-[12] break-all leading-normal">{text}</div>
         );
       })()}
     </div>
