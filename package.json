@@ -13,7 +13,7 @@
   ],
   "scripts": {
     "postinstall": "node scripts/ensure-lint-typescript.cjs",
-    "install:all": "npm install && npm --prefix back-end install && npm --prefix front-end install",
+    "install:all": "npm install",
     "dev": "concurrently --names backend,frontend --prefix name \"npm run dev:backend\" \"npm run dev:frontend\"",
     "dev:backend": "npm --prefix back-end run dev",
     "dev:frontend": "npm --prefix front-end run dev",
@@ -53,5 +53,8 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "prettier": "^3.8.3",
     "typescript": "^7.0.2"
+  },
+  "overrides": {
+    "uuid": "^11.1.1"
   }
 }

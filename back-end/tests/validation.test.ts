@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { validateNodeConnectivity, validateToolConnectivity } from '../flow-validation/utils';
-import { type Node, type Edge } from '@xyflow/react';
+// Statement-level type import: with inline `type` specifiers the bundler keeps
+// the import as a side-effect and tries to load @xyflow/react, which has no
+// `react` peer installed in this workspace.
+import type { Node, Edge } from '@xyflow/react';
 
 describe('Flow Validation Utilities', () => {
   describe('validateNodeConnectivity', () => {

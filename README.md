@@ -269,6 +269,22 @@ npm --prefix back-end run test
 
 - A workspace task `Run backend auth tests` is available for convenience.
 
+### Known dependency advisories
+
+`npm audit` is clean for `back-end` and `front-end`. Three advisories remain in
+the `docs` workspace and in the root tree, all from `vitepress@1.6.4`, which
+pins `vite@^5`:
+
+| Advisory | Severity | Why it is still there |
+| --- | --- | --- |
+| `server.fs.deny` bypass on Windows alternate paths (`GHSA-fx2h-pf6j-xcff`) | high | No patched `vite@5` exists; every 5.x release is `<=6.4.2`. `vitepress@2` is alpha-only. |
+| Path traversal in optimized deps (`.map` handling) | moderate | Same cause. |
+| `esbuild` dev server CORS (`GHSA-67mh-4wv8-2f99`) | moderate | Same cause; only reachable via `esbuild --serve`, which VitePress does not use. |
+
+Two of the three are Windows-only. All are limited to the local documentation
+dev server, so keep `npm run docs:dev` bound to localhost and do not expose it
+publicly. Revisit when VitePress 2 ships a stable release.
+
 ---
 
 ## Contributing
